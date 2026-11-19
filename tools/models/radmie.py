@@ -5,8 +5,8 @@ snake): a Blockbench model for BetterModel, written by script, with its animatio
     python -I tools/models/radmie.py       -> models/radmie.bbmodel, models/radmie.png, build/models/radmie-*.gif + radmie-sheet.png
 
 The chain of bones runs from the middle (`mid`, the base entity's spot) forward to the head and back to the tail. It faces north
-(-Z). Animations: idle (coiled, head up, swaying), walk (slithering), lunge (the whole body launched 3 blocks forward, the bite, back
-into the coil), hide (sinks into the rubble, holds), spawn (rises out of it), death.
+(-Z). Animations: idle (lying in curves), walk (slithering), rise (the head up over the rubble, holds), lunge (the attack from
+above: up, the strike down onto the target, fast back, the tail on the ground throughout), hide, spawn, death.
 """
 import math, os, random, sys
 from PIL import Image, ImageDraw
@@ -90,9 +90,16 @@ def texture():
 A, B, C, D = (0, 0, 16, 16), (16, 0, 32, 16), (32, 0, 48, 16), (48, 0, 64, 16)
 E, F, G, H, I = (0, 16, 16, 32), (16, 16, 32, 32), (32, 16, 48, 32), (48, 16, 64, 32), (0, 32, 16, 48)
 
+# Round 2 (Marek 11-19: *"about 2x longer, maybe even more, likely tinner ... attack from above (head goes up to get sight on target
+# and then attack from above and wents fast back while tail stays on ground all the time"*): ~18.6 blocks long, 6 x 5 px thick
+# (a human is 10 x 29 px), 10 segments forward and 10 back from the middle.
+L, NF, NB = 12, 10, 10
+FRONT = ["f%d" % i for i in range(1, NF + 1)] + ["neck", "head"]
+BACK = ["b%d" % i for i in range(1, NB + 1)] + ["tail1", "tail2"]
+
 
 def seg(name, z0, z1, w, h, uvset="body"):
-    """A body segment from z0 to z1 (z0 < z1), w wide, h tall, standing on the ground."""
+    """A body segment from z0 to z1 (z0 < z1), w wide, h tall, lying on the ground."""
     if uvset == "tail":
         uv = {f: list(H) for f in ("north", "south", "east", "west", "up", "down")}
     else:
@@ -101,31 +108,29 @@ def seg(name, z0, z1, w, h, uvset="body"):
 
 
 def model():
-    L = 12
-    head = Bone("head", (0, 3, -64), cubes=[
-        Cube("skull", (-6, 3, -80), (6, 9, -64), {"up": list(D), "east": list(E), "west": list(E), "north": list(G),
-                                                  "south": list(B), "down": list(F)}),
-        Cube("fang_l", (-4, 1, -79), (-3, 3, -78), {f: list(I) for f in ("north", "south", "east", "west")}),
-        Cube("fang_r", (3, 1, -79), (4, 3, -78), {f: list(I) for f in ("north", "south", "east", "west")}),
-    ], children=[Bone("jaw", (0, 3, -66), cubes=[
-        Cube("jaw", (-5, 0, -79), (5, 3, -66), {"up": list(F), "east": list(B), "west": list(B), "down": list(C), "north": list(G),
-                                               "south": list(B)})])])
-    neck = Bone("neck", (0, 0, -54), cubes=[seg("neck", -64, -54, 8, 7)], children=[head])
-    s1 = Bone("seg1", (0, 0, -42), cubes=[seg("seg1", -54, -42, 9, 8)], children=[neck])
-    s2 = Bone("seg2", (0, 0, -30), cubes=[seg("seg2", -42, -30, 10, 8)], children=[s1])
-    s3 = Bone("seg3", (0, 0, -18), cubes=[seg("seg3", -30, -18, 10, 8)], children=[s2])
-    s4 = Bone("seg4", (0, 0, -6), cubes=[seg("seg4", -18, -6, 10, 8)], children=[s3])
-    t2 = Bone("tail2", (0, 0, 54), cubes=[seg("tail2", 54, 66, 4, 4, "tail")])
-    t1 = Bone("tail1", (0, 0, 42), cubes=[seg("tail1", 42, 54, 6, 5, "tail")], children=[t2])
-    s8 = Bone("seg8", (0, 0, 30), cubes=[seg("seg8", 30, 42, 8, 6)], children=[t1])
-    s7 = Bone("seg7", (0, 0, 18), cubes=[seg("seg7", 18, 30, 9, 7)], children=[s8])
-    s6 = Bone("seg6", (0, 0, 6), cubes=[seg("seg6", 6, 18, 10, 8)], children=[s7])
-    mid = Bone("mid", (0, 0, 0), cubes=[seg("mid", -6, 6, 10, 8)], children=[s4, s6])
+    zh = -(L / 2 + NF * L + 10)                       # the head's back edge
+    head = Bone("head", (0, 2, zh), cubes=[
+        Cube("skull", (-4.5, 2, zh - 13), (4.5, 6, zh), {"up": list(D), "east": list(E), "west": list(E), "north": list(G),
+                                                          "south": list(B), "down": list(F)}),
+        Cube("fang_l", (-3, 0.5, zh - 12), (-2, 2, zh - 11), {f: list(I) for f in ("north", "south", "east", "west")}),
+        Cube("fang_r", (2, 0.5, zh - 12), (3, 2, zh - 11), {f: list(I) for f in ("north", "south", "east", "west")}),
+    ], children=[Bone("jaw", (0, 2, zh - 1), cubes=[
+        Cube("jaw", (-3.5, 0, zh - 12), (3.5, 2, zh - 1), {"up": list(F), "east": list(B), "west": list(B), "down": list(C),
+                                                          "north": list(G), "south": list(B)})])])
+    node = Bone("neck", (0, 0, zh + 10), cubes=[seg("neck", zh, zh + 10, 5, 4)], children=[head])
+    for i in range(NF, 0, -1):                        # f10 (next to the neck) ... f1 (next to the middle)
+        z1 = -(L / 2 + (i - 1) * L)
+        node = Bone("f%d" % i, (0, 0, z1), cubes=[seg("f%d" % i, z1 - L, z1, 6, 5)], children=[node])
+    front = node
+    zt = L / 2 + NB * L
+    node = Bone("tail1", (0, 0, zt), cubes=[seg("tail1", zt, zt + 10, 3.5, 3, "tail")],
+                children=[Bone("tail2", (0, 0, zt + 10), cubes=[seg("tail2", zt + 10, zt + 20, 2, 2, "tail")])])
+    for i in range(NB, 0, -1):
+        z0 = L / 2 + (i - 1) * L
+        w = 6 - 2.0 * (i - 1) / NB
+        node = Bone("b%d" % i, (0, 0, z0), cubes=[seg("b%d" % i, z0, z0 + L, w, max(3, 5 - (i - 1) * 0.2))], children=[node])
+    mid = Bone("mid", (0, 0, 0), cubes=[seg("mid", -L / 2, L / 2, 6, 5)], children=[front, node])
     return [mid]
-
-
-FRONT = ["seg4", "seg3", "seg2", "seg1", "neck", "head"]
-BACK = ["seg6", "seg7", "seg8", "tail1", "tail2"]
 
 
 def kf(x, y, z):
@@ -134,9 +139,24 @@ def kf(x, y, z):
     return (-x, -y, z)
 
 
-# the coil: the back part curled on the ground, the front part raised in an S with the head level
-COIL = {"seg4": (8, 40, 0), "seg3": (22, -55, 0), "seg2": (28, 30, 0), "seg1": (-8, 25, 0), "neck": (-26, -20, 0),
-        "head": (-20, 0, 0), "seg6": (0, 55, 0), "seg7": (0, 60, 0), "seg8": (0, 60, 0), "tail1": (0, 55, 0), "tail2": (0, 45, 0)}
+def wave(names, amp, phase0=0.0, step=0.9, t=0.0, T=1.0):
+    return {b: (0, amp * math.sin(2 * math.pi * t / T + phase0 + j * step), 0) for j, b in enumerate(names)}
+
+
+# lying: the whole body in loose S-curves on the ground, the neck a little up
+LIE = dict(wave(BACK[:-2], 22, 0.3, 0.7))
+LIE.update(wave(FRONT[:-2], 20, 1.5, 0.7))
+LIE.update({"neck": (10, 0, 0), "head": (-10, 0, 0)})
+# raised: the front third rises like a periscope to look over the rubble, the head level; the tail stays down
+UP = dict(LIE)
+UP.update({"f5": (0, 0, 0), "f6": (25, 0, 0), "f7": (30, 0, 0), "f8": (30, 0, 0), "f9": (5, 0, 0), "f10": (-35, 0, 0),
+           "neck": (-35, 0, 0), "head": (-15, 0, 0)})
+# the strike: the raised front throws itself forward and DOWN onto the target, the jaw wide
+STRIKE = dict(LIE)
+STRIKE.update({"f5": (0, 0, 0), "f6": (15, 0, 0), "f7": (0, 0, 0), "f8": (-10, 0, 0), "f9": (-10, 0, 0), "f10": (-5, 0, 0),
+               "neck": (-5, 0, 0), "head": (0, 0, 0)})   # the snout lands at ground level 3 blocks past where it looked from
+for b in ("f1", "f2", "f3", "f4"):
+    STRIKE[b] = (0, LIE[b][1] * 0.3, 0)              # the body behind the strike straightens a little
 
 
 def pose(p, t, extra=None):
@@ -167,53 +187,63 @@ def scaled(p, k, add=None):
 
 def animations():
     anim = {}
-    # idle: coiled, the head swaying and the jaw twitching (2 s, loop)
+    # idle: lying in curves, the head swaying, the jaw twitching (2 s, loop)
     anim["idle"] = {"length": 2.0, "loop": "loop", "interp": "catmullrom", "bones": merge(
-        pose(COIL, 0.0), pose(scaled(COIL, 1, {"neck": (3, 6, 0), "head": (-2, -8, 0)}), 1.0), pose(COIL, 2.0),
+        pose(LIE, 0.0), pose(scaled(LIE, 1, {"neck": (4, 8, 0), "head": (-3, -10, 0)}), 1.0), pose(LIE, 2.0),
         pose({"jaw": (0, 0, 0)}, 0.0), pose({"jaw": (-8, 0, 0)}, 1.1), pose({"jaw": (0, 0, 0)}, 1.3))}
-    # walk: a slithering wave along the flat body (1.2 s, loop)
-    T, steps, chain = 1.2, 6, list(reversed(FRONT)) + ["mid"] + BACK
+    # walk: a slithering wave along the whole flat body (1.2 s, loop)
+    T, steps = 1.2, 6
     keys = {}
+    chain = list(reversed(FRONT)) + BACK
     for i in range(steps + 1):
         t = T * i / steps
         p = {}
         for j, b in enumerate(FRONT + BACK):
-            phase = (j if b in FRONT else -j) * 0.9
-            amp = 24 if b not in ("head", "neck") else 12
-            p[b] = (0, amp * math.sin(2 * math.pi * t / T + phase), 0)
+            phase = (j if b in FRONT else -(j - len(FRONT))) * 0.7
+            p[b] = (0, (10 if b in ("head", "neck") else 22) * math.sin(2 * math.pi * t / T + phase), 0)
         keys = merge(keys, pose(p, t))
     anim["walk"] = {"length": T, "loop": "loop", "interp": "catmullrom", "bones": keys}
-    # lunge: gather, launch the whole body 3 blocks forward and straight, the jaw wide, the bite, fling back into the coil (1.0 s)
-    gather = scaled(COIL, 1.15, {"neck": (12, 0, 0), "seg2": (10, 0, 0)})
-    straight = {b: (0, 0, 0) for b in COIL}
-    straight["head"] = (-4, 0, 0)
-    anim["lunge"] = {"length": 1.0, "loop": "once", "bones": merge(
-        pose(COIL, 0.0, {"mid": {"position": (0, 0, 0)}}),
-        pose(gather, 0.15, {"mid": {"position": (0, 0, 4)}}),
-        pose(straight, 0.32, {"mid": {"position": (0, 2, -48)}}),
-        pose(straight, 0.45, {"mid": {"position": (0, 0, -48)}}),
-        pose(COIL, 0.8, {"mid": {"position": (0, 0, 0)}}),
-        pose(COIL, 1.0, {"mid": {"position": (0, 0, 0)}}),
-        pose({"jaw": (0, 0, 0)}, 0.15), pose({"jaw": (-50, 0, 0)}, 0.3), pose({"jaw": (-50, 0, 0)}, 0.38),
-        pose({"jaw": (0, 0, 0)}, 0.45), pose({"jaw": (0, 0, 0)}, 1.0))}
-    # hide: sinks into the rubble and stays (1.0 s, hold)
-    low = scaled(COIL, 0.6)
+    # rise: the head goes up to see over the rubble and stays there (0.8 s, hold)
+    anim["rise"] = {"length": 0.8, "loop": "hold", "interp": "catmullrom", "bones": merge(pose(LIE, 0.0), pose(UP, 0.8))}
+    # lunge = the attack from above: up to look (0.6 s), the strike down onto the target, the jaw wide (fast), back up at once,
+    # then down again; the back half never leaves the ground (1.9 s)
+    anim["lunge"] = {"length": 1.9, "loop": "once", "bones": merge(
+        pose(LIE, 0.0), pose(UP, 0.6), pose(UP, 0.75), pose(STRIKE, 0.9), pose(STRIKE, 1.0), pose(UP, 1.2), pose(UP, 1.45),
+        pose(LIE, 1.9),
+        pose({"jaw": (0, 0, 0)}, 0.75), pose({"jaw": (-55, 0, 0)}, 0.88), pose({"jaw": (0, 0, 0)}, 0.97),
+        pose({"jaw": (0, 0, 0)}, 1.9))}
+    # hide: sinks flat into the rubble and stays (1.0 s, hold)
+    flat = scaled(LIE, 0.6, {"neck": (-10, 0, 0), "head": (10, 0, 0)})
     anim["hide"] = {"length": 1.0, "loop": "hold", "bones": merge(
-        pose(COIL, 0.0, {"mid": {"position": (0, 0, 0)}}), pose(low, 1.0, {"mid": {"position": (0, -7, 0)}}))}
-    # spawn: rises out of it into the coil (1.0 s)
-    anim["spawn"] = {"length": 1.0, "loop": "once", "bones": merge(
-        pose(low, 0.0, {"mid": {"position": (0, -7, 0)}}), pose(COIL, 1.0, {"mid": {"position": (0, 0, 0)}}))}
-    # death: writhes, stretches and rolls onto its back (1.5 s, hold)
-    dead = {b: (0, (12 if i % 2 else -12), 0) for i, b in enumerate(COIL)}
+        pose(LIE, 0.0, {"mid": {"position": (0, 0, 0)}}), pose(flat, 1.0, {"mid": {"position": (0, -4, 0)}}))}
+    # spawn: out of the rubble, the head up to look round, then down (1.6 s)
+    anim["spawn"] = {"length": 1.6, "loop": "once", "interp": "catmullrom", "bones": merge(
+        pose(flat, 0.0, {"mid": {"position": (0, -4, 0)}}), pose(LIE, 0.6, {"mid": {"position": (0, 0, 0)}}),
+        pose(UP, 1.1), pose(LIE, 1.6, {"mid": {"position": (0, 0, 0)}}))}
+    # death: writhes and rolls onto its back (1.5 s, hold)
+    dead = {b: (0, (10 if i % 2 else -10), 0) for i, b in enumerate(FRONT + BACK)}
     anim["death"] = {"length": 1.5, "loop": "hold", "bones": merge(
-        pose(COIL, 0.0, {"mid": {"rotation": (0, 0, 0)}}), pose(scaled(COIL, 0.5), 0.5),
-        pose(dead, 1.5, {"mid": {"rotation": (0, 0, 160), "position": (0, 6, 0)}}),
+        pose(LIE, 0.0, {"mid": {"rotation": (0, 0, 0), "position": (0, 0, 0)}}), pose(scaled(LIE, 1.4), 0.5),
+        pose(dead, 1.5, {"mid": {"rotation": (0, 0, 170), "position": (0, 4, 0)}}),
         pose({"jaw": (0, 0, 0)}, 0.0), pose({"jaw": (-30, 0, 0)}, 1.5))}
     return anim
 
 
-VIEW = dict(yaw=150, pitch=24, scale=3.4, center=(0, 12, -22))
-SIDE = dict(yaw=90, pitch=5, scale=3.4, center=(0, 14, -10))
+VIEW = dict(yaw=150, pitch=26, scale=1.9, center=(0, 14, -30), size=(560, 400))
+SIDE = dict(yaw=90, pitch=4, scale=1.9, center=(0, 30, -40), size=(560, 400))
+
+
+def head_tip(m, anim, t):
+    """Where the snout is (x, y, z in px) at time t: for checking the strike reaches the ground ahead."""
+    from bbmodel import posed_quads
+    import numpy as np
+    pts = []
+    for b in m.bones():
+        if b.name == "head":
+            break
+    sk = posed_quads(Model("x", m.texture, m.roots, m.animations), anim, t)
+    ys = [p for q, _ in sk for p in q]
+    return min(ys, key=lambda p: p[2])
 
 
 def main():
@@ -223,16 +253,18 @@ def main():
     m.texture.save(os.path.join(ROOT, "models", "radmie.png"))
     out = os.path.join(ROOT, "build", "models")
     os.makedirs(out, exist_ok=True)
-    stills = []
+    stills = [("rest (as modelled)", render(m, None, 0, **VIEW))]
     for an, a in m.animations.items():
         frames = []
         n = max(2, int(a["length"] * 12))
         for i in range(n + 1):
-            frames.append(render(m, an, a["length"] * i / n, **VIEW))
+            frames.append(render(m, an, a["length"] * i / n, **(SIDE if an == "lunge" else VIEW)))
         frames[0].save(os.path.join(out, "radmie-%s.gif" % an), save_all=True, append_images=frames[1:], duration=1000 // 12, loop=0)
-        pick = {"lunge": [0, 4, 6, 10], "idle": [0], "walk": [3], "hide": [n], "spawn": [n // 2], "death": [n]}[an]
-        stills += [(an + " %.2fs" % (a["length"] * i / n), frames[i]) for i in pick]
-    stills.insert(0, ("rest (as modelled)", render(m, None, 0, **VIEW)))
+        if an == "lunge":
+            front = [render(m, an, a["length"] * i / n, **VIEW) for i in range(n + 1)]
+            front[0].save(os.path.join(out, "radmie-lunge-front.gif"), save_all=True, append_images=front[1:], duration=1000 // 12, loop=0)
+        pick = {"lunge": [0, 7, 11, 14], "idle": [0], "walk": [3], "rise": [n], "hide": [n], "spawn": [n // 2], "death": [n]}[an]
+        stills += [(an + " %.2fs" % (a["length"] * i / n) + (" (side)" if an == "lunge" else ""), frames[i]) for i in pick]
     stills.insert(2, ("idle from the side", render(m, "idle", 0, **SIDE)))
     cols = 3
     w, h = stills[0][1].size
@@ -243,6 +275,8 @@ def main():
         sheet.paste(im, (x, y + 18))
         d.text((x + 6, y + 3), label, fill=(220, 220, 220))
     sheet.save(os.path.join(out, "radmie-sheet.png"))
+    for t in (0.0, 0.6, 0.9):
+        print("lunge t=%.2f snout at" % t, tuple(round(v / 16, 2) for v in head_tip(m, "lunge", t)), "blocks")
     print("models/radmie.bbmodel,", len(list(m.bones())), "bones,", len(m.animations), "animations; previews in build/models/")
 
 

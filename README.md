@@ -3,6 +3,16 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.30.0 (2026-11-19): free sounds, a longer Radmie that strikes from above, surviving Fatal Radiation.**
+- **Free sounds in the public pack** (`tools/free_sounds.py`, 47 of the 56 keys): CC0 recordings (Kenney's Impact, Sci-fi,
+  Interface, RPG, Digital and Jingles packs; OpenGameArt's Gunshot sounds and Handgun Reload) and a Geiger counter made from
+  nothing; sources in `pack/FREE-SOUNDS-CREDITS.md`. A player with the pack (from the server, or `/pack on`) hears them; the voices
+  (hurt, dying, death), the cold and the Trhač stay Minecraft's. Fallout 2's own pack, if a player has it, still wins.
+- **The Radmie, round 2:** about 18.6 blocks long and 6 x 5 px thick (a human is 10 x 29); it rises about 3.4 blocks to look over
+  the rubble (`rise`), strikes down onto a target 3 blocks further (`lunge`) and snaps back, the back half on the ground throughout.
+- **Surviving Fatal Radiation:** RadAway (50 + Medicine rads a dose) brings it down while Stimpaks outrun the drain; whoever comes
+  out of it alive keeps a permanent scar, Endurance −1 and HP Max −5 (EXAMPLE numbers).
+
 **Version 0.29.0 (2026-11-19): Pip-Boy pictures, the first creature model, Fatal Radiation.**
 - **Pip-Boy pictures in the sheet's hover texts** (attributes, skills, survival values): our own mascot, a lanky shelter warden
   with glasses and a steel helmet (not Bethesda's Vault Boy), drawn by FLUX.2 klein and turned into green screen pictures by

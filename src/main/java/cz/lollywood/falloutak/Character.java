@@ -714,6 +714,7 @@ public final class Character {
      */
     public String stageHour(List<String> before) {
         if (dead || inArrest()) return null;
+        String scar = before.contains(FATAL_RADIATION) && !stages().contains(FATAL_RADIATION) ? surviveFatal() : null;
         int loss = 0;
         List<String> why = new ArrayList<>();
         boolean ignore = ignoresPain();
@@ -727,8 +728,23 @@ public final class Character {
         }
         int max = hpMax();
         if (hp > max) hp = max;
-        if (loss <= 0) return null;
-        return String.join(", ", why) + ": HP −" + loss + drain(loss);
+        if (loss <= 0) return scar;
+        return (scar == null ? "" : scar + " · ") + String.join(", ", why) + ": HP −" + loss + drain(loss);
+    }
+
+    static final String FATAL_SCAR = "Survived Fatal Radiation";
+
+    /**
+     * Out of Fatal Radiation Poisoning alive (Marek 11-19: *"I think I would allow survival with extreme resource use, that would have
+     * permanent penalities."*): the way out is RadAway (and the Stimpaks that outrun the drain); what it leaves is permanent:
+     * Endurance −1 and HP Max −5 each time [mine, EXAMPLE numbers for his ruling].
+     */
+    String surviveFatal() {
+        int[] m = new int[7];
+        m[Rules.E] = -1;
+        effects.add(new Effect(FATAL_SCAR, "scar", "", true, m, Map.of("hp_max", -5.0), 0, null, 100));
+        if (hp > hpMax()) hp = hpMax();
+        return FATAL_SCAR + ": Endurance −1 and HP Max −5 for good";
     }
 
     static final List<String> RAD_LADDER = List.of("Minor Radiation Poisoning", "Advanced Radiation Poisoning", "Critical Radiation Poisoning",

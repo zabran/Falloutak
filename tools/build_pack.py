@@ -60,12 +60,16 @@ def main():
         files["assets/falloutak/models/item/%s.json" % s] = json.dumps(
             {"parent": "minecraft:item/" + ("handheld" if s in HANDHELD else "generated"), "textures": {"layer0": "falloutak:item/" + s}},
             indent=1).encode()
-    for sub in ("font", os.path.join("textures", "font")):   # the Pip-Boy pictures of the sheet's hover texts (tools/cards.py)
+    for sub in ("font", os.path.join("textures", "font"), "sounds"):   # the Pip-Boy pictures (tools/cards.py), the free sounds (tools/free_sounds.py)
         base = os.path.join(ROOT, "pack", "assets", "falloutak", sub)
         for dp, _, fs in os.walk(base):
             for fn in fs:
                 full = os.path.join(dp, fn)
                 files["assets/falloutak/" + os.path.relpath(full, os.path.join(ROOT, "pack", "assets", "falloutak")).replace(os.sep, "/")] = open(full, "rb").read()
+    for extra, inzip in ((os.path.join(ROOT, "pack", "assets", "falloutak", "sounds.json"), "assets/falloutak/sounds.json"),
+                         (os.path.join(ROOT, "pack", "FREE-SOUNDS-CREDITS.md"), "FREE-SOUNDS-CREDITS.md")):
+        if os.path.exists(extra):
+            files[inzip] = open(extra, "rb").read()
     if a.bettermodel:
         bm = zipfile.ZipFile(a.bettermodel)
         for n in bm.namelist():

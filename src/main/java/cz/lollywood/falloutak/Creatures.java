@@ -27,7 +27,7 @@ final class Creatures {
     record Kind(String name, String label, List<String> animations, double standInScale) {}
 
     static final Map<String, Kind> KINDS = Map.of(
-            "radmie", new Kind("radmie", "Radmie", List.of("idle", "walk", "lunge", "hide", "spawn", "death"), 4.0));
+            "radmie", new Kind("radmie", "Radmie", List.of("idle", "walk", "rise", "lunge", "hide", "spawn", "death"), 4.0));
 
     static final String TAG = "falloutak_creature";
 

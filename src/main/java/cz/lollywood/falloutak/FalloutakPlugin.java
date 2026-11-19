@@ -133,7 +133,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
             case "auto" -> c.pictures = null;
             default -> { }
         }
-        return "Pip-Boy pictures in the sheet: " + (Icons.hasPack(p, c) ? "ON" : "OFF")
+        return "The Falloutak pack (Pip-Boy pictures, free sounds): " + (Icons.hasPack(p, c) ? "ON" : "OFF")
                 + (c.pictures == null ? " (automatic: the server's pack " + (Icons.packLoaded.contains(p.getUniqueId()) ? "is" : "is not") + " loaded)" : " (your choice)")
                 + ". /pack on | off | auto";
     }

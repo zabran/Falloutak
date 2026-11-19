@@ -82,6 +82,15 @@ class RulesTest {
         c.sleeping = true;
         for (int h = 0; h < 8; h++) Hud.heal(c);
         assertEquals(40 + 2 * neg, c.hp);                                           // rest does not stop it
+        // out of it alive (RadAway): a permanent scar, Endurance −1 and HP Max −5 (11-19, EXAMPLE numbers)
+        int e0 = c.attr(Rules.E, true), max0 = c.hpMaxBase();
+        List<String> fatal = c.stages();
+        c.survival.put(Rules.Stat.RADS, 900.0);
+        String out = c.stageHour(fatal);
+        assertTrue(out != null && out.startsWith("Survived Fatal Radiation"), out);
+        assertEquals(e0 - 1, c.attr(Rules.E, true));
+        assertTrue(c.hpMaxBase() <= max0 - 5, c.hpMaxBase() + " vs " + max0);
+        assertNull(c.stageHour(c.stages()));                                       // once, not every hour
         // a drain past −Endurance starts clinical death
         c.hp = 1;
         c.drain(50);

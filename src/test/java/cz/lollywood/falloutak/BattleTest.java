@@ -80,7 +80,7 @@ class BattleTest extends MockGame {
         Battle.State s = plugin.battle.state(p);
         Set<String> heard = new HashSet<>();
         Sfx.recorder = (k, who) -> heard.add(k);
-        for (int round = 0; round < 40 && plugin.battle.inBattle(p) && !s.over; round++) {
+        for (int round = 0; round < 100 && plugin.battle.inBattle(p) && !s.over; round++) {   // random hits: 40 rounds were sometimes too few
             for (int k = 0; k < 4 && s.ap > 0 && !s.enemyTurn; k++) use(p, 0, Action.LEFT_CLICK_AIR);
             if (!plugin.battle.inBattle(p) || s.over) break;
             use(p, 8, Action.RIGHT_CLICK_AIR);

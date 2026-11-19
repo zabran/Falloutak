@@ -1,0 +1,378 @@
+{
+ "combat.start": {
+  "sounds": [
+   {
+    "name": "falloutak:free/combat_start",
+    "stream": false
+   }
+  ]
+ },
+ "combat.end": {
+  "sounds": [
+   {
+    "name": "falloutak:free/combat_end",
+    "stream": false
+   }
+  ]
+ },
+ "turn.start": {
+  "sounds": [
+   {
+    "name": "falloutak:free/turn_start",
+    "stream": false
+   }
+  ]
+ },
+ "turn.end": {
+  "sounds": [
+   {
+    "name": "falloutak:free/turn_end",
+    "stream": false
+   }
+  ]
+ },
+ "ap.lacking": {
+  "sounds": [
+   {
+    "name": "falloutak:free/ap_lacking",
+    "stream": false
+   }
+  ]
+ },
+ "mode.next": {
+  "sounds": [
+   {
+    "name": "falloutak:free/mode_next",
+    "stream": false
+   }
+  ]
+ },
+ "stance": {
+  "sounds": [
+   {
+    "name": "falloutak:free/stance",
+    "stream": false
+   }
+  ]
+ },
+ "steady": {
+  "sounds": [
+   {
+    "name": "falloutak:free/steady",
+    "stream": false
+   }
+  ]
+ },
+ "hands": {
+  "sounds": [
+   {
+    "name": "falloutak:free/hands",
+    "stream": false
+   }
+  ]
+ },
+ "pistol.single": {
+  "sounds": [
+   {
+    "name": "falloutak:free/pistol_single",
+    "stream": false
+   }
+  ]
+ },
+ "pistol.burst": {
+  "sounds": [
+   {
+    "name": "falloutak:free/pistol_burst",
+    "stream": false
+   }
+  ]
+ },
+ "pistol.empty": {
+  "sounds": [
+   {
+    "name": "falloutak:free/pistol_empty",
+    "stream": false
+   }
+  ]
+ },
+ "pistol.reload": {
+  "sounds": [
+   {
+    "name": "falloutak:free/pistol_reload",
+    "stream": false
+   }
+  ]
+ },
+ "bullet.flesh": {
+  "sounds": [
+   {
+    "name": "falloutak:free/bullet_flesh",
+    "stream": false
+   }
+  ]
+ },
+ "bullet.miss": {
+  "sounds": [
+   {
+    "name": "falloutak:free/bullet_miss",
+    "stream": false
+   }
+  ]
+ },
+ "knife.swing": {
+  "sounds": [
+   {
+    "name": "falloutak:free/knife_swing",
+    "stream": false
+   }
+  ]
+ },
+ "knife.thrust": {
+  "sounds": [
+   {
+    "name": "falloutak:free/knife_thrust",
+    "stream": false
+   }
+  ]
+ },
+ "knife.flesh": {
+  "sounds": [
+   {
+    "name": "falloutak:free/knife_flesh",
+    "stream": false
+   }
+  ]
+ },
+ "melee.miss": {
+  "sounds": [
+   {
+    "name": "falloutak:free/melee_miss",
+    "stream": false
+   }
+  ]
+ },
+ "crit": {
+  "sounds": [
+   {
+    "name": "falloutak:free/crit",
+    "stream": false
+   }
+  ]
+ },
+ "crit.fail": {
+  "sounds": [
+   {
+    "name": "falloutak:free/crit_fail",
+    "stream": false
+   }
+  ]
+ },
+ "weapon.drop": {
+  "sounds": [
+   {
+    "name": "falloutak:free/weapon_drop",
+    "stream": false
+   }
+  ]
+ },
+ "weapon.pickup": {
+  "sounds": [
+   {
+    "name": "falloutak:free/weapon_pickup",
+    "stream": false
+   }
+  ]
+ },
+ "grenade.throw": {
+  "sounds": [
+   {
+    "name": "falloutak:free/grenade_throw",
+    "stream": false
+   }
+  ]
+ },
+ "explosion": {
+  "sounds": [
+   {
+    "name": "falloutak:free/explosion",
+    "stream": false
+   }
+  ]
+ },
+ "gas.release": {
+  "sounds": [
+   {
+    "name": "falloutak:free/gas_release",
+    "stream": false
+   }
+  ]
+ },
+ "flare": {
+  "sounds": [
+   {
+    "name": "falloutak:free/flare",
+    "stream": false
+   }
+  ]
+ },
+ "knockback": {
+  "sounds": [
+   {
+    "name": "falloutak:free/knockback",
+    "stream": false
+   }
+  ]
+ },
+ "burning": {
+  "sounds": [
+   {
+    "name": "falloutak:free/burning",
+    "stream": false
+   }
+  ]
+ },
+ "down.male": {
+  "sounds": [
+   {
+    "name": "falloutak:free/down_male",
+    "stream": false
+   }
+  ]
+ },
+ "down.female": {
+  "sounds": [
+   {
+    "name": "falloutak:free/down_female",
+    "stream": false
+   }
+  ]
+ },
+ "step": {
+  "sounds": [
+   {
+    "name": "falloutak:free/step",
+    "stream": false
+   }
+  ]
+ },
+ "stimpak": {
+  "sounds": [
+   {
+    "name": "falloutak:free/stimpak",
+    "stream": false
+   }
+  ]
+ },
+ "chem": {
+  "sounds": [
+   {
+    "name": "falloutak:free/chem",
+    "stream": false
+   }
+  ]
+ },
+ "firstaid": {
+  "sounds": [
+   {
+    "name": "falloutak:free/firstaid",
+    "stream": false
+   }
+  ]
+ },
+ "repair": {
+  "sounds": [
+   {
+    "name": "falloutak:free/repair",
+    "stream": false
+   }
+  ]
+ },
+ "geiger": {
+  "sounds": [
+   {
+    "name": "falloutak:free/geiger",
+    "stream": false
+   }
+  ]
+ },
+ "gas.hiss": {
+  "sounds": [
+   {
+    "name": "falloutak:free/gas_hiss",
+    "stream": false
+   }
+  ]
+ },
+ "electric": {
+  "sounds": [
+   {
+    "name": "falloutak:free/electric",
+    "stream": false
+   }
+  ]
+ },
+ "heart.stop": {
+  "sounds": [
+   {
+    "name": "falloutak:free/heart_stop",
+    "stream": false
+   }
+  ]
+ },
+ "defib": {
+  "sounds": [
+   {
+    "name": "falloutak:free/defib",
+    "stream": false
+   }
+  ]
+ },
+ "revived": {
+  "sounds": [
+   {
+    "name": "falloutak:free/revived",
+    "stream": false
+   }
+  ]
+ },
+ "levelup": {
+  "sounds": [
+   {
+    "name": "falloutak:free/levelup",
+    "stream": false
+   }
+  ]
+ },
+ "pipboy": {
+  "sounds": [
+   {
+    "name": "falloutak:free/pipboy",
+    "stream": false
+   }
+  ]
+ },
+ "store.take": {
+  "sounds": [
+   {
+    "name": "falloutak:free/store_take",
+    "stream": false
+   }
+  ]
+ },
+ "store.sort": {
+  "sounds": [
+   {
+    "name": "falloutak:free/store_sort",
+    "stream": false
+   }
+  ]
+ },
+ "radmie": {
+  "sounds": [
+   {
+    "name": "falloutak:free/radmie",
+    "stream": false
+   }
+  ]
+ }
+}

@@ -64,8 +64,31 @@ final class Sfx {
         return c != null && c.fallout2Sounds;
     }
 
-    /** The sound name this player's client plays for a key. */
-    static String name(Player p, String key) { return f2(p) ? F2 + ":" + key : "minecraft:" + row(key).mc(); }
+    /** The keys the public pack's FREE sounds cover (tools/free_sounds.py: CC0 recordings and our own; the voices are not among them). */
+    static final java.util.Set<String> FREE = loadFree();
+
+    private static java.util.Set<String> loadFree() {
+        try (InputStream in = Sfx.class.getResourceAsStream("/data/free-sounds.json")) {
+            if (in == null) return java.util.Set.of();
+            java.util.Set<String> s = new java.util.HashSet<>();
+            JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonArray().forEach(e -> s.add(e.getAsString()));
+            return java.util.Set.copyOf(s);
+        } catch (Exception ex) {
+            throw new IllegalStateException("data/free-sounds.json: " + ex.getMessage(), ex);
+        }
+    }
+
+    /** The public pack's free sound for this player: he has the pack (loaded from the server, or /pack on) and the key is covered. */
+    static boolean free(Player p, String key) {
+        if (!FREE.contains(key)) return false;
+        Character c = Menus.pl == null ? null : Menus.pl.character(p);
+        return c != null ? Icons.hasPack(p, c) : Icons.packLoaded.contains(p.getUniqueId());
+    }
+
+    /** The sound name this player's client plays for a key: Fallout 2's (his own private pack), the free pack's, or Minecraft's. */
+    static String name(Player p, String key) {
+        return f2(p) ? F2 + ":" + key : free(p, key) ? "falloutak:" + key : "minecraft:" + row(key).mc();
+    }
 
     /** A body's own sound: a man's or a woman's (hurt, down, dying, death). */
     static String body(String what, boolean female) { return what + (female ? ".female" : ".male"); }
@@ -87,8 +110,9 @@ final class Sfx {
     private static void play(Player p, Location l, String key) {
         Row r = row(key);
         if (recorder != null) recorder.accept(key, p);
-        boolean f = f2(p);
-        // the F2 pack's events carry their own volume and pitch (tools/fallout2_sounds.py), Minecraft's are set here
-        Battle.cosmetic(() -> p.playSound(l, f ? F2 + ":" + key : "minecraft:" + r.mc(), SoundCategory.PLAYERS, f ? 1f : r.volume(), f ? 1f : r.pitch()));
+        String n = name(p, key);
+        boolean own = !n.startsWith("minecraft:");
+        // the packs' events carry their own volume and pitch (tools/fallout2_sounds.py, tools/free_sounds.py), Minecraft's are set here
+        Battle.cosmetic(() -> p.playSound(l, n, SoundCategory.PLAYERS, own ? 1f : r.volume(), own ? 1f : r.pitch()));
     }
 }

@@ -98,6 +98,27 @@ class SfxTest extends MockGame {
     }
 
     @Test
+    void freeSoundsForAPlayerWithThePackTheVoicesStayMinecrafts() throws Exception {
+        PlayerMock p = player();
+        assertTrue(Sfx.FREE.contains("pistol.single") && Sfx.FREE.contains("geiger"), Sfx.FREE.toString());
+        assertFalse(Sfx.FREE.contains("hurt.male"));                           // no free voices: Minecraft's
+        String sounds = Files.readString(Path.of("pack/assets/falloutak/sounds.json"));
+        for (String k : Sfx.FREE) {
+            assertTrue(Sfx.ROWS.containsKey(k), "not a sound key: " + k);
+            assertTrue(sounds.contains("\"" + k + "\""), "not in the pack: " + k);
+            assertTrue(Files.exists(Path.of("pack/assets/falloutak/sounds/free/" + k.replace('.', '_') + ".ogg")), k);
+        }
+        assertEquals("minecraft:" + Sfx.row("pistol.single").mc(), Sfx.name(p, "pistol.single"));
+        plugin.packCommand(p, new String[]{"on"});
+        assertEquals("falloutak:pistol.single", Sfx.name(p, "pistol.single"));
+        assertEquals("minecraft:" + Sfx.row("hurt.male").mc(), Sfx.name(p, "hurt.male"));
+        plugin.character(p).fallout2Sounds = true;                              // Fallout 2's own pack wins
+        assertEquals("falloutak_f2:pistol.single", Sfx.name(p, "pistol.single"));
+        plugin.character(p).fallout2Sounds = false;
+        plugin.packCommand(p, new String[]{"auto"});
+    }
+
+    @Test
     void pipBoyPicturesOnlyForAPlayerWithThePack() throws Exception {
         // every attribute, skill and survival value has its picture, and the pack's font has the same characters (tools/cards.py)
         String font = Files.readString(Path.of("pack/assets/falloutak/font/cards.json"));
