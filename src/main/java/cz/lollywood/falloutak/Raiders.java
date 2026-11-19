@@ -195,6 +195,7 @@ final class Raiders {
         sh.weaponPerk = w.perk;
         sh.blind = t.blind;
         if (gas[1] != 0) { Zones.Zone z = b.pl.zones.at(eye); sh.extra.put(z != null ? z.gas : "gas", gas[1]); }
+        Battle.veil(b.pl.zones, eye, p.getEyeLocation(), sh, false);   // the Trhač's pollen hides the player from him too
         sh.part = Rules.Part.TORSO;
         sh.lightLevel = p.getEyeLocation().getBlock().getLightLevel();
         sh.targetAc = Rules.ac(c.attrs(false)) + Rules.STANCE_AC[s.stance()] + c.armourAc();   // + the armour's AC (05c)

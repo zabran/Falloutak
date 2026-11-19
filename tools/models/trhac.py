@@ -20,8 +20,18 @@ from bbmodel import Bone, Cube, Model, render
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ------------------------------------------------------------------ the texture: 64 x 64, regions of 16 x 16
-HIDE, DARKH, BELLY, SNOUT, IVORY, HOOF = (92, 64, 44), (52, 36, 26), (128, 104, 84), (170, 120, 112), (232, 222, 196), (30, 26, 24)
+# Round 2 (Marek 11-19: "Trhač's hide is supposed to be yellowish brown from bottom and getting yellow at the top"): a gradient on
+# every side face, from LOW (yellowish brown) up to TOP (yellow); the belly and the legs the low colour
+LOW, MIDH, TOP = (128, 92, 40), (176, 136, 52), (222, 188, 62)
+HIDE, DARKH, BELLY, SNOUT, IVORY, HOOF = MIDH, (104, 74, 34), (112, 80, 36), (170, 120, 112), (232, 222, 196), (30, 26, 24)
 STEM, LEAF, FLOWER, EYE = (96, 150, 52), (58, 112, 40), (246, 214, 40), (230, 120, 30)
+
+
+def grad(y):
+    """The hide's colour at row y of a side face (0 = the top of the face, 15 = its bottom)."""
+    k = y / 15.0
+    a, b, t = (TOP, MIDH, k * 2) if k < 0.5 else (MIDH, LOW, k * 2 - 1)
+    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
 def texture():
@@ -39,26 +49,24 @@ def texture():
         n = rnd.uniform(0.86, 1.1)
         return tuple(max(0, min(255, int(v * streak * n * k))) for v in c)
 
-    def back(x, y):        # A: the back, darker bristles; pale yellow pollen dusted on it
-        if rnd.random() < 0.05:
+    def back(x, y):        # A: the back, yellow, pollen dusted on it
+        if rnd.random() < 0.08:
             return FLOWER
-        return hair(DARKH if (x + y) % 5 else HIDE, x, y)
+        return hair(TOP, x, y, 0.95)
 
-    def side(x, y):        # B: the flank, brown, darker towards the top, a few bald grey patches
-        if (x - 10) ** 2 + (y - 9) ** 2 <= 3:
-            return hair(BELLY, x, y, 0.9)
-        return hair(HIDE, x, y, 0.82 if y < 4 else 1.0)
+    def side(x, y):        # B: the flank, yellow at the top, yellowish brown at the bottom
+        return hair(grad(y), x, y)
 
-    def belly(x, y):       # C: the belly, lighter and greyish
+    def belly(x, y):       # C: the belly, the low colour, darker
         return hair(BELLY, x, y)
 
-    def head_top(x, y):    # D: the head's top: a dark crest
-        return hair(DARKH if abs(x - 8) < 3 else HIDE, x, y)
+    def head_top(x, y):    # D: the head's top: yellow with a darker crest
+        return hair(MIDH if abs(x - 8) < 2 else TOP, x, y)
 
-    def head_side(x, y):   # E: the eye, small and orange, set high
+    def head_side(x, y):   # E: the eye, small and orange, set high, on the gradient
         if (x - 4) ** 2 + (y - 5) ** 2 <= 2:
             return (20, 14, 10) if (x, y) == (4, 5) else EYE
-        return hair(HIDE, x, y, 0.9 if y < 6 else 1.0)
+        return hair(grad(y), x, y)
 
     def snout(x, y):       # F: the snout's disc, two nostrils
         if y in (6, 7, 8) and x in (4, 5, 10, 11):
@@ -83,8 +91,11 @@ def texture():
     def leaf(x, y):        # K: a bluish-green leaf with a midrib
         return (120, 170, 80) if x == 8 else tuple(int(v * rnd.uniform(0.9, 1.08)) for v in LEAF)
 
-    def mane(x, y):        # L: the stiff ridge of bristles on the spine
-        return hair(DARKH, x, y, 0.8 if y % 3 else 0.6)
+    def mane(x, y):        # L: the stiff ridge of bristles on the spine, yellow like the back
+        return hair(TOP, x, y, 0.85 if y % 3 else 0.7)
+
+    def leg(x, y):         # M: the legs, the low colour
+        return hair(LOW, x, y, 0.9 + 0.1 * (1 - y / 15))
 
     for i, f in enumerate((back, side, belly, head_top)):
         fill(16 * i, 0, f)
@@ -92,12 +103,14 @@ def texture():
         fill(16 * i, 16, f)
     for i, f in enumerate((stem, flower, leaf, mane)):
         fill(16 * i, 32, f)
+    fill(0, 48, leg)
     return im
 
 
 A, B, C, D = (0, 0, 16, 16), (16, 0, 32, 16), (32, 0, 48, 16), (48, 0, 64, 16)
 E, F, G, H = (0, 16, 16, 32), (16, 16, 32, 32), (32, 16, 48, 32), (48, 16, 64, 32)
 I, J, K, Lm = (0, 32, 16, 48), (16, 32, 32, 48), (32, 32, 48, 48), (48, 32, 64, 48)
+M = (0, 48, 16, 64)
 
 
 def uv(up=None, side=None, down=None, front=None, back=None):
@@ -109,7 +122,7 @@ def all_faces(r):
     return {f: list(r) for f in ("north", "south", "east", "west", "up", "down")}
 
 
-LEGS = {"fl": (-10, -24), "fr": (10, -24), "bl": (-10, 24), "br": (10, 24)}   # x, z of each leg
+LEGS = {"fl": (-14, -24), "fr": (14, -24), "bl": (-14, 24), "br": (14, 24)}   # x, z of each leg (round 2: wider)
 STALKS = []
 
 
@@ -119,20 +132,23 @@ def back_top(z):
 
 
 def crop_bones():
+    """Round 2 (Marek 11-19: "The flowers should be short - showing just the yellow bloom."): low clumps of bloom on short stems,
+    close together over the whole back and the top of the flanks, so the back reads as one yellow mound."""
     rnd = random.Random(5)
     bones = []
-    spots = [(-7, -30), (5, -27), (-2, -20), (8, -14), (-9, -12), (1, -8), (-5, -2), (7, 2), (-1, 6), (-8, 10), (4, 13),
-             (-4, 20), (6, 24), (0, 30)]
+    spots = [(x, z) for z in range(-34, 37, 8) for x in (-14, -5, 5, 14)]
     for i, (x, z) in enumerate(spots, 1):
-        y = back_top(z)
-        h = rnd.randint(14, 30)
-        lean = rnd.uniform(-8, 8), rnd.uniform(-8, 8)
-        cubes = [Cube("stem%d" % i, (x - 1, y, z - 1), (x + 1, y + h, z + 1), all_faces(I)),
-                 Cube("flower%d" % i, (x - 3, y + h, z - 3), (x + 3, y + h + 6, z + 3), all_faces(J)),
-                 Cube("leaf%d" % i, (x - 5, y + int(h * 0.35), z - 0.5), (x + 5, y + int(h * 0.35) + 3, z + 0.5), all_faces(K))]
-        if h > 22:   # a side branch with its own raceme
-            cubes.append(Cube("bud%d" % i, (x + 1, y + h - 8, z - 2), (x + 5, y + h - 4, z + 2), all_faces(J)))
-        bones.append(Bone("s%d" % i, (x, y, z), rotation=(lean[0], 0, lean[1]), cubes=cubes))
+        x += rnd.uniform(-2, 2)
+        z += rnd.uniform(-2, 2)
+        side = abs(x) > 10                      # the outer rows sit on the flank's top edge, a little lower
+        y = back_top(z) - (3 if side else 0)
+        h = rnd.randint(1, 3)
+        w = rnd.uniform(3.5, 5.5)
+        tall = rnd.uniform(3, 6)
+        cubes = [Cube("stem%d" % i, (x - 0.75, y, z - 0.75), (x + 0.75, y + h, z + 0.75), all_faces(I)),
+                 Cube("bloom%d" % i, (x - w, y + h, z - w), (x + w, y + h + tall, z + w), all_faces(J))]
+        lean = (rnd.uniform(-6, 6), 0, (14 if x > 0 else -14) if side else rnd.uniform(-6, 6))   # the side rows lean outward
+        bones.append(Bone("s%d" % i, (x, y, z), rotation=lean, cubes=cubes))
         STALKS.append("s%d" % i)
     return bones
 
@@ -140,29 +156,29 @@ def crop_bones():
 def model():
     STALKS.clear()
     head = Bone("head", (0, 44, -38), cubes=[
-        Cube("skull", (-11, 28, -60), (11, 50, -38), uv(up=D, side=E, front=E, back=B)),
-        Cube("neck", (-10, 30, -42), (10, 49, -28), uv(up=Lm)),        # inside the chest at rest: no gap when the head tosses
-        Cube("snout", (-8, 25, -78), (8, 40, -60), uv(up=D, side=B, front=F, down=C)),
-        Cube("disc", (-7, 26, -80), (7, 38, -78), all_faces(F)),
-        Cube("tusk_l", (-11, 30, -76), (-8, 46, -73), all_faces(G)),
-        Cube("tusk_r", (8, 30, -76), (11, 46, -73), all_faces(G)),
-        Cube("ear_l", (-12, 50, -46), (-6, 57, -42), uv(up=Lm, side=Lm)),
-        Cube("ear_r", (6, 50, -46), (12, 57, -42), uv(up=Lm, side=Lm)),
+        Cube("skull", (-14, 28, -60), (14, 51, -38), uv(up=D, side=E, front=E, back=B)),
+        Cube("neck", (-13, 30, -42), (13, 50, -28), uv(up=Lm)),        # inside the chest at rest: no gap when the head tosses
+        Cube("snout", (-9, 25, -78), (9, 40, -60), uv(up=D, side=B, front=F, down=C)),
+        Cube("disc", (-8, 26, -80), (8, 38, -78), all_faces(F)),
+        Cube("tusk_l", (-13, 30, -76), (-10, 46, -73), all_faces(G)),
+        Cube("tusk_r", (10, 30, -76), (13, 46, -73), all_faces(G)),
+        Cube("ear_l", (-15, 51, -46), (-9, 58, -42), uv(up=Lm, side=Lm)),
+        Cube("ear_r", (9, 51, -46), (15, 58, -42), uv(up=Lm, side=Lm)),
     ])
     legs = []
     for name, (x, z) in LEGS.items():
         lower = Bone(name + "_low", (x, 14, z), cubes=[
-            Cube(name + "_shin", (x - 3.5, 3, z - 3.5), (x + 3.5, 14, z + 3.5), uv(up=B, side=B, down=H)),
+            Cube(name + "_shin", (x - 4, 3, z - 4), (x + 4, 14, z + 4), uv(up=M, side=M, down=H)),
             Cube(name + "_hoof", (x - 4, 0, z - 4.5), (x + 4, 3, z + 3.5), all_faces(H))])
-        legs.append(Bone(name, (x, 30, z), cubes=[Cube(name + "_thigh", (x - 5, 13, z - 5), (x + 5, 32, z + 5), uv(up=B, side=B))],
+        legs.append(Bone(name, (x, 30, z), cubes=[Cube(name + "_thigh", (x - 6, 13, z - 6), (x + 6, 32, z + 6), uv(up=M, side=M))],
                          children=[lower]))
     tail = Bone("tail", (0, 44, 38), cubes=[Cube("tail", (-1.5, 30, 38), (1.5, 44, 41), uv(side=Lm, up=Lm)),
                                             Cube("tuft", (-2.5, 26, 38), (2.5, 31, 42), all_faces(Lm))])
     crop = Bone("crop", (0, 52, 0), children=crop_bones())
     body = Bone("body", (0, 30, 0), cubes=[
-        Cube("chest", (-15, 26, -38), (15, 54, 12), uv()),
-        Cube("hump", (-13, 50, -36), (13, 60, -8), uv(up=Lm)),
-        Cube("rump", (-14, 24, 12), (14, 48, 38), uv(back=B)),
+        Cube("chest", (-21, 26, -38), (21, 54, 12), uv()),             # round 2: wider (2.6 blocks)
+        Cube("hump", (-19, 50, -36), (19, 60, -8), uv()),
+        Cube("rump", (-20, 24, 12), (20, 48, 38), uv(back=B)),
         Cube("mane", (-3, 58, -34), (3, 64, -10), all_faces(Lm)),
     ], children=[head, tail, crop] + legs)
     return [body]
@@ -210,27 +226,39 @@ def legs(swing, knee, t, T, gallop=False):
             ph = 0.0 if name in ("fl", "br") else math.pi
         a = math.sin(2 * math.pi * t / T + ph)
         p[name] = (-swing * a, 0, 0)
-        p[name + "_low"] = (knee * max(0.0, math.cos(2 * math.pi * t / T + ph)), 0, 0)
+        # round 2 (Marek 11-19: "the walk animation seems going backward?"): the knee bent while the foot went BACK, a moonwalk;
+        # now the foot lifts while it swings forward and is planted while it pushes back (MEASURED on the posed hoof: the height
+        # against the forward speed, correlation +0.52 in the charge; the old form -0.38)
+        p[name + "_low"] = (knee * max(0.0, -math.cos(2 * math.pi * t / T + ph)), 0, 0)
     return p
+
+
+# lying as a rock: the legs folded under the body, the head down on the ground and turned a little aside, the tail tucked
+# (measured on the posed hoof: a thigh at -90 lays a front leg flat BACKWARD, +90 a hind leg flat FORWARD, both inside the body;
+# the snout sinks into the ground, which hides it in the game)
+ROCK = {"fl": (-90, 0, 0), "fr": (-90, 0, 0), "fl_low": (0, 0, 0), "fr_low": (0, 0, 0),
+        "bl": (90, 0, 0), "br": (90, 0, 0), "bl_low": (0, 0, 0), "br_low": (0, 0, 0),
+        "head": (-48, 8, 0), "tail": (12, 0, 0)}
 
 
 def animations():
     anim = {}
-    # idle: breathing, sniffing the air, the tail flicking, the rapeseed swaying (2.4 s, loop)
+    # idle = a big yellow rock (Marek 11-19: "in idle animation, he should appear like big yellow rock (especially from back or
+    # side)"): it lies in the field, the legs folded under it, the head down on the ground, the tail tucked; only the blooms stir
+    # and the back rises with a slow breath (4 s, loop)
     keys = {}
-    for i in range(7):
-        t = 2.4 * i / 6
-        p = dict(sway(t, 2.4, 5))
-        p["head"] = (4 * math.sin(2 * math.pi * t / 1.2), 3 * math.sin(2 * math.pi * t / 2.4), 0)
-        p["tail"] = (0, 25 * math.sin(2 * math.pi * t / 0.8), 0)
-        keys = merge(keys, pose(p, t, {"body": {"position": (0, 0.6 * math.sin(2 * math.pi * t / 2.4), 0)}}))
-    anim["idle"] = {"length": 2.4, "loop": "loop", "interp": "catmullrom", "bones": keys}
+    for i in range(9):
+        t = 4.0 * i / 8
+        p = dict(ROCK)
+        p.update(sway(t, 4.0, 2.5))
+        keys = merge(keys, pose(p, t, {"body": {"position": (0, -28 + 0.5 * math.sin(2 * math.pi * t / 4.0), 0)}}))
+    anim["idle"] = {"length": 4.0, "loop": "loop", "interp": "catmullrom", "bones": keys}
     # walk: a heavy trot, diagonal pairs, the body rocking (1.0 s, loop)
     keys = {}
     for i in range(9):
         t = 1.0 * i / 8
         p = dict(sway(t, 1.0, 7))
-        p.update(legs(22, 30, t, 1.0))
+        p.update(legs(22, 65, t, 1.0))
         p["head"] = (3 * math.sin(4 * math.pi * t), 0, 0)
         p["tail"] = (0, 15 * math.sin(2 * math.pi * t), 0)
         keys = merge(keys, pose(p, t, {"body": {"position": (0, abs(math.sin(2 * math.pi * t)) * 1.2, 0)}}))
@@ -265,12 +293,11 @@ def animations():
         p["tail"] = (0, 30 * k * math.sin(2 * math.pi * t / 0.2), 0)
         keys = merge(keys, pose(p, t))
     anim["pollen"] = {"length": 1.6, "loop": "once", "interp": "catmullrom", "bones": keys}
-    # spawn: lying in the field, the legs folded, then up onto its feet (1.6 s)
-    down = {"fl": (60, 0, 0), "fr": (60, 0, 0), "fl_low": (-110, 0, 0), "fr_low": (-110, 0, 0),
-            "bl": (-60, 0, 0), "br": (-60, 0, 0), "bl_low": (110, 0, 0), "br_low": (110, 0, 0), "head": (-10, 0, 0)}
+    # spawn: the rock gets up onto its feet (1.6 s)
+    down = dict(ROCK)
     up = {b: (0, 0, 0) for b in down}
     anim["spawn"] = {"length": 1.6, "loop": "once", "interp": "catmullrom", "bones": merge(
-        pose(down, 0.0, {"body": {"position": (0, -22, 0)}}), pose(down, 0.4, {"body": {"position": (0, -22, 0)}}),
+        pose(down, 0.0, {"body": {"position": (0, -28, 0)}}), pose(down, 0.4, {"body": {"position": (0, -28, 0)}}),
         pose({**up, "fl": (-10, 0, 0), "fr": (-10, 0, 0)}, 0.9, {"body": {"position": (0, -10, 0)}}),
         pose(up, 1.6, {"body": {"position": (0, 0, 0)}}))}
     # death: the legs give, it falls onto its side, the legs stiff (1.5 s, hold)
@@ -284,6 +311,7 @@ def animations():
 
 VIEW = dict(yaw=150, pitch=22, scale=2.4, center=(0, 40, -10), size=(560, 400))
 SIDE = dict(yaw=90, pitch=4, scale=2.4, center=(0, 40, -10), size=(560, 400))
+BACKV = dict(yaw=-30, pitch=14, scale=2.4, center=(0, 30, 0), size=(560, 400))
 
 
 def main():
@@ -293,7 +321,9 @@ def main():
     m.texture.save(os.path.join(ROOT, "models", "trhac.png"))
     out = os.path.join(ROOT, "build", "models")
     os.makedirs(out, exist_ok=True)
-    stills = [("rest (as modelled)", render(m, None, 0, **VIEW)), ("rest from the side", render(m, None, 0, **SIDE))]
+    stills = [("rest (as modelled)", render(m, None, 0, **VIEW)), ("rest from the side", render(m, None, 0, **SIDE)),
+              ("idle = the rock, from the back", render(m, "idle", 0, **BACKV)),
+              ("idle = the rock, from the side", render(m, "idle", 0, **SIDE))]
     for an, a in m.animations.items():
         n = max(2, int(a["length"] * 12))
         view = SIDE if an in ("walk", "charge", "gore") else VIEW
@@ -311,6 +341,12 @@ def main():
         sheet.paste(im, (x, y + 18))
         d.text((x + 6, y + 3), label, fill=(220, 220, 220))
     sheet.save(os.path.join(out, "trhac-sheet.png"))
+    a = m.animations["walk"]   # the walk as a strip of 8 frames from the side: a foot must lift while it moves forward (left)
+    strip = [render(m, "walk", a["length"] * i / 8, **dict(SIDE, size=(420, 300))) for i in range(8)]
+    row = Image.new("RGB", (4 * 420, 2 * 300))
+    for i, im in enumerate(strip):
+        row.paste(im, ((i % 4) * 420, (i // 4) * 300))
+    row.save(os.path.join(out, "trhac-walk-strip.png"))
     print("models/trhac.bbmodel,", len(list(m.bones())), "bones,", len(m.animations), "animations; previews in build/models/")
 
 

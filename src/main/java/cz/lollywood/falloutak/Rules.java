@@ -237,6 +237,16 @@ public final class Rules {
                 "1d6 burns a round on bare skin (no mask stops them), P −2; the lungs as smoke (Oxygen −1, Poison +2)"));
     }
 
+    static {   // not a gas for the lungs: a cloud that HIDES (Marek 11-19 on the Trhač: "it should obscure for range attacks, the same
+               // way as smoke or fog does"); smoke's own number, −10, for a shot into, out of or through it (OBSCURES)
+        gas(new Gas("pollen", "the Trhač's cloud", 0, 0, 0, 0, 0, 0, 0, false, false, 0, false, false,
+                "harmless to breathe; it HIDES: a ranged shot into, out of or through the cloud −10 (as smoke)"));
+    }
+
+    /** The clouds that hide what is in them or behind them: the to-hit of a ranged shot whose line of fire crosses one, × the zone's
+     *  strength (the worst cloud on the line counts, once). */
+    public static final Map<String, Integer> OBSCURES = Map.of("pollen", -10);
+
     private static void gas(Gas g) { GASES.put(g.name(), g); }
 
     /** A week in mercury vapour gives the tremor (03b §3c). */

@@ -825,7 +825,7 @@ final class Menus {
         b.add(btn("Gas zones (the world)", "a gas over an area, for everyone in it: the usual way (Marek 11-18: localized)", Menus::zonesMenu));
         b.add(btn("No gas of his own", "his own setting below is for a statblock with no body or a quick test; a zone wins over it",
                 x -> { setGas(o, "", 1); airMenu(x, o); }));
-        for (Rules.Gas gs : Rules.GASES.values())
+        for (Rules.Gas gs : Rules.GASES.values()) if (!Zones.NOT_BREATHED.contains(gs.name()))
             b.add(btn(Hud.cap(gs.name()), gs.where() + ": " + gs.text(), x -> pick(x, Hud.cap(gs.name()) + " · " + o.name(), gs.text(),
                     List.of("I", "II", "III"), s -> "Strength " + s, s -> "× " + strengthOf(s) + " the row",
                     (y, s) -> { setGas(o, gs.name(), strengthOf(s)); airMenu(y, o); }, back)));
@@ -923,7 +923,7 @@ final class Menus {
                 zonesMenu(x); }));
         Zones.Zone here = pl.zones.at(g.getEyeLocation());
         menu(g, "Gas zones", List.of(line(pl.zones.list.size() + " zone(s)" + (here == null ? "; you stand in none" : "; you stand in zone " + here.id + ": " + here.describe()), NamedTextColor.WHITE),
-                line("Whoever's eyes are inside breathes it (a zone wins over a character's own gas). Visible: smoke, riot gas, chlorine, acid fog; "
+                line("Whoever's eyes are inside breathes it (a zone wins over a character's own gas). Visible: smoke, riot gas, chlorine, acid fog, pollen (it only hides: ranged shots through it −10); "
                         + "the rest only to the GM (purple). A countdown runs with a fight's rounds and Pass time for everyone.", NamedTextColor.GRAY)), b, Menus::gm);
     }
 

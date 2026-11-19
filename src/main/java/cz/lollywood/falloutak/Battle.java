@@ -640,9 +640,17 @@ public final class Battle implements Listener {
         if (c.other("to_hit") != 0) sh.extra.put("Twitchy", (int) Math.round(c.other("to_hit")));   // the trait as a gene (03c §8)
         int gasHit = c.gasPenalty()[1];
         if (gasHit != 0) sh.extra.put(c.gasHere() != null ? c.gasHere().name() : "riot gas", gasHit);   // smoke −10, riot gas −20 (03b §3c)
+        veil(pl.zones, p.getEyeLocation(), a.target().getEyeLocation(), sh, w.melee());
         sh.movePenalty = pen;
         sh.range = w.range;
         return sh;
+    }
+
+    /** A hiding cloud on the line of fire (the Trhač's pollen, Zones#veil): its to-hit on a ranged shot, under the cloud's name. */
+    static void veil(Zones zones, Location from, Location to, Combat.Shot sh, boolean melee) {
+        if (melee || zones == null) return;
+        Zones.Zone z = zones.veil(from, to);
+        if (z != null) sh.extra.put(z.gas, Rules.OBSCURES.get(z.gas) * z.strength);
     }
 
     /** Fallout 2: −10 for each creature in the line of fire (players count: a friend in the way is in the way). */

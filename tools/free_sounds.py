@@ -42,12 +42,15 @@ def fall(cry, keep, gain, thud, at):
     return ("seq", [(cry, 0.0, gain, keep, 1.0)] + [(f, at + dt, g, k, p) for f, dt, g, k, p in THUDS[thud]])
 
 
-MAN = [fall("oga_yell/1yell12.wav", (0.31, 0.82), 4, 0, 0.42),         # whisper: "Argh!"
-       fall("oga_yell/3grunt2.wav", (0.29, 0.89), 8, 1, 0.45),         # "Ugh!"
-       fall("oga_yell/1yell16.wav", (0.55, 0.86), 6, 2, 0.36)]         # "Ah!"
-WOMAN = [fall("oga_female_screams/4.ogg", (0.01, 0.55), -5, 0, 0.42),                  # "AHHH!"
-         fall("oga_dying_female/high_ugh_ouch.mp3", (0.07, 0.37), 7, 1, 0.36),         # "Oh!"
-         fall("oga_dying_female/nerf_this_death_noises.mp3", (0.81, 1.26), 8, 2, 0.40)]   # "Ugh."
+# Round 3 (11-19): "The original scream is pain scream (yau). A shows surprise scream and fall. BC show assault type of scream";
+# down.male A "sounds female" (that yell sat at ~550 Hz; Fallout 2's man cries at ~170 Hz); down.female A "sounds like woman
+# driving and screeming because she cannot stop the colision". So round 4: PAIN cries, a man's low (Praat pitch 130-155 Hz).
+MAN = [fall("oga_baradari/pain4.wav", (0.0, 0.58), 1, 0, 0.42),       # whisper: "Argh!", 132 Hz
+       fall("oga_baradari/painh.wav", (0.0, 0.37), 0, 1, 0.38),       # "Ugh!", 154 Hz
+       fall("oga_baradari/pain5.wav", (0.0, 0.52), 0, 2, 0.42)]       # "Ugh.", 146 Hz
+WOMAN = [fall("oga_auravoice/female_hurt_grunts_groans_1.ogg", (2.11, 2.67), 3, 0, 0.42),   # "Ah!", 334 Hz
+         fall("oga_auravoice/female_hurt_grunts_groans_1.ogg", (0.46, 1.10), 4, 1, 0.45),   # "Ugh!", 383 Hz
+         fall("oga_auravoice/female_hurt_grunts_groans_1.ogg", (3.73, 4.10), 4, 2, 0.36)]   # "Ugh!", 465 Hz
 MAP = {
     "combat.start": ("kenney_digital-audio/Audio/lowThreeTone.ogg", 0.9, 0, None),
     "combat.end": ("kenney_interface-sounds/Audio/confirmation_002.ogg", 1.0, 0, None),
@@ -80,16 +83,10 @@ MAP = {
         ("seq", [("kenney_impact-sounds/Audio/footstep_concrete_00%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)]),
         ("seq", [("kenney_rpg-audio/Audio/footstep0%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)])]),
     "geiger": ("synth:geiger", 1.0, 0, None),
-    # round 2: "C is good but short. A is close (it ends with C), but the start sounds bad. Please, try to change the start into
-    # something which sounds better." -> two new starts before C's chime (the clicks nearest Fallout 2's first burst), and C longer
-    "levelup": [("seq", [("kenney_interface-sounds/Audio/toggle_003.ogg", 0.0, -2, None, 1.0),
-                         ("kenney_interface-sounds/Audio/toggle_003.ogg", 0.12, -2, None, 1.12),
-                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.26, 0, None, 1.0)]),
-                ("seq", [("kenney_interface-sounds/Audio/open_002.ogg", 0.0, -2, None, 1.0),
-                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.24, 0, None, 1.0)]),
-                ("seq", [("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.0, 0, None, 1.0),   # C with an echo tail
-                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.16, -9, None, 1.0),
-                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.32, -15, None, 1.0)])],
+    # round 3: "pick C" (round 2's C, Kenney's confirmation chime, made longer by an echo tail)
+    "levelup": ("seq", [("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.0, 0, None, 1.0),
+                        ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.16, -9, None, 1.0),
+                        ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.32, -15, None, 1.0)]),
     "store.take": ("kenney_rpg-audio/Audio/handleSmallLeather2.ogg", 1.0, 0, None),
     "store.sort": ("kenney_rpg-audio/Audio/dropLeather.ogg", 1.0, 0, None),
 }
@@ -152,7 +149,7 @@ def ffmpeg(src, dst, pitch, gain, keep, burst=0):
 
 def licence(pack):
     v = SOURCES.get(pack, "?")
-    return v if v.startswith(("CC0,", "OGA-BY")) else "CC0 (" + v + ")"
+    return v if v.startswith(("CC0,", "OGA-BY", "CC-BY")) else "CC0 (" + v + ")"
 
 
 def render(base, cand, dst):
@@ -238,7 +235,9 @@ def main():
     lines = ["# Falloutak's free sounds: where each comes from", "",
              "None is made from Fallout's files. Most are CC0 (public domain dedication: no rights reserved, no credit required) or made",
              "by Falloutak's own tool; the ones from *Fleshy Fight Sounds* are OGA-BY 3.0: free to use and share WITH credit to their",
-             "author, will_leamon (opengameart.org/content/fleshy-fight-sounds). Thanks to Kenney (kenney.nl) and the OpenGameArt authors.", "",
+             "author, will_leamon (opengameart.org/content/fleshy-fight-sounds); the men's pain cries in the falls are CC-BY 3.0, credit",
+             "to Michel Baradari (*11 male human pain/death sounds*, opengameart.org/content/11-male-human-paindeath-sounds). Thanks to",
+             "Kenney (kenney.nl) and the OpenGameArt authors.", "",
              "| key | file | licence (source) |", "|---|---|---|"]
     lines += ["| `%s` | %s | %s |" % c for c in credits]
     io.open(os.path.join(ROOT, "pack", "FREE-SOUNDS-CREDITS.md"), "w", encoding="utf-8", newline="\n").write("\n".join(lines) + "\n")
@@ -267,6 +266,9 @@ SOURCES = {
     "oga_female_screams": "CC0, OpenGameArt, Female screams (files 1-4 CC0 per its license.txt; 4 = WomanScream by Archeos), opengameart.org/content/female-screams",
     "oga_bfh": "CC0, OpenGameArt, 75 CC0 breaking / falling / hit sfx by rubberduck, opengameart.org/content/75-cc0-breaking-falling-hit-sfx",
     "oga_thwack": "CC0, OpenGameArt, Thwack Sounds by AntumDeluge, opengameart.org/content/thwack-sounds",
+    # round 4 (11-19): pain cries
+    "oga_baradari": "CC-BY 3.0 (credit required), OpenGameArt, 11 male human pain/death sounds by Michel Baradari, opengameart.org/content/11-male-human-paindeath-sounds",
+    "oga_auravoice": "CC0, OpenGameArt, Female Hurt Grunts & Groans by AuraVoice, opengameart.org/content/female-hurt-grunts-groans",
 }
 
 if __name__ == "__main__":

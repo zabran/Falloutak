@@ -84,11 +84,36 @@ final class Zones {
         } catch (IOException e) { Bukkit.getLogger().warning("[Falloutak] could not save zones: " + e); }
     }
 
-    /** The zone a point is in (the strongest where they overlap), or null. */
+    /** The clouds nobody breathes (they only hide: {@link Rules#OBSCURES}). */
+    static final Set<String> NOT_BREATHED = Set.of("pollen");
+
+    /** The gas zone a point is in (the strongest where they overlap), or null; a cloud that only hides is not a gas here. */
     Zone at(Location l) {
         Zone best = null;
-        for (Zone z : list) if (z.contains(l) && (best == null || z.strength > best.strength)) best = z;
+        for (Zone z : list) if (!NOT_BREATHED.contains(z.gas) && z.contains(l) && (best == null || z.strength > best.strength)) best = z;
         return best;
+    }
+
+    /**
+     * The worst hiding cloud on a line of fire (Marek 11-19: the Trhač's pollen *"should obscure for range attacks, the same way as
+     * smoke or fog does"*): a shot into it, out of it or through it, sampled every half block; null if the line is clear.
+     */
+    Zone veil(Location from, Location to) {
+        if (from.getWorld() == null || to.getWorld() == null || !from.getWorld().equals(to.getWorld())) return null;
+        String w = from.getWorld().getName();
+        double d = from.distance(to);
+        int n = Math.max(1, (int) Math.ceil(d / 0.5));
+        Zone worst = null;
+        for (Zone z : list) {
+            Integer v = Rules.OBSCURES.get(z.gas);
+            if (v == null || (worst != null && v * z.strength >= Rules.OBSCURES.get(worst.gas) * worst.strength)) continue;
+            for (int i = 0; i <= n; i++) {
+                double t = (double) i / n;
+                if (z.contains(w, from.getX() + (to.getX() - from.getX()) * t, from.getY() + (to.getY() - from.getY()) * t,
+                        from.getZ() + (to.getZ() - from.getZ()) * t)) { worst = z; break; }
+            }
+        }
+        return worst;
     }
 
     Zone ball(Location c, double r, String gas, int strength, int rounds, String label) {
@@ -175,6 +200,7 @@ final class Zones {
             case "riot gas" -> new Particle.DustOptions(Color.fromRGB(235, 235, 230), 2.2f);
             case "chlorine" -> new Particle.DustOptions(Color.fromRGB(200, 215, 80), 2.2f);
             case "acid fog" -> new Particle.DustOptions(Color.fromRGB(170, 200, 140), 1.8f);
+            case "pollen" -> new Particle.DustOptions(Color.fromRGB(236, 206, 52), 3.0f);   // the Trhač's: dense, it must hide
             default -> null;
         };
     }
@@ -196,7 +222,7 @@ final class Zones {
                 Location at = randomIn(z, w);
                 if (at == null) continue;
                 if (smoke) w.spawnParticle(Particle.LARGE_SMOKE, at, 1, 0.2, 0.2, 0.2, 0.0);
-                else if (d != null) w.spawnParticle(Particle.DUST, at, 1, 0.3, 0.3, 0.3, 0.0, d);
+                else if (d != null) w.spawnParticle(Particle.DUST, at, NOT_BREATHED.contains(z.gas) ? 4 : 1, 0.3, 0.3, 0.3, 0.0, d);
                 else if (i % 4 == 0)
                     for (Player g : near) if (g.hasPermission("falloutak.gm"))
                         g.spawnParticle(Particle.DUST, at, 1, 0, 0, 0, 0.0, new Particle.DustOptions(Color.fromRGB(150, 60, 200), 1f));

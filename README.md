@@ -3,6 +3,17 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.35.0 (2026-11-19): the Trhač after Marek's look; the pollen hides; the falls' pain cries.**
+- **The Trhač, round 2:** the hide yellowish brown below, yellow on top; only short yellow blooms, close over the back; the
+  body wider (2.6 blocks); **idle = a big yellow rock** (it lies in the field, the legs folded flat inside the body, the snout
+  sunk into the ground, only the blooms stir); the walk and the charge step FORWARD (the knee lifted on the back swing before,
+  a moonwalk; now checked by measuring the hoof's lift against its forward speed).
+- **The pollen hides** (Marek: it should obscure range attacks the same way as smoke or fog does): the cloud is a zone
+  `pollen` (a ball of 6 blocks for 3 game rounds); any ranged shot whose line of fire runs into, out of or through it gets
+  smoke's −10 (the player's and the raiders'); nobody breathes it; GMs can place it like a gas.
+- **Sounds:** the falls' cries are pain cries now (a man's low grunts by Michel Baradari, CC-BY 3.0, credited; a woman's hurt
+  grunts by AuraVoice, CC0); the level-up is the picked C.
+
 **Version 0.34.0 (2026-11-19): the Trhač.**
 - **The Trhač** (`/creature spawn trhac`): a gigantic boar with rapeseed growing on its back, a Blockbench model written by
   `tools/models/trhac.py` (3.75 blocks at the shoulder, ~7.4 long; 14 rapeseed stalks, each swaying on its own), animations

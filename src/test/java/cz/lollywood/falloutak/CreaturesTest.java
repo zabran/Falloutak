@@ -40,6 +40,24 @@ class CreaturesTest extends MockGame {
             assertEquals(1, Creatures.pollenPuffs);
             server.getScheduler().performTicks(Creatures.POLLEN_TICKS + 20);
             assertEquals(Creatures.POLLEN_TICKS / Creatures.POLLEN_EVERY, Creatures.pollenPuffs);   // a puff every 5 ticks for 10 s, then none
+            // the cloud HIDES (Marek 11-19: "it should obscure for range attacks, the same way as smoke or fog does")
+            Zones.Zone cloud = plugin.zones.list.stream().filter(z -> z.gas.equals("pollen")).findFirst().orElseThrow();
+            org.bukkit.Location mid = cloud.centre(t.getWorld());
+            assertEquals(Creatures.POLLEN_RADIUS, cloud.r, 1e-9);
+            assertNull(plugin.zones.at(mid));                                      // nobody breathes it: no gas, no hold-your-breath
+            org.bukkit.Location west = mid.clone().add(-15, 0, 0), east = mid.clone().add(15, 0, 0), far = mid.clone().add(0, 0, 30);
+            assertSame(cloud, plugin.zones.veil(west, east));                     // a shot across it
+            assertSame(cloud, plugin.zones.veil(mid, east));                      // out of it
+            assertNull(plugin.zones.veil(west.clone().add(0, 0, 20), east.clone().add(0, 0, 20)));   // beside it: clear
+            assertNull(plugin.zones.veil(far, far.clone().add(10, 0, 0)));
+            Combat.Shot sh = new Combat.Shot();
+            Battle.veil(plugin.zones, west, mid, sh, false);                       // into it
+            assertEquals(-10, sh.extra.get("pollen"));                             // smoke's own number
+            Combat.Shot knife = new Combat.Shot();
+            Battle.veil(plugin.zones, west, mid, knife, true);
+            assertFalse(knife.extra.containsKey("pollen"));                        // only ranged attacks
+            plugin.zones.rounds(Creatures.POLLEN_ROUNDS);
+            assertTrue(plugin.zones.list.stream().noneMatch(z -> z.gas.equals("pollen")));   // gone after 3 rounds
             assertEquals("Removed.", Creatures.command(gm, new String[]{"remove"}));
             assertTrue(Creatures.command(gm, new String[]{"spawn"}).startsWith("Radmie spawned"));
             LivingEntity r = Creatures.nearest(gm);

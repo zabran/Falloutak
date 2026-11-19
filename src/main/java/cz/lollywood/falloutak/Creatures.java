@@ -124,17 +124,20 @@ final class Creatures {
     }
 
     // ------------------------------------------------------------------ the Trhač's pollen
-    /** The cloud (Marek 11-13: "releasing its pollen in large quantities to confuse enemies and obfuscate its location"): a ball of
-     *  yellow dust POLLEN_RADIUS blocks round the creature, renewed every POLLEN_EVERY ticks for POLLEN_TICKS (10 s) [the sizes mine;
-     *  what it does to aim and sight is Marek's call, not built]. */
+    /** The cloud (Marek 11-13: "releasing its pollen in large quantities to confuse enemies and obfuscate its location"): a ZONE
+     *  "pollen", a ball POLLEN_RADIUS blocks round the creature for POLLEN_ROUNDS game rounds, which hides (Marek 11-19: *"it should
+     *  obscure for range attacks, the same way as smoke or fog does"*: a ranged shot into, out of or through it −10, Rules.OBSCURES);
+     *  and a first burst of yellow dust renewed every POLLEN_EVERY ticks for POLLEN_TICKS (10 s), the zone's own dust after that
+     *  [the sizes mine]. */
     static final double POLLEN_RADIUS = 6;
-    static final int POLLEN_TICKS = 200, POLLEN_EVERY = 5;
+    static final int POLLEN_TICKS = 200, POLLEN_EVERY = 5, POLLEN_ROUNDS = 3;
     static final Color POLLEN = Color.fromRGB(236, 206, 52);
     /** For the tests: the number of puffs released so far. */
     static int pollenPuffs;
 
     static void pollen(Location at) {
         Location c = at.clone().add(0, 2.5, 0);
+        if (Menus.pl != null && Menus.pl.zones != null) Menus.pl.zones.ball(c, POLLEN_RADIUS, "pollen", 1, POLLEN_ROUNDS, "the Trhač's pollen");
         Runnable puff = () -> {
             pollenPuffs++;
             Battle.cosmetic(() -> {
