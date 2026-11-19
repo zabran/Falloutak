@@ -29,8 +29,8 @@ commands:
     description: Your sounds. /sounds [fallout2|minecraft|female|male|test <key>|list]
     usage: /sounds [fallout2|minecraft|female|male|test <key>|list]
   creature:
-    description: The game's creatures (GMs). /creature spawn radmie | play <animation> | remove
-    usage: /creature spawn radmie | play <animation> | remove
+    description: The game's creatures (GMs). /creature spawn radmie|trhac | play <animation> | remove
+    usage: /creature spawn radmie|trhac | play <animation> | remove
   pack:
     description: The Pip-Boy pictures in the sheet (the Falloutak pack). /pack [on|off|auto]
     usage: /pack [on|off|auto]

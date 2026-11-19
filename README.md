@@ -3,6 +3,14 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.34.0 (2026-11-19): the Trhač.**
+- **The Trhač** (`/creature spawn trhac`): a gigantic boar with rapeseed growing on its back, a Blockbench model written by
+  `tools/models/trhac.py` (3.75 blocks at the shoulder, ~7.4 long; 14 rapeseed stalks, each swaying on its own), animations
+  idle, walk, charge (the straight-line run, head low, the stalks blown back), gore (the tusks tossed up), pollen (it shakes
+  itself, the stalks whip and a yellow cloud of pollen 6 blocks round it lasts 10 s), spawn (it stands up out of the field) and
+  death. Its base is a hoglin (kept from turning into a zoglin), which is also its stand-in without BetterModel; its cry is
+  Minecraft's angry hoglin, lowered. What the pollen does to aim and sight is not decided yet: it only hides it from view.
+
 **Version 0.33.0 (2026-11-19): the sounds after round 2 of the listening test.**
 - **Picks:** the turn's start and the other hand as picked; a bullet in flesh, a missed bullet, a knife in flesh and the
   footsteps play one of the liked recordings at random (several sounds in one event).
