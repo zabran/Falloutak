@@ -214,7 +214,7 @@ public final class Rules {
 
     static {
         gas(new Gas("smoke", "any burning indoors", 1, 2, 0, -1, -10, 0, 0, false, true, 0, false, false,
-                "Oxygen −1, Poison +2, P −1, to hit −10 a round; CO inside it too"));
+                "Oxygen −1, Poison +2, P −1, to hit −10 a round; CO inside it too; it HIDES: a ranged shot into, out of or through it −10"));
         gas(new Gas("carbon monoxide", "inside every smoke; engines, generators and stoves run indoors", 0, 3, 0, 0, 0, 0, 0, true, false, 0, false, false,
                 "Poison +3 a round, no smell, no warning; afterwards Poison cures at half speed for a day (full on bottled oxygen)"));
         gas(new Gas("bad air", "cellars, wells, flooded tunnels", 0, 0, 0, 0, 0, 0, 0, false, false, 0, false, true,
@@ -234,18 +234,24 @@ public final class Rules {
         gas(new Gas("mercury vapour", "the chemical works' old halls", 0, 0, 0, 0, 0, 0, 0, false, false, 1, false, false,
                 "slow: Poison +1 an hour; after a week of it, I −1 and a tremor (Crafting −10 %) until treated"));
         gas(new Gas("acid fog", "the anomaly", 1, 2, 0, -2, 0, 0, 1, false, false, 0, false, false,
-                "1d6 burns a round on bare skin (no mask stops them), P −2; the lungs as smoke (Oxygen −1, Poison +2)"));
+                "1d6 burns a round on bare skin (no mask stops them), P −2; the lungs as smoke (Oxygen −1, Poison +2); it hides as smoke: a ranged shot into, out of or through it −10"));
     }
 
     static {   // not a gas for the lungs: a cloud that HIDES (Marek 11-19 on the Trhač: "it should obscure for range attacks, the same
                // way as smoke or fog does"); smoke's own number, −10, for a shot into, out of or through it (OBSCURES)
         gas(new Gas("pollen", "the Trhač's cloud", 0, 0, 0, 0, 0, 0, 0, false, false, 0, false, false,
-                "harmless to breathe; it HIDES: a ranged shot into, out of or through the cloud −10 (as smoke)"));
+                "harmless to breathe, but not to one with allergies; it HIDES: a ranged shot into, out of or through the cloud −10 (as smoke)"));
+        // Marek 11-19: "if we have any alergy genes or something like that, this should trigger for the people alergy." The immunity
+        // genes Broad HLA (T2) and Strong immunity (T3) carry "allergies" (03c); the reaction's numbers are mine (EXAMPLE).
+        gas(new Gas("pollen allergy", "the Trhač's pollen breathed by one with allergies (Broad HLA, Strong immunity)", 0, 0, 0, -2, -10, 0, 0,
+                false, false, 0, false, false,
+                "sneezing and running eyes: P −2, to hit −10 a round inside the cloud (× its strength); the big gas mask with a filter keeps it out"));
     }
 
     /** The clouds that hide what is in them or behind them: the to-hit of a ranged shot whose line of fire crosses one, × the zone's
      *  strength (the worst cloud on the line counts, once). */
-    public static final Map<String, Integer> OBSCURES = Map.of("pollen", -10);
+    public static final Map<String, Integer> OBSCURES = Map.of("pollen", -10, "smoke", -10, "acid fog", -10);   // smoke and the fog: Marek
+    // 11-19, "yes, it should hide it in the same way when the target is in the cloud"; the fog's −10 is smoke's [mine]
 
     private static void gas(Gas g) { GASES.put(g.name(), g); }
 

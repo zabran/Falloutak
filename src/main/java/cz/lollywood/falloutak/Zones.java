@@ -84,8 +84,8 @@ final class Zones {
         } catch (IOException e) { Bukkit.getLogger().warning("[Falloutak] could not save zones: " + e); }
     }
 
-    /** The clouds nobody breathes (they only hide: {@link Rules#OBSCURES}). */
-    static final Set<String> NOT_BREATHED = Set.of("pollen");
+    /** The clouds nobody breathes (they only hide: {@link Rules#OBSCURES}); the allergy is the pollen's row for the allergic. */
+    static final Set<String> NOT_BREATHED = Set.of("pollen", "pollen allergy");
 
     /** The gas zone a point is in (the strongest where they overlap), or null; a cloud that only hides is not a gas here. */
     Zone at(Location l) {
@@ -180,9 +180,21 @@ final class Zones {
 
     /** A creature's breath is where its eyes are: the gas there goes into its character (each second, and before time passes). */
     void apply(Character c, Entity e) {
-        Zone z = e instanceof LivingEntity le ? at(le.getEyeLocation()) : e == null ? null : at(e.getLocation());
+        Location eye = e instanceof LivingEntity le ? le.getEyeLocation() : e == null ? null : e.getLocation();
+        Zone z = eye == null ? null : at(eye);
         c.zoneGas = z == null ? "" : z.gas;
         c.zoneStrength = z == null ? 1 : z.strength;
+        if (z == null && eye != null && c.allergic()) {   // the pollen is harmless to breathe, but not to one with allergies
+            Zone p = pollenAt(eye);
+            if (p != null) { c.zoneGas = "pollen allergy"; c.zoneStrength = p.strength; }
+        }
+    }
+
+    /** The thickest pollen cloud at a point, or null. */
+    Zone pollenAt(Location l) {
+        Zone best = null;
+        for (Zone z : list) if (z.gas.equals("pollen") && z.contains(l) && (best == null || z.strength > best.strength)) best = z;
+        return best;
     }
 
     /** What a gas does to one with no protection at all (a raider): {P, to hit, AP} × the strength. */

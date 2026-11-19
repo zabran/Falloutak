@@ -172,6 +172,14 @@
    {
     "name": "falloutak:free/knockback",
     "stream": false
+   },
+   {
+    "name": "falloutak:free/knockback_2",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/knockback_3",
+    "stream": false
    }
   ]
  },
@@ -180,6 +188,14 @@
    {
     "name": "falloutak:free/down_male",
     "stream": false
+   },
+   {
+    "name": "falloutak:free/down_male_2",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/down_male_3",
+    "stream": false
    }
   ]
  },
@@ -187,6 +203,14 @@
   "sounds": [
    {
     "name": "falloutak:free/down_female",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/down_female_2",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/down_female_3",
     "stream": false
    }
   ]

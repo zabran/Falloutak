@@ -126,7 +126,10 @@
    "free": true,
    "real": "a diverse immune set",
    "poison": 0.15,
-   "family": "immunity"
+   "family": "immunity",
+   "other": {
+    "allergy": 1.0
+   }
   },
   {
    "name": "Non-secretor",
@@ -969,7 +972,10 @@
    "free": false,
    "real": "RimWorld's",
    "poison": 0.3,
-   "family": "immunity"
+   "family": "immunity",
+   "other": {
+    "allergy": 1.0
+   }
   },
   {
    "name": "Perfect immunity",

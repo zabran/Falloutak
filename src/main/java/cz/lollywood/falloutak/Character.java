@@ -1231,6 +1231,9 @@ public final class Character {
         return gas == null || gas.isEmpty() ? null : Rules.GASES.get(gas);
     }
 
+    /** Allergies (Marek 11-19): the immunity genes that carry them (03c: Broad HLA, Strong immunity) set {@code allergy}. */
+    public boolean allergic() { return other("allergy") > 0; }
+
     /** That gas's strength 1-3. */
     public int gasPower() { return zoneGas != null && !zoneGas.isEmpty() ? zoneStrength : gasStrength; }
 

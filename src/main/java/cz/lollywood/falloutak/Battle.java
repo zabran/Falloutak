@@ -646,11 +646,20 @@ public final class Battle implements Listener {
         return sh;
     }
 
-    /** A hiding cloud on the line of fire (the Trhač's pollen, Zones#veil): its to-hit on a ranged shot, under the cloud's name. */
+    /**
+     * A hiding cloud on the line of fire (the Trhač's pollen, smoke, the acid fog; Zones#veil): its to-hit on a ranged shot, under the
+     * cloud's name. The shooter's own smoke around his eyes is the same cover seen from the other side, so the worst counts, once.
+     */
     static void veil(Zones zones, Location from, Location to, Combat.Shot sh, boolean melee) {
         if (melee || zones == null) return;
         Zones.Zone z = zones.veil(from, to);
-        if (z != null) sh.extra.put(z.gas, Rules.OBSCURES.get(z.gas) * z.strength);
+        if (z == null) return;
+        int v = Rules.OBSCURES.get(z.gas) * z.strength;
+        for (String g : Rules.OBSCURES.keySet()) {
+            Integer own = sh.extra.remove(g);
+            if (own != null) v = Math.min(v, own);
+        }
+        sh.extra.put(z.gas, v);
     }
 
     /** Fallout 2: −10 for each creature in the line of fire (players count: a friend in the way is in the way). */

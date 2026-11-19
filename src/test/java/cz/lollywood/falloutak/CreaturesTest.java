@@ -8,6 +8,7 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -56,8 +57,48 @@ class CreaturesTest extends MockGame {
             Combat.Shot knife = new Combat.Shot();
             Battle.veil(plugin.zones, west, mid, knife, true);
             assertFalse(knife.extra.containsKey("pollen"));                        // only ranged attacks
+            // the allergic breathe it (Marek 11-19: "if we have any alergy genes ... this should trigger for the people alergy")
+            PlayerMock sneezer = player();
+            sneezer.teleport(mid);
+            Character allergic = new Character();
+            allergic.setGenes(List.of("Broad HLA"));
+            allergic.applyTemplate(Data.CUSTOM);
+            assertTrue(allergic.allergic());
+            plugin.zones.apply(allergic, sneezer);
+            assertEquals("pollen allergy", allergic.zoneGas);
+            assertArrayEquals(new int[]{-2, -10, 0}, allergic.gasPenalty());      // P −2, to hit −10
+            Character plain = AirTest.human();
+            assertFalse(plain.allergic());
+            plugin.zones.apply(plain, sneezer);
+            assertEquals("", plain.zoneGas);                                       // harmless to everyone else
+            assertArrayEquals(new int[]{0, 0, 0}, plain.gasPenalty());
+            allergic.wearing.add("Gas mask");
+            allergic.maskFilters.add("gas");
+            assertArrayEquals(new int[]{0, 0, 0}, allergic.gasPenalty());        // the big mask keeps it out
+            sneezer.teleport(far);
+            plugin.zones.apply(allergic, sneezer);
+            assertEquals("", allergic.zoneGas);
             plugin.zones.rounds(Creatures.POLLEN_ROUNDS);
             assertTrue(plugin.zones.list.stream().noneMatch(z -> z.gas.equals("pollen")));   // gone after 3 rounds
+            // smoke and the acid fog hide the same way (Marek 11-19: "yes, it should hide it in the same way when the target is in
+            // the cloud"); the shooter's own smoke and a cloud on the line count once, the worst
+            Zones.Zone smoke = plugin.zones.ball(mid, 4, "smoke", 1, 3, "test smoke");
+            Combat.Shot into = new Combat.Shot();
+            Battle.veil(plugin.zones, west, mid, into, false);
+            assertEquals(-10, into.extra.get("smoke"));
+            Combat.Shot inside = new Combat.Shot();
+            inside.extra.put("smoke", -10);                                        // his own eyes in the smoke (the gas row)
+            Battle.veil(plugin.zones, mid, east, inside, false);
+            assertEquals(Map.of("smoke", -10), inside.extra);                      // not −20
+            plugin.zones.remove(smoke);
+            Zones.Zone fog = plugin.zones.ball(mid, 4, "acid fog", 2, 3, "test fog");
+            Combat.Shot through = new Combat.Shot();
+            Battle.veil(plugin.zones, west, east, through, false);
+            assertEquals(-20, through.extra.get("acid fog"));                      // × its strength
+            plugin.zones.remove(fog);
+            Combat.Shot clear = new Combat.Shot();
+            Battle.veil(plugin.zones, west, east, clear, false);
+            assertTrue(clear.extra.isEmpty());
             assertEquals("Removed.", Creatures.command(gm, new String[]{"remove"}));
             assertTrue(Creatures.command(gm, new String[]{"spawn"}).startsWith("Radmie spawned"));
             LivingEntity r = Creatures.nearest(gm);

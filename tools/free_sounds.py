@@ -75,9 +75,10 @@ MAP = {
     "crit.fail": ("kenney_rpg-audio/Audio/metalPot1.ogg", 1.0, 0, None),
     "weapon.drop": ("kenney_rpg-audio/Audio/metalPot1.ogg", 1.0, 0, None),             # "use our crit.fail sound"
     "weapon.pickup": ("kenney_rpg-audio/Audio/handleSmallLeather.ogg", 1.0, 0, None),
-    "knockback": MAN,                                                                  # Fallout 2's knockback IS its man's fall
-    "down.male": MAN,
-    "down.female": WOMAN,
+    # round 4 (11-19): "knockback: ABC is great." "down.male: ABC is great." "down.female: ABC is great." -> all three of each
+    "knockback": ("variants", MAN),                                                    # Fallout 2's knockback IS its man's fall
+    "down.male": ("variants", MAN),
+    "down.female": ("variants", WOMAN),
     "step": ("variants", [                                                             # round 2: "ABC - all are great."
         ("seq", [("kenney_impact-sounds/Audio/footstep_grass_00%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)]),
         ("seq", [("kenney_impact-sounds/Audio/footstep_concrete_00%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)]),

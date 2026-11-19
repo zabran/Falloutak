@@ -923,7 +923,7 @@ final class Menus {
                 zonesMenu(x); }));
         Zones.Zone here = pl.zones.at(g.getEyeLocation());
         menu(g, "Gas zones", List.of(line(pl.zones.list.size() + " zone(s)" + (here == null ? "; you stand in none" : "; you stand in zone " + here.id + ": " + here.describe()), NamedTextColor.WHITE),
-                line("Whoever's eyes are inside breathes it (a zone wins over a character's own gas). Visible: smoke, riot gas, chlorine, acid fog, pollen (it only hides: ranged shots through it −10); "
+                line("Whoever's eyes are inside breathes it (a zone wins over a character's own gas). Visible: smoke, riot gas, chlorine, acid fog, pollen. Smoke, the acid fog and the pollen HIDE: a ranged shot into, out of or through them −10 (the pollen is breathed only by the allergic); "
                         + "the rest only to the GM (purple). A countdown runs with a fight's rounds and Pass time for everyone.", NamedTextColor.GRAY)), b, Menus::gm);
     }
 

@@ -3,6 +3,16 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.36.0 (2026-11-19): smoke and fog hide; the pollen allergy; all three falls.**
+- **Smoke and the acid fog hide like the pollen** (Marek: *"yes, it should hide it in the same way when the target is in the
+  cloud"*): a ranged shot into, out of or through a smoke or acid fog zone −10 × its strength (before, smoke only hindered a
+  shooter standing inside it). The shooter's own smoke and a cloud on the line count once, the worst.
+- **The pollen allergy** (Marek: *"if we have any alergy genes or something like that, this should trigger for the people
+  alergy"*): the immunity genes that carry allergies (Broad HLA T2, Strong immunity T3) make the Trhač's pollen a gas for that
+  character: sneezing and running eyes, P −2 and to hit −10 a round inside the cloud (× its strength; the numbers EXAMPLE); the
+  big gas mask with a filter keeps it out. Everyone else still breathes it freely.
+- **Sounds:** the knockback and both falls play all three of their recordings at random (Marek, round 4: *"ABC is great"*).
+
 **Version 0.35.0 (2026-11-19): the Trhač after Marek's look; the pollen hides; the falls' pain cries.**
 - **The Trhač, round 2:** the hide yellowish brown below, yellow on top; only short yellow blooms, close over the back; the
   body wider (2.6 blocks); **idle = a big yellow rock** (it lies in the field, the legs folded flat inside the body, the snout
