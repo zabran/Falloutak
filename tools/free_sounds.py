@@ -143,8 +143,11 @@ def main():
             pack = os.path.relpath(src, base).replace(os.sep, "/").split("/")[0]
             credits.append((key, os.path.relpath(src, base).replace(os.sep, "/"), "CC0 (" + SOURCES.get(pack, pack) + ")"))
         events[key] = {"sounds": [{"name": "falloutak:free/" + name, "stream": False}]}
-    io.open(os.path.join(ROOT, "pack", "assets", "falloutak", "sounds.json"), "w", encoding="utf-8", newline="\n").write(
-        json.dumps(events, indent=1))
+    sj = os.path.join(ROOT, "pack", "assets", "falloutak", "sounds.json")
+    old = json.load(io.open(sj, encoding="utf-8")) if os.path.exists(sj) else {}
+    allev = dict(events)
+    allev.update({k: v for k, v in old.items() if k.startswith("narrator.")})   # tools/narrator.py's events stay
+    io.open(sj, "w", encoding="utf-8", newline="\n").write(json.dumps(allev, indent=1))
     io.open(os.path.join(ROOT, "src", "main", "resources", "data", "free-sounds.json"), "w", encoding="utf-8", newline="\n").write(
         json.dumps(sorted(events), indent=1))
     lines = ["# Falloutak's free sounds: where each comes from", "",

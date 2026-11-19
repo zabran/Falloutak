@@ -64,10 +64,13 @@ def main():
         base = os.path.join(ROOT, "pack", "assets", "falloutak", sub)
         for dp, _, fs in os.walk(base):
             for fn in fs:
+                if fn.endswith(".json"):   # the narrator's own record of what is voiced (tools/narrator.py), not for the game
+                    continue
                 full = os.path.join(dp, fn)
                 files["assets/falloutak/" + os.path.relpath(full, os.path.join(ROOT, "pack", "assets", "falloutak")).replace(os.sep, "/")] = open(full, "rb").read()
     for extra, inzip in ((os.path.join(ROOT, "pack", "assets", "falloutak", "sounds.json"), "assets/falloutak/sounds.json"),
-                         (os.path.join(ROOT, "pack", "FREE-SOUNDS-CREDITS.md"), "FREE-SOUNDS-CREDITS.md")):
+                         (os.path.join(ROOT, "pack", "FREE-SOUNDS-CREDITS.md"), "FREE-SOUNDS-CREDITS.md"),
+                         (os.path.join(ROOT, "pack", "NARRATOR.md"), "NARRATOR.md")):
         if os.path.exists(extra):
             files[inzip] = open(extra, "rb").read()
     if a.bettermodel:

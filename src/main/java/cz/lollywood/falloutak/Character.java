@@ -75,6 +75,8 @@ public final class Character {
     public boolean fallout2Sounds, female;
     /** /pack on|off: the Pip-Boy pictures in the sheet; null = whether the server's pack loaded in his client. */
     public Boolean pictures;
+    /** /sounds narrator on|off: the narrator's comments on crits and fumbles (Narrator); null = on. */
+    public Boolean narrator;
     public final List<String> unlocked = new ArrayList<>();
     /** The game hours this character has lived through (the demo clock, later the world's): the chems' 7-day dose count reads it. */
     public double clock = 0;
@@ -715,6 +717,7 @@ public final class Character {
     public String stageHour(List<String> before) {
         if (dead || inArrest()) return null;
         String scar = before.contains(FATAL_RADIATION) && !stages().contains(FATAL_RADIATION) ? surviveFatal() : null;
+        if (before.contains(DEADLY_COLD) && !stages().contains(DEADLY_COLD)) scar = (scar == null ? "" : scar + " · ") + frostbite();
         int loss = 0;
         List<String> why = new ArrayList<>();
         boolean ignore = ignoresPain();
@@ -745,6 +748,23 @@ public final class Character {
         effects.add(new Effect(FATAL_SCAR, "scar", "", true, m, Map.of("hp_max", -5.0), 0, null, 100));
         if (hp > hpMax()) hp = hpMax();
         return FATAL_SCAR + ": Endurance −1 and HP Max −5 for good";
+    }
+
+    static final String DEADLY_COLD = "Deadly Hypothermia", FROSTBITE = "Frostbite";
+
+    /**
+     * Out of Deadly Hypothermia alive: the workbook's own Frostbite (its row: *"After Deadly Hypothermia"*, the stage's note
+     * *"frostbite if cured"*), HP Max −3 for good, each time. In the plugin since 0.31.0, when Marek ruled the Fatal Radiation scar
+     * the same kind of thing (11-19, verbatim: *""Whoever comes out of Fatal alive now keeps a scar" - agreed. Similar to
+     * frostbite."*).
+     */
+    String frostbite() {
+        Data.EffectRow r = Data.EFFECTS.get(FROSTBITE);
+        if (r == null) throw new IllegalStateException("effects.json has no " + FROSTBITE);
+        effects.add(new Effect(FROSTBITE, "scar", "", true, r.mods().clone(), Map.copyOf(r.other()), 0, null, 100));
+        if (hp > hpMax()) hp = hpMax();
+        double m = r.other().getOrDefault("hp_max", 0.0);
+        return FROSTBITE + ": HP Max " + (m < 0 ? "−" : "+") + (int) Math.abs(m) + " for good";
     }
 
     static final List<String> RAD_LADDER = List.of("Minor Radiation Poisoning", "Advanced Radiation Poisoning", "Critical Radiation Poisoning",

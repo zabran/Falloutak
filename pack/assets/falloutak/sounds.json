@@ -374,5 +374,653 @@
     "stream": false
    }
   ]
+ },
+ "narrator.dies.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.heart.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/heart_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.heart.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/heart_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.blind.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/blind_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.blind.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/blind_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.blind.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/blind_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.blind.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/blind_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.blind.3.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/blind_3_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.leg.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/leg_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.leg.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/leg_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.leg.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/leg_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.leg.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/leg_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.arm.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/arm_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.arm.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/arm_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.arm.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/arm_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.arm.3.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/arm_3_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.drop.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/drop_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.drop.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/drop_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.drop.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/drop_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.drop.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/drop_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.drop.3.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/drop_3_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.3.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_3_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.turn.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/turn_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.turn.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/turn_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.turn.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/turn_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.turn.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/turn_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.turn.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/turn_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.turn.3.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/turn_3_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.bypass.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/bypass_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.bypass.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/bypass_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.bypass.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/bypass_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.bypass.3.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/bypass_3_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.head.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/head_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.head.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/head_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.eyes.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/eyes_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.body.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/body_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.body.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/body_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.body.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/body_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.arms.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/arms_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.legs.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/legs_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.groin.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/groin_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.groin.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/groin_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.groin.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/groin_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.ammo.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_ammo_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.ammo.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_ammo_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.ammo.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_ammo_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.drop.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_drop_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.drop.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_drop_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.drop.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_drop_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.random.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_random_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.random.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_random_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.broken.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_broken_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.broken.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_broken_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.fall.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_fall_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.fall.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_fall_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.fall.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_fall_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.fall.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_fall_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.self.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_self_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.self.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_self_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.self.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_self_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.self.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_self_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.fire.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_fire_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.fire.1.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_fire_1_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.fire.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_fire_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.plain.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_plain_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.plain.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_plain_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.f.plain.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/f_plain_2_f",
+    "stream": false
+   }
+  ]
  }
 }

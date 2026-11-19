@@ -224,6 +224,7 @@ final class Raiders {
             log.append("HIS CRITICAL FAILURE (degree ").append(r.degree()).append("): ").append(what).append(".");
             failure(p, s, c, le, t, f, log);
             Sfx.at(le.getLocation(), "crit.fail");
+            Narrator.fumble(le.getLocation(), f, false);
             result = t.name + ": critical failure";
         } else if (!r.hit()) {
             log.append("MISS.");
@@ -245,6 +246,7 @@ final class Raiders {
             result = (r.crit() ? "CRIT on you, " : "hit, ") + dmg + " HP";
             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_HURT, 1f, 1f);
             b.hitPlayer(p, s, c, le.getLocation(), dmg, fx, r.crit(), deg, log);
+            if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female);
         }
         p.sendMessage(Component.text(log.toString(), NamedTextColor.RED));
         if (b.inBattle(p)) b.show(p, s, c, result);

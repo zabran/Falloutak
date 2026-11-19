@@ -91,6 +91,20 @@ class RulesTest {
         assertEquals(e0 - 1, c.attr(Rules.E, true));
         assertTrue(c.hpMaxBase() <= max0 - 5, c.hpMaxBase() + " vs " + max0);
         assertNull(c.stageHour(c.stages()));                                       // once, not every hour
+        // out of Deadly Hypothermia alive: the workbook's Frostbite, HP Max −3 for good (0.31.0, "Similar to frostbite", 11-19)
+        c.survival.put(Rules.Stat.RADS, 0.0);
+        c.hp = 20;
+        double coldMax = c.max(Rules.Stat.HYPOTHERMIA);
+        c.survival.put(Rules.Stat.HYPOTHERMIA, coldMax * 0.9);
+        List<String> deadly = c.stages();
+        assertTrue(deadly.contains("Deadly Hypothermia"), deadly.toString());
+        int max1 = c.hpMaxBase();
+        c.survival.put(Rules.Stat.HYPOTHERMIA, coldMax * 0.5);
+        String bite = c.stageHour(deadly);
+        assertTrue(bite != null && bite.startsWith("Frostbite: HP Max −3"), bite);
+        assertEquals(max1 - 3, c.hpMaxBase());
+        assertTrue(c.effects.stream().anyMatch(e -> e.name().equals("Frostbite") && e.permanent()));
+        c.survival.put(Rules.Stat.HYPOTHERMIA, 0.0);
         // a drain past −Endurance starts clinical death
         c.hp = 1;
         c.drain(50);

@@ -89,6 +89,9 @@ class BattleTest extends MockGame {
             c.hp = c.hpMax();
             c.bleeding = 0;
             c.survival.put(Rules.Stat.PAIN, 0.0);
+            // and his gun whole: a long fight wears it out (0.2 a round, ~395 rounds) or a fumble destroys it, and the demo never ends
+            s.health.clear();
+            s.broken.clear();
         }
         assertTrue(s.over || s.targets.values().stream().noneMatch(Battle::canFight), "the fight ends when no raider can fight");
         Sfx.recorder = null;
@@ -108,8 +111,9 @@ class BattleTest extends MockGame {
         use(p, 2, Action.RIGHT_CLICK_AIR);                                         // the Stimpak: 2 AP, HP back
         assertEquals(c.apMax() - 2, s.ap);
         assertTrue(c.hp > c.hpMax() - 15);
-        use(p, 3, Action.RIGHT_CLICK_AIR);                                         // a frag grenade at what he aims at
-        assertTrue(s.ap <= c.apMax() - 2, said(p));
+        int before = s.ap;
+        use(p, 3, Action.RIGHT_CLICK_AIR);                                         // a frag grenade at what he aims at: 4 AP
+        assertTrue(s.ap <= before - 4 || s.ap == 0, said(p));                      // (a miss can land at his feet: Pain, a lower maximum)
         p.performCommand("sheet battle");
     }
 }

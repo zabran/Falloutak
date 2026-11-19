@@ -537,6 +537,7 @@ public final class Battle implements Listener {
             result = "critical failure: " + what;
             critFailure(p, s, c, w, f, log);
             Sfx.at(p.getLocation(), "crit.fail");
+            Narrator.fumble(p.getLocation(), f, c.female);
         } else {
             int hits;
             String spray = "";
@@ -575,7 +576,10 @@ public final class Battle implements Listener {
                 if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
                 result = (r.crit() ? "CRIT " : "hit ") + total + " HP";
                 Sfx.at(a.target().getLocation(), w.melee() ? "knife.flesh" : "bullet.flesh");
-                if (r.crit()) Sfx.at(a.target().getLocation(), "crit");
+                if (r.crit()) {
+                    Sfx.at(a.target().getLocation(), "crit");
+                    Narrator.crit(a.target().getLocation(), part, fx, false);   // the raiders are men (the workbook's Nájezdník)
+                }
                 if (tg != null) {
                     hurt(a.target(), tg, total, fx, r.crit(), deg, log);
                     int kb = Combat.knockback(total);

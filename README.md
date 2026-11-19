@@ -3,6 +3,17 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.31.0 (2026-11-19): the narrator comments on crits and fumbles; frostbite.**
+- **The narrator** (Marek 11-19: Fallout's funny comments on criticals, spoken by the documentary narrator): after a critical hit
+  or a critical failure, a comment picked by what it did (killed outright, the heart stopped, knocked out, blinded, a leg or an arm
+  crippled, the weapon dropped, knocked down, a lost turn, through the armour, else the body part hit; for a failure: on fire, hit
+  himself, the weapon destroyed, someone else hit, a fall, the weapon dropped, the ammo lost). 56 lines, OUR OWN text
+  (`src/main/resources/data/narrator.json`, nothing taken from Fallout's messages), a woman's form for the lines that need one,
+  voiced by `tools/narrator.py` (Kokoro-82M, Apache-2.0, the British voice `bm_lewis` at 0.92) into the public pack. Everyone
+  near reads it in the chat; a player with the pack also hears it. `/sounds narrator off|on`.
+- **Frostbite:** leaving Deadly Hypothermia alive now leaves the workbook's own Frostbite (HP Max −3) for good, the same way
+  surviving Fatal Radiation leaves its scar (Marek 11-19: *"agreed. Similar to frostbite."*).
+
 **Version 0.30.0 (2026-11-19): free sounds, a longer Radmie that strikes from above, surviving Fatal Radiation.**
 - **Free sounds in the public pack** (`tools/free_sounds.py`, 47 of the 56 keys): CC0 recordings (Kenney's Impact, Sci-fi,
   Interface, RPG, Digital and Jingles packs; OpenGameArt's Gunshot sounds and Handgun Reload) and a Geiger counter made from

@@ -82,8 +82,14 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
                 return a[1] + ": " + Sfx.row(a[1]).what() + " (" + Sfx.name(p, a[1]) + ")";
             }
             case "list" -> { return "Sounds: " + String.join(", ", Sfx.ROWS.keySet()); }
-            default -> { return "Your sounds: " + (Sfx.f2(p) ? "Fallout 2's" : "Minecraft's") + ", a " + (c.female ? "woman" : "man") + "'s body. "
-                    + "/sounds fallout2 | minecraft | female | male | test <key> | list"; }
+            case "narrator" -> {
+                if (a.length > 1) c.narrator = !a[1].equalsIgnoreCase("off");
+                if (Narrator.on(p) && a.length > 1) Narrator.say(p.getLocation(), "crit.groin", c.female);
+                return "The narrator's comments on crits and fumbles: " + (Narrator.on(p) ? "ON (heard with the Falloutak pack, read by everyone)" : "OFF")
+                        + ". /sounds narrator on | off";
+            }
+            default -> { return "Your sounds: " + (Sfx.f2(p) ? "Fallout 2's" : "Minecraft's") + ", a " + (c.female ? "woman" : "man") + "'s body, the narrator "
+                    + (Narrator.on(p) ? "on" : "off") + ". /sounds fallout2 | minecraft | female | male | narrator on|off | test <key> | list"; }
         }
     }
 
