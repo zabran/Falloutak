@@ -246,7 +246,7 @@ final class Raiders {
             result = (r.crit() ? "CRIT on you, " : "hit, ") + dmg + " HP";
             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_HURT, 1f, 1f);
             b.hitPlayer(p, s, c, le.getLocation(), dmg, fx, r.crit(), deg, log);
-            if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female);
+            if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female, p);   // he hears "you..."
         }
         p.sendMessage(Component.text(log.toString(), NamedTextColor.RED));
         if (b.inBattle(p)) b.show(p, s, c, result);

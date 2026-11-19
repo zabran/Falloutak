@@ -101,6 +101,21 @@ final class Sfx {
             if (p.getLocation().distanceSquared(l) <= HEARD * HEARD) play(p, l, key);
     }
 
+    /**
+     * A body falling or thrown back WITH its pain voice (Marek 11-19 on the knockdown and the knockback: *"original makes sound of
+     * pain and body hitting ground. Both is missing in our and MC."*): Fallout 2's own fall already cries out; for everyone else
+     * the free pack's or Minecraft's body hitting the ground plus the man's or the woman's hurt voice.
+     */
+    static void fall(Location l, String key, boolean female) {
+        row(key);
+        if (l == null || l.getWorld() == null) return;
+        for (Player p : l.getWorld().getPlayers()) {
+            if (p.getLocation().distanceSquared(l) > HEARD * HEARD) continue;
+            play(p, l, key);
+            if (!f2(p)) play(p, l, body("hurt", female));
+        }
+    }
+
     /** Heard by one player only (his turn, his menus, his own body's signals). */
     static void to(Player p, String key) {
         row(key);

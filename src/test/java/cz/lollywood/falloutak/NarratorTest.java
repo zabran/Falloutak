@@ -65,6 +65,32 @@ class NarratorTest extends MockGame {
     }
 
     @Test
+    void theHitPlayerHearsYouTheOthersHearHimOrHer() {
+        PlayerMock victim = player();
+        PlayerMock friend = player(3, 3, false);
+        plugin.packCommand(victim, new String[]{"on"});
+        plugin.packCommand(friend, new String[]{"on"});
+        Map<String, String> heard = new HashMap<>();
+        Narrator.recorder = (k, who) -> heard.put(who.getName(), k);
+        try {
+            Combat.CritEffects leg = new Combat.CritEffects(false, false, false, false, true, false, false, false, false);
+            Narrator.crit(victim.getLocation(), Rules.Part.LEFT_LEG, leg, true, victim);
+            assertTrue(heard.get(victim.getName()).startsWith("narrator.you.leg."), heard.toString());
+            assertTrue(heard.get(friend.getName()).matches("narrator\\.leg\\.\\d(\\.f)?"), heard.toString());
+            // a kind with no second-person lines: both hear the third-person one
+            heard.clear();
+            Narrator.crit(victim.getLocation(), Rules.Part.TORSO, new Combat.CritEffects(false, false, false, false, false, false, false, true, false), false, victim);
+            assertEquals(heard.get(friend.getName()), heard.get(victim.getName()));
+            for (Narrator.Line l : Narrator.LINES)
+                if (l.kind().startsWith("you.")) assertTrue(Narrator.BY_KIND.containsKey("crit." + l.kind().substring(4)), l.id());
+        } finally {
+            Narrator.recorder = null;
+            plugin.packCommand(victim, new String[]{"auto"});
+            plugin.packCommand(friend, new String[]{"auto"});
+        }
+    }
+
+    @Test
     void readByEveryoneNearHeardWithThePackSilencedOnRequest() {
         PlayerMock p = player();
         PlayerMock far = player(200, 200, false);

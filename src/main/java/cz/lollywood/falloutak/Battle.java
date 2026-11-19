@@ -576,8 +576,7 @@ public final class Battle implements Listener {
                 if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
                 result = (r.crit() ? "CRIT " : "hit ") + total + " HP";
                 Sfx.at(a.target().getLocation(), w.melee() ? "knife.flesh" : "bullet.flesh");
-                if (r.crit()) {
-                    Sfx.at(a.target().getLocation(), "crit");
+                if (r.crit()) {   // the hit's own sound and the narrator (Marek 11-19: "Just make crits have normal sound + the narrator speach")
                     Narrator.crit(a.target().getLocation(), part, fx, false);   // the raiders are men (the workbook's Nájezdník)
                 }
                 if (tg != null) {
@@ -682,7 +681,8 @@ public final class Battle implements Listener {
         } else if (t.dying()) log.append(" Dying (0 to −").append(t.a[Rules.E]).append(" HP).");
         label(e, t);
         // the raiders are men (Fallout 2's HMXXXX sounds)
-        Sfx.at(e.getLocation(), t.dead ? "death.male" : t.dying() ? "dying.male" : fx.knockedDown() || fx.knockedOut() ? "down.male" : "hurt.male");
+        if (!t.dead && !t.dying() && (fx.knockedDown() || fx.knockedOut())) Sfx.fall(e.getLocation(), "down.male", false);
+        else Sfx.at(e.getLocation(), t.dead ? "death.male" : t.dying() ? "dying.male" : "hurt.male");
     }
 
     void label(LivingEntity e, Target t) {
@@ -692,7 +692,7 @@ public final class Battle implements Listener {
 
     /** Fallout 2's knockback (melee, unarmed, explosions): the target slides back while the blocks behind him are free. */
     void knockback(Location from, LivingEntity e, int blocks, StringBuilder log) {
-        Sfx.at(e.getLocation(), "knockback");
+        Sfx.fall(e.getLocation(), "knockback", e instanceof Player pk && pl.character(pk).female);
         Vector dir = e.getLocation().toVector().subtract(from.toVector()).setY(0);
         if (dir.lengthSquared() < 1e-6) return;
         dir.normalize();
@@ -1021,7 +1021,8 @@ public final class Battle implements Listener {
     void hitPlayer(Player p, State s, Character c, Location from, int dmg, Combat.CritEffects fx, boolean crit, int deg, StringBuilder log) {
         boolean strong = deg >= 4 || fx.crippledArm() || fx.crippledLeg();
         log.append(" You: ").append(Hud.hit(c, dmg, crit ? (strong ? "stab" : "crit") : "normal")).append(".");
-        Sfx.at(p.getLocation(), Sfx.body(c.hp <= 0 ? "dying" : fx.knockedDown() || fx.knockedOut() ? "down" : "hurt", c.female));
+        if (c.hp > 0 && (fx.knockedDown() || fx.knockedOut())) Sfx.fall(p.getLocation(), Sfx.body("down", c.female), c.female);
+        else Sfx.at(p.getLocation(), Sfx.body(c.hp <= 0 ? "dying" : "hurt", c.female));
         log.append(c.wearOnHit(Rules.Part.TORSO, dmg, crit));
         Location here = p.getLocation().toBlockLocation();
         if (fx.knockedDown() && !c.has("Stonewall")) { s.legs.clear(); s.legs.add(new Leg(2, here)); log.append(" You are knocked down: prone."); }

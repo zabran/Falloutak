@@ -23,22 +23,6 @@
    }
   ]
  },
- "turn.end": {
-  "sounds": [
-   {
-    "name": "falloutak:free/turn_end",
-    "stream": false
-   }
-  ]
- },
- "ap.lacking": {
-  "sounds": [
-   {
-    "name": "falloutak:free/ap_lacking",
-    "stream": false
-   }
-  ]
- },
  "mode.next": {
   "sounds": [
    {
@@ -51,14 +35,6 @@
   "sounds": [
    {
     "name": "falloutak:free/stance",
-    "stream": false
-   }
-  ]
- },
- "steady": {
-  "sounds": [
-   {
-    "name": "falloutak:free/steady",
     "stream": false
    }
   ]
@@ -151,14 +127,6 @@
    }
   ]
  },
- "crit": {
-  "sounds": [
-   {
-    "name": "falloutak:free/crit",
-    "stream": false
-   }
-  ]
- },
  "crit.fail": {
   "sounds": [
    {
@@ -183,50 +151,10 @@
    }
   ]
  },
- "grenade.throw": {
-  "sounds": [
-   {
-    "name": "falloutak:free/grenade_throw",
-    "stream": false
-   }
-  ]
- },
- "explosion": {
-  "sounds": [
-   {
-    "name": "falloutak:free/explosion",
-    "stream": false
-   }
-  ]
- },
- "gas.release": {
-  "sounds": [
-   {
-    "name": "falloutak:free/gas_release",
-    "stream": false
-   }
-  ]
- },
- "flare": {
-  "sounds": [
-   {
-    "name": "falloutak:free/flare",
-    "stream": false
-   }
-  ]
- },
  "knockback": {
   "sounds": [
    {
     "name": "falloutak:free/knockback",
-    "stream": false
-   }
-  ]
- },
- "burning": {
-  "sounds": [
-   {
-    "name": "falloutak:free/burning",
     "stream": false
    }
   ]
@@ -255,38 +183,6 @@
    }
   ]
  },
- "stimpak": {
-  "sounds": [
-   {
-    "name": "falloutak:free/stimpak",
-    "stream": false
-   }
-  ]
- },
- "chem": {
-  "sounds": [
-   {
-    "name": "falloutak:free/chem",
-    "stream": false
-   }
-  ]
- },
- "firstaid": {
-  "sounds": [
-   {
-    "name": "falloutak:free/firstaid",
-    "stream": false
-   }
-  ]
- },
- "repair": {
-  "sounds": [
-   {
-    "name": "falloutak:free/repair",
-    "stream": false
-   }
-  ]
- },
  "geiger": {
   "sounds": [
    {
@@ -295,58 +191,10 @@
    }
   ]
  },
- "gas.hiss": {
-  "sounds": [
-   {
-    "name": "falloutak:free/gas_hiss",
-    "stream": false
-   }
-  ]
- },
- "electric": {
-  "sounds": [
-   {
-    "name": "falloutak:free/electric",
-    "stream": false
-   }
-  ]
- },
- "heart.stop": {
-  "sounds": [
-   {
-    "name": "falloutak:free/heart_stop",
-    "stream": false
-   }
-  ]
- },
- "defib": {
-  "sounds": [
-   {
-    "name": "falloutak:free/defib",
-    "stream": false
-   }
-  ]
- },
- "revived": {
-  "sounds": [
-   {
-    "name": "falloutak:free/revived",
-    "stream": false
-   }
-  ]
- },
  "levelup": {
   "sounds": [
    {
     "name": "falloutak:free/levelup",
-    "stream": false
-   }
-  ]
- },
- "pipboy": {
-  "sounds": [
-   {
-    "name": "falloutak:free/pipboy",
     "stream": false
    }
   ]
@@ -363,14 +211,6 @@
   "sounds": [
    {
     "name": "falloutak:free/store_sort",
-    "stream": false
-   }
-  ]
- },
- "radmie": {
-  "sounds": [
-   {
-    "name": "falloutak:free/radmie",
     "stream": false
    }
   ]
@@ -1019,6 +859,438 @@
   "sounds": [
    {
     "name": "falloutak:narrator/f_plain_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.5": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_5",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.5.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_5_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.6": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_6",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.6.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_6_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.7": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_7",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.7.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_7_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.8": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_8",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.dies.8.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/dies_8_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.4.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_4_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.5": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_5",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.out.5.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/out_5_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.leg.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/leg_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.leg.4.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/leg_4_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.leg.5": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/leg_5",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.leg.5.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/leg_5_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.arm.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/arm_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.arm.5": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/arm_5",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.blind.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/blind_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.blind.4.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/blind_4_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.blind.5": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/blind_5",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.4.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_4_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.5": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_5",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.down.5.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/down_5_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.body.3": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/body_3",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.body.3.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/body_3_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.legs.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/legs_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.legs.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/legs_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.groin.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/groin_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.groin.4.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/groin_4_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.groin.5": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/groin_5",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.turn.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/turn_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.turn.4.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/turn_4_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.bypass.4": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/bypass_4",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.eyes.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/eyes_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.eyes.2.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/eyes_2_f",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.head.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_head_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.bypass.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_bypass_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.out.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_out_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.down.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_down_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.down.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_down_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.blind.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_blind_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.dies.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_dies_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.dies.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_dies_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.body.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_body_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.arm.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_arm_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.leg.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_leg_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.leg.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_leg_2",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.turn.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_turn_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.groin.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_groin_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.eyes.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_eyes_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.arms.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_arms_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.legs.1": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_legs_1",
     "stream": false
    }
   ]

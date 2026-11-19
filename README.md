@@ -3,6 +3,19 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.32.0 (2026-11-19): the sounds after Marek's listening test; more narrator lines, some for the player hit.**
+- **Sounds** (his verdicts, sound by sound): 19 keys play Minecraft's own sound again (the turn's end, lacking AP, the
+  grenade's throw, the explosion, burning, the medical ones, the Pip-Boy, the Radmie...), the flare Minecraft's throw; a crit
+  has no sound of its own any more (the hit's own sound and the narrator); a fall or a knockback now cries out (the man's or
+  the woman's hurt voice with the body hitting the ground, unless Fallout 2's own fall plays); chems are heard (a pill, a
+  drink or smoke as a drink, a needle as the Stimpak); the weapon drop is the critical failure's clang. New free candidates
+  for the turn's start, the other hand, a bullet in flesh, a missed bullet, a knife in flesh, a fall, footsteps (four steps in
+  a row) and the level-up; the first of each is in the pack. Two new CC0 sources (qubodup's *Impact*, Eldritch Grim's
+  *Impacts/Gun/sfx*) and one OGA-BY 3.0 (*Fleshy Fight Sounds* by will_leamon: free with credit, credited in the pack).
+- **The narrator, round 2:** 94 lines; new ones written freely from the ideas of the Czech fan translation's crit messages
+  (never their words or Interplay's), and 17 in the second person that only the player who is hit hears ("You go down on one
+  knee. Nobody is proposing.") while everyone else hears the third-person line.
+
 **Version 0.31.0 (2026-11-19): the narrator comments on crits and fumbles; frostbite.**
 - **The narrator** (Marek 11-19: Fallout's funny comments on criticals, spoken by the documentary narrator): after a critical hit
   or a critical failure, a comment picked by what it did (killed outright, the heart stopped, knocked out, blinded, a leg or an arm

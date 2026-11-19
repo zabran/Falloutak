@@ -1027,7 +1027,14 @@ public final class Character {
      * addiction's clocks); the addiction roll: the chem's chance × 2 Chem Reliant, × ½ Chem Resistant, × (1 + ½ a dose of it in the
      * last 7 days); in dependence the next dose addicts at once. An antidote ends its chem's addiction.
      */
+    /**
+     * The chems taken by a needle (Marek 11-19: *"chem: bad - use MC, and stimpak mc for injection"*): these sound as the Stimpak,
+     * the rest (pills, drinks, smoke, Jet's inhaler) as a drink [the list mine: Fallout 2's Psycho is a syringe, RadAway an IV bag].
+     */
+    static final Set<String> INJECTED = Set.of("Morphine", "Ketamine", "Psycho", "RadAway", "Jet Antidote");
+
     public String dose(Data.Chem ch, Random rnd) {
+        cues.add(INJECTED.contains(ch.name()) ? "stimpak" : "chem");
         List<Double> past = doses.computeIfAbsent(ch.name(), k -> new ArrayList<>());
         past.removeIf(t -> t < clock - 24 * 30);
         int recent = (int) past.stream().filter(t -> t > clock - 168).count();

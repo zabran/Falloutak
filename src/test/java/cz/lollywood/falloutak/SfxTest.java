@@ -119,6 +119,36 @@ class SfxTest extends MockGame {
     }
 
     @Test
+    void marekVerdicts1119FallsCryOutChemsAreHeardCritsHaveNoSoundOfTheirOwn() {
+        PlayerMock p = player();
+        List<String> heard = new ArrayList<>();
+        Sfx.recorder = (k, who) -> heard.add(k);
+        try {
+            Sfx.fall(p.getLocation(), "down.male", false);                      // the body hitting the ground + the pain voice
+            assertEquals(List.of("down.male", "hurt.male"), heard);
+            heard.clear();
+            Sfx.fall(p.getLocation(), "knockback", true);
+            assertEquals(List.of("knockback", "hurt.female"), heard);
+            heard.clear();
+            plugin.character(p).fallout2Sounds = true;                          // Fallout 2's own fall already cries out
+            Sfx.fall(p.getLocation(), "down.male", false);
+            assertEquals(List.of("down.male"), heard);
+            plugin.character(p).fallout2Sounds = false;
+            Character c = plugin.character(p);
+            c.dose(Data.CHEMS.get("Mentats"), new Random(1));
+            c.dose(Data.CHEMS.get("Psycho"), new Random(1));
+            assertEquals(List.of("chem", "stimpak"), c.cues);                   // a pill as a drink, a needle as the Stimpak
+            c.cues.clear();
+        } finally {
+            Sfx.recorder = null;
+        }
+        assertFalse(Sfx.ROWS.containsKey("crit"));                              // crits: the hit's own sound and the narrator
+        assertFalse(Sfx.FREE.contains("explosion"));                            // "use MC"
+        assertTrue(Sfx.FREE.contains("weapon.drop") && Sfx.FREE.contains("levelup"));
+        assertEquals("entity.witch.throw", Sfx.row("flare").mc());              // "use just the MC throw sound"
+    }
+
+    @Test
     void pipBoyPicturesOnlyForAPlayerWithThePack() throws Exception {
         // every attribute, skill and survival value has its picture, and the pack's font has the same characters (tools/cards.py)
         String font = Files.readString(Path.of("pack/assets/falloutak/font/cards.json"));

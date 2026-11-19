@@ -124,19 +124,31 @@ final class Narrator {
     }
 
     /** The comment on a crit: {@code female} = the target is a woman. Returns the line said (tests, the log). */
-    static String crit(Location at, Rules.Part part, Combat.CritEffects fx, boolean female) { return say(at, critKind(part, fx), female); }
+    static String crit(Location at, Rules.Part part, Combat.CritEffects fx, boolean female) { return say(at, critKind(part, fx), female, null); }
+
+    /** A crit on a PLAYER: he alone hears a second-person line ({@code you.*}) where there is one, everyone else the third-person one. */
+    static String crit(Location at, Rules.Part part, Combat.CritEffects fx, boolean female, Player victim) {
+        return say(at, critKind(part, fx), female, victim);
+    }
+
+    /** The second-person kind of a crit kind ("crit.leg" → "you.leg"). */
+    static String youKind(String kind) { return "you." + kind.substring(kind.indexOf('.') + 1); }
 
     /** The comment on a critical failure: {@code female} = the one who fumbled is a woman. */
-    static String fumble(Location at, Combat.Failure f, boolean female) { return say(at, fumbleKind(f), female); }
+    static String fumble(Location at, Combat.Failure f, boolean female) { return say(at, fumbleKind(f), female, null); }
 
-    static String say(Location at, String kind, boolean female) {
+    static String say(Location at, String kind, boolean female) { return say(at, kind, female, null); }
+
+    static String say(Location at, String kind, boolean female, Player victim) {
         Line l = pick(kind);
         String text = text(l, female);
         if (at == null || at.getWorld() == null) return text;
-        Component msg = Component.text("The narrator: " + text, NamedTextColor.GRAY, TextDecoration.ITALIC);
-        String key = key(l, female);
+        Line you = victim != null && BY_KIND.containsKey(youKind(kind)) ? pick(youKind(kind)) : null;
         for (Player p : at.getWorld().getPlayers()) {
             if (p.getLocation().distanceSquared(at) > HEARD * HEARD || !on(p)) continue;
+            Line mine = you != null && p.equals(victim) ? you : l;
+            Component msg = Component.text("The narrator: " + text(mine, female), NamedTextColor.GRAY, TextDecoration.ITALIC);
+            String key = key(mine, female);
             Character c = Menus.pl == null ? null : Menus.pl.character(p);
             boolean pack = c != null ? Icons.hasPack(p, c) : Icons.packLoaded.contains(p.getUniqueId());   // no pack: the text alone
             if (pack && recorder != null) recorder.accept(key, p);

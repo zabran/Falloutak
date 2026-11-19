@@ -1,61 +1,475 @@
 {
- "source": "The narrator's comments on critical hits and critical failures (Marek 11-19: 'Fallout had funny comments - at least in Czech version. Could you the documentary narrator speak the comments to crits?'). OUR OWN text, written for Falloutak in a deadpan nature-documentary voice; nothing is taken from Fallout's messages. kind = what the crit or the failure did (the most striking effect wins, Narrator.java); {he} {him} {his} {himself} {He} {His} become she/her/herself for a woman, and tools/narrator.py voices both forms with the English documentary narrator (Kokoro bm_lewis at 0.92, Marek by ear). Players with the public pack hear it; everyone reads it in the chat.",
+ "source": "The narrator's comments on critical hits and critical failures (Marek 11-19: 'Fallout had funny comments - at least in Czech version. Could you the documentary narrator speak the comments to crits?'). OUR OWN text, written for Falloutak in a deadpan nature-documentary voice; nothing is taken from Fallout's messages. Round 2 (Marek 11-19: 'if english version is protected, look for Czech version, that one is quite different (I think it was fan made) and be translating it into english in free form, it becomes completely different'): new lines written freely from the IDEAS of the Czech fan translation's crit messages (patch000.dat, 2000), never their words or Interplay's. kind you.* = second person, heard only by the player who is hit (Narrator.crit with a victim); everyone else hears the third-person line. kind = what the crit or the failure did (the most striking effect wins, Narrator.java); {he} {him} {his} {himself} {He} {His} become she/her/herself for a woman, and tools/narrator.py voices both forms with the English documentary narrator (Kokoro bm_lewis at 0.92, Marek by ear). Players with the public pack hear it; everyone reads it in the chat.",
  "lines": [
-  {"id": "dies.1", "kind": "crit.dies", "text": "And with that, the debate about {his} future is settled."},
-  {"id": "dies.2", "kind": "crit.dies", "text": "A clean, decisive answer. {He} will not be needing lunch."},
-  {"id": "dies.3", "kind": "crit.dies", "text": "Nature is cruel. Lead is crueller still."},
-  {"id": "dies.4", "kind": "crit.dies", "text": "One moment a fighter. The next, a cautionary tale."},
-  {"id": "heart.1", "kind": "crit.heart", "text": "The heart, quite sensibly, takes the rest of the day off."},
-  {"id": "heart.2", "kind": "crit.heart", "text": "A sharp knock on the chest. Nobody answers."},
-  {"id": "out.1", "kind": "crit.out", "text": "Lights out. Somewhere, a small bird sings for {him}."},
-  {"id": "out.2", "kind": "crit.out", "text": "{He} takes an unscheduled nap, in the middle of a firefight."},
-  {"id": "out.3", "kind": "crit.out", "text": "Consciousness has left the building."},
-  {"id": "blind.1", "kind": "crit.blind", "text": "{He} will not see the next one coming. Or anything else, really."},
-  {"id": "blind.2", "kind": "crit.blind", "text": "Straight in the eyes. The view, from now on, is strictly imaginary."},
-  {"id": "blind.3", "kind": "crit.blind", "text": "A shot to the eyes. {He} was never much of a reader anyway."},
-  {"id": "leg.1", "kind": "crit.leg", "text": "That knee now bends in a direction its maker never intended."},
-  {"id": "leg.2", "kind": "crit.leg", "text": "{He} will be walking with a certain flair from now on."},
-  {"id": "leg.3", "kind": "crit.leg", "text": "The leg files a formal complaint, and resigns."},
-  {"id": "arm.1", "kind": "crit.arm", "text": "The arm goes limp, like a wet sock on a washing line."},
-  {"id": "arm.2", "kind": "crit.arm", "text": "That arm is now strictly decorative."},
-  {"id": "arm.3", "kind": "crit.arm", "text": "{He} reaches for {his} weapon. The arm politely declines."},
-  {"id": "drop.1", "kind": "crit.drop", "text": "The weapon leaves {his} hand, in search of a more competent owner."},
-  {"id": "drop.2", "kind": "crit.drop", "text": "Butterfingers. Lethal, lead-filled butterfingers."},
-  {"id": "drop.3", "kind": "crit.drop", "text": "{He} drops {his} gun. A bad habit, at a very bad time."},
-  {"id": "down.1", "kind": "crit.down", "text": "And down {he} goes, to admire the sky for a moment."},
-  {"id": "down.2", "kind": "crit.down", "text": "Gravity, as always, wins the argument."},
-  {"id": "down.3", "kind": "crit.down", "text": "{He} lies down, to reflect on {his} choices."},
-  {"id": "turn.1", "kind": "crit.turn", "text": "{He} needs a moment. Possibly several."},
-  {"id": "turn.2", "kind": "crit.turn", "text": "Stunned, {he} forgets what {he} was doing, and why."},
-  {"id": "turn.3", "kind": "crit.turn", "text": "{His} mind wanders off. The rest of {him} stays behind to be shot."},
-  {"id": "bypass.1", "kind": "crit.bypass", "text": "The armour, it turns out, was mostly for show."},
-  {"id": "bypass.2", "kind": "crit.bypass", "text": "Right through the plating. Someone should ask for a refund."},
-  {"id": "bypass.3", "kind": "crit.bypass", "text": "{His} armour had one job."},
-  {"id": "head.1", "kind": "crit.head", "text": "A sharp blow to the head. It improves nothing."},
-  {"id": "head.2", "kind": "crit.head", "text": "Right in the thinking parts. What little there was of them."},
-  {"id": "eyes.1", "kind": "crit.eyes", "text": "Right in the eye. That will smart in the morning."},
-  {"id": "body.1", "kind": "crit.body", "text": "Square in the chest. A textbook shot, if anyone still wrote textbooks."},
-  {"id": "body.2", "kind": "crit.body", "text": "Straight through the middle. {He} felt that one in {his} soul."},
-  {"id": "arms.1", "kind": "crit.arms", "text": "The arm takes it, and will remember it for years."},
-  {"id": "legs.1", "kind": "crit.legs", "text": "A brutal shot to the leg. Dancing is off the table."},
-  {"id": "groin.1", "kind": "crit.groin", "text": "Oh. Oh, that is low. Even for the wasteland."},
-  {"id": "groin.2", "kind": "crit.groin", "text": "A hit to the groin. The whole wasteland winces in sympathy."},
-  {"id": "groin.3", "kind": "crit.groin", "text": "The family line has just become a matter for debate."},
-  {"id": "f.ammo.1", "kind": "fumble.ammo", "text": "The magazine slides out and clatters to the ground. Impressive."},
-  {"id": "f.ammo.2", "kind": "fumble.ammo", "text": "{He} scatters bullets like rice at a wedding."},
-  {"id": "f.drop.1", "kind": "fumble.drop", "text": "The weapon slips, falls, and lands on its most delicate part."},
-  {"id": "f.drop.2", "kind": "fumble.drop", "text": "{He} drops the gun. The gun will remember this."},
-  {"id": "f.random.1", "kind": "fumble.random", "text": "A shot, fired with great confidence, at entirely the wrong person."},
-  {"id": "f.random.2", "kind": "fumble.random", "text": "Friendly fire. Not that anyone is feeling very friendly."},
-  {"id": "f.broken.1", "kind": "fumble.broken", "text": "The weapon has given everything it had. Including itself."},
-  {"id": "f.broken.2", "kind": "fumble.broken", "text": "With one last click, and a sad clunk, the gun retires."},
-  {"id": "f.fall.1", "kind": "fumble.fall", "text": "{He} trips over absolutely nothing, with great commitment."},
-  {"id": "f.fall.2", "kind": "fumble.fall", "text": "And down {he} goes, defeated by the ground itself."},
-  {"id": "f.self.1", "kind": "fumble.self", "text": "In a stunning display of skill, {he} shoots the one person {he} should not."},
-  {"id": "f.self.2", "kind": "fumble.self", "text": "{He} is now, technically, {his} own worst enemy."},
-  {"id": "f.fire.1", "kind": "fumble.fire", "text": "{He} is on fire. This was not part of the plan."},
-  {"id": "f.fire.2", "kind": "fumble.fire", "text": "Self-ignition. The wasteland applauds, from a safe distance."},
-  {"id": "f.plain.1", "kind": "fumble.plain", "text": "A moment of hesitation, and the moment is gone."},
-  {"id": "f.plain.2", "kind": "fumble.plain", "text": "{He} fumbles, curses, and loses {his} nerve."}
+  {
+   "id": "dies.1",
+   "kind": "crit.dies",
+   "text": "And with that, the debate about {his} future is settled."
+  },
+  {
+   "id": "dies.2",
+   "kind": "crit.dies",
+   "text": "A clean, decisive answer. {He} will not be needing lunch."
+  },
+  {
+   "id": "dies.3",
+   "kind": "crit.dies",
+   "text": "Nature is cruel. Ballistics, crueller still."
+  },
+  {
+   "id": "dies.4",
+   "kind": "crit.dies",
+   "text": "One moment a fighter. The next, a cautionary tale."
+  },
+  {
+   "id": "heart.1",
+   "kind": "crit.heart",
+   "text": "The heart, quite sensibly, takes the rest of the day off."
+  },
+  {
+   "id": "heart.2",
+   "kind": "crit.heart",
+   "text": "A sharp knock on the chest. Nobody answers."
+  },
+  {
+   "id": "out.1",
+   "kind": "crit.out",
+   "text": "Lights out. Somewhere, a small bird sings for {him}."
+  },
+  {
+   "id": "out.2",
+   "kind": "crit.out",
+   "text": "{He} takes an unscheduled nap, in the middle of a firefight."
+  },
+  {
+   "id": "out.3",
+   "kind": "crit.out",
+   "text": "Consciousness has left the building."
+  },
+  {
+   "id": "blind.1",
+   "kind": "crit.blind",
+   "text": "{He} will not see the next one coming. Or anything else, really."
+  },
+  {
+   "id": "blind.2",
+   "kind": "crit.blind",
+   "text": "Straight in the eyes. The view, from now on, is strictly imaginary."
+  },
+  {
+   "id": "blind.3",
+   "kind": "crit.blind",
+   "text": "A shot to the eyes. Reading was never {his} strong suit anyway."
+  },
+  {
+   "id": "leg.1",
+   "kind": "crit.leg",
+   "text": "That knee now bends in a direction its maker never intended."
+  },
+  {
+   "id": "leg.2",
+   "kind": "crit.leg",
+   "text": "{He} will be walking with a certain flair from now on."
+  },
+  {
+   "id": "leg.3",
+   "kind": "crit.leg",
+   "text": "The leg files a formal complaint, and resigns."
+  },
+  {
+   "id": "arm.1",
+   "kind": "crit.arm",
+   "text": "The arm goes limp, like a wet sock on a washing line."
+  },
+  {
+   "id": "arm.2",
+   "kind": "crit.arm",
+   "text": "That arm is now strictly decorative."
+  },
+  {
+   "id": "arm.3",
+   "kind": "crit.arm",
+   "text": "{He} reaches for {his} weapon. The arm politely declines."
+  },
+  {
+   "id": "drop.1",
+   "kind": "crit.drop",
+   "text": "The weapon leaves {his} hand, in search of a more competent owner."
+  },
+  {
+   "id": "drop.2",
+   "kind": "crit.drop",
+   "text": "Butterfingers. Lethal, lead-filled butterfingers."
+  },
+  {
+   "id": "drop.3",
+   "kind": "crit.drop",
+   "text": "{He} drops {his} gun. A bad habit, at a very bad time."
+  },
+  {
+   "id": "down.1",
+   "kind": "crit.down",
+   "text": "And down {he} goes, to admire the sky for a moment."
+  },
+  {
+   "id": "down.2",
+   "kind": "crit.down",
+   "text": "Gravity, as always, wins the argument."
+  },
+  {
+   "id": "down.3",
+   "kind": "crit.down",
+   "text": "{He} lies down, to reflect on {his} choices."
+  },
+  {
+   "id": "turn.1",
+   "kind": "crit.turn",
+   "text": "{He} needs a moment. Possibly several."
+  },
+  {
+   "id": "turn.2",
+   "kind": "crit.turn",
+   "text": "Stunned, {he} forgets what {he} was doing, and why."
+  },
+  {
+   "id": "turn.3",
+   "kind": "crit.turn",
+   "text": "{His} mind wanders off. The rest of {him} stays behind to be shot."
+  },
+  {
+   "id": "bypass.1",
+   "kind": "crit.bypass",
+   "text": "The armour, it turns out, was mostly for show."
+  },
+  {
+   "id": "bypass.2",
+   "kind": "crit.bypass",
+   "text": "Right through the plating. Someone should ask for a refund."
+  },
+  {
+   "id": "bypass.3",
+   "kind": "crit.bypass",
+   "text": "{His} armour had one job."
+  },
+  {
+   "id": "head.1",
+   "kind": "crit.head",
+   "text": "A sharp blow to the head. It improves nothing."
+  },
+  {
+   "id": "head.2",
+   "kind": "crit.head",
+   "text": "Right in the thinking parts. What little there was of them."
+  },
+  {
+   "id": "eyes.1",
+   "kind": "crit.eyes",
+   "text": "Right in the eye. That will smart in the morning."
+  },
+  {
+   "id": "body.1",
+   "kind": "crit.body",
+   "text": "Square in the chest. A textbook shot, if anyone still wrote textbooks."
+  },
+  {
+   "id": "body.2",
+   "kind": "crit.body",
+   "text": "Straight through the middle. {He} felt that one in {his} soul."
+  },
+  {
+   "id": "arms.1",
+   "kind": "crit.arms",
+   "text": "The arm takes it, and will remember it for years."
+  },
+  {
+   "id": "legs.1",
+   "kind": "crit.legs",
+   "text": "A brutal shot to the leg. Dancing is off the table."
+  },
+  {
+   "id": "groin.1",
+   "kind": "crit.groin",
+   "text": "Oh. Oh, that is low. Even for the wasteland."
+  },
+  {
+   "id": "groin.2",
+   "kind": "crit.groin",
+   "text": "A hit to the groin. The whole wasteland winces in sympathy."
+  },
+  {
+   "id": "groin.3",
+   "kind": "crit.groin",
+   "text": "The family line has just become a matter for debate."
+  },
+  {
+   "id": "f.ammo.1",
+   "kind": "fumble.ammo",
+   "text": "The magazine slides out and clatters to the ground. Impressive."
+  },
+  {
+   "id": "f.ammo.2",
+   "kind": "fumble.ammo",
+   "text": "{He} scatters bullets like rice at a wedding."
+  },
+  {
+   "id": "f.drop.1",
+   "kind": "fumble.drop",
+   "text": "The weapon slips, falls, and lands on its most delicate part."
+  },
+  {
+   "id": "f.drop.2",
+   "kind": "fumble.drop",
+   "text": "{He} drops the gun. The gun will remember this."
+  },
+  {
+   "id": "f.random.1",
+   "kind": "fumble.random",
+   "text": "A shot, fired with great confidence, at entirely the wrong person."
+  },
+  {
+   "id": "f.random.2",
+   "kind": "fumble.random",
+   "text": "Friendly fire. Not that anyone is feeling very friendly."
+  },
+  {
+   "id": "f.broken.1",
+   "kind": "fumble.broken",
+   "text": "The weapon has given everything it had. Including itself."
+  },
+  {
+   "id": "f.broken.2",
+   "kind": "fumble.broken",
+   "text": "With one last click, and a sad clunk, the gun retires."
+  },
+  {
+   "id": "f.fall.1",
+   "kind": "fumble.fall",
+   "text": "{He} trips over absolutely nothing, with great commitment."
+  },
+  {
+   "id": "f.fall.2",
+   "kind": "fumble.fall",
+   "text": "And down {he} goes, defeated by the ground itself."
+  },
+  {
+   "id": "f.self.1",
+   "kind": "fumble.self",
+   "text": "In a stunning display of skill, {he} shoots the one person {he} should not."
+  },
+  {
+   "id": "f.self.2",
+   "kind": "fumble.self",
+   "text": "{He} is now, technically, {his} own worst enemy."
+  },
+  {
+   "id": "f.fire.1",
+   "kind": "fumble.fire",
+   "text": "{He} is on fire. This was not part of the plan."
+  },
+  {
+   "id": "f.fire.2",
+   "kind": "fumble.fire",
+   "text": "Self-ignition. The wasteland applauds, from a safe distance."
+  },
+  {
+   "id": "f.plain.1",
+   "kind": "fumble.plain",
+   "text": "A moment of hesitation, and the moment is gone."
+  },
+  {
+   "id": "f.plain.2",
+   "kind": "fumble.plain",
+   "text": "{He} fumbles, curses, and loses {his} nerve."
+  },
+  {
+   "id": "dies.5",
+   "kind": "crit.dies",
+   "text": "{He} whispers something that sounds a lot like Mummy, and the lights go out."
+  },
+  {
+   "id": "dies.6",
+   "kind": "crit.dies",
+   "text": "A fresh breeze now reaches parts of {his} head that never had one. {He} does not stay to enjoy it."
+  },
+  {
+   "id": "dies.7",
+   "kind": "crit.dies",
+   "text": "For the first time in {his} life, {he} gets a good look at {his} own insides. The view does not last."
+  },
+  {
+   "id": "dies.8",
+   "kind": "crit.dies",
+   "text": "{He} never found the time to pray. {He} can apologise to the gods in person, shortly."
+  },
+  {
+   "id": "out.4",
+   "kind": "crit.out",
+   "text": "{He} folds up like a rag doll, and stays folded."
+  },
+  {
+   "id": "out.5",
+   "kind": "crit.out",
+   "text": "The blow knocks the wind out of {him}, and {him} out of the fight."
+  },
+  {
+   "id": "leg.4",
+   "kind": "crit.leg",
+   "text": "That knee is now mostly red paste. {He} sits down to think it over."
+  },
+  {
+   "id": "leg.5",
+   "kind": "crit.leg",
+   "text": "{He} decides, on reflection, that running away is the best plan. On one leg."
+  },
+  {
+   "id": "arm.4",
+   "kind": "crit.arm",
+   "text": "A sudden and very severe case of tennis elbow."
+  },
+  {
+   "id": "arm.5",
+   "kind": "crit.arm",
+   "text": "The arm now hangs on by a strip of skin and sheer stubbornness."
+  },
+  {
+   "id": "blind.4",
+   "kind": "crit.blind",
+   "text": "Losing an eye was a little much, even for {him}. {He} lies down."
+  },
+  {
+   "id": "blind.5",
+   "kind": "crit.blind",
+   "text": "Blind as a mole, and pulling the funniest faces."
+  },
+  {
+   "id": "down.4",
+   "kind": "crit.down",
+   "text": "{He} drops to the ground like the heroine of a cheap romance novel."
+  },
+  {
+   "id": "down.5",
+   "kind": "crit.down",
+   "text": "The blow sends {him} flying, as light as a child's toy."
+  },
+  {
+   "id": "body.3",
+   "kind": "crit.body",
+   "text": "{He} folds in half and starts gargling quietly."
+  },
+  {
+   "id": "legs.2",
+   "kind": "crit.legs",
+   "text": "That left a hole in {his} thigh the size of a fist. Please, do not test it."
+  },
+  {
+   "id": "groin.4",
+   "kind": "crit.groin",
+   "text": "{His} proudest possession has left the conversation. Former partners remember it fondly."
+  },
+  {
+   "id": "groin.5",
+   "kind": "crit.groin",
+   "text": "That hurt more than any bad date ever could."
+  },
+  {
+   "id": "turn.4",
+   "kind": "crit.turn",
+   "text": "A crushing blow. {He} is fully stunned, and only partly aware of it."
+  },
+  {
+   "id": "bypass.4",
+   "kind": "crit.bypass",
+   "text": "The shot slips in right beside the armour. Tailors, take note."
+  },
+  {
+   "id": "eyes.2",
+   "kind": "crit.eyes",
+   "text": "It will take a while to wipe all that blood out of {his} eyes."
+  },
+  {
+   "id": "you.head.1",
+   "kind": "you.head",
+   "text": "If you live until tomorrow, expect a truly remarkable headache."
+  },
+  {
+   "id": "you.bypass.1",
+   "kind": "you.bypass",
+   "text": "Against a shot like that, your armour was purely decorative."
+  },
+  {
+   "id": "you.out.1",
+   "kind": "you.out",
+   "text": "A brief moment of pain, then a long and comfortable darkness."
+  },
+  {
+   "id": "you.down.1",
+   "kind": "you.down",
+   "text": "You fly backwards like a football, and you land like one."
+  },
+  {
+   "id": "you.down.2",
+   "kind": "you.down",
+   "text": "You go down on one knee. Nobody is proposing."
+  },
+  {
+   "id": "you.blind.1",
+   "kind": "you.blind",
+   "text": "Everything goes dark for a moment. Then you notice it is staying dark."
+  },
+  {
+   "id": "you.dies.1",
+   "kind": "you.dies",
+   "text": "Something feels very odd. That would be the dying. It passes quickly."
+  },
+  {
+   "id": "you.dies.2",
+   "kind": "you.dies",
+   "text": "For the first time in your life, you see your own back. Your head has the best seat."
+  },
+  {
+   "id": "you.body.1",
+   "kind": "you.body",
+   "text": "Your blood babbles merrily onto the ground, like a little brook."
+  },
+  {
+   "id": "you.arm.1",
+   "kind": "you.arm",
+   "text": "A broken bone pokes out of your arm, to see what all the noise is about."
+  },
+  {
+   "id": "you.leg.1",
+   "kind": "you.leg",
+   "text": "Your leg breaks, and you go down in a graceful arc."
+  },
+  {
+   "id": "you.leg.2",
+   "kind": "you.leg",
+   "text": "Mercifully, you pass out before the leg starts to hurt properly."
+  },
+  {
+   "id": "you.turn.1",
+   "kind": "you.turn",
+   "text": "You are stunned. Take a moment. Take several."
+  },
+  {
+   "id": "you.groin.1",
+   "kind": "you.groin",
+   "text": "Somewhere, a linguist is still searching for a word for what you feel right now."
+  },
+  {
+   "id": "you.eyes.1",
+   "kind": "you.eyes",
+   "text": "You will be wiping blood out of your eyes for a while."
+  },
+  {
+   "id": "you.arms.1",
+   "kind": "you.arms",
+   "text": "Cheer up. Scars like that start conversations."
+  },
+  {
+   "id": "you.legs.1",
+   "kind": "you.legs",
+   "text": "On the bright side, you have looked worse."
+  }
  ]
 }
