@@ -1,0 +1,287 @@
+{
+ "source": "the Fallouťák Google workbook, tab effects (dumped 2026-11-13)",
+ "rows": [
+  {
+   "name": "Minor Sleep Deprivation",
+   "description": "80%-60% sleep",
+   "agility": -1
+  },
+  {
+   "name": "Advanced Sleep Deprivation",
+   "description": "60%-40% sleep",
+   "intelligence": -1,
+   "agility": -2
+  },
+  {
+   "name": "Critical Sleep Deprivation",
+   "description": "40%-20% sleep",
+   "endurance": -1,
+   "intelligence": -2,
+   "agility": -3
+  },
+  {
+   "name": "Deadly Sleep Deprivation",
+   "description": "20%-0% sleep, coma after",
+   "endurance": -2,
+   "intelligence": -2,
+   "agility": -3
+  },
+  {
+   "name": "Minor Radiation Poisoning",
+   "description": "150-299 rads",
+   "strength": -1
+  },
+  {
+   "name": "Advanced Radiation Poisoning",
+   "description": "300-449 rads",
+   "strength": -1,
+   "agility": -1,
+   "healing_rate": -3
+  },
+  {
+   "name": "Critical Radiation Poisoning",
+   "description": "450-599 rads",
+   "strength": -2,
+   "endurance": -1,
+   "agility": -2,
+   "healing_rate": -5,
+   "hp_once": -5
+  },
+  {
+   "name": "Deadly Radiation Poisoning",
+   "description": "600-999 rads",
+   "strength": -4,
+   "perception": -3,
+   "endurance": -3,
+   "charisma": -3,
+   "intelligence": -1,
+   "agility": -5,
+   "healing_rate": -10,
+   "hp_once": -15
+  },
+  {
+   "name": "Fatal Radiation Poisoning",
+   "description": "1000+ rads, dies after 24 hours if not lowered",
+   "strength": -6,
+   "perception": -5,
+   "endurance": -5,
+   "charisma": -5,
+   "intelligence": -3,
+   "agility": -6,
+   "healing_rate": -10,
+   "hp_once": -20
+  },
+  {
+   "name": "Minor Dehydration",
+   "description": "80%-60% water",
+   "endurance": -1
+  },
+  {
+   "name": "Advanced Dehydration",
+   "description": "60%-40% water",
+   "perception": -1,
+   "endurance": -2
+  },
+  {
+   "name": "Critical Dehydration",
+   "description": "40%-20% water",
+   "perception": -2,
+   "endurance": -3,
+   "intelligence": -1
+  },
+  {
+   "name": "Deadly Dehydration",
+   "description": "20%-0% water, death after",
+   "perception": -2,
+   "endurance": -3,
+   "intelligence": -1,
+   "agility": -2
+  },
+  {
+   "name": "Minor Starvation",
+   "description": "80%-60% food",
+   "strength": -1
+  },
+  {
+   "name": "Advanced Starvation",
+   "description": "60%-40% food",
+   "strength": -2,
+   "charisma": -1
+  },
+  {
+   "name": "Critical Starvation",
+   "description": "40%-20% food",
+   "strength": -3,
+   "perception": -1,
+   "charisma": -2
+  },
+  {
+   "name": "Deadly Starvation",
+   "description": "20%-0% good, death after",
+   "strength": -3,
+   "perception": -2,
+   "charisma": -2
+  },
+  {
+   "name": "Minor Poisoning",
+   "description": "0%-20% poison",
+   "perception": -1,
+   "intelligence": -1
+  },
+  {
+   "name": "Advanced Poisoning",
+   "description": "20%-40% poison",
+   "perception": -2,
+   "intelligence": -2,
+   "hp_current": -1
+  },
+  {
+   "name": "Critical Poisoning",
+   "description": "40%-60% poison",
+   "strength": -1,
+   "perception": -3,
+   "intelligence": -2,
+   "agility": -1,
+   "hp_current": -2,
+   "hp_max": -3
+  },
+  {
+   "name": "Deadly Poisoning",
+   "description": "60%-80% poison",
+   "strength": -2,
+   "perception": -4,
+   "charisma": -1,
+   "intelligence": -2,
+   "agility": -2,
+   "hp_current": -4,
+   "hp_max": -5
+  },
+  {
+   "name": "Fatal Poisoning",
+   "description": "80%-100%, death after",
+   "strength": -4,
+   "perception": -6,
+   "charisma": -3,
+   "intelligence": -3,
+   "agility": -4,
+   "hp_current": -6,
+   "hp_max": -10
+  },
+  {
+   "name": "Minor Pain",
+   "description": "0-25 pain",
+   "charisma": -1
+  },
+  {
+   "name": "Advanced Pain",
+   "description": "26-50 pain",
+   "charisma": -2,
+   "intelligence": -1
+  },
+  {
+   "name": "Critical Pain",
+   "description": "51-75 pain",
+   "perception": -1,
+   "charisma": -3,
+   "intelligence": -2,
+   "agility": -1
+  },
+  {
+   "name": "Paralyzed by Pain",
+   "description": "75+ pain",
+   "perception": -1,
+   "charisma": -3,
+   "intelligence": -2,
+   "ap": -99
+  },
+  {
+   "name": "Minor Anemia",
+   "description": "80%-60% blood",
+   "endurance": -1
+  },
+  {
+   "name": "Advanced Anemia",
+   "description": "60%-40% blood",
+   "strength": -1,
+   "endurance": -2
+  },
+  {
+   "name": "Critical Anemia",
+   "description": "40%-20% blood",
+   "strength": -2,
+   "perception": -1,
+   "endurance": -3
+  },
+  {
+   "name": "Deadly Anemia",
+   "description": "20%-0% blood, death after",
+   "strength": -3,
+   "perception": -2,
+   "endurance": -5,
+   "charisma": -1,
+   "intelligence": -2,
+   "agility": -2,
+   "hp_max": -8
+  },
+  {
+   "name": "Minor Hypothermia",
+   "description": "20%-40% cold",
+   "agility": -1
+  },
+  {
+   "name": "Advanced Hypothermia",
+   "description": "40%-60% cold",
+   "strength": -1,
+   "agility": -2
+  },
+  {
+   "name": "Critical Hypothermia",
+   "description": "60%-80% cold",
+   "strength": -2,
+   "charisma": -1,
+   "agility": -3
+  },
+  {
+   "name": "Deadly Hypothermia",
+   "description": "80%-100% cold, death after, frostbite if cured",
+   "strength": -2,
+   "perception": -2,
+   "charisma": -1,
+   "intelligence": -2,
+   "agility": -3
+  },
+  {
+   "name": "Frostbite",
+   "description": "After Deadly Hypothermia",
+   "hp_max": -3
+  },
+  {
+   "name": "Minor Hyperthermia",
+   "description": "20%-40% heat",
+   "strength": -1
+  },
+  {
+   "name": "Advanced Hyperthermia",
+   "description": "40%-60% heat",
+   "strength": -2,
+   "perception": -1
+  },
+  {
+   "name": "Critical Hyperthermia",
+   "description": "60%-80% heat",
+   "strength": -3,
+   "perception": -2,
+   "endurance": -1
+  },
+  {
+   "name": "Deadly Hyperthermia",
+   "description": "80%-100% heat, death after",
+   "strength": -3,
+   "perception": -2,
+   "endurance": -2,
+   "intelligence": -2,
+   "hp_current": -1,
+   "hp_max": -5
+  }
+ ]
+}

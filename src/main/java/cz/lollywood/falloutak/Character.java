@@ -1,0 +1,1956 @@
+package cz.lollywood.falloutak;
+
+import java.util.*;
+
+/**
+ * One character, saved as one JSON file ({@link Store}). Part 3 (`_notes/Fallout/03b-SPECIES-RULES.md`, RULED 11-16): the template's
+ * numbers reach every derived value, and everything else that changes a character is an {@link Effect} record (§9).
+ */
+public final class Character {
+    /**
+     * Something that changes a character (03b §9): an implant, a prosthesis, a mutation, a chem's stage, a hangover. {@code source}:
+     * implant, prosthesis, mutation, chem, perk, trait, item (or "" for the old examples). {@code slot}: one slot holds one effect
+     * (RULED: *"everything stacks but one slot"*), "" = none. {@code permanent}: level-up reads it (templates, implants, prostheses,
+     * mutations, perks, traits, therapies: yes; a chem: never) and it has no clock. {@code other}: the rest of its numbers (dr, dt,
+     * poison_res, rad_res, isolation, hp_max, ap, sequence, aimed, pain_felt, pain_gain, sleep_stage_off, rads_per_hour,
+     * efficiency, senses, "skill:Guns", ...). {@code next}: the stage that follows (a chem's chain). {@code condition}: implants and
+     * prostheses, 0-100 %, worn as a weapon (New Vegas: full at 75 % and over, half at the last points, broken at 0).
+     */
+    public record Effect(String name, String source, String slot, boolean permanent, int[] mods, Map<String, Double> other,
+                         double hoursLeft, String next, double condition) {
+        /** The old four-field form (the examples, saves before 0.8.0). */
+        public Effect(String name, boolean permanent, int[] mods, double hoursLeft) { this(name, "", "", permanent, mods, Map.of(), hoursLeft, null, 100); }
+
+        @Override public String source() { return source == null ? "" : source; }
+        @Override public String slot() { return slot == null ? "" : slot; }
+        @Override public Map<String, Double> other() { return other == null ? Map.of() : other; }
+        @Override public int[] mods() { return mods == null ? new int[7] : mods; }
+
+        public Effect withHours(double h) { return new Effect(name, source, slot, permanent, mods, other, h, next, condition); }
+        public Effect withCondition(double c) { return new Effect(name, source, slot, permanent, mods, other, hoursLeft, next, Math.max(0, Math.min(100, c))); }
+
+        /** Worn: an implant or a prosthesis (it has a condition). */
+        public boolean worn() { return source().equals("implant") || source().equals("prosthesis"); }
+
+        /** The share of its effect it gives now: by condition for the worn ones (Combat.conditionDamage), broken at 0. */
+        public double strength() {
+            if (!worn()) return 1;
+            if (condition <= 0) return 0;
+            return Combat.conditionDamage(condition / 100.0);
+        }
+
+        public int mod(int i) { return Rules.scaleInt(mods()[i], strength()); }
+
+        public double other(String key) {
+            double v = other().getOrDefault(key, 0.0);
+            return INT_KEYS.contains(key) || key.startsWith("skill:") ? Rules.scaleInt(v, strength()) : v * strength();
+        }
+    }
+
+    /** Values that stay whole when an implant's tier or condition scales them. */
+    static final Set<String> INT_KEYS = Set.of("dt", "hp_max", "ap", "sequence", "aimed", "senses", "skill_points_level", "defib_shocks", "morale");
+
+    /** A trait or perk as shown on the sheet (texts from `02c-TRAITS-PERKS.md`). */
+    public record Feat(String name, String gate, String text) {}
+
+    public String name = "Specimen", player = "", template = "Human";
+    public int templateHp = 15, templateSkillPoints = 5, templatePerkRate = 3;
+    public final int[] base = {5, 6, 6, 5, 7, 7, 4};
+    public final List<Effect> effects = new ArrayList<>();
+    public final List<Feat> traits = new ArrayList<>();
+    public final List<Feat> perks = new ArrayList<>();
+    public final Set<String> tags = new LinkedHashSet<>();
+    public final double[] points = new double[Rules.SKILLS.size()];
+    public int level = 1, unspentSkillPoints = 0;
+    public long xp = 0;
+    public int hp;
+    public final EnumMap<Rules.Stat, Double> survival = new EnumMap<>(Rules.Stat.class);
+    public boolean sleeping = false;
+    /** Bleeding = Blood lost a round (absolute, Marek 11-14); broken legs 0-2 (the stance table's 400 % / 800 %). */
+    public double locationRads = 0, bleeding = 0;
+    public int brokenLegs = 0;
+    /** Part 3: the group (part 6), the premium templates bought for this PC himself (03b §2b). */
+    @com.google.gson.annotations.SerializedName(value = "group", alternate = {"faction"}) public String group = "";
+    /** The player hears Fallout 2's sounds (his own private pack, `/sounds fallout2`); his body sounds are a woman's (`/sounds female`). */
+    public boolean fallout2Sounds, female;
+    /** /pack on|off: the Pip-Boy pictures in the sheet; null = whether the server's pack loaded in his client. */
+    public Boolean pictures;
+    public final List<String> unlocked = new ArrayList<>();
+    /** The game hours this character has lived through (the demo clock, later the world's): the chems' 7-day dose count reads it. */
+    public double clock = 0;
+    /** Each chem's doses by {@link #clock}, and the chems he is addicted to (03b §8). */
+    public final Map<String, List<Double>> doses = new LinkedHashMap<>();
+    public final Set<String> addictions = new LinkedHashSet<>();
+    /**
+     * Clinical death (03b §5): when the arrest began and when CPR started, in GAME hours by {@link #now()} (Marek 11-16: *"no part
+     * of this game should be real time - game time should be strictly separated, so only DM changes it"*; -1 = none); {@code dead} =
+     * final death. Rest: consecutive resting hours (every 8 without bleeding heal the healing rate, part 4).
+     */
+    public double arrestAt = -1, cprFrom = -1, lastReviveTry = -1e9;
+    /** The minutes into the current game hour (the GM passes minutes; a fight's round is 6 s). */
+    public double minuteAcc = 0;
+    public boolean dead = false;
+    public double restHours = 0, mendHours = 0, lastMutation = -1e9;
+    /** Hours toward the next loss of a negative healing rate (Fatal Radiation Poisoning, 11-19). */
+    public double sickHours = 0;
+
+    // ------------------------------------------------------------------ 03b §3c: air, gases, ears, the heart (RULED 11-18, rounds 19-21)
+    /** Why the heart stopped while HP held (03b §3c): "" = HP below −Endurance (§5), else the cause ("Blood 0", "the cold", ...). */
+    public String arrestCause = "";
+    /** The place's air: false = none (buried, sealed; under water is read from the world each second, {@link #submerged}). */
+    public boolean air = true;
+    /** The gas here (a {@link Rules#GASES} name, "" = none) and its strength 1-3 (× the row), set by the GM. */
+    public String gas = "";
+    public int gasStrength = 1;
+    /** A held breath (a choice: it spends Oxygen and keeps the gas out); what is worn (Gas mask, Air bottle, Earplugs, Electronic muffs). */
+    public boolean holdingBreath = false;
+    public final Set<String> wearing = new LinkedHashSet<>();
+    /** The gas mask's filters: "gas" (everything but bad air and CO), "co" (CO); the air bottle's game minutes left (an hour a bottle). */
+    public final Set<String> maskFilters = new LinkedHashSet<>();
+    public double bottleMinutes = 0;
+    /** Rounds in bad air in a row (an hour = 600: P −1, I −1); the game hour Oxygen reached 0 (-1 = above 0). */
+    public int badAirRounds = 0;
+    public double oxygenZeroAt = -1;
+    /** Riot gas acts until this game hour at this strength; CO: Poison cures at half speed until this hour; hours in mercury vapour. */
+    public double riotUntil = -1, coUntil = -1, mercuryHours = 0;
+    public int riotStrength = 0;
+    /** The ears: ringing until this game hour; each eardrum burst until its game hour (-1 = whole); the lasting loss (P −1). */
+    public double ringingUntil = -1;
+    public final double[] eardrumHealsAt = {-1, -1};
+    public boolean lastingEarLoss = false;
+    /** Set each second by the HUD for an online player: his head is under water, so there is no air. */
+    public transient boolean submerged = false;
+    /** The gas zone his eyes are in ({@link Zones}, read each second and before time passes): it wins over the GM's {@link #gas}. */
+    public transient String zoneGas = "";
+    public transient int zoneStrength = 1;
+    /** An effect that lasts until the GM removes it (a treatment), shown as "until treated". */
+    public static final double UNTIL_TREATED = 1e9;
+
+    /** A trait picked, or a gene of the template whose effect the same rule carries (03c §8; internal, never shown). */
+    public boolean has(String trait) {
+        for (Feat t : traits) if (t.name().equals(trait)) return true;
+        for (Data.Gene g : tpl().genes()) if (g.rule().equals(trait)) return true;
+        return false;
+    }
+
+    /** A player's own template's genes (03c §7; {@link Data#CUSTOM}); the template is built from them, cached. */
+    public final List<String> genes = new ArrayList<>();
+    private transient Data.Template customTpl;
+
+    public void setGenes(List<String> names) { genes.clear(); genes.addAll(names); customTpl = null; }
+
+    /**
+     * The time of day (Marek 11-16: *"game clock has no time of day yet - add it please"*): the hour of day at clock 0, so the time is
+     * {@code dayStart + now()}; the GM sets it (Time of day), passing time moves it. Day 1 begins at clock 0 [08:00 mine].
+     */
+    public double dayStart = 8;
+
+    public double timeAbs() { return dayStart + now(); }
+    public double hourOfDay() { return ((timeAbs() % 24) + 24) % 24; }
+    public int day() { return (int) Math.floor(timeAbs() / 24) + 1; }
+    /** Night = 18:00-06:00 (Night Person's hours, 02c). */
+    public boolean night() { double h = hourOfDay(); return h >= 18 || h < 6; }
+    public String timeText() {
+        int m = (int) Math.floor(hourOfDay() * 60 + 1e-6);
+        return "Day " + day() + " · " + String.format("%02d:%02d", m / 60, m % 60);
+    }
+    /** Sets the time of day, keeping the day (a time earlier than now turns the clock back within the day). */
+    public void setTimeOfDay(double hour) { dayStart += hour - hourOfDay(); }
+
+    public boolean hasPerk(String perk) { for (Feat t : perks) if (t.name().equals(perk)) return true; return false; }
+
+    /** Takes the template's numbers (`data/species.json`, part 3). */
+    public void applyTemplate(String name) {
+        customTpl = null;
+        Data.Template t = Data.CUSTOM.equals(name) ? Data.custom(genes) : Data.TEMPLATES.getOrDefault(name, Data.TEMPLATES.get("Human"));
+        template = t.name();
+        templateHp = t.hp();
+        templateSkillPoints = t.skillPoints();
+        templatePerkRate = t.perkRate();
+        for (int i = 0; i < 7; i++) if (t.fixedAttr(i)) base[i] = 0;   // a fixed value takes no points (03b §1)
+    }
+
+    /** The template as it acts now: as born, with the gene therapies' genes in place of its own while they last (03d §1, §13). */
+    public Data.Template tpl() {
+        Data.Template base = baseTpl();
+        if (therapies.isEmpty()) return base;
+        StringBuilder k = new StringBuilder(base.name()).append('#').append(System.identityHashCode(base));
+        List<Data.Cover> cv = new ArrayList<>();
+        for (Therapy t : therapies)
+            if (t.active()) { cv.add(new Data.Cover(t.g(), t.share(), t.state)); k.append('|').append(t.gene).append(t.share()).append(t.state); }
+        String key = k.toString();
+        if (!key.equals(therapyKey) || therapyTpl == null) { therapyKey = key; therapyTpl = Data.withTherapies(base, cv); }
+        return therapyTpl;
+    }
+
+    // ------------------------------------------------------------------ gene therapies (03d, RULED 11-17)
+    /**
+     * A gene therapy (`03d-THERAPIES.md`): one gene of the pool in its slot for a while; while it lasts its numbers replace those of
+     * the template's gene in that slot (§1). {@code hours}: its time (§2: the tissue's years × the tier's, × 8 760), 0 = for good (a
+     * partial template made in puberty, §8-§9); {@code elapsed} runs with game time unless the gene pump holds it (§10); the course
+     * takes {@code courseLeft} hours before it acts. {@code state}: on · twisted (only its drawback, radiation, §5) · blend (only its
+     * upside, the conflict roll's 6, §4).
+     */
+    public static final class Therapy {
+        public String gene = "", state = "on", set = "";
+        public double hours, elapsed, courseLeft;
+        public boolean pumped;
+
+        public Therapy() {}
+
+        Therapy(String gene, double hours, double courseLeft, String state, String set) {
+            this.gene = gene; this.hours = hours; this.courseLeft = courseLeft; this.state = state; this.set = set == null ? "" : set;
+        }
+
+        public Data.Gene g() { return Data.GENES.get(gene); }
+        public boolean active() { return g() != null && courseLeft <= 0 && (hours <= 0 || elapsed < hours); }
+        /** Full for its time, half its numbers for its last quarter (§2). */
+        public double share() { return hours > 0 && elapsed >= 0.75 * hours ? 0.5 : 1; }
+        public double hoursLeft() { return hours <= 0 ? -1 : Math.max(0, hours - elapsed); }
+    }
+
+    /** The gene therapies in force or in their course (03d). */
+    public final List<Therapy> therapies = new ArrayList<>();
+    /** When the gene pump was last refilled, on the game clock (03d §10: a refill a year); -1 = never. */
+    public double pumpRefilled = -1;
+    private transient Data.Template therapyTpl;
+    private transient String therapyKey;
+    /** What happened in the passing hours for the GM to hear (a therapy took, faded, wore off, radiation switched it off). */
+    public final transient List<String> news = new ArrayList<>();
+    /** Sounds the body makes (a shock, the heart stopping): the model has no player, the HUD plays them ({@link Sfx}). */
+    public final transient List<String> cues = new ArrayList<>();
+
+    /** The news since it was last read, or null. */
+    public String takeNews() {
+        if (news.isEmpty()) return null;
+        String s = String.join("; ", news);
+        news.clear();
+        return s;
+    }
+
+    /** The template as born (or as made in puberty), without the therapies. */
+    public Data.Template baseTpl() {
+        if (Data.CUSTOM.equals(template)) return customTpl != null ? customTpl : (customTpl = Data.custom(genes));
+        return Data.TEMPLATES.getOrDefault(template, Data.TEMPLATES.get("Human"));
+    }
+
+    /** The template's HP bonus, with the therapies' (Bone lattice's HP +5 over the template's gene in the Frame slot). */
+    public int hpBonus() { return templateHp + tpl().hp() - baseTpl().hp(); }
+
+    /** The therapy in a gene's place ({@link Data.Gene#key()}), or null. */
+    public Therapy therapyIn(String key) {
+        for (Therapy t : therapies) if (t.g() != null && t.g().key().equals(key)) return t;
+        return null;
+    }
+
+    /** The template's own gene in a place, or null. */
+    public Data.Gene templateGene(String key) {
+        for (Data.Gene g : baseTpl().genes()) if (g.key().equals(key)) return g;
+        return null;
+    }
+
+    /** The tissue's years (03d §2): fast-renewing 1, slow organs 2, muscle and bone 4, nerves (and the aptitudes) 6. */
+    static int tissueYears(String slot) {
+        return switch (slot) {
+            case "Blood", "Immunity", "Skin", "Look" -> 1;
+            case "Muscle", "Frame", "Sleep" -> 4;
+            case "Pain", "Eyes", "Ears and nose", "Mind", "Temperament", "Aptitude" -> 6;
+            default -> 2;
+        };
+    }
+
+    static final double[] TIER_YEARS = {0, 1, 1.5, 2, 2.5};
+    /** The course's length by tier (03d §2): a week, two weeks, a month, two months; a fashion course a day (§7). */
+    static final double[] COURSE_HOURS = {0, 168, 336, 720, 1440};
+
+    public static double therapyHours(Data.Gene g) { return tissueYears(g.slot()) * TIER_YEARS[g.tierNo()] * 8760; }
+
+    static boolean fashion(Data.Gene g) { return g.name().startsWith("Fashion:"); }
+
+    /** The ease of a change (03d §4): +2 another version of the same gene (a family), +1 a fast-renewing tissue, −1 nerves. */
+    public static int ease(Data.Gene now, Data.Gene before) {
+        int e = 0;
+        if (before != null && !now.family().isEmpty() && now.family().equals(before.family())) e += 2;
+        int y = tissueYears(now.slot());
+        if (y == 1) e += 1;
+        if (y == 6) e -= 1;
+        return e;
+    }
+
+    /** The necroat's body, made to take changes (03d §11): the conflict roll +1, radiation never twists, no implant infections. */
+    public boolean madeForChange() {
+        for (Data.Gene g : tpl().genes()) if (g.name().equals("Made for change")) return true;
+        return false;
+    }
+
+    /** An Immunity therapy of T2 or more: a T I-II implant's infection roll halved (03d §10). */
+    public boolean immunityTherapy() {
+        for (Therapy t : therapies) if (t.active() && t.g().slot().equals("Immunity") && t.g().tierNo() >= 2) return true;
+        return false;
+    }
+
+    /** The course's chance (03d §6): min(98 %, Biology × the place × the tier's (T1 1.2 · T2 1 · T3 0.8 · T4 0.6) × 1.1 a point of ease). */
+    public static double therapyChance(double biology, double place, int tier, int ease) {
+        double tf = switch (tier) { case 1 -> 1.2; case 2 -> 1.0; case 3 -> 0.8; default -> 0.6; };
+        return Math.max(0, Math.min(98, biology * place * tf * Math.pow(1.1, ease)));
+    }
+
+    /** Why this gene cannot go into this body as a therapy, or null (03d §1: no organ ever, no shape gene in a grown body). */
+    public String therapyBar(Data.Gene g, boolean puberty) {
+        if (synthetic()) return "a machine takes no gene therapy";
+        if (g.slot().equals("ORGAN")) return g.name() + " is an organ: never a therapy, only a graft (03e)";
+        if (!g.adult() && !puberty) return g.name() + " shapes a growing body: only in puberty (03d §1, §8)";
+        return null;
+    }
+
+    /** The course's sickness (03d §2): T1 two days of mild fever, T2 four days of fever, T3-T4 a week of fever with S −1, E −1. */
+    void courseSickness(int tier, String what) {
+        int[] m = new int[7];
+        if (tier >= 3) { m[Rules.S] = -1; m[Rules.E] = -1; }
+        add(new Effect("Fever: the " + what + " course", "therapy", "", false, m, new LinkedHashMap<>(), tier <= 1 ? 48 : tier == 2 ? 96 : 168, null, 100));
+    }
+
+    /**
+     * Gives one gene as a therapy (03d §1-§6, RULED 11-17): the course's chance by the therapist's Biology, the place and the tier
+     * (×1.1 a point of ease, §6), and its sickness; over a therapy in the same place the conflict roll (§4: d6 + Biology / 30 + the
+     * ease, the necroat +1); over the template's own gene it is simply laid on. The same gene again = a booster (§2: the clock reset).
+     * {@code roll} false = no rolls (the GM's own); {@code puberty} = for good, the shape genes allowed (§8). Returns the log.
+     */
+    public String giveTherapy(Data.Gene g, double biology, double place, boolean puberty, boolean roll, Random rnd) {
+        String bar = therapyBar(g, puberty);
+        if (bar != null) return "! " + bar;
+        Therapy old = therapyIn(g.key());
+        if (old != null && old.gene.equals(g.name()) && !puberty) {
+            old.elapsed = 0;
+            return "a booster of " + g.name() + ": its clock starts again (" + SheetView.hours(old.hours) + "), at half the course's price";
+        }
+        StringBuilder sb = new StringBuilder(g.name() + " (" + g.tier() + ", the " + g.slot() + " slot)");
+        int ease = ease(g, old != null ? old.g() : templateGene(g.key()));
+        if (roll) {
+            double ch = therapyChance(biology, place, g.tierNo(), ease);
+            int d = 1 + rnd.nextInt(100);
+            sb.append(": the course ").append(Math.round(ch)).append(" % (Biology ").append(Math.round(biology)).append(" × the place ")
+                    .append(SheetGui.f(place)).append(" × the tier, ease ").append(ease).append("), rolled ").append(d);
+            if (!fashion(g)) courseSickness(g.tierNo(), g.name());
+            if (d > ch) return sb.append(": FAILED, the course wasted (its fever all the same)").toString();
+        } else if (!fashion(g)) courseSickness(g.tierNo(), g.name());
+        sb.append(place(g, puberty ? 0 : therapyHours(g), fashion(g) ? 24 : COURSE_HOURS[g.tierNo()], "", biology, ease, roll, rnd));
+        return sb.toString();
+    }
+
+    /**
+     * Gives a shop set (03d §9, DRAFT 2 11-18): one course and one roll at its highest tier, no conflicts inside it; an adult gets it
+     * for 15 years without its shape and organ genes, in puberty it is for good (a partial template) without the organs.
+     */
+    public String giveSet(Data.GeneSet s, double biology, double place, boolean puberty, boolean roll, Random rnd) {
+        if (synthetic()) return "! a machine takes no gene therapy";
+        List<Data.Gene> gs = new ArrayList<>();
+        List<String> left = new ArrayList<>();
+        for (String n : s.genes()) {
+            Data.Gene g = Data.GENES.get(n);
+            if (g == null) continue;
+            if (therapyBar(g, puberty) != null) left.add(n + (g.slot().equals("ORGAN") ? " (an organ: a graft, 03e)" : " (puberty only)"));
+            else gs.add(g);
+        }
+        if (gs.isEmpty()) return "! nothing of " + s.name() + " takes in this body";
+        int top = 1;
+        for (Data.Gene g : gs) top = Math.max(top, g.tierNo());
+        StringBuilder sb = new StringBuilder("the " + s.name() + " set");
+        if (roll) {
+            double ch = therapyChance(biology, place, top, 0);
+            int d = 1 + rnd.nextInt(100);
+            sb.append(": the course ").append(Math.round(ch)).append(" % (Biology ").append(Math.round(biology)).append(" × the place ")
+                    .append(SheetGui.f(place)).append(" × tier ").append(Rules.roman(top)).append("), rolled ").append(d);
+            courseSickness(top, s.name());
+            if (d > ch) return sb.append(": FAILED, the course wasted (its fever all the same)").toString();
+        } else courseSickness(top, s.name());
+        for (Data.Gene g : gs) {
+            Therapy old = therapyIn(g.key());
+            sb.append("; ").append(g.name()).append(place(g, puberty ? 0 : 15 * 8760, COURSE_HOURS[top], s.name(), biology,
+                    ease(g, old != null ? old.g() : templateGene(g.key())), roll, rnd));
+        }
+        if (!left.isEmpty()) sb.append("; not given: ").append(String.join(", ", left));
+        return sb.toString();
+    }
+
+    /** Puts a gene into its place: the conflict roll over a therapy already there (03d §4), else laid on. Returns its part of the log. */
+    private String place(Data.Gene g, double hours, double course, String set, double biology, int ease, boolean roll, Random rnd) {
+        Therapy old = therapyIn(g.key());
+        String when = course > 0 ? " (it takes in " + SheetView.hours(course) + ", then " + (hours <= 0 ? "for good" : "for " + SheetView.hours(hours)) + ")" : "";
+        if (old == null) {
+            therapies.add(new Therapy(g.name(), hours, course, "on", set));
+            Data.Gene own = templateGene(g.key());
+            return ": laid on" + (own == null ? " an empty slot" : " over the template's " + own.name()) + when;
+        }
+        if (!roll) {
+            therapies.remove(old);
+            therapies.add(new Therapy(g.name(), hours, course, "on", set));
+            return ": replaces " + old.gene + when;
+        }
+        int d6 = 1 + rnd.nextInt(6);
+        double total = d6 + biology / 30 + ease + (madeForChange() ? 1 : 0);
+        int r = (int) Math.floor(total + 1e-9);
+        String head = ": over " + old.gene + ", d6 " + d6 + " + Biology / 30 " + SheetGui.f(Math.round(biology / 30 * 10) / 10.0) + " + ease " + ease
+                + (madeForChange() ? " + 1 (made for change)" : "") + " = " + r;
+        if (r <= 1) { therapies.remove(old); return head + ": a TWIST, both gone and a mutation instead (" + rollMutation(rnd) + ")"; }
+        if (r == 2) { therapies.remove(old); return head + ": BOTH OFF, the slot empty until a new course (the old fades in days, the new never comes)"; }
+        if (r == 3) return head + ": the OLD HOLDS, the new is wasted";
+        therapies.remove(old);
+        therapies.add(new Therapy(g.name(), hours, course, r >= 6 ? "blend" : "on", set));
+        return head + (r >= 6 ? ": a BLEND, its upside without any drawback (\"better than they promised\")" : ": the new replaces the old") + when;
+    }
+
+    /** How many therapies a fitted gene pump holds (03d §10: T III one, T IV two [the two mine]); 0 without one or broken. */
+    public int pumpSlots() {
+        for (Effect e : implants()) if (e.name().startsWith("Gene Pump")) return e.condition() <= 0 ? 0 : e.name().endsWith("Tier IV") ? 2 : 1;
+        return 0;
+    }
+
+    /** The pump fed: refilled within the year (03d §10). */
+    public boolean pumpFed() { return pumpSlots() > 0 && pumpRefilled >= 0 && now() - pumpRefilled < 8760; }
+
+    /** One game hour of the therapies: the course runs, then the clock (not while the fed pump holds it), the fading, the end. */
+    void therapyHour() {
+        int held = 0;
+        boolean fed = pumpFed();
+        for (Iterator<Therapy> it = therapies.iterator(); it.hasNext(); ) {
+            Therapy t = it.next();
+            if (t.g() == null) { it.remove(); continue; }
+            if (t.courseLeft > 0) {
+                t.courseLeft -= 1;
+                if (t.courseLeft <= 0) news.add("the " + t.gene + " therapy has taken");
+                continue;
+            }
+            if (t.hours <= 0) continue;
+            if (t.pumped && fed && held < pumpSlots()) { held++; continue; }
+            double before = t.elapsed;
+            t.elapsed += 1;
+            if (before < 0.75 * t.hours && t.elapsed >= 0.75 * t.hours)
+                news.add("the " + t.gene + " therapy fades: half its numbers for its last quarter (a booster resets it)");
+            if (t.elapsed >= t.hours) { it.remove(); news.add("the " + t.gene + " therapy has worn off"); }
+        }
+    }
+
+    static int radStage(double rads) { return rads >= 600 ? 4 : rads >= 450 ? 3 : rads >= 300 ? 2 : rads >= 150 ? 1 : 0; }
+
+    /**
+     * Radiation crossing a stage upward (150, 300, 450, 600: 03d §5, AGREED 11-17): every active therapy rolls d100 against 10 % × the
+     * stage, halved at Rad resistance 50 % and more, halved for the others by an active Radiation-slot therapy; stages 1-2 switch it
+     * off, 3-4 twist it (only its drawback for the rest of its time; on 01-05 a mutation instead); the necroat's are only switched off.
+     * The template's genes and a partial template made in puberty never.
+     */
+    public void radiationRolls(double before, double after, Random rnd) {
+        int s0 = radStage(before), s1 = radStage(after);
+        if (s1 <= s0 || therapies.isEmpty()) return;
+        boolean resist = resistances()[1] >= 50, made = madeForChange();
+        for (int st = s0 + 1; st <= s1; st++) {
+            boolean shield = false;
+            for (Therapy t : therapies) if (t.active() && t.g().slot().equals("Radiation")) shield = true;
+            for (Iterator<Therapy> it = therapies.iterator(); it.hasNext(); ) {
+                Therapy t = it.next();
+                if (!t.active() || t.hours <= 0) continue;
+                double ch = 10 * st * (resist ? 0.5 : 1) * (shield && !t.g().slot().equals("Radiation") ? 0.5 : 1);
+                int d = 1 + rnd.nextInt(100);
+                if (d > ch) continue;
+                if (st <= 2 || made) { it.remove(); news.add("radiation (stage " + st + ", " + Math.round(ch) + " %, rolled " + d + ") switched the " + t.gene + " therapy off"); }
+                else if (d <= 5) { it.remove(); news.add("radiation twisted the " + t.gene + " therapy into a mutation: " + rollMutation(rnd)); }
+                else { t.state = "twisted"; news.add("radiation (stage " + st + ", rolled " + d + ") twisted the " + t.gene + " therapy: only its drawback for the rest of its time"); }
+            }
+        }
+    }
+
+    /** A roll on the mutation table (03b §7) with no rads spent: a therapy's twist (03d §4, §5). */
+    String rollMutation(Random rnd) {
+        int d = 1 + rnd.nextInt(100);
+        int score = Rules.mutationScore(d, attr(Rules.L, true), 100);
+        String cat = Rules.mutationCategory(score);
+        List<Data.Mutation> l = new ArrayList<>();
+        for (Data.Mutation m : Data.MUTATIONS) if (m.category().equals(cat)) l.add(m);
+        if (l.isEmpty()) return "rolled " + score + ": " + cat + ", none listed";
+        Data.Mutation m = l.get(rnd.nextInt(l.size()));
+        int[] mods = m.mods().clone();
+        String extra = "";
+        if (m.randomAttr() != 0) { int i = rnd.nextInt(7); mods[i] += m.randomAttr(); extra = " (" + Rules.SPECIAL[i] + ")"; }
+        add(new Effect("Mutation: " + m.name() + extra, "mutation", "", true, mods, new LinkedHashMap<>(m.other()), 0, null, 100));
+        return cat + ": " + m.name() + extra;
+    }
+
+
+    // ------------------------------------------------------------------ attributes
+    /**
+     * An attribute: its points + the template's modifier (03b §1: the modifier moves both ends, min 1 + mod, max 10 + mod), or the
+     * template's fixed value; then the effects. {@code permanentOnly} leaves out the temporary ones (level-up reads those). The
+     * current survival stages add their effects to the "now" value only; no clamp, so Paralyzed by Pain's Agility −99 leaves no AP.
+     */
+    public int attr(int i, boolean permanentOnly) {
+        return permanentOnly ? attr(i, true, false) : attr(i, false, ignoresPain());
+    }
+
+    private int attr(int i, boolean permanentOnly, boolean withoutPain) {
+        Data.Template t = tpl();
+        int v = t.fixedAttr(i) ? t.fixed()[i] : base[i] + t.mods()[i];
+        for (Effect e : effects) if (e.permanent() || !permanentOnly) v += e.mod(i);
+        if (!permanentOnly) v += armourMod(i);   // a whole power armour's Strength (05c): worn, never read by level-up
+        // Night Person (02c; a trait or its gene): I and P +1 at night, -1 by day; a temporary value, so level-up never reads it
+        if (!permanentOnly && (i == Rules.I || i == Rules.P) && has("Night Person")) v += night() ? 1 : -1;
+        if (!permanentOnly) {
+            List<String> sts = stages();
+            // the limit gates (part 4 §3.5, RULED 11-15): Minor and Advanced stages never take an attribute below 1; the worse ones can
+            int gated = 0;
+            for (String st : sts) {
+                if (withoutPain && isPainStage(st)) continue;
+                Data.EffectRow r = Data.EFFECTS.get(st);
+                if (r != null && Rules.gated(st)) gated += r.mods()[i];
+            }
+            v = gated < 0 ? Math.max(Math.min(v, 1), v + gated) : v + gated;
+            for (String st : sts) {
+                if (withoutPain && isPainStage(st)) continue;
+                Data.EffectRow r = Data.EFFECTS.get(st);
+                if (r != null && !Rules.gated(st)) v += r.mods()[i];
+            }
+            if (i == Rules.P) v += gasPenalty()[0] - hearingLoss();   // 03b §3c: the gas, the ears
+            if ((i == Rules.P || i == Rules.I) && badAirRounds >= 600) v -= 1;   // an hour of bad air (03b §3c)
+        }
+        return v;
+    }
+
+    /** The lowest and highest an attribute may be at creation (03b §1): 1 + mod to 10 + mod, never below 1; a fixed value both. */
+    public int[] attrRange(int i) {
+        Data.Template t = tpl();
+        if (t.fixedAttr(i)) return new int[]{t.fixed()[i], t.fixed()[i]};
+        return new int[]{Math.max(1, 1 + t.mods()[i]), 10 + t.mods()[i]};
+    }
+
+    /** The sum of the points (the fixed attributes take none). */
+    public int pointsSpent() {
+        int s = 0;
+        for (int i = 0; i < 7; i++) if (!tpl().fixedAttr(i)) s += base[i];
+        return s;
+    }
+
+    /** Null if the points are legal for the template (03b §1), else why not. */
+    public String checkPoints() {
+        Data.Template t = tpl();
+        for (int i = 0; i < 7; i++) {
+            if (t.fixedAttr(i)) continue;
+            if (base[i] < 1 || base[i] > 10) return Rules.SPECIAL[i] + " takes 1 to 10 points (has " + base[i] + ")";
+            if (base[i] + t.mods()[i] < 1)
+                return Rules.SPECIAL[i] + " would be " + (base[i] + t.mods()[i]) + ": never below 1, so at least " + (1 - t.mods()[i]) + " points";
+        }
+        if (pointsSpent() != t.attributePoints()) return "the points add up to " + pointsSpent() + "; a " + t.name() + " has " + t.attributePoints();
+        return null;
+    }
+
+    /** The sum of an effect value over the effects ({@code permanentOnly}: level-up's view). */
+    public double other(String key, boolean permanentOnly) {
+        double s = tpl().other().getOrDefault(key, 0.0);   // the template's genes (03c: Thick-Skinned's −1 AP, Twitchy's +10 Initiative)
+        for (Effect e : effects) if (e.permanent() || !permanentOnly) s += e.other(key);
+        return s;
+    }
+
+    public double other(String key) { return other(key, false); }
+
+    static boolean isPainStage(String stage) { return stage.endsWith(" Pain") || stage.equals("Paralyzed by Pain"); }
+
+    /** The Pain a painkiller leaves felt (04c §4b: the stage is read from Pain − its strength; the bar itself stays). */
+    public double painFelt() {
+        Double pain = survival.get(Rules.Stat.PAIN);
+        return pain == null ? 0 : Math.max(0, pain + other("pain_felt"));
+    }
+
+    /** The Pain a hit adds is multiplied by this: the Pain Editor ×½, a mutation's Twitch Muscles ×1.5. */
+    public double painGain() { return Math.max(0, tpl().painGain() * (1 + other("pain_gain"))); }
+
+    /** The Survival the Pain check reads: as it is now, leaving out the Pain stage's own effects (else the pain would fail itself). */
+    public double painCheckSurvival() {
+        int[] a = new int[7];
+        for (int i = 0; i < 7; i++) a[i] = attr(i, false, true);
+        int s = Rules.skillIndex("Survival");
+        return Rules.SKILLS.get(s).base().applyAsDouble(a) + points[s] + skillBonus("Survival", false);
+    }
+
+    /**
+     * The workbook's note on Pain: *"Passing Survival check with pain value allows you to ignore pain effects."*, a check with no
+     * roll (Marek 11-14: *"with Survival 75, you automatically pass the check on pain 0-75."*).
+     */
+    public boolean ignoresPain() {
+        double pain = painFelt();
+        return pain > 0 && Rules.check(painCheckSurvival(), pain);
+    }
+
+    /**
+     * A survival stage's own value beyond the attributes, summed: Paralyzed by Pain's AP −99 (Marek 11-19: *"I should have only meant
+     * "can't act". ... just remove 99 AP instead."*). A Pain stage counts only while the pain is felt (the Survival check).
+     */
+    public double stageOther(String key) {
+        double s = 0;
+        boolean ignore = ignoresPain();
+        for (String st : stages()) {
+            if (ignore && isPainStage(st)) continue;
+            Data.EffectRow r = Data.EFFECTS.get(st);
+            if (r != null) s += r.other().getOrDefault(key, 0.0);
+        }
+        return s;
+    }
+
+    /** The current survival stages (their maxima read permanent values, so this never loops back into itself). */
+    public List<String> stages() {
+        List<String> l = new ArrayList<>();
+        for (Rules.Stat st : Rules.Stat.values()) {
+            Double v = survival.get(st);
+            if (v == null) continue;
+            if (st == Rules.Stat.SLEEP && other("sleep_stage_off") > 0) continue;   // caffeine, amphetamine: the debt stays
+            String s = Rules.stage(st, st == Rules.Stat.PAIN ? painFelt() : v, max(st));
+            if (s != null) l.add(s);
+        }
+        return l;
+    }
+
+    public int[] attrs(boolean permanentOnly) {
+        int[] a = new int[7];
+        for (int i = 0; i < 7; i++) a[i] = attr(i, permanentOnly);
+        return a;
+    }
+
+    // ------------------------------------------------------------------ skills
+    /** The template's skill bonus (the Ent's Survival +50) + the effects' ("skill:Guns" of a memory chip). */
+    public double skillBonus(String skill, boolean permanentOnly) {
+        return tpl().skills().getOrDefault(skill, 0.0) + other("skill:" + skill, permanentOnly) + (permanentOnly ? 0 : armourSkill(skill));
+    }
+
+    public double[] skills() { return skills(false); }
+
+    public double[] skills(boolean permanentOnly) {
+        int[] a = attrs(permanentOnly);
+        double[] v = new double[Rules.SKILLS.size()];
+        for (int i = 0; i < v.length; i++)
+            v[i] = Rules.SKILLS.get(i).base().applyAsDouble(a) + points[i] + skillBonus(Rules.SKILLS.get(i).name(), permanentOnly);
+        return v;
+    }
+
+    public double skill(String name) { return skills()[Rules.skillIndex(name)]; }
+
+    // ------------------------------------------------------------------ derived
+    /** Read from permanent values (a hangover does not cut the maximum), without the survival stages: the stages' maxima read this. */
+    public int hpMaxBase() {
+        int extra = 0;
+        if (has("Medical Marvel")) extra += 5;
+        return Rules.hpMax(attrs(true), hpBonus()) + extra + (int) Math.round(other("hp_max", true));
+    }
+
+    /**
+     * The maximum with the survival stages' own HP Max (the workbook's column: poison −3/−5/−10, Deadly Anemia −8, the heat −5; radiation's
+     * moved to the healing rate, 04 §3.8 RULED 11-15), at least 1 [the floor mine].
+     */
+    public int hpMax() { return Math.max(1, hpMaxBase() + (int) Math.round(stageOther("hp_max"))); }
+
+    public int apMax() {
+        int extra = 0;
+        if (has("Brittle Bones")) extra += 2;
+        return Math.max(0, Rules.ap(attrs(false)) + extra + (int) Math.round(other("ap") + stageOther("ap")) + gasPenalty()[2]   // riot gas AP −2 (03b §3c)
+                + CLASS_AP[armourClass()]);   // the armour's class (05c §3b)
+    }
+
+    /**
+     * E / 3 + Medicine / 50 + Survival / 20 (at least 1) + the template's (the revenant +3) + the effects' + the survival stages'
+     * (radiation −3/−5/−10/−10, 04 §3.8 RULED 11-15); at 0 rest heals nothing (RULED 11-19). Below 0 only in Fatal Radiation Poisoning
+     * (Marek 11-19: *"I think we do need the negative healing here"*): then the body LOSES that many HP every 8 hours, resting or not
+     * ({@link Hud#heal}); every other stage stops at 0. The vampire's +3 when fed is shown, not counted.
+     */
+    public int healingRate() {
+        double[] sk = skills();
+        int raw = Rules.healingRate(attrs(false), sk[Rules.skillIndex("Medicine")], sk[Rules.skillIndex("Survival")]) + tpl().healingRate()
+                + (int) Math.round(other("healing_rate") + stageOther("healing_rate"));
+        return raw < 0 && stages().contains(FATAL_RADIATION) ? raw : Math.max(0, raw);
+    }
+
+    static final String FATAL_RADIATION = "Fatal Radiation Poisoning";
+
+    public int initiative() { return Rules.initiative(attrs(false)) + (int) Math.round(other("sequence")); }
+
+    /** 0 = none, 1 = the dark halved (the elf, low-light eyes), 2 = night vision (catfolk, vampire, Coldvein): the best one counts. */
+    public int senses() {
+        int s = Rules.senses(tpl().senses());
+        return Math.max(s, (int) Math.round(Math.max(0, other("senses"))));
+    }
+
+    public static final String[] DAMAGE_TYPES = {"Normal", "Rad", "Poison/Disease", "Fire", "Heat", "Isolation"};
+
+    /**
+     * The resistances in % by {@link #DAMAGE_TYPES}: the sheet's own (Normal = Athletics / 10, Rad = 2 E + Survival / 10, Poison and
+     * disease = 5 E + Survival / 4; the rest the armour, none yet) + the template's + the effects'. Isolation = the old Cold/Lightning
+     * (renamed, Marek 11-16); poison and disease ONE value (RULED 11-16); Heat = Fallout's Laser and Plasma in one, also against the
+     * weather's heat (05c §2, Marek 11-18: *"Heat DR/DT is laser/plasma defence"*).
+     */
+    public double[] resistances() {
+        int[] a = attrs(false);
+        double[] sk = skills();
+        double surv = sk[Rules.skillIndex("Survival")];
+        Data.Template t = tpl();
+        return new double[]{
+                sk[Rules.skillIndex("Athletics")] / 10 + 100 * t.damageRes() + other("dr"),
+                2 * a[Rules.E] + surv / 10 + 100 * t.radRes() + other("rad_res") + armourRes(true),
+                5 * a[Rules.E] + surv / 4 + 100 * t.poisonRes() + other("poison_res") + armourRes(false),
+                other("fire_res"), other("heat_res"),
+                100 * t.isolation() + other("isolation")};
+    }
+
+    /** DR against normal damage as a fraction, capped at 90 % [the cap mine]. */
+    public double dr() { return Math.max(-1, Math.min(0.9, resistances()[0] / 100)); }
+
+    public int dt() { return tpl().damageThreshold() + (int) Math.round(other("dt")); }
+
+    public double max(Rules.Stat st) {
+        if (st == Rules.Stat.OXYGEN) return breathRounds();
+        double[] perm = skills(true);
+        return Rules.max(st, attrs(true), perm[Rules.skillIndex("Survival")], points[Rules.skillIndex("Survival")], hpMaxBase(), hpBonus());
+    }
+
+    /**
+     * An hour of the survival stages' HP (the workbook's HP Current, 04 RULED 11-15: *"HP Current - it is incremental. Based on notes, it
+     * seems to be hourly rate."*): poison's and the heat's every hour, radiation's ONCE when its stage begins (`hp_once`: *"in case of
+     * radiation, it should be one off effect"*); HP above a lowered maximum fall to it. {@code before} = the stages at the hour's start.
+     * Returns the news, or null.
+     */
+    public String stageHour(List<String> before) {
+        if (dead || inArrest()) return null;
+        int loss = 0;
+        List<String> why = new ArrayList<>();
+        boolean ignore = ignoresPain();
+        for (String st : stages()) {
+            if (ignore && isPainStage(st)) continue;
+            Data.EffectRow r = Data.EFFECTS.get(st);
+            if (r == null) continue;
+            double h = -r.other().getOrDefault("hp_current", 0.0);
+            if (!before.contains(st)) h -= onceUpTo(st, before);
+            if (h > 0) { loss += (int) Math.round(h); why.add(st); }
+        }
+        int max = hpMax();
+        if (hp > max) hp = max;
+        if (loss <= 0) return null;
+        return String.join(", ", why) + ": HP −" + loss + drain(loss);
+    }
+
+    static final List<String> RAD_LADDER = List.of("Minor Radiation Poisoning", "Advanced Radiation Poisoning", "Critical Radiation Poisoning",
+            "Deadly Radiation Poisoning", "Fatal Radiation Poisoning");
+
+    /**
+     * A stage just begun: its one-off HP (negative), and on radiation's ladder every rung passed in the same hour too (a dose that jumps from
+     * none to Deadly passes Critical) [mine].
+     */
+    static double onceUpTo(String stage, List<String> before) {
+        int to = RAD_LADDER.indexOf(stage);
+        if (to < 0) { Data.EffectRow r = Data.EFFECTS.get(stage); return r == null ? 0 : r.other().getOrDefault("hp_once", 0.0); }
+        int from = -1;
+        for (String b : before) from = Math.max(from, RAD_LADDER.indexOf(b));
+        double s = 0;
+        for (int i = from + 1; i <= to; i++) {
+            Data.EffectRow r = Data.EFFECTS.get(RAD_LADDER.get(i));
+            if (r != null) s += r.other().getOrDefault("hp_once", 0.0);
+        }
+        return s;
+    }
+
+    /** HP lost without a wound (a survival stage): no Pain, no bleeding; below −Endurance clinical death begins. Returns what it left. */
+    String drain(int n) {
+        hp -= n;
+        int floor = Rules.deathFloor(attrs(false));
+        if (hp < floor && arrestAt < 0) {
+            arrestAt = now();
+            return ", CLINICAL DEATH" + autoDefibrillate(java.util.concurrent.ThreadLocalRandom.current());
+        }
+        return hp > 0 ? ", HP " + hp : hp >= floor ? ", DYING (HP " + hp + ", dead below " + floor + ")" : "";
+    }
+
+    /**
+     * The hourly change with parts 3 and 4 in it: the template's food and water (the orc ×1.25, Coldvein ×0.6; a synthetic body
+     * drinks nothing, its food is its power and its sleep its memory, Marek 11-16), the place's rads × (1 − rad resistance) (part 4's table) + the effects'
+     * (RadAway, the Blood Scrubber).
+     */
+    public double hourly(Rules.Stat st) {
+        double h = Rules.hourly(st, survival.getOrDefault(Rules.Stat.HYPERTHERMIA, 0.0), sleeping, locationRads);
+        Data.Template t = tpl();
+        boolean power = "power".equals(t.needs());
+        return switch (st) {
+            case WATER -> power ? 0 : h * t.waterFactor();
+            case FOOD -> h * t.foodFactor();   // a synthetic body: its power
+            case SLEEP -> h < 0 ? h * t.sleepFactor() : h;   // the need (DEC2: x0.75); a synthetic body: its memory, cleaned like sleep
+            case RADS -> locationRads * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");
+            case BLOOD -> inArrest() ? 0 : h;   // no circulation, no new blood [mine]
+            default -> h;
+        };
+    }
+
+    // ------------------------------------------------------------------ effects: one slot, one effect
+    /** Adds an effect; one in the same slot is replaced (RULED 11-16) and returned. */
+    public Effect add(Effect e) {
+        Effect old = null;
+        if (!e.slot().isEmpty())
+            for (Iterator<Effect> it = effects.iterator(); it.hasNext(); ) {
+                Effect x = it.next();
+                if (x.slot().equals(e.slot())) { old = x; it.remove(); }
+            }
+        effects.add(e);
+        return old;
+    }
+
+    public Effect inSlot(String slot) {
+        for (Effect e : effects) if (e.slot().equals(slot)) return e;
+        return null;
+    }
+
+    // ------------------------------------------------------------------ implants (03b §3)
+    public List<Effect> implants() {
+        List<Effect> l = new ArrayList<>();
+        for (Effect e : effects) if (e.source().equals("implant")) l.add(e);
+        return l;
+    }
+
+    /** The slots this body has: the data's, + one brain slot with the synthetic family perk Upgrade Port. */
+    public int slots(String slot) { return Data.SLOTS.getOrDefault(slot, 0) + (slot.equals("brain") && hasPerk("Upgrade Port") ? 1 : 0); }
+
+    /**
+     * Fits an implant at a tier (03b §3b, RULED 11-18: I-IV, each tier its own numbers; T II an infection roll a month, T I twice),
+     * its condition 100. Returns null when fitted, else why not (no such tier, the slot full, the Neural Link missing, a robot).
+     */
+    public String fit(Data.Implant im, int tier, String chosenSkill) {
+        Data.Implant.At at = im.at(tier);
+        if (at == null) {
+            StringBuilder ts = new StringBuilder();
+            for (int k : im.tiers().keySet()) ts.append(ts.isEmpty() ? "" : ", ").append(Rules.roman(k));
+            return im.name() + " has no Tier " + Rules.roman(tier) + " (it exists at " + ts + ")";
+        }
+        if (tpl().name().equals("Basic Robot") || tpl().family().equals("animal")) return "a " + template + " takes no implants";
+        if (!im.needs().isEmpty() && implants().stream().noneMatch(e -> e.name().startsWith(im.needs())))
+            return im.name() + " needs the " + im.needs() + " first";
+        int n = slots(im.slot());
+        String free = null;
+        for (int k = 1; k <= n && free == null; k++) if (inSlot("implant:" + im.slot() + "#" + k) == null) free = "implant:" + im.slot() + "#" + k;
+        if (free == null) return "the " + im.slot() + " slot is taken (" + n + " " + (n == 1 ? "implant" : "implants") + "): remove one first";
+        Map<String, Double> other = new LinkedHashMap<>(at.other());
+        if (im.skillChoice() != 0) {
+            if (chosenSkill == null) return im.name() + ": name the skill (e.g. Guns)";
+            try { Rules.skillIndex(chosenSkill); } catch (IllegalArgumentException x) { return "no skill " + chosenSkill; }
+            other.put("skill:" + chosenSkill, (double) im.skillChoice());
+        }
+        if (!at.senses().isEmpty()) other.put("senses", (double) Rules.senses(at.senses()));
+        int[] mods = at.mods().clone();
+        String tierName = Rules.roman(tier);
+        add(new Effect(im.name() + (chosenSkill != null && im.skillChoice() != 0 ? " (" + chosenSkill + ")" : "") + " · Tier " + tierName,
+                "implant", free, true, mods, other, 0, null, 100));
+        return null;
+    }
+
+    /** Takes out what fills a slot ("eyes", "brain#2") or an implant by its name's start; returns it, or null. */
+    public Effect removeImplant(String what) {
+        String w = what.toLowerCase(Locale.ROOT).replace('_', ' ');
+        for (Iterator<Effect> it = effects.iterator(); it.hasNext(); ) {
+            Effect e = it.next();
+            if (!e.source().equals("implant")) continue;
+            String s = e.slot().substring("implant:".length());
+            if (s.equalsIgnoreCase(what) || s.replace("#1", "").equalsIgnoreCase(what) || e.name().toLowerCase(Locale.ROOT).startsWith(w)) {
+                it.remove();
+                return e;
+            }
+        }
+        return null;
+    }
+
+    /** Where a slot sits: the eyes, ears and brain in the head, the organs in the torso, skin and skeleton everywhere, a limb. */
+    static String place(String slot) {
+        String s = slot.replaceAll("^(implant|limb):", "").replaceAll("#\\d+$", "");
+        return switch (s) {
+            case "brain", "eyes", "ears" -> "head";
+            case "skin", "skeleton" -> "everywhere";
+            case "left_arm", "right_arm", "left_leg", "right_leg" -> s;
+            default -> "torso";
+        };
+    }
+
+    /**
+     * A hit on a part costs the implants and the prosthesis there condition = the damage in % (a crit × 2) (Marek 11-16: *"they will
+     * be damaged by both fight (unavoidable, unless you hit different place) and the removal"*; the amount [mine]). Returns the log.
+     */
+    public String wearOnHit(Rules.Part part, int dmg, boolean crit) {
+        if (dmg <= 0 || part == null) return "";
+        String at = switch (part) {
+            case EYES, HEAD -> "head";
+            case TORSO, GROIN -> "torso";
+            case LEFT_ARM -> "left_arm";
+            case RIGHT_ARM -> "right_arm";
+            case LEFT_LEG -> "left_leg";
+            case RIGHT_LEG -> "right_leg";
+        };
+        StringBuilder sb = new StringBuilder();
+        for (ListIterator<Effect> it = effects.listIterator(); it.hasNext(); ) {
+            Effect e = it.next();
+            if (!e.worn()) continue;
+            String pl = place(e.slot());
+            if (!pl.equals(at) && !pl.equals("everywhere")) continue;
+            Effect n = e.withCondition(e.condition() - dmg * (crit ? 2 : 1));
+            it.set(n);
+            sb.append(" ").append(e.name()).append(" ").append(Math.round(n.condition())).append(" %").append(n.condition() <= 0 ? " (BROKEN)" : "").append(";");
+        }
+        return sb.isEmpty() ? "" : " Implants hit:" + sb.substring(0, sb.length() - 1) + ".";
+    }
+
+    // ------------------------------------------------------------------ prostheses (03b §6)
+    /** A limb's efficiency in %: a natural one 100, else the prosthesis's (hook 50, peg 60, mechanical 80, powered 100, bionic 120) × its condition. */
+    public double efficiency(String limb) {
+        Effect e = inSlot("limb:" + limb);
+        return e == null ? 100 : e.other("efficiency");
+    }
+
+    /** The to-hit of an attack with the main hand (the right arm), and the other one too with a two-handed weapon. */
+    public int armToHit(boolean twoHanded) {
+        double eff = twoHanded ? Math.min(efficiency("right_arm"), efficiency("left_arm")) : efficiency("right_arm");
+        return Rules.prostheticToHit(eff);
+    }
+
+    /** Missing legs (no prosthesis): each moves as a broken leg does (the stance table's 400 %, both 800 %) [mine]. */
+    public int missingLegs() {
+        int n = 0;
+        for (String l : List.of("left_leg", "right_leg")) { Effect e = inSlot("limb:" + l); if (e != null && e.source().equals("injury")) n++; }
+        return n;
+    }
+
+    /** Movement's AP × this: 1, a prosthetic leg moves as a natural one (RULED 11-16: *"They are 100% efficient, so just the same as normal leg would."*). */
+    public double legFactor() { return 1; }
+
+    /** Fits (or with "none" takes off) a prosthesis; null when done, else why not. */
+    public String fitLimb(String limb, String kind) {
+        if (!List.of("left_arm", "right_arm", "left_leg", "right_leg").contains(limb)) return "a limb: left_arm, right_arm, left_leg, right_leg";
+        if (kind.equals("none") || kind.equals("natural")) { effects.removeIf(e -> e.slot().equals("limb:" + limb)); return null; }
+        boolean leg = limb.endsWith("leg");
+        if (kind.equals("missing")) {   // Marek 11-16: "Prostesis has no option for missing limb."
+            add(new Effect("Missing " + limb.replace('_', ' '), "injury", "limb:" + limb, true, new int[7],
+                    new LinkedHashMap<>(Map.of("efficiency", 0.0)), 0, null, 100));
+            return null;
+        }
+        Double eff = Rules.prosthesis(kind, leg);
+        if (eff == null) return "a kind: " + (leg ? "peg" : "hook") + ", mechanical, powered, bionic, missing, none";
+        if (kind.equals("bionic") && implants().stream().noneMatch(e -> e.name().startsWith("Neural Link")))
+            return "a bionic limb needs the Neural Link (03b §3)";
+        add(new Effect(Rules.prosthesisName(kind, leg) + " (" + limb.replace('_', ' ') + ")", "prosthesis", "limb:" + limb, true, new int[7],
+                new LinkedHashMap<>(Map.of("efficiency", eff)), 0, null, 100));
+        return null;
+    }
+
+    // ------------------------------------------------------------------ chems (03b §8)
+    static final String[] STAGE_NAMES = {"", " (after-effect)", " (withdrawal)", " (dependence)"};
+
+    /** The chem a stage belongs to, from its slot; null if not a chem's. */
+    static Data.Chem chemOf(Effect e) {
+        if (!e.source().equals("chem") || !e.slot().startsWith("chem:")) return null;
+        return Data.CHEMS.get(e.slot().substring(5));
+    }
+
+    /** The stage's index (0 effect, 1 crash, 2 withdrawal, 3 dependence) from its name. */
+    static int stageIndex(Data.Chem ch, Effect e) {
+        for (int i = 3; i >= 0; i--) if (e.name().equals(ch.name() + STAGE_NAMES[i])) return i;
+        return 0;
+    }
+
+    /** The stage after {@code from}: the crash, and withdrawal and dependence only if addicted; -1 = clean. */
+    int nextStage(Data.Chem ch, int from) {
+        for (int i = from + 1; i <= 3; i++) {
+            if (ch.stage(i) == null) continue;
+            if (i >= 2 && !addictions.contains(ch.name())) return -1;
+            return i;
+        }
+        return -1;
+    }
+
+    Effect stageEffect(Data.Chem ch, int i) {
+        Data.Stage s = ch.stage(i);
+        Map<String, Double> other = new LinkedHashMap<>(s.other());
+        if (other.containsKey("radaway")) {   // 04 (RULED 11-15): 50 + Medicine rads a dose, out over its hours
+            other.remove("radaway");
+            other.put("rads_per_hour", -(50 + skill("Medicine")) / s.hours());
+        }
+        int n = nextStage(ch, i);
+        return new Effect(ch.name() + STAGE_NAMES[i], "chem", "chem:" + ch.name(), false, s.mods().clone(), other, s.hours(),
+                n < 0 ? null : ch.name() + STAGE_NAMES[n], 100);
+    }
+
+    /** When a timed effect runs out: a chem's next stage (or clean: an addiction that has run its course ends), else nothing. */
+    Effect afterStage(Effect e) {
+        Data.Chem ch = chemOf(e);
+        if (ch == null) return null;
+        int at = stageIndex(ch, e);
+        int n = nextStage(ch, at);
+        if (n < 0) {
+            if (at >= 2) addictions.remove(ch.name());   // withdrawal (with no dependence) or dependence done: clean
+            return null;
+        }
+        return stageEffect(ch, n);
+    }
+
+    /**
+     * A dose (03b §8, RULED): stage 1 in place of whatever stage of it runs (in withdrawal or dependence it also restarts the
+     * addiction's clocks); the addiction roll: the chem's chance × 2 Chem Reliant, × ½ Chem Resistant, × (1 + ½ a dose of it in the
+     * last 7 days); in dependence the next dose addicts at once. An antidote ends its chem's addiction.
+     */
+    public String dose(Data.Chem ch, Random rnd) {
+        List<Double> past = doses.computeIfAbsent(ch.name(), k -> new ArrayList<>());
+        past.removeIf(t -> t < clock - 24 * 30);
+        int recent = (int) past.stream().filter(t -> t > clock - 168).count();
+        boolean usedToday = past.stream().anyMatch(t -> t > clock - 24);
+        past.add(clock);
+        StringBuilder sb = new StringBuilder(ch.name() + ": ");
+        if (ch.cures() != null) {
+            boolean was = addictions.remove(ch.cures());
+            effects.removeIf(e -> e.slot().equals("chem:" + ch.cures()) && (e.name().endsWith("(withdrawal)") || e.name().endsWith("(dependence)")));
+            sb.append(was ? "the " + ch.cures() + " addiction ends. " : "no " + ch.cures() + " addiction to end. ");
+        }
+        if (addictions.contains(ch.name())) sb.append("addicted: the stages start again. ");
+        else {
+            Effect cur = inSlot("chem:" + ch.name());
+            if (cur != null && cur.name().endsWith("(dependence)")) { addictions.add(ch.name()); sb.append("in dependence: ADDICTED again at once. "); }
+            else if (ch.chance() > 0 && !(ch.perDay() && usedToday)) {
+                double p = Rules.addictionChance(ch.chance(), has("Chem Reliant"), has("Chem Resistant"), recent) * Math.max(0, 1 + other("addiction"));   // the Mood Stimulator (03b §3b)
+                boolean got = rnd.nextDouble() < p;
+                if (got) addictions.add(ch.name());
+                sb.append("addiction roll ").append(Math.round(p * 100)).append(" %").append(recent > 0 ? " (" + recent + " earlier dose(s) in 7 days)" : "")
+                        .append(got ? ": ADDICTED. " : ": not addicted. ");
+            }
+        }
+        if (ch.effect() != null) {
+            Effect e = stageEffect(ch, 0);
+            add(e);
+            sb.append(SheetGui.f(e.hoursLeft())).append(" h").append(e.next() != null ? ", then " + e.next() : "").append(".");
+        }
+        return sb.toString().trim();
+    }
+
+    // ------------------------------------------------------------------ mutations (03b §7)
+    /** The yearly roll: expels {@code rads} (100-500 in steps of 100), rolls and adds a mutation of the category. */
+    public String mutate(int rads, Random rnd) {
+        if (rads < 100 || rads > 500 || rads % 100 != 0) return "expel 100, 200, 300, 400 or 500 rads (RULED: the cap 500)";
+        double held = survival.getOrDefault(Rules.Stat.RADS, 0.0);
+        if (held < rads) return "you hold only " + Math.round(held) + " rads";
+        int d = 1 + rnd.nextInt(100);
+        int score = Rules.mutationScore(d, attr(Rules.L, true), rads);
+        String cat = Rules.mutationCategory(score);
+        List<Data.Mutation> l = new ArrayList<>();
+        for (Data.Mutation m : Data.MUTATIONS) if (m.category().equals(cat)) l.add(m);
+        survival.put(Rules.Stat.RADS, held - rads);
+        if (l.isEmpty()) return "rolled " + score + ": " + cat + " (no mutation listed)";
+        Data.Mutation m = l.get(rnd.nextInt(l.size()));
+        int[] mods = m.mods().clone();
+        String extra = "";
+        if (m.randomAttr() != 0) { int i = rnd.nextInt(7); mods[i] += m.randomAttr(); extra = " (" + Rules.SPECIAL[i] + ")"; }
+        add(new Effect("Mutation: " + m.name() + extra, "mutation", "", true, mods, new LinkedHashMap<>(m.other()), 0, null, 100));
+        return "d100 " + d + " + (Luck − 5) × 4 − 10 a 100 rads above the first = " + score + ": " + cat.toUpperCase(Locale.ROOT) + " → " + m.name()
+                + extra + (m.notes().isEmpty() ? "" : " (" + m.notes() + ")") + "; " + rads + " rads expelled";
+    }
+
+    // ------------------------------------------------------------------ clinical death (03b §5)
+    /** The clinical death window × (the template's: Coldvein 4, dhampir 2; the undead perk Cold Blood × 2 more). */
+    public double deathWindow() {
+        return tpl().deathWindow() * (hasPerk("Cold Blood") ? 2 : 1) * (1 + other("death_window")) * (coldBody() ? 2 : 1);
+    }
+
+    /** A cold body (03b §5: the cold doubles the window; §3c: so does the cold's arrest): Deadly Hypothermia, 80 % and over [mine]. */
+    public boolean coldBody() {
+        Double v = survival.get(Rules.Stat.HYPOTHERMIA);
+        return v != null && v >= 0.8 * max(Rules.Stat.HYPOTHERMIA) - 1e-9;
+    }
+
+    /**
+     * An implanted defibrillator (03b §3b, RULED 11-18: T II one automatic shock, T III two, T IV three and the window ×1.5): when
+     * clinical death begins it shocks by itself, each shock a revival roll as a defibrillator's with the Medicine of a trained hand
+     * (100) in the first minute [the Medicine mine]. Returns the log, or "" without one.
+     */
+    public String autoDefibrillate(Random rnd) {
+        int shocks = (int) Math.round(other("defib_shocks"));
+        if (shocks <= 0 || !inArrest()) return "";
+        StringBuilder sb = new StringBuilder(" The implanted defibrillator shocks:");
+        cues.add("defib");
+        for (int i = 1; i <= shocks; i++) {
+            double ch = revivalChance(100, Rules.EQUIPMENT.get("defibrillator"));
+            int d = 1 + rnd.nextInt(100);
+            sb.append(" ").append(i).append(". ").append(Math.round(ch)).append(" %, rolled ").append(d);
+            if (d <= ch) { revived(); cues.add("revived"); return sb.append(": the heart beats again (HP ").append(hp).append(").").toString(); }
+        }
+        return sb.append(": no rhythm.").toString();
+    }
+
+    /** Skill points a level: 2 × I + the template's, + the Neural Link's memory (T II +1, III +2, IV +3; 03b §3b). */
+    public int skillRate() { return Rules.skillPointsPerLevel(attrs(true), templateSkillPoints) + (int) Math.round(other("skill_points_level", true)); }
+
+    /** The game time of this character in hours (his clock + the minutes into the hour). */
+    public double now() { return clock + minuteAcc / 60; }
+
+    /** Clinical death: HP below −Endurance (§5), or the heart stopped by a cause of 03b §3c with HP kept. */
+    public boolean inArrest() {
+        return arrestAt >= 0 && !dead && (!arrestCause.isEmpty() || hp < Rules.deathFloor(attrs(false)));
+    }
+
+    /**
+     * Repairs a save of an older version (Marek 11-16: *"why am I in clinical death with full HP?"*: 0.9.0 saved "no arrest" as 0,
+     * which 0.10.0 read as an arrest at game hour 0), and turns the old example implant into a real one in its slot (*"Eagle Eye
+     * example is now outside implant category"*).
+     */
+    public void migrate() {
+        if (arrestCause == null) arrestCause = "";
+        if (gas == null) gas = "";
+        if (!survival.containsKey(Rules.Stat.OXYGEN)) survival.put(Rules.Stat.OXYGEN, max(Rules.Stat.OXYGEN));   // saves before 0.19.0
+        if (arrestAt >= 0 && !dead && arrestCause.isEmpty() && hp >= Rules.deathFloor(attrs(false))) arrestAt = -1;
+        if (arrestAt < 0) cprFrom = -1;
+        refitImplants();
+        for (ListIterator<Effect> it = effects.listIterator(); it.hasNext(); ) {
+            Effect e = it.next();
+            if (!e.source().isEmpty() || !e.permanent() || !e.name().toLowerCase(Locale.ROOT).contains("implant")) continue;
+            String slot = inSlot("implant:eyes#1") == null ? "implant:eyes#1" : inSlot("implant:ears#1") == null ? "implant:ears#1" : null;
+            if (slot == null) continue;
+            it.set(new Effect(e.name().replace(" implant", "") + " · Tier IV", "implant", slot, true, e.mods(), new LinkedHashMap<>(), 0, null, 100));
+        }
+    }
+
+    /**
+     * The implants of a save before 0.17.0 refitted to their tier's own numbers (03b §3b, RULED 11-18), condition and slot kept; the
+     * Memory Chip is gone into the Neural Link (its skill points a level), so a fitted one is taken out; a tier that no longer exists
+     * (a Tier II Reflex Chip) moves to the nearest one that does.
+     */
+    void refitImplants() {
+        for (ListIterator<Effect> it = effects.listIterator(); it.hasNext(); ) {
+            Effect e = it.next();
+            if (!e.source().equals("implant")) continue;
+            String base = e.name().replaceAll(" · Tier.*", "").replaceAll(" \\(.*", "");
+            if (base.equals("Memory Chip")) { it.remove(); continue; }
+            Data.Implant im = Data.IMPLANTS.get(base);
+            if (im == null) continue;
+            int tier = Math.max(im.minTier(), Math.min(im.maxTier(), Rules.tierOf(e.name())));
+            Data.Implant.At at = im.at(tier);
+            if (at == null) tier = im.at(im.tiers().ceilingKey(tier)) != null ? im.tiers().ceilingKey(tier) : im.maxTier();
+            at = im.at(tier);
+            Map<String, Double> other = new LinkedHashMap<>(at.other());
+            if (!at.senses().isEmpty()) other.put("senses", (double) Rules.senses(at.senses()));
+            it.set(new Effect(im.name() + " · Tier " + Rules.roman(tier), "implant", e.slot(), true, at.mods().clone(), other, 0, null, e.condition()));
+        }
+    }
+
+    /** The game minutes of the arrest without CPR and with it. */
+    public double[] arrestMinutes() {
+        if (arrestAt < 0) return new double[]{0, 0};
+        double all = Math.max(0, now() - arrestAt) * 60;
+        double cpr = cprFrom >= 0 ? Math.max(0, now() - cprFrom) * 60 : 0;
+        return new double[]{all - cpr, cpr};
+    }
+
+    /** A revival's chance in % now, with the medic's Medicine and this equipment (a vampire's torpor has no time penalty). */
+    public double revivalChance(double medicine, double equipment) {
+        double[] m = arrestMinutes();
+        if (tpl().atDeath().equals("torpor")) return medicine / 2 * equipment;
+        return Rules.revivalChance(medicine, equipment, m[0], m[1], deathWindow());
+    }
+
+    /** True when the window has run out (the time term at 0) for a body that does not keep (torpor, self-mending). */
+    public boolean windowGone() {
+        if (!inArrest() || !tpl().atDeath().isEmpty()) return false;
+        double[] m = arrestMinutes();
+        return 1 - (0.07 * m[0] + 0.03 * m[1]) / Math.max(1e-9, deathWindow()) <= 0;
+    }
+
+    /** Back from the arrest: the heart beats, HP at −Endurance (still dying: a doctor, or 8 hours of rest if nothing worsens). */
+    public void revived() {
+        arrestAt = -1;
+        cprFrom = -1;
+        arrestCause = "";
+        oxygenZeroAt = -1;
+        hp = Math.max(hp, Rules.deathFloor(attrs(false)));
+    }
+
+    // ------------------------------------------------------------------ 03b §3c: Oxygen and the air (RULED 11-18, rounds 20-21)
+    /**
+     * The held breath in rounds = Oxygen's maximum (03b §3c): a human 10 (a minute); the best of the genes' (Diver 20, Bajau 30, Diving
+     * reflex and Oxygen reserve 50, Anoxia 100) and the implants' (the Lung Filter 30 / 50, by its condition); then trained lungs
+     * (Marek 11-18, round 24: *"Athletics should add small boost to oxygen max (swimmers) and maybe endurance as well"*):
+     * {@link Rules#breathBonus}, from the permanent values like every other maximum.
+     */
+    public double breathRounds() {
+        double b = Rules.HUMAN_BREATH;
+        for (Data.Gene g : tpl().genes()) b = Math.max(b, g.other().getOrDefault("breath", 0.0));
+        for (Effect e : effects) {
+            Double v = e.other().get("breath");
+            if (v != null) b = Math.max(b, Rules.HUMAN_BREATH + (v - Rules.HUMAN_BREATH) * e.strength());
+        }
+        return Math.max(Rules.MIN_BREATH, b + Rules.breathBonus(skills(true)[Rules.skillIndex("Athletics")], attrs(true)[Rules.E]));
+    }
+
+    /**
+     * The gas he breathes: the zone his eyes are in (Marek 11-18: effects *"localized to specific areas"*), else the GM's own setting
+     * for him (a statblock with no body in the world, a quick test); null = none.
+     */
+    public Rules.Gas gasHere() {
+        if (zoneGas != null && !zoneGas.isEmpty()) return Rules.GASES.get(zoneGas);
+        return gas == null || gas.isEmpty() ? null : Rules.GASES.get(gas);
+    }
+
+    /** That gas's strength 1-3. */
+    public int gasPower() { return zoneGas != null && !zoneGas.isEmpty() ? zoneStrength : gasStrength; }
+
+    /** In a zone, not the GM's per-character gas. */
+    public boolean inZone() { return zoneGas != null && !zoneGas.isEmpty(); }
+
+    /** No air to breathe here: a sealed place, or the head under water. */
+    public boolean noAir() { return !air || submerged; }
+
+    /**
+     * The genes' and implants' factor on a gas (03b §3c): the Blood genes (Highlander ×0.75, Oxygen tuned ×0.5) on CO and sewer gas
+     * only; Anoxia ×0.2 on every gas; the Lung Filter T III ×0.5 (not CO), T IV harmless (CO too), by its condition. Never bad air.
+     */
+    public double gasFactor(Rules.Gas g) {
+        if (g == null || g.bad()) return 1;
+        double blood = 1, lungs = 1;
+        for (Data.Gene x : tpl().genes()) {
+            blood = Math.min(blood, x.other().getOrDefault("gas_blood", 1.0));
+            lungs = Math.min(lungs, x.other().getOrDefault("gas_lungs", 1.0));
+        }
+        double f = (g.blood() ? blood : 1) * lungs;
+        boolean co = g.name().equals("carbon monoxide");
+        for (Effect e : effects) {
+            Double v = e.other().get("gas_filter");
+            if (v == null || (co && e.other().getOrDefault("co_filter", 0.0) <= 0)) continue;
+            f *= 1 - (1 - v) * e.strength();
+        }
+        return f;
+    }
+
+    /**
+     * The breath kept from a gas (03b §3c): a held breath, an air bottle with air left (everything), a gas mask with a filter
+     * (everything but bad air and CO; a CO filter is its own). Acid fog's burns are on the skin: no mask stops them, a hazard suit
+     * does (Marek 11-18).
+     */
+    public boolean shielded(Rules.Gas g) {
+        if (holdingBreath || (wearing.contains("Air bottle") && bottleMinutes > 0)) return true;
+        if (g == null || g.bad() || !(wearing.contains("Gas mask") || wearing.contains("Small gas mask"))) return false;
+        return filtered(g);
+    }
+
+    private boolean filtered(Rules.Gas g) { return g.name().equals("carbon monoxide") ? maskFilters.contains("co") : maskFilters.contains("gas"); }
+
+    /**
+     * The EYES kept from a gas (its P, to hit and AP): the big gas mask (a helmet-like piece, Marek 11-18) with the right filter, or
+     * the air bottle's face piece; not the small gas mask (mouth and nose) and not a held breath [both mine].
+     */
+    public boolean eyesShielded(Rules.Gas g) {
+        if (wearing.contains("Air bottle") && bottleMinutes > 0) return true;
+        return g != null && !g.bad() && wearing.contains("Gas mask") && filtered(g);
+    }
+
+    /**
+     * The environment hurts him now, so the rounds run (Marek 11-18: *"battle rounds should also be active during taking damage from
+     * environment"*): no air or a held breath, or a gas that acts each round and is not kept out. Bad air and mercury act over hours.
+     */
+    public boolean envHarm() {
+        if (dead || inArrest()) return false;
+        if (noAir() || holdingBreath) return true;
+        Rules.Gas g = gasHere();
+        if (g == null || g.bad() || g.hourlyPoison() > 0) return riotUntil > now() + 1e-9;
+        if (g.burnDice() > 0 && !wearing.contains("Hazard suit")) return true;
+        boolean lungs = !shielded(g) && (g.oxygen() > 0 || g.poison() > 0 || g.pain() > 0);
+        boolean eyes = !eyesShielded(g) && (g.p() != 0 || g.toHit() != 0 || g.ap() != 0);
+        boolean co = g.withCo() && !shielded(Rules.GASES.get("carbon monoxide"));
+        return lungs || eyes || co;
+    }
+
+    /** The gas's P, to-hit and AP now (03b §3c): inside unprotected, × its strength and the factors; riot gas 10 minutes after. */
+    public int[] gasPenalty() {
+        int[] r = new int[3];
+        Rules.Gas g = gasHere();
+        boolean riotIn = false;
+        if (g != null && !g.bad() && !eyesShielded(g)) {
+            double f = gasPower() * gasFactor(g);
+            r[0] += Rules.scaleInt(g.p(), f);
+            r[1] += Rules.scaleInt(g.toHit(), f);
+            r[2] += Rules.scaleInt(g.ap(), f);
+            riotIn = g.name().equals("riot gas");
+        }
+        if (!riotIn && riotUntil > now() + 1e-9 && riotStrength > 0) {
+            Rules.Gas riot = Rules.GASES.get("riot gas");
+            double f = riotStrength * gasFactor(riot);
+            r[0] += Rules.scaleInt(riot.p(), f);
+            r[1] += Rules.scaleInt(riot.toHit(), f);
+            r[2] += Rules.scaleInt(riot.ap(), f);
+        }
+        return r;
+    }
+
+    /** Poison from a gas: × (1 − the poison resistance), up to the maximum (03b §3c: part 4's Poison value). */
+    void addPoison(double v) {
+        if (v <= 0) return;
+        double res = Math.max(0, Math.min(100, resistances()[2])) / 100;
+        double p = survival.getOrDefault(Rules.Stat.POISON, 0.0) + v * (1 - res);
+        survival.put(Rules.Stat.POISON, Math.min(max(Rules.Stat.POISON), p));
+    }
+
+    void addPain(double v) {
+        if (v <= 0) return;
+        survival.put(Rules.Stat.PAIN, Math.min(100, survival.getOrDefault(Rules.Stat.PAIN, 0.0) + v * painGain()));
+    }
+
+    /**
+     * One round (6 s) of breathing (03b §3c): Oxygen −1 without air or with a held breath, +5 in clean air, only to half in bad air,
+     * the smoke's −1 in smoke; the gas's Poison, Pain and the acid's burns; the air bottle runs down; then the arrest's causes.
+     * Returns the news or null.
+     */
+    public String breathRound(Random rnd) {
+        if (dead) return null;
+        List<String> out = new ArrayList<>();
+        double max = max(Rules.Stat.OXYGEN), o = survival.getOrDefault(Rules.Stat.OXYGEN, max);
+        Rules.Gas g = gasHere();
+        boolean bottle = wearing.contains("Air bottle") && bottleMinutes > 0;
+        if (bottle) {
+            bottleMinutes = Math.max(0, bottleMinutes - 0.1);
+            if (bottleMinutes <= 1e-9) { wearing.remove("Air bottle"); bottleMinutes = 0; out.add("the air bottle is empty"); }
+        }
+        boolean arrest = inArrest();
+        if (!arrest) {   // in clinical death nobody breathes: Oxygen stays where it is
+            if (bottle) o = Math.min(max, o + Rules.OXYGEN_REFILL);
+            else if (holdingBreath || noAir()) o -= 1;
+            else if (g != null && g.bad()) { badAirRounds++; if (o < max / 2) o = Math.min(max / 2, o + Rules.OXYGEN_REFILL); }
+            else if (g != null && g.oxygen() > 0 && !shielded(g)) o -= g.oxygen() * gasPower() * gasFactor(g);
+            else o = Math.min(max, o + Rules.OXYGEN_REFILL);
+            if (g == null || !g.bad() || bottle) badAirRounds = 0;
+            o = Math.max(0, o);
+            survival.put(Rules.Stat.OXYGEN, o);
+            if (o <= 0 && holdingBreath) { holdingBreath = false; out.add("the held breath ends: you gasp"); }   // nobody holds it to the end [mine]
+            if (o <= 0) {
+                if (oxygenZeroAt < 0) {
+                    oxygenZeroAt = now();
+                    out.add("UNCONSCIOUS: Oxygen 0 (the heart stops after " + Math.max(1, attrs(false)[Rules.E]) + " minutes without air)");
+                }
+            } else oxygenZeroAt = -1;
+            if (g != null && !g.bad()) {   // the lungs: Poison and Pain
+                double f = gasPower() * gasFactor(g);
+                if (!shielded(g)) {
+                    addPoison(g.poison() * f);
+                    addPain(g.pain() * f);
+                    if (g.name().equals("carbon monoxide")) coUntil = now() + 24;
+                }
+                // riot gas works on the eyes: they stay sore 10 minutes after
+                if (g.name().equals("riot gas") && !eyesShielded(g)) { riotUntil = now() + Rules.RIOT_LINGER_HOURS; riotStrength = gasPower(); }
+                Rules.Gas co = Rules.GASES.get("carbon monoxide");
+                if (g.withCo() && !shielded(co)) { addPoison(co.poison() * gasPower() * gasFactor(co)); coUntil = now() + 24; }
+            }
+        }
+        // acid fog: 1d6 a round on bare skin, × the strength; no mask stops it, a hazard suit does (Marek 11-18: "hazard suit should")
+        if (g != null && g.burnDice() > 0 && !wearing.contains("Hazard suit")) {
+            int n = 0;
+            for (int k = 0; k < g.burnDice() * gasPower(); k++) n += 1 + rnd.nextInt(6);
+            out.add("the acid burns: " + Hud.hit(this, n, "normal"));
+        }
+        String a = checkArrest(rnd);
+        if (a != null) out.add(a);
+        return out.isEmpty() ? null : String.join("; ", out);
+    }
+
+    /** An hour in a slow gas (mercury vapour, 03b §3c): Poison +1 × the strength; a week of it gives the tremor until treated. */
+    public void gasHour() {
+        Rules.Gas g = gasHere();
+        if (g == null || g.hourlyPoison() <= 0 || dead || inArrest() || shielded(g)) return;
+        addPoison(g.hourlyPoison() * gasPower() * gasFactor(g));
+        mercuryHours += 1;
+        if (mercuryHours >= Rules.MERCURY_HOURS && inSlot("disease:mercury") == null) {
+            int[] mods = new int[7];
+            mods[Rules.I] = -1;
+            add(new Effect("Mercury poisoning (tremor)", "disease", "disease:mercury", false, mods,
+                    new LinkedHashMap<>(Map.of("skill:Crafting", -10.0)), UNTIL_TREATED, null, 100));
+            news.add("a week in mercury vapour: I −1 and a tremor (Crafting −10 %) until treated");
+        }
+    }
+
+    /** Whether rounds change anything now (else time can jump to the next hour): bleeding, the air, a gas, Oxygen not full, the ears' clocks do not need rounds. */
+    public boolean roundsMatter() {
+        if (dead) return false;
+        Double o = survival.get(Rules.Stat.OXYGEN);
+        return bleeding > 0 || noAir() || holdingBreath || gasHere() != null || (wearing.contains("Air bottle") && bottleMinutes > 0)
+                || (o != null && o < max(Rules.Stat.OXYGEN) - 1e-9) || riotUntil > now();
+    }
+
+    /** Unconscious, not in clinical death: Oxygen 0, or a pump keeping the body alive at Endurance 0 or the cold's end (03b §3c). */
+    public boolean unconscious() {
+        if (dead || inArrest()) return false;
+        Double o = survival.get(Rules.Stat.OXYGEN);
+        if (o != null && o <= 0) return true;
+        return hasPump() && (attrs(false)[Rules.E] <= 0 || atEnd(Rules.Stat.HYPOTHERMIA));
+    }
+
+    private boolean atEnd(Rules.Stat st) {
+        Double v = survival.get(st);
+        return v != null && v >= max(st) - 1e-9;
+    }
+
+    // ------------------------------------------------------------------ 03b §3c: the heart
+    /** A pump in the chest (the Artificial Heart, any tier that works): no rhythm to lose (Marek, round 20: *"I agree"*). */
+    public boolean hasPump() {
+        for (Effect e : effects) if (e.other().getOrDefault("pump", 0.0) > 0 && e.strength() > 0) return true;
+        return false;
+    }
+
+    /**
+     * The heart stops while HP holds (03b §3c, RULED): clinical death at once (§5), HP kept. {@code rhythm}: a cause a pump ignores
+     * (electricity, a chest blow, Endurance 0, the cold). An implanted defibrillator shocks only when the cause no longer lasts.
+     */
+    public String stopHeart(String cause, boolean rhythm, Random rnd) {
+        if (dead || inArrest()) return "";
+        if (rhythm && hasPump()) return "the Artificial Heart pumps on through " + cause + " (a pump has no rhythm to lose)";
+        arrestAt = now();
+        arrestCause = cause;
+        cues.add("heart.stop");
+        cprFrom = -1;
+        String block = arrestBlock();
+        String d = block == null ? autoDefibrillate(rnd) : other("defib_shocks") > 0 ? " The implanted defibrillator cannot help while it lasts (" + block + ")." : "";
+        return "CARDIAC ARREST (" + cause + "): clinical death with HP kept" + d;
+    }
+
+    /** What still stops the heart, so a revival cannot hold yet (03b §3c: *"the cause dealt with first where it lasts"*); null = none. */
+    public String arrestBlock() {
+        if (noAir()) return "no air: out of the water or the sealed place first";
+        if (survival.getOrDefault(Rules.Stat.BLOOD, 1.0) <= 0) return "Blood 0: a transfusion first";
+        if (atEnd(Rules.Stat.HYPOTHERMIA)) return "the cold at its end: warm him first";
+        if (atEnd(Rules.Stat.HYPERTHERMIA)) return "the heat at its end: cool him first";
+        if (attrs(false)[Rules.E] <= 0 && !hasPump()) return "Endurance 0: raise it first";
+        return null;
+    }
+
+    /**
+     * The causes a value reaching its end sets off (03b §3c, RULED): Oxygen 0 for E minutes, Blood 0, Endurance 0, the cold's or the
+     * heat's end. A pump ignores the rhythm causes (the body stays unconscious instead). Returns the news or null.
+     */
+    public String checkArrest(Random rnd) {
+        if (dead || inArrest()) return null;
+        int e = attrs(false)[Rules.E];
+        Double o = survival.get(Rules.Stat.OXYGEN);
+        if (o != null && o <= 0 && oxygenZeroAt >= 0 && now() - oxygenZeroAt >= Math.max(1, e) / 60.0 - 1e-9)
+            return stopHeart("Oxygen 0 for " + Math.max(1, e) + " minutes", false, rnd);
+        if (survival.getOrDefault(Rules.Stat.BLOOD, 1.0) <= 0) return stopHeart("Blood 0", false, rnd);
+        if (atEnd(Rules.Stat.HYPERTHERMIA)) return stopHeart("the heat", false, rnd);
+        if (hasPump()) return null;
+        if (atEnd(Rules.Stat.HYPOTHERMIA)) return stopHeart("the cold", true, rnd);
+        if (e <= 0) return stopHeart("Endurance 0", true, rnd);
+        return null;
+    }
+
+    /**
+     * An electric hazard (a live cable, a lightning strike, the lightning anomaly; 03b §3c): its damage, and when the hit reaches 10 an
+     * Endurance roll (d10 at most E) or the heart stops. A hazard rolls no crits.
+     */
+    public String electricHazard(int dmg, Random rnd) {
+        cues.add("electric");
+        String r = Hud.hit(this, dmg, "normal");
+        if (dmg < Rules.ELECTRIC_HAZARD || dead || inArrest()) return r;
+        int d = 1 + rnd.nextInt(10), en = attrs(false)[Rules.E];
+        if (Rules.attributeRoll(en, d)) return r + "; the Endurance roll " + d + " ≤ " + en + ": the heart holds";
+        return r + "; the Endurance roll " + d + " > " + en + ": " + stopHeart("electricity", true, rnd);
+    }
+
+    // ------------------------------------------------------------------ 03b §3c: the ears (RULED round 21)
+    /** Never deafened: an Audio Implant of Tier III-IV that works (it sends sound past the eardrum). */
+    public boolean deafProof() {
+        for (Effect e : effects) if (e.other().getOrDefault("deaf_proof", 0.0) > 0 && e.strength() > 0) return true;
+        return false;
+    }
+
+    private boolean audioImplant() {
+        for (Effect e : implants()) if (e.name().startsWith("Audio Implant")) return true;
+        return false;
+    }
+
+    /** 0 none, 1 earplugs or muffs (P −1 while worn), 2 electronic muffs (Tier IV: no −1). */
+    public int earProtection() { return wearing.contains("Electronic muffs") ? 2 : wearing.contains("Earplugs") ? 1 : 0; }
+
+    public int burstEars() {
+        int n = 0;
+        for (double h : eardrumHealsAt) if (h > now() + 1e-9) n++;
+        return n;
+    }
+
+    public boolean ringing() { return ringingUntil > now() + 1e-9; }
+
+    public boolean deaf() { return burstEars() >= 2 && !deafProof(); }
+
+    /**
+     * Perception the ears cost (03b §3c, RULED round 21, as Perception, not by ear): ringing −1, one burst eardrum −1, both (deaf)
+     * −2, the lasting loss −1 until an Audio Implant, earplugs or muffs −1 while worn; the worst of them counts [mine: one organ].
+     */
+    public int hearingLoss() {
+        if (deafProof()) return 0;
+        int l = Math.max(ringing() ? 1 : 0, burstEars());
+        if (lastingEarLoss && !audioImplant()) l = Math.max(l, 1);
+        if (earProtection() == 1) l = Math.max(l, 1);
+        return l;
+    }
+
+    /** Tough eardrums (03c: "burst at twice the blast, the ringing halved"): the eardrum roll and the ringing × 0.5. */
+    double earFactor() {
+        double f = 1;
+        for (Data.Gene g : tpl().genes()) f = Math.min(f, g.other().getOrDefault("ears_tough", 1.0));
+        return f;
+    }
+
+    /** Ringing for these hours (P −1), unless the ears are protected or never deafened; returns the news or "". */
+    public String ring(double hours) {
+        if (deafProof() || earProtection() > 0 || hours <= 0) return "";
+        double h = hours * earFactor();
+        ringingUntil = Math.max(ringingUntil, now() + h);
+        return "ringing ears for " + SheetView.hours(h) + " (P −1)";
+    }
+
+    /**
+     * An eardrum roll for each whole ear at {@code chance} % (halved by earplugs or muffs, and by Tough eardrums): a burst eardrum =
+     * P −1, Pain 10, no direction to a sound, healed in 1d4 + 2 weeks, 30 % keep a lasting P −1; both = deaf (P −2). Returns news or "".
+     */
+    public String eardrumRoll(int chance, Random rnd) {
+        if (deafProof() || chance <= 0) return "";
+        double ch = chance * (earProtection() > 0 ? 0.5 : 1) * earFactor();
+        List<String> out = new ArrayList<>();
+        for (int k = 0; k < 2; k++) { String s = burst(k, ch, rnd); if (s != null) out.add(s); }
+        return earNews(out);
+    }
+
+    /** One ear only (a dive below 3 m without a Breath gene, 10 %; 03b §3c): a whole ear, rolled once. */
+    public String oneEarRoll(int chance, Random rnd) {
+        if (deafProof() || chance <= 0) return "";
+        List<Integer> whole = new ArrayList<>();
+        for (int k = 0; k < 2; k++) if (eardrumHealsAt[k] <= now()) whole.add(k);
+        if (whole.isEmpty()) return "";
+        String s = burst(whole.get(rnd.nextInt(whole.size())), chance * earFactor(), rnd);
+        return s == null ? "" : earNews(List.of(s));
+    }
+
+    private String burst(int k, double ch, Random rnd) {
+        if (eardrumHealsAt[k] > now()) return null;
+        int d = 1 + rnd.nextInt(100);
+        if (d > ch) return null;
+        eardrumHealsAt[k] = now() + Rules.eardrumHealHours(1 + rnd.nextInt(4));
+        addPain(10);
+        boolean lasting = 1 + rnd.nextInt(100) <= Rules.LASTING_EAR_LOSS;
+        if (lasting) lastingEarLoss = true;
+        return (k == 0 ? "the left" : "the right") + " eardrum bursts (" + Math.round(ch) + " %, rolled " + d + "; heals in "
+                + SheetView.hours(eardrumHealsAt[k] - now()) + (lasting ? ", a lasting P −1 after" : "") + ")";
+    }
+
+    private String earNews(List<String> out) {
+        if (out.isEmpty()) return "";
+        return String.join(", ", out) + (deaf() ? ": DEAF (P −2, no radio, no spoken orders, lip-reading)" : ": P −1, no direction to a sound, Pain +10");
+    }
+
+    /** A Breath gene (Diver, Bajau, Diving reflex, Anoxia, Cold blood): a dive does not hurt the ears (03b §3c). */
+    public boolean breathGene() {
+        for (Data.Gene g : tpl().genes()) if (g.slot().equals("Breath")) return true;
+        return false;
+    }
+
+    /** A lasting loss at {@code chance} % (meningitis or a streptomycin-type course: 5 %, 03b §3c). */
+    public String lastingRoll(int chance, Random rnd) {
+        if (deafProof()) return "never deafened (the Audio Implant)";
+        int d = 1 + rnd.nextInt(100);
+        if (d > chance) return "the hearing holds (" + chance + " %, rolled " + d + ")";
+        lastingEarLoss = true;
+        return "one ear's hearing is lost for good (" + chance + " %, rolled " + d + "): P −1 until an Audio Implant";
+    }
+
+    /** The ears healed (the GM's): no ringing, both eardrums whole, no lasting loss. */
+    public void healEars() { ringingUntil = -1; eardrumHealsAt[0] = eardrumHealsAt[1] = -1; lastingEarLoss = false; }
+
+    /** A blast at {@code dist} from a burst of {@code radius} (03b §3c): the eardrum roll and the ringing (1d6 hours). */
+    public String blast(double dist, double radius, Random rnd) {
+        int[] e = Rules.blastEars(dist, radius);
+        return ears(e, 1 + rnd.nextInt(6), rnd);
+    }
+
+    /** A flashbang at {@code dist} hexes (03b §3c): ringing (1d6 hours) within 5, an eardrum roll at 15 % within 2. */
+    public String flashbang(double dist, Random rnd) { return ears(Rules.flashbangEars(dist), 1 + rnd.nextInt(6), rnd); }
+
+    private String ears(int[] e, int ringHours, Random rnd) {
+        List<String> out = new ArrayList<>();
+        String b = eardrumRoll(e[0], rnd);
+        if (!b.isEmpty()) out.add(b);
+        if (e[1] > 0) { String r = ring(ringHours); if (!r.isEmpty()) out.add(r); }
+        return String.join("; ", out);
+    }
+
+    // ------------------------------------------------------------------ armour (05c-ARMOUR.md; 05 §6b RULED 11-18)
+    /** A piece worn: its set (`data/armour.json`), its slot (Head, Chest, Legs, Feet) and its condition 0-100 %. */
+    /** A worn piece: its set, slot, condition and the body it is made for (05c §9.5; null in old saves = standard). */
+    public record Worn(String set, String slot, double condition, String fit) {
+        public Worn(String set, String slot, double condition) { this(set, slot, condition, STANDARD); }
+        public String fitName() { return fit == null ? STANDARD : fit; }
+        public Worn at(double newCondition) { return new Worn(set, slot, newCondition, fit); }
+    }
+
+    // ------------------------------------------------------------------ body fits (05c §9.5, RULED in principle 11-18; the table mine)
+    public static final String STANDARD = "standard";
+    /** The templates whose body is not the human shape; the Laron gene makes any body small. */
+    public static final Map<String, String> TEMPLATE_FIT = Map.of("Orc", "large", "Catfolk", "tailed", "Pikachu", "tailed", "Ent", "huge",
+            "Fallen Angel", "winged");
+    /** The slots where a body differs from the human shape (a piece of another fit is shared only in the other slots). */
+    public static final Map<String, Set<String>> FIT_SLOTS = Map.of(STANDARD, Set.of(), "large", Set.of("Chest", "Legs"),
+            "small", Set.of("Head", "Chest", "Legs", "Feet"), "tailed", Set.of("Head", "Legs"), "winged", Set.of("Chest"),
+            "huge", Set.of("Head", "Chest", "Legs", "Feet"));
+
+    public String fit() {
+        for (Data.Gene g : tpl().genes()) if (g.name().equals("Laron")) return "small";
+        return TEMPLATE_FIT.getOrDefault(template, STANDARD);
+    }
+
+    /** A piece made for one body fits another when they are the same, or the slot is the human shape's in both. */
+    public static boolean fits(String pieceFit, String bodyFit, String slot) {
+        String p = pieceFit == null ? STANDARD : pieceFit, b = bodyFit == null ? STANDARD : bodyFit;
+        return p.equals(b) || (!FIT_SLOTS.getOrDefault(p, Set.of()).contains(slot) && !FIT_SLOTS.getOrDefault(b, Set.of()).contains(slot));
+    }
+
+    public boolean fits(Worn w) { return w != null && fits(w.fit(), fit(), w.slot()); }
+
+    /** Crafting needed to make or refit a piece: 25 a tier [EXAMPLE]. */
+    public static int craftingFor(int tier) { return 25 * Math.max(1, tier); }
+
+    /**
+     * Refitting a worn piece for this body (05c §9.5): a Crafting job at the piece's tier (25 a tier), an hour a kg of the piece
+     * [EXAMPLE]; a huge body's piece cannot be refitted (a new one is made). Returns what happened.
+     */
+    public String refit(String slot) {
+        Worn w = armour.get(slot);
+        Data.Armour a = w == null ? null : Data.ARMOUR.get(w.set());
+        if (a == null) return "nothing worn on the " + slot.toLowerCase(Locale.ROOT);
+        if (fits(w)) return "the " + w.set() + " fits you already";
+        if (w.fitName().equals("huge") || fit().equals("huge")) return "a huge body's piece cannot be refitted: a new one must be made";
+        int need = craftingFor(a.tier());
+        if (skill("Crafting") < need) return "refitting the " + w.set() + " needs Crafting " + need;
+        armour.put(slot, new Worn(w.set(), slot, w.condition(), fit()));
+        return "the " + w.set() + " (" + slot.toLowerCase(Locale.ROOT) + ") refitted for your body: " + (int) Math.ceil(a.pieceWeight(slot))
+                + " h of work (the GM passes them)";
+    }
+
+
+    /** What each slot wears (a player's: read from his equipment each second; the items keep the condition). */
+    public final Map<String, Worn> armour = new LinkedHashMap<>();
+
+    /** Power Armour Training (05c §3c, RULED 11-18): the hours worn whole with Engineering over 50 (100 teach it), or taught (10 = 100). */
+    public double paHours = 0;
+    public boolean paTrained = false;
+
+    /** Unlocked from the start, the base can make it: Tier I and II at rarity 1 (RULED 11-18: "at least all T2 with R1"); the rest: {@link Base}. */
+    public static boolean knownAtStart(Data.Armour a) { return a.tier() <= 2 && a.rarity() == 1; }
+
+    public static final List<String> ARMOUR_SLOTS = List.of("Head", "Chest", "Legs", "Feet");
+
+    /** The slot over a body part (05 §6b, RULED 11-18: the chest covers the arms and the hands). */
+    public static String slotOf(Rules.Part part) {
+        return switch (part) {
+            case HEAD, EYES -> "Head";
+            case TORSO, LEFT_ARM, RIGHT_ARM -> "Chest";
+            case GROIN, LEFT_LEG, RIGHT_LEG -> "Legs";
+        };
+    }
+
+    /**
+     * New Vegas's armour by condition (the Fallout Wiki, *Equipment condition*): full protection at 50 % and above, two thirds at 0:
+     * × (0.66 + min(0.34 × condition / 0.5, 0.34)).
+     */
+    public static double conditionShare(double conditionPct) { return 0.66 + Math.min(0.34 * (conditionPct / 100) / 0.5, 0.34); }
+
+    /** The piece's set, or null when nothing is worn or it does not fit this body (a misfit gives nothing but its weight, 05c §9.5). */
+    private Data.Armour setOf(Worn w) { return w == null || !fits(w) ? null : Data.ARMOUR.get(w.set()); }
+
+    /** The piece over a body part, or null. */
+    public Worn armourAt(Rules.Part part) { return armour.get(slotOf(part)); }
+
+    /** Every piece of the set worn: its own effects count (the power armours' Strength, a sealed suit). */
+    public boolean complete(String set) {
+        Data.Armour a = Data.ARMOUR.get(set);
+        if (a == null) return false;
+        for (String s : a.pieces()) { Worn w = armour.get(s); if (w == null || !w.set().equals(set) || !fits(w)) return false; }
+        return true;
+    }
+
+    private List<Data.Armour> completeSets() {
+        List<Data.Armour> l = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (Worn w : armour.values()) if (seen.add(w.set()) && complete(w.set())) l.add(Data.ARMOUR.get(w.set()));
+        return l;
+    }
+
+    /** The armour's AC: each piece's share of its set's (Fallout's AC adds to the wearer's; condition does not touch it [mine]). */
+    public int armourAc() {
+        int s = 0;
+        for (Worn w : armour.values()) { Data.Armour a = setOf(w); if (a != null) s += a.pieceAc(w.slot()); }
+        return s;
+    }
+
+    /** DT against a hit on this part of this type: the body's (Normal only: the template and the effects) + the piece's by its condition. */
+    public int dtAt(Rules.Part part, String type) {
+        Worn w = armourAt(part);
+        Data.Armour a = setOf(w);
+        return (type.equals("Normal") ? dt() : 0) + (a == null ? 0 : (int) Math.round(a.dt(type) * conditionShare(w.condition())));
+    }
+
+    /** DR (a fraction) against a hit on this part of this type: the body's resistance + the piece's by its condition, at most 90 %. */
+    public double drAt(Rules.Part part, String type) {
+        int i = Arrays.asList(DAMAGE_TYPES).indexOf(type);
+        double body = i < 0 ? 0 : resistances()[i];
+        Worn w = armourAt(part);
+        Data.Armour a = setOf(w);
+        double piece = a == null ? 0 : a.dr(type) * conditionShare(w.condition());
+        return Math.max(-1, Math.min(0.9, (body + piece) / 100));
+    }
+
+    /** A whole set's attribute changes (the power armours' Strength): temporary, never read by level-up. */
+    int armourMod(int i) {
+        int s = 0;
+        for (Data.Armour a : completeSets()) if (runs(a)) s += a.mods()[i];   // untrained, a power armour is dead weight (05c §3c)
+        return s;
+    }
+
+    double armourRes(boolean rad) {
+        double s = 0;
+        for (Data.Armour a : completeSets()) s += rad ? a.radRes() : a.poisonRes();
+        return s;
+    }
+
+    double armourSkill(String skill) {
+        double s = 0;
+        for (Data.Armour a : completeSets()) s += a.skills().getOrDefault(skill, 0.0);
+        if (skill.equals("Sneak")) s += CLASS_SNEAK[armourClass()];   // the class (05c §3b)
+        return s;
+    }
+
+    // ------------------------------------------------------------------ the class, the training, the outfit (05c §3b, §3c, §6)
+    public static final String[] CLASS_NAMES = {"light", "medium", "heavy", "super-heavy"};
+    /** New Vegas's three classes and a fourth, as penalties (Marek 11-18: *"just make the effect a panality"*) [EXAMPLE, mine]. */
+    public static final double[] CLASS_KG = {6, 13, 25};
+    public static final int[] CLASS_SNEAK = {0, -10, -25, -40}, CLASS_AP = {0, 0, -1, -2};
+    public static final double PA_SELF_HOURS = 100, PA_TAUGHT_HOURS = 10, PA_ENGINEERING = 50;
+
+    /** A set's power runs: anything but power armour, or power armour with the training (untrained it is dead weight). */
+    public boolean runs(Data.Armour a) { return !a.powerArmour() || paTrained; }
+
+    /** The armour's worn weight in kg; a power armour that runs counts half (its servos carry it). */
+    public double wornKg() {
+        double kg = 0;
+        for (Worn w : armour.values()) {
+            Data.Armour a = Data.ARMOUR.get(w.set());   // a misfit piece still weighs
+            if (a != null) kg += a.weightKg() * a.shares().getOrDefault(w.slot(), 0.0) * (a.powerArmour() && runs(a) && fits(w) ? 0.5 : 1);
+        }
+        return kg;
+    }
+
+    /** 0 light (to 6 kg), 1 medium (to 13), 2 heavy (to 25), 3 super-heavy. */
+    public int armourClass() {
+        double kg = wornKg();
+        int k = 0;
+        while (k < CLASS_KG.length && kg > CLASS_KG[k] + 1e-9) k++;
+        return k;
+    }
+
+    /** A whole power armour worn an hour with Engineering over 50 (100 such hours teach it). Returns the news, or null. */
+    public String paHour() {
+        if (paTrained || completeSets().stream().noneMatch(Data.Armour::powerArmour) || skill("Engineering") <= PA_ENGINEERING) return null;
+        paHours += 1;
+        if (paHours < PA_SELF_HOURS) return null;
+        paTrained = true;
+        return "Power Armour Training learned (" + Math.round(paHours) + " hours in the suit)";
+    }
+
+    /** Taught by anyone trained: 10 hours teach it [EXAMPLE], so an hour taught counts as 10 worn. */
+    public String paTaught(double hours) {
+        if (paTrained) return "already trained";
+        paHours += hours * PA_SELF_HOURS / PA_TAUGHT_HOURS;
+        if (paHours >= PA_SELF_HOURS) { paTrained = true; return "Power Armour Training learned"; }
+        return "Power Armour Training " + Math.round(paHours) + " of " + Math.round(PA_SELF_HOURS) + " hours";
+    }
+
+    public String paText() {
+        return paTrained ? "trained" : Math.round(paHours) + " of " + Math.round(PA_SELF_HOURS) + " h (a whole suit worn with Engineering over 50, or taught: 10 h)";
+    }
+
+    public static final Map<String, Double> SLOT_SHARE = Map.of("Head", 0.15, "Chest", 0.5, "Legs", 0.25, "Feet", 0.10);
+    public static final double CLOTHES_ISOLATION_DT = 6, SHOES_ISOLATION_DR = 25;
+
+    /**
+     * The outfit (05c §6): each slot's Isolation and Heat at its condition, or ordinary clothes (Isolation DT 6; shoes on the feet
+     * Isolation DR 25), weighted Head 15 %, Chest 50, Legs 25, Feet 10. Returns {Isolation DT, Isolation DR %, Heat DT, Heat DR %}.
+     */
+    public double[] outfit() {
+        double[] o = new double[4];
+        for (String slot : ARMOUR_SLOTS) {
+            double sh = SLOT_SHARE.get(slot);
+            Worn w = armour.get(slot);
+            Data.Armour a = setOf(w);
+            if (a == null) { o[0] += sh * CLOTHES_ISOLATION_DT; if (slot.equals("Feet")) o[1] += sh * SHOES_ISOLATION_DR; continue; }
+            double c = conditionShare(w.condition());
+            o[0] += sh * a.dt("Isolation") * c;
+            o[1] += sh * a.dr("Isolation") * c;
+            o[2] += sh * a.dt("Heat") * c;
+            o[3] += sh * a.dr("Heat") * c;
+        }
+        return o;
+    }
+
+    /** A cooled set worn whole whose power runs (the power armours, the EOD suit's fan): isolation does not stop it venting. */
+    public boolean cooled() { return completeSets().stream().anyMatch(a -> a.cooled() && runs(a)); }
+
+    /** The comfort interval in °C (05c §6; part 4's naked human 16-31): 16 − Isolation DT to 31 − Isolation DT + Heat DT (cooled: 31 + Heat DT). */
+    public int[] comfort() {
+        double[] o = outfit();
+        return new int[]{(int) Math.round(16 - o[0]), (int) Math.round(31 + o[2] - (cooled() ? 0 : o[0]))};
+    }
+
+    /** Trench foot's water resistance (04b §3c, RULED: the boots' Isolation): the Feet piece's Isolation DR; a sealed suit 1; shoes 0.25. */
+    public double bootsWater() {
+        Worn w = armour.get("Feet");
+        Data.Armour a = setOf(w);
+        if (a == null) return SHOES_ISOLATION_DR / 100;
+        if (a.sealed() && complete(a.name())) return 1;
+        return Math.max(0, Math.min(1, a.dr("Isolation") / 100));
+    }
+
+    /**
+     * A hit's wear on the piece over the part (New Vegas: armour wears only when a hit's power exceeds its DT; how much is not
+     * published): what the piece's DR stopped beyond its DT, (raw − DT) × DR, in item health (Marek 11-18: *"make it work with DR as well"*), the set's item health shared by its pieces [EXAMPLE, mine].
+     * Returns the note, or "".
+     */
+    public String wearArmour(Rules.Part part, double raw) { return wearArmour(part, raw, "Normal"); }
+
+    public String wearArmour(Rules.Part part, double raw, String type) {
+        Worn w = armourAt(part);
+        Data.Armour a = setOf(w);
+        if (a == null) return "";
+        double share = conditionShare(w.condition()), dt = a.dt(type) * share, dr = Math.max(0, a.dr(type)) / 100 * share;
+        if (raw <= dt || dr <= 0) return "";
+        double loss = (raw - dt) * dr / a.pieceHealth(w.slot()) * 100;
+        double c = Math.max(0, w.condition() - loss);
+        armour.put(w.slot(), w.at(c));
+        return " Your " + w.set() + " (" + w.slot().toLowerCase(Locale.ROOT) + "): " + Math.round(w.condition()) + " → " + Math.round(c) + " %.";
+    }
+
+    /**
+     * What is worn, read from the equipment (a player each second): the slots, then the gear the gas rules read: the big gas mask
+     * on the head (with the filters carried), a sealed suit (the hazard suit; Tactics' environmental armour with its own gas filter
+     * [mine]) keeping the acid off.
+     */
+    public void setArmour(Map<String, Worn> worn, boolean gasFilter, boolean coFilter) {
+        armour.clear();
+        armour.putAll(worn);
+        boolean small = wearing.contains("Small gas mask");
+        wearing.remove("Gas mask");
+        wearing.remove("Hazard suit");
+        Worn head = armour.get("Head");
+        boolean mask = head != null && head.set().equals("Gas mask");
+        for (Data.Armour a : completeSets()) {
+            if (a.sealed()) wearing.add("Hazard suit");
+            if (a.gasDr() > 0) { mask = true; gasFilter = true; }
+        }
+        if (mask) {
+            wearing.add("Gas mask");
+            if (!small) {
+                maskFilters.clear();
+                if (gasFilter) maskFilters.add("gas");
+                if (coFilter) maskFilters.add("co");
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ the synthetic body (Marek 11-16)
+    /**
+     * Robots and androids (Marek 11-16: *"they still need energy in form of electricity. And they should still clean their memory
+     * from time to time."*): food is their POWER (recharged at a charging point), sleep is their MEMORY (cleaned like sleep), no water.
+     */
+    public boolean synthetic() { return "power".equals(tpl().needs()); }
+
+    public String statName(Rules.Stat st) {
+        if (synthetic()) {
+            if (st == Rules.Stat.FOOD) return "Power";
+            if (st == Rules.Stat.SLEEP) return "Memory";
+        }
+        return SheetGui.name(st);
+    }
+
+    /** A stage as this body names it (the effects stay the stage's own). */
+    public String label(String stage) {
+        if (stage == null || !synthetic()) return stage;
+        return stage.replace("Starvation", "Power Loss").replace("Sleep Deprivation", "Memory Clutter");
+    }
+
+    /** A plain character of a template, its points spread legally (03b §1), fed and rested: an NPC figurant's start. */
+    public static Character blank(String name, String template) {
+        Character c = new Character();
+        c.name = name;
+        c.applyTemplate(template);
+        Data.Template t = c.tpl();
+        int left = t.attributePoints();
+        for (int i = 0; i < 7; i++) { c.base[i] = t.fixedAttr(i) ? 0 : Math.max(1, 1 - t.mods()[i]); left -= c.base[i]; }
+        for (int guard = 0; left > 0 && guard < 200; guard++) {
+            int i = guard % 7;
+            if (!t.fixedAttr(i) && c.base[i] < 10) { c.base[i]++; left--; }
+        }
+        c.hp = c.hpMax();
+        for (Rules.Stat st : Rules.Stat.values())
+            c.survival.put(st, switch (st) { case POISON, RADS, HYPOTHERMIA, HYPERTHERMIA, PAIN -> 0.0; default -> c.max(st); });
+        return c;
+    }
+
+    // ------------------------------------------------------------------ the example
+    /** The EXAMPLE character: a human with two traits, three tags, an implant and a hangover, survival as the workbook's sample. */
+    public static Character sample(String player) {
+        Character c = new Character();
+        c.player = player;
+        c.applyTemplate("Human");
+        c.fit(Data.IMPLANTS.get("Audio Implant"), 4, null);
+        c.effects.add(new Effect("Hangover (example)", false, new int[]{0, -1, 0, -1, 0, 0, 0}, 3));
+        c.traits.add(new Feat("Brittle Bones", "trait (Wasteland 2)", "+2 AP; movement costs double the AP (Marek)"));
+        c.traits.add(new Feat("Medical Marvel", "trait (Wasteland 3)", "+5 HP; nobody can stabilise you (no Field Surgeon, no first aid when dying)"));
+        c.tags.addAll(List.of("Guns", "Medicine", "Sneak"));
+        c.points[Rules.skillIndex("Guns")] = 30;
+        c.points[Rules.skillIndex("Medicine")] = 25;
+        c.points[Rules.skillIndex("Sneak")] = 12;
+        c.unspentSkillPoints = 19;
+        c.xp = 640;
+        c.hp = c.hpMax();
+        c.survival.put(Rules.Stat.WATER, 0.85 * c.max(Rules.Stat.WATER));
+        c.survival.put(Rules.Stat.FOOD, c.max(Rules.Stat.FOOD));
+        c.survival.put(Rules.Stat.SLEEP, c.max(Rules.Stat.SLEEP));
+        c.survival.put(Rules.Stat.POISON, 0.0);
+        c.survival.put(Rules.Stat.RADS, 50.0);
+        c.survival.put(Rules.Stat.HYPOTHERMIA, 0.0);
+        c.survival.put(Rules.Stat.HYPERTHERMIA, 4.0);
+        c.survival.put(Rules.Stat.BLOOD, c.max(Rules.Stat.BLOOD));
+        c.survival.put(Rules.Stat.PAIN, 0.0);
+        c.survival.put(Rules.Stat.OXYGEN, c.max(Rules.Stat.OXYGEN));
+        return c;
+    }
+
+    /** Perks shown on the sample's perk page (a few of `02c` §2, with their gates). */
+    public static final List<Feat> SAMPLE_PERKS = List.of(
+            new Feat("Swift Learner", "any skill 50", "+15 % XP"),
+            new Feat("Awareness", "Survival or Guns 50", "you see the HP, armour, weapon and ammo of anyone you see"),
+            new Feat("Toughness", "Athletics or Survival 75", "+10 % DR and +2 DT against normal damage"),
+            new Feat("Tag!", "any skill 100", "a fourth tagged skill"),
+            new Feat("Educated", "any skill 100", "+4 skill points a level"),
+            new Feat("Medic!", "Medicine 50", "healing an ally takes half the AP and heals x1.5"),
+            new Feat("Living Anatomy", "Medicine 100", "+5 damage a hit against the living, +15 to aimed shots at body parts"),
+            new Feat("Field Surgeon", "Medicine 150", "brings a dying ally (not dead) back to 1 HP for 4 AP, once per ally a battle"),
+            new Feat("Quick Draw", "Guns 50", "reloading and switching weapons cost half the AP"),
+            new Feat("Sniper", "Guns 100", "aimed shots +25 to hit, no range penalty within the weapon's range"),
+            new Feat("Bonus Move", "Athletics 50", "+3 AP of movement only, each turn"),
+            new Feat("Cautious Nature", "Survival 50", "never surprised: you always act in the first round"),
+            new Feat("Quick Pockets", "Athletics 50", "taking an item from your pack costs 1 AP less"),
+            new Feat("Run 'n Gun", "Guns 75", "no penalty for shooting after moving"),
+            new Feat("Tunnel Rat", "Sneak 75", "crawling costs no more AP than walking"));
+
+    /** Whether a perk's gate is met: reads "Skill N" or "A or B N" or "any skill N" (permanent values). */
+    public boolean meets(Feat f) {
+        String g = f.gate();
+        String[] parts = g.split(" ");
+        double need;
+        try { need = Double.parseDouble(parts[parts.length - 1]); } catch (NumberFormatException e) { return false; }
+        double[] v = skills(true);   // gates read permanent values (Marek 11-14)
+        if (g.startsWith("any skill")) { for (double x : v) if (x >= need) return true; return false; }
+        for (String s : g.substring(0, g.lastIndexOf(' ')).split(" or "))
+            try { if (v[Rules.skillIndex(s.trim())] >= need) return true; } catch (IllegalArgumentException ignored) {}
+        return false;
+    }
+}

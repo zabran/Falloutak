@@ -1,0 +1,2314 @@
+{
+ "source": "Fallouťák part 3 (_notes/Fallout/03b-SPECIES-RULES.md §2, RULED 11-16; the seven = the workbook's Species tab, Fallout Tactics); written by LollyWood-Lore _tools/fallout_part3_json.py",
+ "rows": [
+  {
+   "name": "Human",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 0,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0
+  },
+  {
+   "name": "Ghoul",
+   "family": "ghoul",
+   "who": "gm",
+   "hp_bonus": 10,
+   "perk_rate": 4,
+   "attribute_modifier": -1,
+   "strength_modifier": -2,
+   "perception_modifier": 3,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 3,
+   "agility_modifier": -4,
+   "luck_modifier": 3,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0.1,
+   "rad_resistance": 0.4,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "forbidden_traits": [
+    "Fast Metabolism",
+    "Bruiser",
+    "Heavy Handed"
+   ],
+   "notes": "becomes so by radiation, not chosen at creation (03b §2a)"
+  },
+  {
+   "name": "Basic Robot",
+   "family": "synthetic",
+   "who": "gm",
+   "hp_bonus": 0,
+   "perk_rate": 0,
+   "attribute_modifier": 1,
+   "strength_modifier": 2,
+   "perception_modifier": 2,
+   "endurance_modifier": 2,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 2,
+   "agility_modifier": 2,
+   "luck_modifier": 0,
+   "skill_point_bonus": 10,
+   "damage_resistance": 0.5,
+   "damage_threshold": 0,
+   "poison_resistance": 1.0,
+   "rad_resistance": 1.0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "fixed": {
+    "charisma": 1,
+    "luck": 5
+   },
+   "bans": [
+    "human armour"
+   ],
+   "forbidden_traits": [
+    "Chem Reliant",
+    "Chem Resistant"
+   ],
+   "needs": "power",
+   "notes": "non-sentient, no perks; a faction worker, not a PC"
+  },
+  {
+   "name": "Android",
+   "family": "synthetic",
+   "who": "premium",
+   "cos_points": "10",
+   "faction_unlock": true,
+   "hp_bonus": 30,
+   "perk_rate": 4,
+   "attribute_modifier": 0,
+   "strength_modifier": 2,
+   "perception_modifier": 2,
+   "endurance_modifier": 2,
+   "charisma_modifier": -3,
+   "intelligence_modifier": 2,
+   "agility_modifier": 2,
+   "luck_modifier": 0,
+   "skill_point_bonus": 10,
+   "damage_resistance": 0.5,
+   "damage_threshold": 0,
+   "poison_resistance": 1.0,
+   "rad_resistance": 1.0,
+   "isolation": -0.5,
+   "bonus_damage": 0,
+   "forbidden_traits": [
+    "Chem Reliant",
+    "Chem Resistant",
+    "Fast Metabolism"
+   ],
+   "needs": "power",
+   "notes": "sentient, the Union's; power instead of food, memory cleaning instead of sleep, no water (Marek 11-16); healed by Repair; EMP: isolation -50 %; a CoS premium template (Marek 11-16: android is one of the CoS bonus species, not without points), 10 CoS points, no extra attribute point (Marek 11-16)"
+  },
+  {
+   "name": "Dog",
+   "family": "animal",
+   "who": "gm",
+   "hp_bonus": 8,
+   "perk_rate": 2,
+   "attribute_modifier": 5,
+   "strength_modifier": -3,
+   "perception_modifier": 4,
+   "endurance_modifier": -4,
+   "charisma_modifier": -5,
+   "intelligence_modifier": -7,
+   "agility_modifier": 5,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "notes": "a faction animal; carries one item, uses none"
+  },
+  {
+   "name": "Super Mutant",
+   "family": "mutant",
+   "who": "data",
+   "hp_bonus": 25,
+   "perk_rate": 4,
+   "attribute_modifier": 1,
+   "strength_modifier": 3,
+   "perception_modifier": 0,
+   "endurance_modifier": 2,
+   "charisma_modifier": -2,
+   "intelligence_modifier": -2,
+   "agility_modifier": -2,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0.25,
+   "damage_threshold": 0,
+   "poison_resistance": 0.2,
+   "rad_resistance": 0.2,
+   "isolation": 0,
+   "bonus_damage": 0.06,
+   "notes": "not in the EU (Marek): data only"
+  },
+  {
+   "name": "Deathclaw",
+   "family": "beast",
+   "who": "data",
+   "hp_bonus": 30,
+   "perk_rate": 4,
+   "attribute_modifier": 2,
+   "strength_modifier": 4,
+   "perception_modifier": 2,
+   "endurance_modifier": 3,
+   "charisma_modifier": -7,
+   "intelligence_modifier": -6,
+   "agility_modifier": 6,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0.15,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0.1,
+   "isolation": 0,
+   "bonus_damage": 0.03,
+   "notes": "not in the EU (Marek): data only; our +2 points (RULED)"
+  },
+  {
+   "name": "Laborer",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 1,
+   "perception_modifier": 0,
+   "endurance_modifier": 1,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "genome": true,
+   "food_factor": 2.0,
+   "genes": [
+    {
+     "name": "Power fibres",
+     "slot": "Muscle",
+     "tier": "T1",
+     "load": 0,
+     "text": "S +1, E -1",
+     "free": true,
+     "real": "ACTN3 RR, sprinters",
+     "mods": {
+      "strength": 1,
+      "endurance": -1
+     },
+     "family": "ACTN3"
+    },
+    {
+     "name": "Dense bones",
+     "slot": "Frame",
+     "tier": "T1",
+     "load": 0,
+     "text": "a limb crippled at x1.5 the damage; sinks: swimming Athletics -30",
+     "free": true,
+     "real": "LRP5, one copy",
+     "family": "LRP5/SOST"
+    },
+    {
+     "name": "Big boned",
+     "slot": "Metabolism",
+     "tier": "T1",
+     "load": 0,
+     "text": "E +2 (so +4 HP, healing, resistances); hunger and thirst twice as fast",
+     "free": true,
+     "rule": "Glutton",
+     "mods": {
+      "endurance": 2
+     },
+     "food": 2.0,
+     "water": 2.0
+    }
+   ],
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Bruiser",
+    "Circus Freak",
+    "Fast Metabolism",
+    "Glutton",
+    "Weird Loner"
+   ],
+   "notes": "the playstyle: carrying, building, melee; genes Power fibres, Dense bones, Big boned (03c §6), load +0",
+   "water_factor": 2.0
+  },
+  {
+   "name": "Scout",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": -1,
+   "perception_modifier": 0,
+   "endurance_modifier": 1,
+   "charisma_modifier": -1,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "genome": true,
+   "food_factor": 0.57,
+   "genes": [
+    {
+     "name": "Endurance fibres",
+     "slot": "Muscle",
+     "tier": "T1",
+     "load": 0,
+     "text": "E +1, S -1",
+     "free": true,
+     "real": "ACTN3 XX",
+     "mods": {
+      "strength": -1,
+      "endurance": 1
+     },
+     "family": "ACTN3"
+    },
+    {
+     "name": "Highlander",
+     "slot": "Blood",
+     "tier": "T1",
+     "load": 6,
+     "text": "CO and sewer gas work x0.75 (03b §3c)",
+     "free": true,
+     "real": "EPAS1/EGLN1, Tibetans, from the Denisovans",
+     "other": {
+      "gas_blood": 0.75
+     },
+     "family": "EPAS1/EPOR"
+    },
+    {
+     "name": "Odourless",
+     "slot": "Skin",
+     "tier": "T1",
+     "load": 3,
+     "text": "scent-tracking finds you at half",
+     "free": true,
+     "real": "ABCC11, dry earwax"
+    },
+    {
+     "name": "Thrifty",
+     "slot": "Metabolism",
+     "tier": "T2",
+     "load": 5,
+     "text": "hunger and thirst half as fast, Survival +20; C -1",
+     "free": true,
+     "rule": "Weird Loner",
+     "mods": {
+      "charisma": -1
+     },
+     "food": 0.5,
+     "water": 0.5,
+     "skills": {
+      "Survival": 20
+     }
+    }
+   ],
+   "forbidden_traits": [
+    "Bruiser",
+    "Fast Metabolism",
+    "Glutton",
+    "Medical Marvel",
+    "Thick-Skinned",
+    "Weird Loner"
+   ],
+   "notes": "the playstyle: long walks alone, smoke, not smelt; genes Endurance fibres, Highlander, Odourless, Thrifty (03c §6), load +14",
+   "water_factor": 0.5,
+   "skills": {
+    "Survival": 20
+   },
+   "other": {
+    "gas_blood": 0.75
+   }
+  },
+  {
+   "name": "Scholar",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": -1,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 1,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "genome": true,
+   "food_factor": 1.0,
+   "genes": [
+    {
+     "name": "Bright",
+     "slot": "Mind",
+     "tier": "T1",
+     "load": 0,
+     "text": "I +1, P -1 (myopic: long range -10 without glasses)",
+     "free": true,
+     "real": "polygenic; education and short sight share genes",
+     "mods": {
+      "intelligence": 1,
+      "perception": -1
+     }
+    },
+    {
+     "name": "Worrier",
+     "slot": "Temperament",
+     "tier": "T1",
+     "load": 0,
+     "text": "science skills +5 %, Pain x1.2",
+     "free": true,
+     "real": "COMT Met/Met",
+     "pain": 1.2,
+     "skills": {
+      "Computer Science": 5,
+      "Engineering": 5,
+      "Chemistry": 5,
+      "Biology": 5,
+      "Medicine": 5
+     }
+    },
+    {
+     "name": "Night owl",
+     "slot": "Sleep",
+     "tier": "T1",
+     "load": 0,
+     "text": "I and P +1 at night (18-06), -1 by day",
+     "free": true,
+     "real": "CRY1 delta-11, a delayed body clock (Patke et al. 2017)",
+     "rule": "Night Person"
+    }
+   ],
+   "forbidden_traits": [
+    "Gifted",
+    "Hot Blooded",
+    "Kamikaze",
+    "Night Person",
+    "Twitchy"
+   ],
+   "notes": "the playstyle: science, medicine, the night; genes Bright, Worrier, Night owl (03c §6), load +0",
+   "pain_gain": 1.2,
+   "skills": {
+    "Computer Science": 5,
+    "Engineering": 5,
+    "Chemistry": 5,
+    "Biology": 5,
+    "Medicine": 5
+   }
+  },
+  {
+   "name": "Survivor",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 0,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0.15,
+   "rad_resistance": 0,
+   "isolation": 0.1,
+   "bonus_damage": 0,
+   "genome": true,
+   "food_factor": 1.06,
+   "genes": [
+    {
+     "name": "Arctic fat-burner",
+     "slot": "Cold",
+     "tier": "T1",
+     "load": 0,
+     "text": "isolation +10 %; the starvation stage one step sooner",
+     "free": true,
+     "real": "CPT1A, the Arctic peoples",
+     "iso": 0.1
+    },
+    {
+     "name": "Broad HLA",
+     "slot": "Immunity",
+     "tier": "T2",
+     "load": 2,
+     "text": "poison and disease +15 %; allergies (the antiserum's allergy x2, hay fever P -1 in spring and summer)",
+     "free": true,
+     "real": "a diverse immune set",
+     "poison": 0.15,
+     "family": "immunity"
+    },
+    {
+     "name": "Healthy liver",
+     "slot": "Liver",
+     "tier": "T1",
+     "load": 4,
+     "text": "alcohol and Tier I-II food harm x0.75",
+     "free": true,
+     "real": "HSD17B13"
+    }
+   ],
+   "forbidden_traits": [
+    "Garrakg Returnz"
+   ],
+   "notes": "the playstyle: cold, disease, bad food; genes Arctic fat-burner, Broad HLA, Healthy liver (03c §6), load +6"
+  },
+  {
+   "name": "Golden Blood",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 0,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0.15,
+   "rad_resistance": 0,
+   "isolation": 0.1,
+   "bonus_damage": 0,
+   "genome": true,
+   "food_factor": 1.06,
+   "genes": [
+    {
+     "name": "Arctic fat-burner",
+     "slot": "Cold",
+     "tier": "T1",
+     "load": 0,
+     "text": "isolation +10 %; the starvation stage one step sooner",
+     "free": true,
+     "real": "CPT1A, the Arctic peoples",
+     "iso": 0.1
+    },
+    {
+     "name": "Broad HLA",
+     "slot": "Immunity",
+     "tier": "T2",
+     "load": 2,
+     "text": "poison and disease +15 %; allergies (the antiserum's allergy x2, hay fever P -1 in spring and summer)",
+     "free": true,
+     "real": "a diverse immune set",
+     "poison": 0.15,
+     "family": "immunity"
+    },
+    {
+     "name": "Healthy liver",
+     "slot": "Liver",
+     "tier": "T1",
+     "load": 4,
+     "text": "alcohol and Tier I-II food harm x0.75",
+     "free": true,
+     "real": "HSD17B13"
+    },
+    {
+     "name": "Rh-null",
+     "slot": "Blood",
+     "tier": "T2",
+     "load": 0,
+     "text": "HP +5; nobody can stabilise you (no Field Surgeon, no first aid when dying)",
+     "free": true,
+     "real": "golden blood, some 50 people known: takes only Rh-null blood, so no transfusion saves him",
+     "rule": "Medical Marvel"
+    }
+   ],
+   "forbidden_traits": [
+    "Garrakg Returnz",
+    "Medical Marvel"
+   ],
+   "notes": "the playstyle: the Survivor with Rh-null blood: tougher, but nobody can save him; genes Arctic fat-burner, Broad HLA, Healthy liver, Rh-null (03c §6), load +6"
+  },
+  {
+   "name": "Watchman",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 0,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "genome": true,
+   "food_factor": 1.13,
+   "genes": [
+    {
+     "name": "DEC2",
+     "slot": "Sleep",
+     "tier": "T2",
+     "load": 10,
+     "text": "sleep need x0.75: 6 hours do",
+     "free": true,
+     "real": "BHLHE41 P385R, a short-sleeping family",
+     "sleep": 0.75,
+     "family": "short sleep"
+    },
+    {
+     "name": "Keen nose",
+     "slot": "Ears and nose",
+     "tier": "T1",
+     "load": 3,
+     "text": "gas and spoiled food smelt: +10 % to spot them",
+     "free": true,
+     "real": "smell receptor variants"
+    },
+    {
+     "name": "Twitchy",
+     "slot": "Temperament",
+     "tier": "T1",
+     "load": 0,
+     "text": "Initiative +10, to hit -10",
+     "free": true,
+     "real": "DRD4 / COMT (low anxiety, high risk tolerance) and the adrenal response",
+     "rule": "Twitchy",
+     "other": {
+      "sequence": 10,
+      "to_hit": -10
+     }
+    }
+   ],
+   "forbidden_traits": [
+    "Hot Blooded",
+    "Kamikaze",
+    "Night Person",
+    "Twitchy"
+   ],
+   "notes": "the playstyle: night shifts, guarding, the first to react; genes DEC2, Keen nose, Twitchy (03c §6), load +13",
+   "sleep_factor": 0.75,
+   "other": {
+    "sequence": 10,
+    "to_hit": -10
+   }
+  },
+  {
+   "name": "Brawler",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 1,
+   "perception_modifier": 0,
+   "endurance_modifier": -1,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 2,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "genome": true,
+   "food_factor": 1.13,
+   "genes": [
+    {
+     "name": "Power fibres",
+     "slot": "Muscle",
+     "tier": "T1",
+     "load": 0,
+     "text": "S +1, E -1",
+     "free": true,
+     "real": "ACTN3 RR, sprinters",
+     "mods": {
+      "strength": 1,
+      "endurance": -1
+     },
+     "family": "ACTN3"
+    },
+    {
+     "name": "Mild FAAH",
+     "slot": "Pain",
+     "tier": "T1",
+     "load": 8,
+     "text": "Pain gained x0.75",
+     "free": true,
+     "real": "FAAH, a milder form of the FAAH-OUT family's",
+     "pain": 0.75,
+     "family": "FAAH/SCN9A"
+    },
+    {
+     "name": "Warrior",
+     "slot": "Temperament",
+     "tier": "T1",
+     "load": 0,
+     "text": "ignores Pain 10 more (the Pain check); science skills -5 %",
+     "free": true,
+     "real": "COMT Val/Val",
+     "skills": {
+      "Computer Science": -5,
+      "Engineering": -5,
+      "Chemistry": -5,
+      "Biology": -5,
+      "Medicine": -5
+     }
+    },
+    {
+     "name": "Thick skin",
+     "slot": "Skin",
+     "tier": "T2",
+     "load": 5,
+     "text": "DT +2 against every damage type, AP -1",
+     "free": true,
+     "rule": "Thick-Skinned",
+     "dt": 2,
+     "other": {
+      "ap": -1
+     }
+    }
+   ],
+   "forbidden_traits": [
+    "Bruiser",
+    "Hot Blooded",
+    "Kamikaze",
+    "Thick-Skinned",
+    "Twitchy"
+   ],
+   "notes": "the playstyle: fights, pain, blows; genes Power fibres, Mild FAAH, Warrior, Thick skin (03c §6), load +13",
+   "pain_gain": 0.75,
+   "skills": {
+    "Computer Science": -5,
+    "Engineering": -5,
+    "Chemistry": -5,
+    "Biology": -5,
+    "Medicine": -5
+   },
+   "other": {
+    "ap": -1
+   }
+  },
+  {
+   "name": "Diver",
+   "family": "human",
+   "who": "pc",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": -1,
+   "perception_modifier": 0,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 1,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "genome": true,
+   "food_factor": 0.954,
+   "genes": [
+    {
+     "name": "Bajau",
+     "slot": "Breath",
+     "tier": "T2",
+     "load": 6,
+     "text": "breath held 3 min (Oxygen 30), swimming Athletics +10",
+     "free": true,
+     "real": "PDE10A, a big spleen, the sea nomads",
+     "other": {
+      "breath": 30
+     },
+     "family": "diving"
+    },
+    {
+     "name": "Compact",
+     "slot": "Growth",
+     "tier": "T1",
+     "load": 0,
+     "text": "A +1, S -1, Sneak +10 %, food x0.9",
+     "free": true,
+     "real": "polygenic",
+     "mods": {
+      "strength": -1,
+      "agility": 1
+     },
+     "food": 0.9,
+     "skills": {
+      "Sneak": 10
+     },
+     "adult": false
+    },
+    {
+     "name": "Night owl",
+     "slot": "Sleep",
+     "tier": "T1",
+     "load": 0,
+     "text": "I and P +1 at night (18-06), -1 by day",
+     "free": true,
+     "real": "CRY1 delta-11, a delayed body clock (Patke et al. 2017)",
+     "rule": "Night Person"
+    }
+   ],
+   "forbidden_traits": [
+    "Night Person",
+    "Small Frame"
+   ],
+   "notes": "the playstyle: water, sneaking by night; genes Bajau, Compact, Night owl (03c §6), load +6",
+   "skills": {
+    "Sneak": 10
+   },
+   "other": {
+    "breath": 30
+   }
+  },
+  {
+   "name": "Elf",
+   "family": "elvish",
+   "who": "premium",
+   "cos_points": "3-4",
+   "faction_unlock": true,
+   "hp_bonus": 10,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 2,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 2,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "senses": "dark halved",
+   "notes": "a tapetum and large ears (P +1); no glare",
+   "genes": [
+    {
+     "name": "Light frame",
+     "slot": "Frame",
+     "tier": "T3",
+     "load": 0,
+     "text": "A +2, HP -5, crippled at x0.75 (the elf's)",
+     "free": false,
+     "mods": {
+      "agility": 2
+     },
+     "hp": -5,
+     "adult": false
+    },
+    {
+     "name": "Tapetum",
+     "slot": "Eyes",
+     "tier": "T3",
+     "load": 10,
+     "text": "P +1, the dark halved, no glare (the elf's)",
+     "free": false,
+     "real": "cats' and dogs' reflective layer",
+     "mods": {
+      "perception": 1
+     },
+     "senses": 1
+    },
+    {
+     "name": "Big ears",
+     "slot": "Ears and nose",
+     "tier": "T3",
+     "load": 10,
+     "text": "P +1 (the elf's)",
+     "free": false,
+     "mods": {
+      "perception": 1
+     }
+    }
+   ],
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Circus Freak"
+   ]
+  },
+  {
+   "name": "Orc",
+   "family": "beast",
+   "who": "premium",
+   "cos_points": "3",
+   "faction_unlock": true,
+   "hp_bonus": 20,
+   "perk_rate": 4,
+   "attribute_modifier": 0,
+   "strength_modifier": 2,
+   "perception_modifier": 0,
+   "endurance_modifier": 2,
+   "charisma_modifier": -1,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0.1,
+   "damage_threshold": 0,
+   "poison_resistance": 0.2,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0.03,
+   "skills": {
+    "Survival": 20
+   },
+   "food_factor": 1.25,
+   "notes": "double-muscled; bonus melee damage 3 %; food x 1.25",
+   "genes": [
+    {
+     "name": "Double muscle",
+     "slot": "Muscle",
+     "tier": "T3",
+     "load": 20,
+     "text": "S +2, melee damage +3 % (the orc's)",
+     "free": false,
+     "real": "MSTN both copies; a German boy 2004, Belgian Blue cattle",
+     "mods": {
+      "strength": 2
+     },
+     "melee": 0.03,
+     "family": "MSTN"
+    },
+    {
+     "name": "Thick hide",
+     "slot": "Skin",
+     "tier": "T3",
+     "load": 10,
+     "text": "DR +10 %, C -1 (the orc's)",
+     "free": false,
+     "mods": {
+      "charisma": -1
+     },
+     "dr": 0.1
+    },
+    {
+     "name": "Big liver",
+     "slot": "Liver",
+     "tier": "T3",
+     "load": 10,
+     "text": "poison and disease +10 %, chems last x0.75 (the orc's)",
+     "free": false,
+     "poison": 0.1
+    },
+    {
+     "name": "Bull heart",
+     "slot": "Blood",
+     "tier": "T3",
+     "load": 10,
+     "text": "E +2, HP +5: a big heart and lungs (the orc's)",
+     "free": false,
+     "mods": {
+      "endurance": 2
+     },
+     "hp": 5
+    },
+    {
+     "name": "Scavenger",
+     "slot": "Immunity",
+     "tier": "T2",
+     "load": 5,
+     "text": "poison and disease +10 %; rotten and raw food's germs x1/2 (the beasts')",
+     "free": false,
+     "real": "a vulture's acid stomach and gut flora (Roggenbuck et al. 2014)",
+     "poison": 0.1
+    },
+    {
+     "name": "Wild instinct",
+     "slot": "Aptitude",
+     "tier": "T3",
+     "load": 10,
+     "text": "Survival +20 %",
+     "free": false,
+     "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+     "skills": {
+      "Survival": 20
+     },
+     "aptitude": "Survival"
+    }
+   ],
+   "forbidden_traits": [
+    "Bruiser",
+    "Garrakg Returnz",
+    "Medical Marvel",
+    "Thick-Skinned"
+   ]
+  },
+  {
+   "name": "Catfolk",
+   "family": "beast",
+   "who": "premium",
+   "cos_points": "4",
+   "faction_unlock": true,
+   "hp_bonus": 12,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 1,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": 3,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0.1,
+   "rad_resistance": 0,
+   "isolation": 0.2,
+   "bonus_damage": 0,
+   "skills": {
+    "Sneak": 20
+   },
+   "senses": "night vision",
+   "fall_factor": 0.5,
+   "notes": "retractable claws: unarmed +3 damage; half falling damage; the heat stage one step sooner",
+   "genes": [
+    {
+     "name": "Cat frame",
+     "slot": "Frame",
+     "tier": "T3",
+     "load": 10,
+     "text": "A +3, HP -3, half falling damage, Sneak +20 (the catfolk's flexible spine)",
+     "free": false,
+     "mods": {
+      "agility": 3
+     },
+     "hp": -3,
+     "fall": 0.5,
+     "skills": {
+      "Sneak": 20
+     },
+     "adult": false
+    },
+    {
+     "name": "Night eyes",
+     "slot": "Eyes",
+     "tier": "T4",
+     "load": 20,
+     "text": "P +1, night vision",
+     "free": false,
+     "real": "tapetum + rods",
+     "mods": {
+      "perception": 1
+     },
+     "senses": 2
+    },
+    {
+     "name": "Short fur",
+     "slot": "Cold",
+     "tier": "T2",
+     "load": 0,
+     "text": "isolation +20 %; the heat stage one step sooner (the catfolk's)",
+     "free": false,
+     "iso": 0.2
+    },
+    {
+     "name": "Claws",
+     "slot": "ORGAN",
+     "tier": "T3",
+     "load": 10,
+     "text": "retractable keratin claws: unarmed +3 (the catfolk's)",
+     "free": false,
+     "adult": false
+    },
+    {
+     "name": "Scavenger",
+     "slot": "Immunity",
+     "tier": "T2",
+     "load": 5,
+     "text": "poison and disease +10 %; rotten and raw food's germs x1/2 (the beasts')",
+     "free": false,
+     "real": "a vulture's acid stomach and gut flora (Roggenbuck et al. 2014)",
+     "poison": 0.1
+    }
+   ],
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Circus Freak",
+    "Garrakg Returnz"
+   ]
+  },
+  {
+   "name": "Pikachu",
+   "family": "beast",
+   "who": "premium",
+   "cos_points": "4",
+   "faction_unlock": true,
+   "hp_bonus": 18,
+   "perk_rate": 4,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 1,
+   "endurance_modifier": 1,
+   "charisma_modifier": -1,
+   "intelligence_modifier": -1,
+   "agility_modifier": 3,
+   "luck_modifier": 2,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0.1,
+   "rad_resistance": 0,
+   "isolation": 0.5,
+   "bonus_damage": 0,
+   "notes": "the discharge: 1d6 Lightning at touch + an Endurance roll against a round's stun (2d6 against a robot or android), 3 a day, each an hour of food",
+   "genes": [
+    {
+     "name": "Electric organ",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 20,
+     "text": "the discharge: 1d6 Lightning at touch + an Endurance roll against a round's stun, 3 a day (Pikachu's)",
+     "free": false,
+     "real": "the electric eel's electrocytes",
+     "adult": false
+    },
+    {
+     "name": "Insulating fat",
+     "slot": "Cold",
+     "tier": "T3",
+     "load": 10,
+     "text": "isolation +50 % (against cold and electricity alike), E +1, HP +3 (Pikachu's)",
+     "free": false,
+     "mods": {
+      "endurance": 1
+     },
+     "hp": 3,
+     "iso": 0.5
+    },
+    {
+     "name": "Hair trigger",
+     "slot": "Temperament",
+     "tier": "T3",
+     "load": 10,
+     "text": "A +3, I -1 (Pikachu's)",
+     "free": false,
+     "mods": {
+      "agility": 3,
+      "intelligence": -1
+     }
+    },
+    {
+     "name": "Sharp sight",
+     "slot": "Eyes",
+     "tier": "T2",
+     "load": 10,
+     "text": "P +1 (Pikachu's)",
+     "free": false,
+     "real": "20/10 eyes, a few % of people",
+     "mods": {
+      "perception": 1
+     }
+    },
+    {
+     "name": "Red cheeks",
+     "slot": "Look",
+     "tier": "T3",
+     "load": -5,
+     "text": "C -1 (Pikachu's)",
+     "free": false,
+     "mods": {
+      "charisma": -1
+     }
+    },
+    {
+     "name": "Scavenger",
+     "slot": "Immunity",
+     "tier": "T2",
+     "load": 5,
+     "text": "poison and disease +10 %; rotten and raw food's germs x1/2 (the beasts')",
+     "free": false,
+     "real": "a vulture's acid stomach and gut flora (Roggenbuck et al. 2014)",
+     "poison": 0.1
+    }
+   ],
+   "rest": "L +2",
+   "forbidden_traits": [
+    "Garrakg Returnz",
+    "Hot Blooded",
+    "Kamikaze",
+    "Twitchy"
+   ]
+  },
+  {
+   "name": "Ent",
+   "family": "plant",
+   "who": "premium",
+   "cos_points": "16",
+   "faction_unlock": false,
+   "hp_bonus": 40,
+   "perk_rate": 4,
+   "attribute_modifier": 0,
+   "strength_modifier": 10,
+   "perception_modifier": -2,
+   "endurance_modifier": 10,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 0,
+   "agility_modifier": -5,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0.2,
+   "damage_threshold": 5,
+   "poison_resistance": 0.5,
+   "rad_resistance": 0.2,
+   "isolation": 0.3,
+   "bonus_damage": 0,
+   "skills": {
+    "Survival": 50,
+    "Biology": 20,
+    "Sneak": -30,
+    "Guns": -20
+   },
+   "huge": true,
+   "bans": [
+    "clothes",
+    "armour"
+   ],
+   "food_factor": 2.0,
+   "notes": "a giant (~2.5 m) with bark: fire damage x 2; leaves; enrooting (no food once its leaves are grown); HP 73-100",
+   "genes": [
+    {
+     "name": "Giant",
+     "slot": "Growth",
+     "tier": "T4",
+     "load": 20,
+     "text": "S +5, E +5, P -2, A -5, huge (+15 to hit you), Sneak -30 %, guns -20 % (fingers too big), food x2 (the Ent's)",
+     "free": false,
+     "mods": {
+      "strength": 5,
+      "endurance": 5,
+      "perception": -2,
+      "agility": -5
+     },
+     "skills": {
+      "Sneak": -30,
+      "Guns": -20
+     },
+     "food": 2.0,
+     "huge": true,
+     "adult": false
+    },
+    {
+     "name": "Bark",
+     "slot": "Skin",
+     "tier": "T4",
+     "load": 20,
+     "text": "DT 5, DR +20 %, isolation +30 %, fire x2; fits no clothes or armour (the Ent's)",
+     "free": false,
+     "real": "osteoderms as in crocodiles",
+     "dt": 5,
+     "dr": 0.2,
+     "iso": 0.3
+    },
+    {
+     "name": "Leaves",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 10,
+     "text": "enrooting; with the moss hair: food x0.85 by day, sleep x0.75 beside the enrooting (the Ent's)",
+     "free": false,
+     "real": "chlorophyll",
+     "adult": false
+    },
+    {
+     "name": "Heartwood frame",
+     "slot": "Frame",
+     "tier": "T4",
+     "load": 20,
+     "text": "S +5, E +5, HP +25: wood-hard bones (the Ent's)",
+     "free": false,
+     "mods": {
+      "strength": 5,
+      "endurance": 5
+     },
+     "hp": 25,
+     "adult": false
+    },
+    {
+     "name": "Perfect immunity",
+     "slot": "Immunity",
+     "tier": "T4",
+     "load": 20,
+     "text": "poison and disease +50 %",
+     "free": false,
+     "poison": 0.5,
+     "family": "immunity"
+    },
+    {
+     "name": "Dsup",
+     "slot": "Radiation",
+     "tier": "T3",
+     "load": 10,
+     "text": "rad +20 %",
+     "free": false,
+     "real": "a tardigrade protein: ~40 % less X-ray damage in human cells (Hashimoto et al. 2016)",
+     "rad": 0.2
+    },
+    {
+     "name": "Forest sense",
+     "slot": "Aptitude",
+     "tier": "T4",
+     "load": 20,
+     "text": "Survival +50 %",
+     "free": false,
+     "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+     "skills": {
+      "Survival": 50
+     },
+     "aptitude": "Survival"
+    },
+    {
+     "name": "Root lore",
+     "slot": "Aptitude",
+     "tier": "T3",
+     "load": 10,
+     "text": "Biology +20 %",
+     "free": false,
+     "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+     "skills": {
+      "Biology": 20
+     },
+     "aptitude": "Biology"
+    }
+   ],
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Circus Freak",
+    "Garrakg Returnz",
+    "Small Frame",
+    "Thick-Skinned"
+   ]
+  },
+  {
+   "name": "Necroat",
+   "family": "own",
+   "who": "premium",
+   "cos_points": "3",
+   "faction_unlock": true,
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": -1,
+   "perception_modifier": 0,
+   "endurance_modifier": 0,
+   "charisma_modifier": 0,
+   "intelligence_modifier": 2,
+   "agility_modifier": 0,
+   "luck_modifier": 2,
+   "skill_point_bonus": 5,
+   "damage_resistance": -0.05,
+   "damage_threshold": 0,
+   "poison_resistance": 0.25,
+   "rad_resistance": 0.5,
+   "isolation": 0.3,
+   "bonus_damage": 0,
+   "skills": {
+    "Crafting": -5
+   },
+   "sun": "pain",
+   "notes": "aquatic: swims as it walks, holds its breath 5 minutes; a bonus with therapies (their session)",
+   "genes": [
+    {
+     "name": "Diving reflex",
+     "slot": "Breath",
+     "tier": "T3",
+     "load": 10,
+     "text": "breath held 5 min (Oxygen 50), swims as it walks (the necroat's)",
+     "free": false,
+     "other": {
+      "breath": 50
+     },
+     "family": "diving"
+    },
+    {
+     "name": "Aquatic skin",
+     "slot": "Skin",
+     "tier": "T3",
+     "load": 10,
+     "text": "DR -5 %, rad +50 %, poison +25 %, isolation +30 %, the sun's Pain (the necroat's)",
+     "free": false,
+     "dr": -0.05,
+     "rad": 0.5,
+     "poison": 0.25,
+     "iso": 0.3,
+     "sun": "pain"
+    },
+    {
+     "name": "Sharp-plus",
+     "slot": "Mind",
+     "tier": "T3",
+     "load": 10,
+     "text": "I +2, S -1 (the necroat's)",
+     "free": false,
+     "mods": {
+      "intelligence": 2,
+      "strength": -1
+     }
+    },
+    {
+     "name": "Made for change",
+     "slot": "Radiation",
+     "tier": "T3",
+     "load": 10,
+     "text": "its therapies' conflict roll +1, radiation never twists them (only switches them off), no infection rolls from implants (the necroat's, 03d §11)",
+     "free": false
+    },
+    {
+     "name": "Webbing",
+     "slot": "ORGAN",
+     "tier": "T3",
+     "load": 0,
+     "text": "swims as it walks, Crafting -5 %",
+     "free": false,
+     "skills": {
+      "Crafting": -5
+     },
+     "adult": false
+    }
+   ],
+   "rest": "L +2",
+   "forbidden_traits": [
+    "Gifted",
+    "Thick-Skinned"
+   ]
+  },
+  {
+   "name": "Dhampir",
+   "family": "human",
+   "who": "premium",
+   "cos_points": "6",
+   "faction_unlock": true,
+   "hp_bonus": 20,
+   "perk_rate": 4,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 2,
+   "endurance_modifier": 0,
+   "charisma_modifier": 2,
+   "intelligence_modifier": 0,
+   "agility_modifier": 3,
+   "luck_modifier": -1,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "senses": "dark halved",
+   "death_window": 2.0,
+   "sun": "pain",
+   "notes": "mostly ordinary food, blood at most half of it",
+   "genes": [
+    {
+     "name": "Half blood gut",
+     "slot": "ORGAN",
+     "tier": "T3",
+     "load": 0,
+     "text": "blood up to half the food (the dhampir's)",
+     "free": false,
+     "adult": false
+    },
+    {
+     "name": "Tapetum",
+     "slot": "Eyes",
+     "tier": "T3",
+     "load": 10,
+     "text": "P +1, the dark halved, no glare (the elf's)",
+     "free": false,
+     "real": "cats' and dogs' reflective layer",
+     "mods": {
+      "perception": 1
+     },
+     "senses": 1
+    },
+    {
+     "name": "Keen senses",
+     "slot": "Ears and nose",
+     "tier": "T3",
+     "load": 10,
+     "text": "P +1: hears a heartbeat within 2 hexes, smells blood (the dhampir's)",
+     "free": false,
+     "mods": {
+      "perception": 1
+     }
+    },
+    {
+     "name": "Predator frame",
+     "slot": "Frame",
+     "tier": "T3",
+     "load": 10,
+     "text": "A +3, HP +5 (the dhampir's)",
+     "free": false,
+     "mods": {
+      "agility": 3
+     },
+     "hp": 5,
+     "adult": false
+    },
+    {
+     "name": "Dark allure",
+     "slot": "Look",
+     "tier": "T3",
+     "load": 10,
+     "text": "C +2: pale skin, striking eyes (the dhampir's)",
+     "free": false,
+     "mods": {
+      "charisma": 2
+     }
+    },
+    {
+     "name": "Cold blood",
+     "slot": "Breath",
+     "tier": "T3",
+     "load": 10,
+     "text": "the clinical-death window x2, breath held 2 min (Oxygen 20): the brain bears the want of oxygen (the dhampir's)",
+     "free": false,
+     "window": 2.0,
+     "other": {
+      "breath": 20
+     }
+    },
+    {
+     "name": "Light-sensitive",
+     "slot": "Blood",
+     "tier": "T2",
+     "load": -10,
+     "text": "the sun's Pain (the dhampir's, the coldvein's)",
+     "free": false,
+     "real": "FECH, one weak copy: the mild form of erythropoietic protoporphyria",
+     "sun": "pain"
+    }
+   ],
+   "rest": "L -1",
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Circus Freak",
+    "Medical Marvel"
+   ]
+  },
+  {
+   "name": "Vampire",
+   "family": "undead",
+   "who": "premium",
+   "cos_points": "20",
+   "faction_unlock": true,
+   "hp_bonus": 25,
+   "perk_rate": 5,
+   "attribute_modifier": 0,
+   "strength_modifier": 2,
+   "perception_modifier": 4,
+   "endurance_modifier": 2,
+   "charisma_modifier": 5,
+   "intelligence_modifier": 2,
+   "agility_modifier": 6,
+   "luck_modifier": -3,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0.1,
+   "damage_threshold": 0,
+   "poison_resistance": 0.5,
+   "rad_resistance": -1.0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "skills": {
+    "Rhetorics": 20
+   },
+   "healing_rate_fed": 3,
+   "senses": "night vision",
+   "at_death": "torpor",
+   "sun": "protoporphyria",
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Bruiser",
+    "Circus Freak",
+    "Fast Metabolism",
+    "Gifted",
+    "Glutton",
+    "Medical Marvel",
+    "Thick-Skinned",
+    "Weird Loner"
+   ],
+   "notes": "blood only, ~1.5 l a day; fed (a feeding in 24 h): healing rate +3; at clinical death torpor while not burned",
+   "genes": [
+    {
+     "name": "Blood gut",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 0,
+     "text": "blood only, ~1.5 l a day; poison +50 % (the filter) (the vampire's)",
+     "free": false,
+     "real": "the vampire bat's",
+     "poison": 0.5,
+     "adult": false
+    },
+    {
+     "name": "Torpor",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 10,
+     "text": "at clinical death a coma while not burned (the vampire's)",
+     "free": false,
+     "at_death": "torpor",
+     "adult": false
+    },
+    {
+     "name": "Night eyes",
+     "slot": "Eyes",
+     "tier": "T4",
+     "load": 20,
+     "text": "P +1, night vision",
+     "free": false,
+     "real": "tapetum + rods",
+     "mods": {
+      "perception": 1
+     },
+     "senses": 2
+    },
+    {
+     "name": "Hunter's senses",
+     "slot": "Ears and nose",
+     "tier": "T4",
+     "load": 20,
+     "text": "P +3: hears heartbeats through a wall, smells blood a street away (the vampire's)",
+     "free": false,
+     "mods": {
+      "perception": 3
+     }
+    },
+    {
+     "name": "Designer muscle",
+     "slot": "Muscle",
+     "tier": "T4",
+     "load": 10,
+     "text": "S +2; starvation's Strength losses halved",
+     "free": false,
+     "real": "MSTN tuned + FBXO32 off: no wasting",
+     "mods": {
+      "strength": 2
+     },
+     "family": "MSTN"
+    },
+    {
+     "name": "Apex frame",
+     "slot": "Frame",
+     "tier": "T4",
+     "load": 20,
+     "text": "A +6, E +2, HP +10 (the vampire's)",
+     "free": false,
+     "mods": {
+      "agility": 6,
+      "endurance": 2
+     },
+     "hp": 10,
+     "adult": false
+    },
+    {
+     "name": "Designer mind",
+     "slot": "Mind",
+     "tier": "T4",
+     "load": 20,
+     "text": "I +2",
+     "free": false,
+     "mods": {
+      "intelligence": 2
+     }
+    },
+    {
+     "name": "Glamour",
+     "slot": "Look",
+     "tier": "T4",
+     "load": 20,
+     "text": "C +5 (the vampire's)",
+     "free": false,
+     "mods": {
+      "charisma": 5
+     }
+    },
+    {
+     "name": "Silver tongue",
+     "slot": "Aptitude",
+     "tier": "T3",
+     "load": 10,
+     "text": "Rhetorics +20 %",
+     "free": false,
+     "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+     "skills": {
+      "Rhetorics": 20
+     },
+     "aptitude": "Rhetorics"
+    },
+    {
+     "name": "Dense skin",
+     "slot": "Skin",
+     "tier": "T4",
+     "load": 10,
+     "text": "DR +10 % (the vampire's)",
+     "free": false,
+     "dr": 0.1
+    },
+    {
+     "name": "Fragile DNA",
+     "slot": "Radiation",
+     "tier": "T3",
+     "load": -20,
+     "text": "rad -100 % (the vampire's)",
+     "free": false,
+     "rad": -1.0
+    },
+    {
+     "name": "Protoporphyria",
+     "slot": "Blood",
+     "tier": "T4",
+     "load": -20,
+     "text": "the sun burns (the vampire's)",
+     "free": false,
+     "real": "FECH, both copies: erythropoietic protoporphyria",
+     "sun": "protoporphyria"
+    },
+    {
+     "name": "Blood-fed mending",
+     "slot": "Metabolism",
+     "tier": "T4",
+     "load": 10,
+     "text": "healing +3 while fed: a feeding in 24 h (the vampire's)",
+     "free": false,
+     "other": {
+      "healing_rate_fed": 3
+     }
+    }
+   ],
+   "rest": "L -3"
+  },
+  {
+   "name": "Revenant",
+   "family": "undead",
+   "who": "premium",
+   "cos_points": "6",
+   "faction_unlock": true,
+   "hp_bonus": 25,
+   "perk_rate": 4,
+   "attribute_modifier": 0,
+   "strength_modifier": 2,
+   "perception_modifier": 0,
+   "endurance_modifier": 4,
+   "charisma_modifier": -2,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0.25,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "healing_rate": 3,
+   "at_death": "self-mend",
+   "notes": "holds its breath 10 minutes; smoke, gas and drowning at a fifth of the speed; at clinical death mends 1 HP a day, -10 % XP",
+   "genes": [
+    {
+     "name": "Anoxia",
+     "slot": "Breath",
+     "tier": "T4",
+     "load": 20,
+     "text": "breath held 10 min (Oxygen 100); every gas x0.2 (the revenant's)",
+     "free": false,
+     "real": "the painted turtle",
+     "other": {
+      "breath": 100,
+      "gas_lungs": 0.2
+     },
+     "family": "diving"
+    },
+    {
+     "name": "Self-mending",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 20,
+     "text": "at clinical death it shuts down and mends 1 HP a day, -10 % XP (the revenant's)",
+     "free": false,
+     "at_death": "self-mend",
+     "adult": false
+    },
+    {
+     "name": "Regeneration",
+     "slot": "Metabolism",
+     "tier": "T4",
+     "load": 20,
+     "text": "healing +3 (the revenant's)",
+     "free": false,
+     "real": "RimWorld's superfast healing",
+     "other": {
+      "healing_rate": 3
+     }
+    },
+    {
+     "name": "Heavy frame",
+     "slot": "Frame",
+     "tier": "T4",
+     "load": 20,
+     "text": "S +2, E +4, HP +10 (the revenant's)",
+     "free": false,
+     "mods": {
+      "strength": 2,
+      "endurance": 4
+     },
+     "hp": 10,
+     "adult": false
+    },
+    {
+     "name": "Grey pallor",
+     "slot": "Look",
+     "tier": "T3",
+     "load": -10,
+     "text": "C -2 (the revenant's)",
+     "free": false,
+     "mods": {
+      "charisma": -2
+     }
+    },
+    {
+     "name": "Grave liver",
+     "slot": "Liver",
+     "tier": "T3",
+     "load": 10,
+     "text": "poison and disease +25 % (the revenant's)",
+     "free": false,
+     "poison": 0.25
+    }
+   ],
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Circus Freak",
+    "Fast Metabolism",
+    "Glutton",
+    "Weird Loner"
+   ]
+  },
+  {
+   "name": "Coldvein",
+   "family": "undead",
+   "who": "premium",
+   "cos_points": "3",
+   "faction_unlock": true,
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 1,
+   "endurance_modifier": 1,
+   "charisma_modifier": 1,
+   "intelligence_modifier": 0,
+   "agility_modifier": 0,
+   "luck_modifier": 0,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0.5,
+   "rad_resistance": -0.1,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "skills": {
+    "Medicine": 20
+   },
+   "senses": "night vision",
+   "death_window": 4.0,
+   "sun": "pain",
+   "food_factor": 0.6,
+   "water_factor": 0.6,
+   "heal_factor": 0.5,
+   "bleed_factor": 0.5,
+   "sleep_factor": 0.75,
+   "notes": "runs cold (~30 °C): 6 h of sleep do for 8; the cold stage one step later, the heat stage one step sooner",
+   "genes": [
+    {
+     "name": "Cold metabolism",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": -10,
+     "text": "runs at ~30 °C: food and water x0.6, sleep x0.75, healing x1/2, bleeding x1/2, the window x4 (the coldvein's)",
+     "free": false,
+     "food": 0.6,
+     "water": 0.6,
+     "sleep": 0.75,
+     "heal": 0.5,
+     "bleed": 0.5,
+     "window": 4.0,
+     "adult": false
+    },
+    {
+     "name": "Night eyes",
+     "slot": "Eyes",
+     "tier": "T4",
+     "load": 20,
+     "text": "P +1, night vision",
+     "free": false,
+     "real": "tapetum + rods",
+     "mods": {
+      "perception": 1
+     },
+     "senses": 2
+    },
+    {
+     "name": "Perfect immunity",
+     "slot": "Immunity",
+     "tier": "T4",
+     "load": 20,
+     "text": "poison and disease +50 %",
+     "free": false,
+     "poison": 0.5,
+     "family": "immunity"
+    },
+    {
+     "name": "ATM carrier",
+     "slot": "Radiation",
+     "tier": "T1",
+     "load": -5,
+     "text": "rad -10 % (the coldvein's)",
+     "free": true,
+     "real": "one broken ATM copy, ~1 % of people: more sensitive to radiation",
+     "rad": -0.1
+    },
+    {
+     "name": "Steady hands",
+     "slot": "Aptitude",
+     "tier": "T3",
+     "load": 10,
+     "text": "Medicine +20 %",
+     "free": false,
+     "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+     "skills": {
+      "Medicine": 20
+     },
+     "aptitude": "Medicine"
+    },
+    {
+     "name": "Cold-adapted",
+     "slot": "Cold",
+     "tier": "T3",
+     "load": 5,
+     "text": "E +1, the cold stage one step later, the heat stage one step sooner (the coldvein's)",
+     "free": false,
+     "mods": {
+      "endurance": 1
+     }
+    },
+    {
+     "name": "Cool beauty",
+     "slot": "Look",
+     "tier": "T3",
+     "load": 5,
+     "text": "C +1 (the coldvein's)",
+     "free": false,
+     "mods": {
+      "charisma": 1
+     }
+    },
+    {
+     "name": "Light-sensitive",
+     "slot": "Blood",
+     "tier": "T2",
+     "load": -10,
+     "text": "the sun's Pain (the dhampir's, the coldvein's)",
+     "free": false,
+     "real": "FECH, one weak copy: the mild form of erythropoietic protoporphyria",
+     "sun": "pain"
+    }
+   ],
+   "forbidden_traits": [
+    "Garrakg Returnz",
+    "Medical Marvel"
+   ]
+  },
+  {
+   "name": "Fallen Angel",
+   "family": "own",
+   "who": "premium",
+   "cos_points": "12",
+   "faction_unlock": true,
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 2,
+   "endurance_modifier": 0,
+   "charisma_modifier": 4,
+   "intelligence_modifier": 2,
+   "agility_modifier": 3,
+   "luck_modifier": -2,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "fall_factor": 0.5,
+   "sleep_factor": 0.5,
+   "skills": {
+    "Leadership": 20,
+    "Occultism": 20,
+    "Sneak": -10
+   },
+   "notes": "black feathered wings that glide (no fall damage from up to 20 m, half above); unaging; sleep x0.5; the tongues; true faces; the angel radio (a radio implant in the ears' slot); the Watchers' arts (a free tag); Non serviam; Hunted (03f §2b)",
+   "genes": [
+    {
+     "name": "Hollow bones",
+     "slot": "Frame",
+     "tier": "T4",
+     "load": 0,
+     "text": "A +3, HP -5, crippled at x0.75 (the Fallen Angel's)",
+     "free": false,
+     "mods": {
+      "agility": 3
+     },
+     "hp": -5,
+     "adult": false
+    },
+    {
+     "name": "Glide wings",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 10,
+     "text": "black feathered wings: glide, no fall damage from up to 20 m and half above, HP +5 of the wing muscle, Sneak -10 %, armour needs slits (the Fallen Angel's)",
+     "free": false,
+     "hp": 5,
+     "fall": 0.5,
+     "skills": {
+      "Sneak": -10
+     },
+     "adult": false
+    },
+    {
+     "name": "Watcher's eyes",
+     "slot": "Eyes",
+     "tier": "T4",
+     "load": 20,
+     "text": "P +2; true faces: +25 % to see through disguises, lies and hidden intent (the Fallen Angel's)",
+     "free": false,
+     "mods": {
+      "perception": 2
+     }
+    },
+    {
+     "name": "Tongues",
+     "slot": "Mind",
+     "tier": "T4",
+     "load": 20,
+     "text": "I +2; a language's gist after an hour of listening, spoken after a day, fluent after a week (the Fallen Angel's)",
+     "free": false,
+     "real": "a hyperpolyglot's language centre; FOXP2, the speech gene",
+     "mods": {
+      "intelligence": 2
+     }
+    },
+    {
+     "name": "Perfect beauty",
+     "slot": "Look",
+     "tier": "T4",
+     "load": 20,
+     "text": "C +4: Ezekiel's cherub, perfect in beauty (the Fallen Angel's)",
+     "free": false,
+     "mods": {
+      "charisma": 4
+     }
+    },
+    {
+     "name": "Mole-rat",
+     "slot": "Cancer",
+     "tier": "T4",
+     "load": 20,
+     "text": "cancer x0.1, slow ageing (the Fallen Angel's unaging)",
+     "free": false,
+     "real": "the naked mole rat's HAS2"
+    },
+    {
+     "name": "Angel's rest",
+     "slot": "Sleep",
+     "tier": "T4",
+     "load": 20,
+     "text": "sleep need x0.5 (the Fallen Angel's)",
+     "free": false,
+     "sleep": 0.5
+    },
+    {
+     "name": "Non serviam",
+     "slot": "Temperament",
+     "tier": "T4",
+     "load": 10,
+     "text": "Leadership +20 %; no leader's bonus works on her, she follows no order she does not agree with (the Fallen Angel's)",
+     "free": false,
+     "skills": {
+      "Leadership": 20
+     }
+    },
+    {
+     "name": "Occult sense",
+     "slot": "Aptitude",
+     "tier": "T3",
+     "load": 10,
+     "text": "Occultism +20 %",
+     "free": false,
+     "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+     "skills": {
+      "Occultism": 20
+     },
+     "aptitude": "Occultism"
+    },
+    {
+     "name": "Watchers' arts",
+     "slot": "Aptitude",
+     "tier": "T4",
+     "load": 10,
+     "text": "a free tag on Crafting (weapons and metals), Biology (roots) or a science (the stars), chosen at birth (the Fallen Angel's)",
+     "free": false,
+     "aptitude": "tag"
+    }
+   ],
+   "rest": "L -2",
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Circus Freak",
+    "Gifted",
+    "Hot Blooded",
+    "Kamikaze",
+    "Night Person",
+    "Twitchy"
+   ]
+  },
+  {
+   "name": "Fallen Angel (graced)",
+   "family": "own",
+   "who": "gm",
+   "hp_bonus": 15,
+   "perk_rate": 3,
+   "attribute_modifier": 0,
+   "strength_modifier": 0,
+   "perception_modifier": 3,
+   "endurance_modifier": 0,
+   "charisma_modifier": 5,
+   "intelligence_modifier": 2,
+   "agility_modifier": 3,
+   "luck_modifier": 2,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0,
+   "rad_resistance": 0,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "fall_factor": 0.0,
+   "sleep_factor": 0.5,
+   "skills": {
+    "Leadership": 20,
+    "Occultism": 20,
+    "Sneak": -10
+   },
+   "notes": "her grace taken back (03f §2c, a quest): the wings fly; the healing touch, the smite of light, be not afraid; no master: immune to charm, mind control and possession",
+   "genes": [
+    {
+     "name": "Hollow bones",
+     "slot": "Frame",
+     "tier": "T4",
+     "load": 0,
+     "text": "A +3, HP -5, crippled at x0.75 (the Fallen Angel's)",
+     "free": false,
+     "mods": {
+      "agility": 3
+     },
+     "hp": -5,
+     "adult": false
+    },
+    {
+     "name": "Seraph wings",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 20,
+     "text": "wings that fly (10 hexes a turn for three turns, then a rest), eyespot feathers: be not afraid (the graced form's)",
+     "free": false,
+     "hp": 5,
+     "fall": 0.0,
+     "skills": {
+      "Sneak": -10
+     },
+     "adult": false
+    },
+    {
+     "name": "Photophores",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 10,
+     "text": "the smite of light: a 3-hex cone, an Endurance roll or blinded for a round, once a fight (the graced form's)",
+     "free": false,
+     "real": "deep-sea fish and fireflies make light",
+     "adult": false
+    },
+    {
+     "name": "Healing palms",
+     "slot": "ORGAN",
+     "tier": "T4",
+     "load": 10,
+     "text": "the healing touch: a minute, 2d10 HP or a dying man back at 1 HP, 10 % of her Blood (the graced form's)",
+     "free": false,
+     "real": "saliva's histatin speeds wound closure (Oudhoff et al. 2008)",
+     "adult": false
+    },
+    {
+     "name": "Seraph eyes",
+     "slot": "Eyes",
+     "tier": "T4",
+     "load": 20,
+     "text": "P +3; true faces (the graced Fallen Angel's)",
+     "free": false,
+     "mods": {
+      "perception": 3
+     }
+    },
+    {
+     "name": "Tongues",
+     "slot": "Mind",
+     "tier": "T4",
+     "load": 20,
+     "text": "I +2; a language's gist after an hour of listening, spoken after a day, fluent after a week (the Fallen Angel's)",
+     "free": false,
+     "real": "a hyperpolyglot's language centre; FOXP2, the speech gene",
+     "mods": {
+      "intelligence": 2
+     }
+    },
+    {
+     "name": "Graced beauty",
+     "slot": "Look",
+     "tier": "T4",
+     "load": 20,
+     "text": "C +5 (the graced form's)",
+     "free": false,
+     "mods": {
+      "charisma": 5
+     }
+    },
+    {
+     "name": "Mole-rat",
+     "slot": "Cancer",
+     "tier": "T4",
+     "load": 20,
+     "text": "cancer x0.1, slow ageing (the Fallen Angel's unaging)",
+     "free": false,
+     "real": "the naked mole rat's HAS2"
+    },
+    {
+     "name": "Angel's rest",
+     "slot": "Sleep",
+     "tier": "T4",
+     "load": 20,
+     "text": "sleep need x0.5 (the Fallen Angel's)",
+     "free": false,
+     "sleep": 0.5
+    },
+    {
+     "name": "No master",
+     "slot": "Temperament",
+     "tier": "T4",
+     "load": 20,
+     "text": "as Non serviam, and immune to charm, mind control and possession (the graced Fallen Angel's)",
+     "free": false,
+     "skills": {
+      "Leadership": 20
+     }
+    },
+    {
+     "name": "Occult sense",
+     "slot": "Aptitude",
+     "tier": "T3",
+     "load": 10,
+     "text": "Occultism +20 %",
+     "free": false,
+     "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+     "skills": {
+      "Occultism": 20
+     },
+     "aptitude": "Occultism"
+    },
+    {
+     "name": "Watchers' arts",
+     "slot": "Aptitude",
+     "tier": "T4",
+     "load": 10,
+     "text": "a free tag on Crafting (weapons and metals), Biology (roots) or a science (the stars), chosen at birth (the Fallen Angel's)",
+     "free": false,
+     "aptitude": "tag"
+    }
+   ],
+   "rest": "L +2",
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Circus Freak",
+    "Gifted",
+    "Hot Blooded",
+    "Kamikaze",
+    "Night Person",
+    "Twitchy"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1600 @@
+{
+ "source": "Fallouťák 05c-ARMOUR.md DRAFT 4: Fallout 1, 2 and Tactics (fallout.wiki, read 2026-11-18) and our European pieces as EXAMPLE sets in the four slots of 05 §6b; the protections Normal, Heat, Fire, Isolation; written by LollyWood-Lore _tools/fallout_armour_json.py",
+ "rows": [
+  {
+   "name": "Robes",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 5,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 18,
+    "Fire": 10,
+    "Isolation": 40
+   },
+   "gas_dr": 0,
+   "weight_kg": 4.5,
+   "value": 90,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 150,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "6B3A2A",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Leather Jacket",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 8,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 15,
+    "Fire": 10,
+    "Isolation": 30
+   },
+   "gas_dr": 0,
+   "weight_kg": 2.3,
+   "value": 250,
+   "pieces": [
+    "Chest"
+   ],
+   "shares": {
+    "Chest": 1.0
+   },
+   "health": 75,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "4A2E1E",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Combat Leather Jacket",
+   "source": "Fallout 2",
+   "ac": 18,
+   "dt": {
+    "Normal": 2,
+    "Heat": 0,
+    "Fire": 2,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 30,
+    "Heat": 15,
+    "Fire": 25,
+    "Isolation": 30
+   },
+   "gas_dr": 0,
+   "weight_kg": 3.2,
+   "value": 1000,
+   "pieces": [
+    "Chest"
+   ],
+   "shares": {
+    "Chest": 1.0
+   },
+   "health": 105,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "2E2A26",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Leather Armor",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 15,
+   "dt": {
+    "Normal": 2,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 25,
+    "Heat": 15,
+    "Fire": 20,
+    "Isolation": 30
+   },
+   "gas_dr": 0,
+   "weight_kg": 3.6,
+   "value": 700,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 120,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "7A5230",
+   "tier": 1,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Leather Armor Mk II",
+   "source": "Fallout 2",
+   "ac": 20,
+   "dt": {
+    "Normal": 3,
+    "Heat": 1,
+    "Fire": 1,
+    "Isolation": 1
+   },
+   "dr": {
+    "Normal": 25,
+    "Heat": 15,
+    "Fire": 25,
+    "Isolation": 40
+   },
+   "gas_dr": 0,
+   "weight_kg": 4.5,
+   "value": 1000,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 150,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "5C3D22",
+   "tier": 1,
+   "rarity": 3,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Metal Armor",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 10,
+   "dt": {
+    "Normal": 4,
+    "Heat": 5,
+    "Fire": 4,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 30,
+    "Heat": 48,
+    "Fire": 40,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 15.9,
+   "value": 1100,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 525,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "iron",
+   "colour": "",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Metal Armor Mk II",
+   "source": "Fallout 2",
+   "ac": 15,
+   "dt": {
+    "Normal": 4,
+    "Heat": 6,
+    "Fire": 4,
+    "Isolation": 1
+   },
+   "dr": {
+    "Normal": 35,
+    "Heat": 53,
+    "Fire": 45,
+    "Isolation": 10
+   },
+   "gas_dr": 0,
+   "weight_kg": 15.9,
+   "value": 1900,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 525,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "iron",
+   "colour": "",
+   "tier": 2,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Tesla Armor",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 15,
+   "dt": {
+    "Normal": 4,
+    "Heat": 15,
+    "Fire": 4,
+    "Isolation": 12
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 85,
+    "Fire": 40,
+    "Isolation": 80
+   },
+   "gas_dr": 0,
+   "weight_kg": 15.9,
+   "value": 4500,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 525,
+   "mods": {},
+   "rad_res": 20,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Engineering",
+   "material": "golden",
+   "colour": "",
+   "tier": 3,
+   "rarity": 3,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Combat Armor",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 20,
+   "dt": {
+    "Normal": 5,
+    "Heat": 6,
+    "Fire": 4,
+    "Isolation": 2
+   },
+   "dr": {
+    "Normal": 40,
+    "Heat": 55,
+    "Fire": 30,
+    "Isolation": 50
+   },
+   "gas_dr": 0,
+   "weight_kg": 9.1,
+   "value": 6500,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 300,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "1E1E1E",
+   "tier": 4,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Combat Armor Mk II",
+   "source": "Fallout 2",
+   "ac": 25,
+   "dt": {
+    "Normal": 6,
+    "Heat": 7,
+    "Fire": 5,
+    "Isolation": 3
+   },
+   "dr": {
+    "Normal": 40,
+    "Heat": 58,
+    "Fire": 35,
+    "Isolation": 55
+   },
+   "gas_dr": 0,
+   "weight_kg": 11.3,
+   "value": 8000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 375,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "2B2B33",
+   "tier": 4,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Brotherhood Armor",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 20,
+   "dt": {
+    "Normal": 8,
+    "Heat": 8,
+    "Fire": 7,
+    "Isolation": 6
+   },
+   "dr": {
+    "Normal": 40,
+    "Heat": 65,
+    "Fire": 50,
+    "Isolation": 60
+   },
+   "gas_dr": 0,
+   "weight_kg": 11.3,
+   "value": 4800,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 375,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "chainmail",
+   "colour": "",
+   "tier": 4,
+   "rarity": 3,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Power Armor",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 25,
+   "dt": {
+    "Normal": 12,
+    "Heat": 14,
+    "Fire": 12,
+    "Isolation": 12
+   },
+   "dr": {
+    "Normal": 40,
+    "Heat": 60,
+    "Fire": 60,
+    "Isolation": 40
+   },
+   "gas_dr": 0,
+   "weight_kg": 19.1,
+   "value": 12500,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 630,
+   "mods": {
+    "strength": 3
+   },
+   "rad_res": 30,
+   "poison_res": 0,
+   "skills": {
+    "Medicine": -10,
+    "Crafting": -10
+   },
+   "sealed": false,
+   "repair": "Engineering",
+   "material": "iron",
+   "colour": "",
+   "tier": 4,
+   "rarity": 3,
+   "cooled": true,
+   "power_armour": true
+  },
+  {
+   "name": "Hardened Power Armor",
+   "source": "Fallout 2 (and Fallout 1)",
+   "ac": 25,
+   "dt": {
+    "Normal": 13,
+    "Heat": 16,
+    "Fire": 14,
+    "Isolation": 13
+   },
+   "dr": {
+    "Normal": 50,
+    "Heat": 70,
+    "Fire": 70,
+    "Isolation": 50
+   },
+   "gas_dr": 0,
+   "weight_kg": 22.7,
+   "value": 15000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 750,
+   "mods": {
+    "strength": 3
+   },
+   "rad_res": 30,
+   "poison_res": 0,
+   "skills": {
+    "Medicine": -10,
+    "Crafting": -10
+   },
+   "sealed": false,
+   "repair": "Engineering",
+   "material": "diamond",
+   "colour": "",
+   "tier": 4,
+   "rarity": 4,
+   "cooled": true,
+   "power_armour": true
+  },
+  {
+   "name": "Advanced Power Armor",
+   "source": "Fallout 2",
+   "ac": 30,
+   "dt": {
+    "Normal": 15,
+    "Heat": 17,
+    "Fire": 16,
+    "Isolation": 15
+   },
+   "dr": {
+    "Normal": 55,
+    "Heat": 75,
+    "Fire": 70,
+    "Isolation": 60
+   },
+   "gas_dr": 0,
+   "weight_kg": 20.4,
+   "value": 20000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 675,
+   "mods": {
+    "strength": 4
+   },
+   "rad_res": 60,
+   "poison_res": 0,
+   "skills": {
+    "Medicine": -10,
+    "Crafting": -10
+   },
+   "sealed": false,
+   "repair": "Engineering",
+   "material": "netherite",
+   "colour": "",
+   "tier": 4,
+   "rarity": 4,
+   "cooled": true,
+   "power_armour": true
+  },
+  {
+   "name": "Advanced Power Armor Mk II",
+   "source": "Fallout 2",
+   "ac": 35,
+   "dt": {
+    "Normal": 18,
+    "Heat": 19,
+    "Fire": 16,
+    "Isolation": 15
+   },
+   "dr": {
+    "Normal": 60,
+    "Heat": 75,
+    "Fire": 70,
+    "Isolation": 65
+   },
+   "gas_dr": 0,
+   "weight_kg": 22.7,
+   "value": 25000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 750,
+   "mods": {
+    "strength": 4
+   },
+   "rad_res": 75,
+   "poison_res": 0,
+   "skills": {
+    "Medicine": -10,
+    "Crafting": -10
+   },
+   "sealed": false,
+   "repair": "Engineering",
+   "material": "netherite",
+   "colour": "",
+   "tier": 4,
+   "rarity": 4,
+   "cooled": true,
+   "power_armour": true
+  },
+  {
+   "name": "Environmental Armor",
+   "source": "Fallout Tactics",
+   "ac": 10,
+   "dt": {
+    "Normal": 5,
+    "Heat": 5,
+    "Fire": 4,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 40,
+    "Heat": 55,
+    "Fire": 40,
+    "Isolation": 10
+   },
+   "gas_dr": 70,
+   "weight_kg": 9.1,
+   "value": 6100,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 300,
+   "mods": {},
+   "rad_res": 50,
+   "poison_res": 50,
+   "skills": {
+    "Medicine": -10,
+    "Crafting": -10,
+    "Computer Science": -5
+   },
+   "sealed": true,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "9DB33A",
+   "tier": 4,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Environmental Armor Mk II",
+   "source": "Fallout Tactics",
+   "ac": 10,
+   "dt": {
+    "Normal": 6,
+    "Heat": 6,
+    "Fire": 5,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 40,
+    "Heat": 60,
+    "Fire": 42,
+    "Isolation": 10
+   },
+   "gas_dr": 90,
+   "weight_kg": 11.3,
+   "value": 9000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 375,
+   "mods": {},
+   "rad_res": 50,
+   "poison_res": 50,
+   "skills": {
+    "Medicine": -10,
+    "Crafting": -10,
+    "Computer Science": -5
+   },
+   "sealed": true,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "B8C94A",
+   "tier": 4,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Raider Armor",
+   "source": "Fallout Tactics",
+   "ac": 10,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 25,
+    "Fire": 10,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 9.1,
+   "value": 450,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 300,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "7A2A1E",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Vandal Armor",
+   "source": "Fallout Tactics",
+   "ac": 15,
+   "dt": {
+    "Normal": 3,
+    "Heat": 1,
+    "Fire": 1,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 25,
+    "Heat": 30,
+    "Fire": 17,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 11.3,
+   "value": 1000,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 375,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "5E2418",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Reaver Banding",
+   "source": "Fallout Tactics",
+   "ac": 20,
+   "dt": {
+    "Normal": 3,
+    "Heat": 2,
+    "Fire": 3,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 25,
+    "Heat": 30,
+    "Fire": 17,
+    "Isolation": 0
+   },
+   "gas_dr": 15,
+   "weight_kg": 9.1,
+   "value": 1600,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 300,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "chainmail",
+   "colour": "",
+   "tier": 2,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Greater Banding",
+   "source": "Fallout Tactics",
+   "ac": 25,
+   "dt": {
+    "Normal": 4,
+    "Heat": 4,
+    "Fire": 4,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 35,
+    "Heat": 45,
+    "Fire": 20,
+    "Isolation": 0
+   },
+   "gas_dr": 40,
+   "weight_kg": 13.6,
+   "value": 3100,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 450,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "iron",
+   "colour": "",
+   "tier": 2,
+   "rarity": 3,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Brahmin Armor",
+   "source": "Fallout Tactics",
+   "ac": 20,
+   "dt": {
+    "Normal": 3,
+    "Heat": 1,
+    "Fire": 1,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 25,
+    "Heat": 30,
+    "Fire": 17,
+    "Isolation": 10
+   },
+   "gas_dr": 0,
+   "weight_kg": 4.5,
+   "value": 1000,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 150,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "8C6A4A",
+   "tier": 1,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Winter clothes",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 5,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 10
+   },
+   "dr": {
+    "Normal": 10,
+    "Heat": 0,
+    "Fire": -20,
+    "Isolation": 30
+   },
+   "gas_dr": 0,
+   "weight_kg": 4.0,
+   "value": 60,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 132,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "8A7A66",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Arctic gear",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 5,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 25
+   },
+   "dr": {
+    "Normal": 10,
+    "Heat": 0,
+    "Fire": -30,
+    "Isolation": 50
+   },
+   "gas_dr": 0,
+   "weight_kg": 6.0,
+   "value": 300,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 198,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "EDEDED",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Desert robe",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 3,
+   "dt": {
+    "Normal": 0,
+    "Heat": 3,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 5,
+    "Heat": 30,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.5,
+   "value": 40,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 50,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "D9C49A",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Hard hat",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 2,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 15,
+    "Heat": 5,
+    "Fire": 5,
+    "Isolation": 10
+   },
+   "gas_dr": 0,
+   "weight_kg": 0.4,
+   "value": 20,
+   "pieces": [
+    "Head"
+   ],
+   "shares": {
+    "Head": 1.0
+   },
+   "health": 40,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "golden",
+   "colour": "",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Work boots",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 1,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 3
+   },
+   "dr": {
+    "Normal": 10,
+    "Heat": 5,
+    "Fire": 10,
+    "Isolation": 50
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.5,
+   "value": 40,
+   "pieces": [
+    "Feet"
+   ],
+   "shares": {
+    "Feet": 1.0
+   },
+   "health": 50,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "5A3A1E",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Rubber boots",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 0,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 2
+   },
+   "dr": {
+    "Normal": 5,
+    "Heat": 0,
+    "Fire": -10,
+    "Isolation": 90
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.5,
+   "value": 30,
+   "pieces": [
+    "Feet"
+   ],
+   "shares": {
+    "Feet": 1.0
+   },
+   "health": 50,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "3A5A2A",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Ice-hockey gear",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 10,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 2
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 5,
+    "Fire": 5,
+    "Isolation": 25
+   },
+   "gas_dr": 0,
+   "weight_kg": 6.0,
+   "value": 250,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 198,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "B02020",
+   "tier": 1,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Ghillie suit",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 5,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 3
+   },
+   "dr": {
+    "Normal": 5,
+    "Heat": 0,
+    "Fire": -30,
+    "Isolation": 20
+   },
+   "gas_dr": 0,
+   "weight_kg": 3.0,
+   "value": 200,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 99,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {
+    "Sneak": 20
+   },
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "4E5B2E",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Firefighters' gear",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 10,
+   "dt": {
+    "Normal": 1,
+    "Heat": 3,
+    "Fire": 8,
+    "Isolation": 6
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 40,
+    "Fire": 70,
+    "Isolation": 40
+   },
+   "gas_dr": 0,
+   "weight_kg": 9.0,
+   "value": 1500,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 298,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "C8A040",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Police vest",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 10,
+   "dt": {
+    "Normal": 3,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 1
+   },
+   "dr": {
+    "Normal": 35,
+    "Heat": 10,
+    "Fire": 10,
+    "Isolation": 20
+   },
+   "gas_dr": 0,
+   "weight_kg": 3.0,
+   "value": 800,
+   "pieces": [
+    "Chest"
+   ],
+   "shares": {
+    "Chest": 1.0
+   },
+   "health": 99,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "1E2A4A",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Riot gear",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 12,
+   "dt": {
+    "Normal": 2,
+    "Heat": 1,
+    "Fire": 2,
+    "Isolation": 2
+   },
+   "dr": {
+    "Normal": 30,
+    "Heat": 15,
+    "Fire": 30,
+    "Isolation": 25
+   },
+   "gas_dr": 0,
+   "weight_kg": 9.0,
+   "value": 1200,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 298,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "101820",
+   "tier": 3,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Army boots",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 2,
+   "dt": {
+    "Normal": 2,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 3
+   },
+   "dr": {
+    "Normal": 15,
+    "Heat": 10,
+    "Fire": 20,
+    "Isolation": 50
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.8,
+   "value": 150,
+   "pieces": [
+    "Feet"
+   ],
+   "shares": {
+    "Feet": 1.0
+   },
+   "health": 60,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "2E3020",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "EOD suit",
+   "source": "ours (05c §3, DRAFT 2: the European pieces)",
+   "ac": 5,
+   "dt": {
+    "Normal": 15,
+    "Heat": 4,
+    "Fire": 6,
+    "Isolation": 8
+   },
+   "dr": {
+    "Normal": 65,
+    "Heat": 40,
+    "Fire": 50,
+    "Isolation": 50
+   },
+   "gas_dr": 0,
+   "weight_kg": 35.0,
+   "value": 9000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 1157,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "3E4A2E",
+   "tier": 4,
+   "rarity": 3,
+   "cooled": true,
+   "power_armour": false
+  },
+  {
+   "name": "Hazard suit",
+   "source": "ours (03b §3c, round 22)",
+   "ac": 0,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 3
+   },
+   "dr": {
+    "Normal": 5,
+    "Heat": 0,
+    "Fire": -20,
+    "Isolation": 20
+   },
+   "gas_dr": 0,
+   "weight_kg": 3.0,
+   "value": 300,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 99,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": true,
+   "repair": "Crafting",
+   "material": "leather",
+   "colour": "E0C020",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Gas mask",
+   "source": "ours (03b §3c, round 23: the big one, like a helmet)",
+   "ac": 0,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 0.8,
+   "value": 80,
+   "pieces": [
+    "Head"
+   ],
+   "shares": {
+    "Head": 1.0
+   },
+   "health": 40,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "material": "chainmail",
+   "colour": "",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  }
+ ]
+}

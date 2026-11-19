@@ -1,0 +1,36 @@
+name: Falloutak
+version: '${version}'
+main: cz.lollywood.falloutak.FalloutakPlugin
+api-version: '1.21'
+softdepend: [BetterModel]
+description: Fallouťák in Minecraft. 0.1 = the EXAMPLE of the character sheet, the creation form, the survival sidebar and the battle controls.
+permissions:
+  falloutak.gm:
+    description: Change NPC statblocks, the population and the groups
+    default: op
+commands:
+  npc:
+    description: NPC statblocks (character sheets). /npc [list|edit <name>|save|done|show <name>|delete <name>]
+    usage: /npc [list|edit <name>|save|done|show <name>|delete <name>]
+  pop:
+    description: The base's population. /pop [list|add <name> <group> [species]|set <name> <field> <value>|remove <name>]
+    usage: /pop [list|add|set|remove]
+  group:
+    description: The players' groups (part 6). /group [list|add <name>|xp <name> <amount>|unlock|grant|join]
+    usage: /group [list|add|xp|unlock|grant|join]
+    aliases: [faction]
+  sheet:
+    description: The character sheet. /sheet [actions|create|hud|demo|battle]
+    usage: /sheet [actions|create|hud|demo|battle]
+  gm:
+    description: The game master's menu (falloutak.gm)
+    usage: /gm
+  sounds:
+    description: Your sounds. /sounds [fallout2|minecraft|female|male|test <key>|list]
+    usage: /sounds [fallout2|minecraft|female|male|test <key>|list]
+  creature:
+    description: The game's creatures (GMs). /creature spawn radmie | play <animation> | remove
+    usage: /creature spawn radmie | play <animation> | remove
+  pack:
+    description: The Pip-Boy pictures in the sheet (the Falloutak pack). /pack [on|off|auto]
+    usage: /pack [on|off|auto]

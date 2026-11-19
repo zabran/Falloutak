@@ -1,0 +1,581 @@
+{
+ "source": "02c §1 (the traits ACCEPTED 11-14; the numbers the plugin applies [mine]); the traits that became genes left out",
+ "rows": [
+  {
+   "name": "Bruiser",
+   "from": "F1, F2",
+   "group": "Body and combat",
+   "bonus": "+2 S",
+   "drawback": "−2 AP",
+   "status": "in",
+   "mods": {
+    "strength": 2
+   },
+   "other": {
+    "ap": -2
+   }
+  },
+  {
+   "name": "Small Frame",
+   "from": "F, NV",
+   "group": "Body and combat",
+   "bonus": "+1 A",
+   "drawback": "carry weight 25 + 15·S + Athletics (not 25·S)",
+   "status": "in",
+   "mods": {
+    "agility": 1
+   },
+   "other": {}
+  },
+  {
+   "name": "Heavy Handed",
+   "from": "F, NV, WL2; Blunderer WL3",
+   "group": "Body and combat",
+   "bonus": "+4 to the melee damage bonus",
+   "drawback": "−30 on the crit table",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Finesse",
+   "from": "F",
+   "group": "Body and combat",
+   "bonus": "+10 % crit chance",
+   "drawback": "−25 % damage (Tactics)",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Trigger Discipline",
+   "from": "NV",
+   "group": "Body and combat",
+   "bonus": "aimed shots +15 to hit",
+   "drawback": "every ranged attack +1 AP",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "aimed": 15
+   }
+  },
+  {
+   "name": "One Hander",
+   "from": "F2, Tactics",
+   "group": "Body and combat",
+   "bonus": "+20 to hit with one-handed weapons",
+   "drawback": "−40 with two-handed",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Hot Blooded",
+   "from": "NV, Old World Blues",
+   "group": "Body and combat",
+   "bonus": "+15 % damage while under half HP",
+   "drawback": "−2 P and −2 A while under half HP",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Sadomasochist",
+   "from": "WL3",
+   "group": "Body and combat",
+   "bonus": "+33 % damage dealt",
+   "drawback": "+33 % damage taken",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Way of the Squeezins",
+   "from": "WL2, WL3",
+   "group": "Body and combat",
+   "bonus": "drunk (a drink in the last 4 hours): +2 AP, +25 % melee and unarmed damage",
+   "drawback": "drunk also: −2 P, −2 I, −20 to every non-combat skill, −15 to hit with ranged weapons; sober: −1 AP",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Circus Freak",
+   "from": "WL3",
+   "group": "Time and speed",
+   "bonus": "+2 AP of movement only each turn, crits against you 25 % less likely",
+   "drawback": "−15 Sneak (you are seen sooner)",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "skill:Sneak": -15
+   }
+  },
+  {
+   "name": "Mime",
+   "from": "WL3",
+   "group": "Time and speed",
+   "bonus": "+15 Sneak, foes notice you 2 blocks later",
+   "drawback": "−2 HP, throwing range −25 %",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "skill:Sneak": 15,
+    "hp_max": -2
+   }
+  },
+  {
+   "name": "Gifted",
+   "from": "F",
+   "group": "Mind and trade",
+   "bonus": "+1 to every attribute",
+   "drawback": "−10 to every skill, −5 skill points a level",
+   "status": "in",
+   "mods": {
+    "strength": 1,
+    "perception": 1,
+    "endurance": 1,
+    "charisma": 1,
+    "intelligence": 1,
+    "agility": 1,
+    "luck": 1
+   },
+   "other": {
+    "skill:Athletics": -10,
+    "skill:Medicine": -10,
+    "skill:Computer Science": -10,
+    "skill:Sneak": -10,
+    "skill:Survival": -10,
+    "skill:Crafting": -10,
+    "skill:Engineering": -10,
+    "skill:Chemistry": -10,
+    "skill:Biology": -10,
+    "skill:Pilot": -10,
+    "skill:Economy": -10,
+    "skill:Rhetorics": -10,
+    "skill:Gambling": -10,
+    "skill:Guns": -10,
+    "skill:Leadership": -10
+   }
+  },
+  {
+   "name": "Skilled",
+   "from": "F2",
+   "group": "Mind and trade",
+   "bonus": "+5 skill points a level",
+   "drawback": "the perk rate one level slower (a human every 4)",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Good Natured",
+   "from": "F, NV; Diplomat in ATOM",
+   "group": "Mind and trade",
+   "bonus": "+15 Medicine, Rhetorics, Economy",
+   "drawback": "−10 to every weapon skill",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "skill:Medicine": 15,
+    "skill:Rhetorics": 15,
+    "skill:Economy": 15
+   }
+  },
+  {
+   "name": "Hobby Engineer",
+   "from": "ATOM; Timid Theoretician in Trudograd",
+   "group": "Mind and trade",
+   "bonus": "+20 Engineering and Crafting",
+   "drawback": "−1 P, −1 C",
+   "status": "in",
+   "mods": {
+    "perception": -1,
+    "charisma": -1
+   },
+   "other": {
+    "skill:Engineering": 20,
+    "skill:Crafting": 20
+   }
+  },
+  {
+   "name": "Technophobe",
+   "from": "ATOM; Retrograde in Trudograd",
+   "group": "Mind and trade",
+   "bonus": "+1 S, +1 E",
+   "drawback": "−30 Computer Science and Engineering (so the energy and techno weapons fall too)",
+   "status": "in",
+   "mods": {
+    "strength": 1,
+    "endurance": 1
+   },
+   "other": {
+    "skill:Computer Science": -30,
+    "skill:Engineering": -30
+   }
+  },
+  {
+   "name": "Slick Dealer",
+   "from": "ATOM; Natural Born Trader in Trudograd",
+   "group": "Mind and trade",
+   "bonus": "+1 C, +20 Economy and Rhetorics",
+   "drawback": "−1 S, −5 Initiative",
+   "status": "in",
+   "mods": {
+    "charisma": 1,
+    "strength": -1
+   },
+   "other": {
+    "skill:Economy": 20,
+    "skill:Rhetorics": 20,
+    "sequence": -5
+   }
+  },
+  {
+   "name": "Poindexter",
+   "from": "WL3",
+   "group": "Study",
+   "bonus": "+3 skill points a level",
+   "drawback": "−2 HP",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "hp_max": -2
+   }
+  },
+  {
+   "name": "Doomsday Prepper",
+   "from": "WL3",
+   "group": "Study",
+   "bonus": "+25 % resistance to poison, rads, bleeding and burning",
+   "drawback": "can never learn from skill books (nor take Comprehension)",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "poison_res": 25,
+    "rad_res": 25
+   }
+  },
+  {
+   "name": "Absent-Minded Genius",
+   "from": "",
+   "group": "Research and production",
+   "bonus": "+1 I; your research finds inspirations 1.5x as often",
+   "drawback": "−2 P, −5 Initiative",
+   "status": "parked",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Perfectionist",
+   "from": "",
+   "group": "Research and production",
+   "bonus": "what you make comes out one rarity higher (Marek: we have no quality steps)",
+   "drawback": "it takes twice as long",
+   "status": "parked",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Tinkerer",
+   "from": "",
+   "group": "Research and production",
+   "bonus": "experiments and prototypes take 25 % less time",
+   "drawback": "−10 Rhetorics and Economy (you talk only about the machine)",
+   "status": "parked",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Hands-On Learner",
+   "from": "",
+   "group": "Research and production",
+   "bonus": "a skill you use successfully when it matters gains +1 skill point (Marek; once a skill a session)",
+   "drawback": "−3 skill points a level",
+   "status": "parked",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Morphine Doctor",
+   "from": "ATOM; Deadly Doc in Trudograd",
+   "group": "Chems",
+   "bonus": "+1 I, +15 Medicine",
+   "drawback": "+50 % chance to get addicted",
+   "status": "in",
+   "mods": {
+    "intelligence": 1
+   },
+   "other": {
+    "skill:Medicine": 15
+   }
+  },
+  {
+   "name": "Hoarder",
+   "from": "NV, Old World Blues",
+   "group": "Survival and places",
+   "bonus": "+25 carry weight",
+   "drawback": "−1 to every attribute while carrying less than half the capacity",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Claustrophobia",
+   "from": "NV, Old World Blues",
+   "group": "Survival and places",
+   "bonus": "+1 to every attribute outdoors",
+   "drawback": "−1 indoors and underground (the shelter, the bases)",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Garrakg Returnz",
+   "from": "Marek's name; ATOM's Cannibal",
+   "group": "Survival and places",
+   "bonus": "+15 Survival; eats human flesh without sickness (food in the nuclear autumn)",
+   "drawback": "−2 C with anyone who knows",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "skill:Survival": 15
+   }
+  },
+  {
+   "name": "Pack Leader",
+   "from": "Trudograd; Leader in ATOM; was Born Leader, the point shop's extra-strong Born leader keeps that name",
+   "group": "Leadership",
+   "bonus": "+20 Leadership, its range ×1.5",
+   "drawback": "−1 P, −1 A (watching the others, not the enemy)",
+   "status": "in",
+   "mods": {
+    "perception": -1,
+    "agility": -1
+   },
+   "other": {
+    "skill:Leadership": 20
+   }
+  },
+  {
+   "name": "Lone Wolf",
+   "from": "WL3, ATOM, Trudograd; Raised in the Circus in WL2",
+   "group": "Leadership",
+   "bonus": "with no ally inside your Charisma range: +2 P, +5 Initiative, healing ×1.5",
+   "drawback": "never gets a leadership bonus",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Jinxed",
+   "from": "F; Unlucky in WL2, God's Mistake in Trudograd",
+   "group": "Luck",
+   "bonus": "everyone near you fumbles more often, foes too; Bloody Mess for RP: deaths around you are messier (Marek)",
+   "drawback": "so do you",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Lucky Bastard",
+   "from": "Trudograd",
+   "group": "Luck",
+   "bonus": "+2 L, +15 Gambling",
+   "drawback": "−1 S, −1 E",
+   "status": "in",
+   "mods": {
+    "luck": 2,
+    "strength": -1,
+    "endurance": -1
+   },
+   "other": {
+    "skill:Gambling": 15
+   }
+  },
+  {
+   "name": "Sex Appeal",
+   "from": "F2, ATOM",
+   "group": "Luck",
+   "bonus": "+2 C with the other sex",
+   "drawback": "−2 C with the same",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Psychopath",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "each hit in a row +4 to hit and +2 % crit (a miss resets)",
+   "drawback": "−10 to hit and −5 % crit at the start of the streak",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Opportunist",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "+50 % damage to targets under 30 % HP",
+   "drawback": "−25 % above it",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Varangian Blood",
+   "from": "WL3",
+   "group": "Oddities",
+   "bonus": "an ally falls: 2 turns of +3 AP and crit chance ×2",
+   "drawback": "then 2 turns of −4 AP",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Serial Killer",
+   "from": "WL3",
+   "group": "Oddities",
+   "bonus": "a kill gives +3 AP this turn (once a turn)",
+   "drawback": "−1 AP",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "ap": -1
+   }
+  },
+  {
+   "name": "Two-Pump Chump",
+   "from": "WL2, WL3",
+   "group": "Oddities",
+   "bonus": "the first 2 turns of a battle +2 AP and +25 to hit",
+   "drawback": "−1 AP and −15 to hit after",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Death Wish",
+   "from": "WL3",
+   "group": "Oddities",
+   "bonus": "+3 AP",
+   "drawback": "can wear no armour at all",
+   "status": "in",
+   "mods": {},
+   "other": {
+    "ap": 3
+   }
+  },
+  {
+   "name": "Firebug",
+   "from": "WL3 Pyromaniac; renamed against the perk",
+   "group": "Oddities",
+   "bonus": "+25 % fire and explosive damage",
+   "drawback": "15 % to catch fire yourself when you use them",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Waste Roamer",
+   "from": "WL3",
+   "group": "Oddities",
+   "bonus": "bleeding, poison, burning, freezing and shock last half as long",
+   "drawback": "−15 % XP",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Mysophobic",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "+25 % from healing items",
+   "drawback": "cannot heal yourself",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Delayed Gratification",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "+4 skill points a level from level 11",
+   "drawback": "−2 skill points a level up to 10",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Manic Depressive",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "each day roll: every attribute +1",
+   "drawback": "or −1 (temporary, so level-up ignores it)",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Fainting Goat",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "a crit on you: 35 % it becomes a normal hit",
+   "drawback": "but you faint: knocked down, your next turn's AP lost",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Prospector",
+   "from": "WL3",
+   "group": "Oddities",
+   "bonus": "scavenging gives one more roll of raw materials",
+   "drawback": "one quick slot fewer (Marek: \"we do not have hotbar slots established yet, but it could work.\")",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Animal Husbandry",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "your animal companion's bonuses doubled",
+   "drawback": "5 % a battle that it panics (in the original it explodes)",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Asshole",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "intimidating someone weaker always works",
+   "drawback": "you can never persuade or charm",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Disparnumerophobia",
+   "from": "WL2",
+   "group": "Oddities",
+   "bonus": "+1 to every attribute on even levels",
+   "drawback": "−1 on odd",
+   "status": "in",
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Fast Shot",
+   "from": "F2",
+   "group": "Only for CoS points",
+   "bonus": "ranged and thrown attacks -1 AP",
+   "drawback": "no aimed shots",
+   "status": "cos",
+   "mods": {},
+   "other": {}
+  }
+ ]
+}

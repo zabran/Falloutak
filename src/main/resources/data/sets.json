@@ -1,0 +1,59 @@
+{
+ "source": "Fallouťák 03d §9 (DRAFT 2, 11-18): the shop's gene sets, all genes; an adult takes them as one 15-year course without puberty_only (shape) and ORGAN genes; written by fallout_part3_json.py",
+ "rows": [
+  {
+   "name": "Heavy Gravity Human",
+   "genes": [
+    "Lean muscle",
+    "Mäntyranta",
+    "Unbreakable",
+    "Tough skin",
+    "Athletic",
+    "Maker's hands",
+    "Haggler"
+   ],
+   "shop": "S +1, E +1, DT +2 normal, Athletics +10 %, Crafting +20 %, Economy +20 % (Marek: \"basically sci-fi dwarf\")",
+   "puberty_only": []
+  },
+  {
+   "name": "Witcher",
+   "genes": [
+    "Tapetum",
+    "Big ears",
+    "Toxin immunity",
+    "Scavenger",
+    "Cat's eyes and white hair",
+    "Born athlete",
+    "Wild instinct",
+    "Light frame"
+   ],
+   "shop": "P +2, A +2, Survival +20 %, Athletics +20 %, C -3, poison +50 %, darkvision (A +2 only in puberty)",
+   "puberty_only": [
+    "Light frame"
+   ]
+  },
+  {
+   "name": "Chlorofil",
+   "genes": [
+    "Moss hair",
+    "Green thumb"
+   ],
+   "shop": "Gerald's CoS Moss Hair: green mossy hair, food and sleep, Biology +10 %",
+   "puberty_only": []
+  },
+  {
+   "name": "Tiefling",
+   "genes": [
+    "Fireproof",
+    "Night eyes",
+    "Mäntyranta",
+    "Infernal look",
+    "Spark fingers"
+   ],
+   "shop": "fire and heat resistance, darkvision, E +1, C +1 and intimidation, sparks from the fingers (an adult's organ is a graft)",
+   "puberty_only": [
+    "Spark fingers"
+   ]
+  }
+ ]
+}

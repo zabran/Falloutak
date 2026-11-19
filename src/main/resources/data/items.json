@@ -1,0 +1,54 @@
+{
+ "source": "the Fallouťák Google workbook, tab items (dumped 2026-11-13)",
+ "rows": [
+  {
+   "count": 1,
+   "name": "10mm Pistol",
+   "class": "Weapon",
+   "base_item": "Pistol",
+   "min_strength": 3,
+   "hands": 1,
+   "ammo_type": "10mm",
+   "burst_size": 3,
+   "capacity": 12,
+   "ap": 5,
+   "range": 25,
+   "minimum_damage": 5,
+   "maximum_damage": 12,
+   "damage_type": "Normal",
+   "perk": "Accurate",
+   "price_piece": 250,
+   "price_total": 250,
+   "price_total_formula": "=R3*A3",
+   "weight_piece": 3,
+   "weight_total": 3,
+   "weight_total_formula": "=T3*A3"
+  },
+  {
+   "perk": "Long Range",
+   "weight_total": 0,
+   "weight_total_formula": "=T4*A4"
+  },
+  {
+   "perk": "Scope Range"
+  },
+  {
+   "name": "10mm AP",
+   "ammo_type": "10mm",
+   "penetraction": 0.5,
+   "damage_modifier": -0.25
+  },
+  {
+   "name": "10mm JHP",
+   "ammo_type": "10mm",
+   "penetraction": -0.2,
+   "damage_modifier": 0.6
+  },
+  {
+   "name": "10mm ball",
+   "ammo_type": "10mm",
+   "penetraction": -0.2,
+   "damage_modifier": -0.11
+  }
+ ]
+}

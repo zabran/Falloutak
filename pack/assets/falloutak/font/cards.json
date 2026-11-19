@@ -1,0 +1,292 @@
+{
+ "providers": [
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/attr_strength.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue100"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/attr_perception.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue101"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/attr_endurance.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue102"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/attr_charisma.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue103"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/attr_intelligence.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue104"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/attr_agility.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue105"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/attr_luck.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue106"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_athletics.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue107"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_medicine.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue108"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_computer_science.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue109"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_sneak.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue10a"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_survival.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue10b"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_crafting.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue10c"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_engineering.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue10d"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_chemistry.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue10e"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_biology.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue10f"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_pilot.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue110"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_economy.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue111"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_rhetorics.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue112"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_gambling.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue113"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_guns.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue114"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/skill_leadership.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue115"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_water.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue116"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_food.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue117"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_sleep.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue118"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_poison.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue119"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_rads.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue11a"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_hypothermia.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue11b"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_hyperthermia.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue11c"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_blood.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue11d"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_pain.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue11e"
+   ]
+  },
+  {
+   "type": "bitmap",
+   "file": "falloutak:font/cards/stat_oxygen.png",
+   "ascent": 7,
+   "height": 56,
+   "chars": [
+    "\ue11f"
+   ]
+  }
+ ]
+}

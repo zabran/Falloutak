@@ -1,0 +1,546 @@
+{
+ "source": "03b §3 (implants by slots, ACCEPTED 11-16; the implants and numbers [mine]); the first row = the slots",
+ "rows": [
+  {
+   "slots": {
+    "brain": 2,
+    "eyes": 1,
+    "ears": 1,
+    "skin": 1,
+    "skeleton": 1,
+    "spine": 1,
+    "heart": 1,
+    "lungs": 1,
+    "gut": 1,
+    "blood": 1,
+    "fashion": 6
+   }
+  },
+  {
+   "name": "Neural Link",
+   "slot": "brain",
+   "place": "head",
+   "notes": "needed before any brain module and for a Tier IV limb; the memory chip is inside it",
+   "tiers": {
+    "1": {
+     "notes": "a terminal or machine worked by thought, slowly (BCIs today)",
+     "skills": {
+      "Computer Science": 5
+     }
+    },
+    "2": {
+     "notes": "at speaking speed; memory: skill points +1 a level",
+     "other": {
+      "skill_points_level": 1
+     },
+     "skills": {
+      "Computer Science": 10
+     }
+    },
+    "3": {
+     "notes": "as fast as hands; memory +2 a level",
+     "other": {
+      "skill_points_level": 2
+     },
+     "skills": {
+      "Computer Science": 15
+     }
+    },
+    "4": {
+     "notes": "a co-processor: I +1; memory +3 a level",
+     "mods": {
+      "intelligence": 1
+     },
+     "other": {
+      "skill_points_level": 3
+     },
+     "skills": {
+      "Computer Science": 20
+     }
+    }
+   }
+  },
+  {
+   "name": "Reflex Chip",
+   "slot": "brain",
+   "place": "head",
+   "needs": "Neural Link",
+   "notes": "a brain module (the Link + one module)",
+   "tiers": {
+    "3": {
+     "notes": "Initiative +3",
+     "other": {
+      "sequence": 3
+     }
+    },
+    "4": {
+     "notes": "Initiative +5",
+     "other": {
+      "sequence": 5
+     }
+    }
+   }
+  },
+  {
+   "name": "Pain Editor",
+   "slot": "brain",
+   "place": "head",
+   "needs": "Neural Link",
+   "notes": "a brain module; spinal and nerve stimulators today",
+   "tiers": {
+    "1": {
+     "notes": "Pain gained x0.75",
+     "other": {
+      "pain_gain": -0.25
+     }
+    },
+    "2": {
+     "notes": "Pain gained x0.5",
+     "other": {
+      "pain_gain": -0.5
+     }
+    },
+    "3": {
+     "notes": "Pain gained x0.25",
+     "other": {
+      "pain_gain": -0.75
+     }
+    },
+    "4": {
+     "notes": "no Pain, no side effects (RULED 11-18)",
+     "other": {
+      "pain_gain": -1.0
+     }
+    }
+   }
+  },
+  {
+   "name": "Mood Stimulator",
+   "slot": "brain",
+   "place": "head",
+   "needs": "Neural Link",
+   "notes": "a brain module; deep brain and vagus nerve stimulation today",
+   "tiers": {
+    "1": {
+     "notes": "morale checks +5",
+     "other": {
+      "morale": 5
+     }
+    },
+    "2": {
+     "notes": "morale +10; a chem's withdrawal one attribute point milder",
+     "other": {
+      "morale": 10
+     }
+    },
+    "3": {
+     "notes": "morale +15; addiction chance x0.75",
+     "other": {
+      "morale": 15,
+      "addiction": -0.25
+     }
+    },
+    "4": {
+     "notes": "never panics; withdrawal halved; addiction x0.5",
+     "other": {
+      "morale": 100,
+      "addiction": -0.5
+     }
+    }
+   }
+  },
+  {
+   "name": "Cyber Eyes",
+   "slot": "eyes",
+   "place": "head",
+   "notes": "a replacement (PRIMA today): nothing for a healthy eye below Tier III",
+   "tiers": {
+    "1": {
+     "notes": "a blind eye sees shapes",
+     "mods": {
+      "perception": -3
+     }
+    },
+    "2": {
+     "notes": "P -1 against natural",
+     "mods": {
+      "perception": -1
+     }
+    },
+    "3": {
+     "notes": "natural sight, +2 against blinding"
+    },
+    "4": {
+     "notes": "+4 against blinding (Genkar's)",
+     "mods": {
+      "perception": 4
+     }
+    }
+   }
+  },
+  {
+   "name": "Low-Light Eyes",
+   "slot": "eyes",
+   "place": "head",
+   "notes": "nothing like it today",
+   "tiers": {
+    "3": {
+     "notes": "the dark x0.75"
+    },
+    "4": {
+     "notes": "the dark halved, as the elf's",
+     "senses": "dark halved"
+    }
+   }
+  },
+  {
+   "name": "Targeting Eyes",
+   "slot": "eyes",
+   "place": "head",
+   "notes": "nothing like it today",
+   "tiers": {
+    "3": {
+     "notes": "aimed shots +7",
+     "other": {
+      "aimed": 7
+     }
+    },
+    "4": {
+     "notes": "aimed shots +10",
+     "other": {
+      "aimed": 10
+     }
+    }
+   }
+  },
+  {
+   "name": "Audio Implant",
+   "slot": "ears",
+   "place": "head",
+   "notes": "a replacement (the cochlear implant today, mature)",
+   "tiers": {
+    "1": {
+     "notes": "a deaf ear hears again: P -1 against natural hearing (Marek 11-18)",
+     "mods": {
+      "perception": -1
+     }
+    },
+    "2": {
+     "notes": "natural hearing: P ±0 (Marek 11-18)"
+    },
+    "3": {
+     "notes": "natural hearing, never deafened (03b §3c)",
+     "other": {
+      "deaf_proof": 1
+     }
+    },
+    "4": {
+     "notes": "P +1, never deafened",
+     "mods": {
+      "perception": 1
+     },
+     "other": {
+      "deaf_proof": 1
+     }
+    }
+   }
+  },
+  {
+   "name": "Subdermal Plating",
+   "slot": "skin",
+   "place": "everywhere",
+   "notes": "nothing like it today",
+   "tiers": {
+    "3": {
+     "notes": "DT +1 on every part",
+     "other": {
+      "dt": 1
+     }
+    },
+    "4": {
+     "notes": "DT +2 on every part",
+     "other": {
+      "dt": 2
+     }
+    }
+   }
+  },
+  {
+   "name": "Dermal Weave",
+   "slot": "skin",
+   "place": "everywhere",
+   "notes": "nothing like it today",
+   "tiers": {
+    "3": {
+     "notes": "DR +7 %",
+     "other": {
+      "dr": 7
+     }
+    },
+    "4": {
+     "notes": "DR +10 %",
+     "other": {
+      "dr": 10
+     }
+    }
+   }
+  },
+  {
+   "name": "Bone Lacing",
+   "slot": "skeleton",
+   "place": "everywhere",
+   "notes": "plates, rods and nails today (mature)",
+   "tiers": {
+    "2": {
+     "notes": "a crippled limb usable after its operation, healing x1.5 for it"
+    },
+    "3": {
+     "notes": "a limb crippled only at x1.5 the damage",
+     "other": {
+      "hp_max": 3
+     }
+    },
+    "4": {
+     "notes": "a limb crippled only at double the damage",
+     "other": {
+      "hp_max": 5
+     }
+    }
+   }
+  },
+  {
+   "name": "Spinal Booster",
+   "slot": "spine",
+   "place": "torso",
+   "notes": "a replacement (ONWARD's epidural stimulation today)",
+   "tiers": {
+    "1": {
+     "notes": "paralysed legs at 25 %: moving x3 AP"
+    },
+    "2": {
+     "notes": "legs at 50 %: moving x2 AP"
+    },
+    "3": {
+     "notes": "legs at 100 %"
+    },
+    "4": {
+     "notes": "A +1",
+     "mods": {
+      "agility": 1
+     }
+    }
+   }
+  },
+  {
+   "name": "Artificial Heart",
+   "slot": "heart",
+   "place": "torso",
+   "notes": "a replacement (BiVACOR, SynCardia today); it has its own defibrillator",
+   "tiers": {
+    "1": {
+     "notes": "a failed heart replaced for months; no rhythm arrest; it stops when the pack is empty",
+     "mods": {
+      "endurance": -2
+     },
+     "other": {
+      "pump": 1
+     }
+    },
+    "2": {
+     "notes": "for years; no rhythm arrest; it stops when the pack is empty",
+     "mods": {
+      "endurance": -1
+     },
+     "other": {
+      "pump": 1
+     }
+    },
+    "3": {
+     "notes": "no rhythm arrest (electricity, a chest blow, E 0, the cold: 03b §3c); Blood or Oxygen 0 still stop it",
+     "other": {
+      "pump": 1
+     }
+    },
+    "4": {
+     "notes": "E +1; no rhythm arrest (03b §3c); Blood or Oxygen 0 still stop it",
+     "mods": {
+      "endurance": 1
+     },
+     "other": {
+      "pump": 1
+     }
+    }
+   }
+  },
+  {
+   "name": "Defibrillator",
+   "slot": "heart",
+   "place": "torso",
+   "notes": "the implantable cardioverter-defibrillator (mature today); not beside an Artificial Heart",
+   "tiers": {
+    "2": {
+     "notes": "in clinical death one automatic shock (a revival roll)",
+     "other": {
+      "defib_shocks": 1
+     }
+    },
+    "3": {
+     "notes": "two automatic shocks",
+     "other": {
+      "defib_shocks": 2
+     }
+    },
+    "4": {
+     "notes": "three automatic shocks; the death window x1.5",
+     "other": {
+      "defib_shocks": 3,
+      "death_window": 0.5
+     }
+    }
+   }
+  },
+  {
+   "name": "Lung Filter",
+   "slot": "lungs",
+   "place": "torso",
+   "notes": "nothing like it today",
+   "tiers": {
+    "3": {
+     "notes": "the gases x0.5 but CO; Oxygen 30 (3 minutes); never bad air (03b §3c)",
+     "other": {
+      "breath": 30,
+      "gas_filter": 0.5
+     }
+    },
+    "4": {
+     "notes": "the gases harmless, CO too; Oxygen 50 (5 minutes); never bad air (03b §3c)",
+     "other": {
+      "breath": 50,
+      "gas_filter": 0.0,
+      "co_filter": 1
+     }
+    }
+   }
+  },
+  {
+   "name": "Toxin Filter",
+   "slot": "gut",
+   "place": "torso",
+   "notes": "nothing like it today",
+   "tiers": {
+    "3": {
+     "notes": "poison res +20 %",
+     "other": {
+      "poison_res": 20
+     }
+    },
+    "4": {
+     "notes": "poison res +30 %; alcohol does nothing",
+     "other": {
+      "poison_res": 30
+     }
+    }
+   }
+  },
+  {
+   "name": "Blood Scrubber",
+   "slot": "blood",
+   "place": "torso",
+   "notes": "nothing like it today",
+   "tiers": {
+    "3": {
+     "notes": "rads -3 a day",
+     "other": {
+      "rads_per_hour": -0.125
+     }
+    },
+    "4": {
+     "notes": "rads -5 a day",
+     "other": {
+      "rads_per_hour": -0.20833333333333334
+     }
+    }
+   }
+  },
+  {
+   "name": "Gene Pump",
+   "slot": "blood",
+   "place": "torso",
+   "notes": "holds a gene therapy's supply: while refilled yearly it does not fade (03d §10)",
+   "tiers": {
+    "3": {
+     "notes": "holds one therapy"
+    },
+    "4": {
+     "notes": "holds two therapies"
+    }
+   }
+  },
+  {
+   "name": "RFID Chip",
+   "slot": "fashion",
+   "place": "everywhere",
+   "notes": "a fashion implant (biohackers' chips today)",
+   "tiers": {
+    "2": {
+     "notes": "opens your own doors, safes and the shelter's locks; a pre-war ID: Economy +5 % with the Union's checkpoints and traders"
+    }
+   }
+  },
+  {
+   "name": "Fingertip Magnet",
+   "slot": "fashion",
+   "place": "everywhere",
+   "notes": "a fashion implant",
+   "tiers": {
+    "2": {
+     "notes": "feels live current and fields: Engineering +5 % to find live wires, hidden devices and traps with a battery"
+    }
+   }
+  },
+  {
+   "name": "Light under the Skin",
+   "slot": "fashion",
+   "place": "everywhere",
+   "notes": "a fashion implant (LED tattoos today)",
+   "tiers": {
+    "2": {
+     "notes": "a small light in the hand; C +1 with the young and the clubs; Sneak -5 % while lit"
+    }
+   }
+  },
+  {
+   "name": "Subdermal Studs",
+   "slot": "fashion",
+   "place": "everywhere",
+   "notes": "a fashion implant (body modification)",
+   "tiers": {
+    "2": {
+     "notes": "Rhetorics +5 % to intimidate; C +1 with those who like it, -1 with strangers in farm towns"
+    }
+   }
+  },
+  {
+   "name": "Iris Implant",
+   "slot": "fashion",
+   "place": "head",
+   "notes": "a fashion implant (a new eye colour)",
+   "tiers": {
+    "2": {
+     "notes": "C +1 with those who like it; a 5 % yearly roll for an eye harm (P -1)"
+    }
+   }
+  },
+  {
+   "name": "Bone-Conduction Earpiece",
+   "slot": "fashion",
+   "place": "head",
+   "notes": "a fashion implant (bone-anchored hearing devices)",
+   "tiers": {
+    "2": {
+     "notes": "a hidden radio earpiece: hears the radio unseen; Sneak +5 % for team signals"
+    }
+   }
+  }
+ ]
+}

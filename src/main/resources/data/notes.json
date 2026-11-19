@@ -1,0 +1,401 @@
+{
+ "source": "the Fallouťák Google workbook's cell notes (Fallouťák__I38A1zyA.xlsx, read 2026-11-14)",
+ "rows": [
+  {
+   "tab": "Character Sheet 1.0",
+   "cell": "X2",
+   "label": "DPR",
+   "note": "Damage Per Round"
+  },
+  {
+   "tab": "Character Sheet 1.0",
+   "cell": "X3",
+   "label": "HR",
+   "note": "Healing Rate"
+  },
+  {
+   "tab": "Character Sheet 1.0",
+   "cell": "M7",
+   "label": "Hourly",
+   "note": "Hourly change to stat"
+  },
+  {
+   "tab": "Character",
+   "cell": "M3",
+   "label": "Normal",
+   "note": "piercing, slashing, bludgeoning, shrapnels, shockwave"
+  },
+  {
+   "tab": "Character",
+   "cell": "A4",
+   "label": "Strength",
+   "note": "Paralyzed on 0-."
+  },
+  {
+   "tab": "Character",
+   "cell": "I4",
+   "label": "Athletics",
+   "note": "improves dmg resistance, running, swimming, climbing, endurance, acrobatics, throwing, unarmed combat, some melee skills"
+  },
+  {
+   "tab": "Character",
+   "cell": "A5",
+   "label": "Perception",
+   "note": "Unconscious on 0-."
+  },
+  {
+   "tab": "Character",
+   "cell": "I5",
+   "label": "Medicine",
+   "note": "- first aid, doctor, genetics\n- slightly increase healing rate\n- Increases crit dmg to creature with known anatomy"
+  },
+  {
+   "tab": "Character",
+   "cell": "A6",
+   "label": "Endurance",
+   "note": "Cardiac arrest on 0-."
+  },
+  {
+   "tab": "Character",
+   "cell": "I6",
+   "label": "Computer Science",
+   "note": "hacking, data mining, automatization, robotics, bonus dmg to robots"
+  },
+  {
+   "tab": "Character",
+   "cell": "M6",
+   "label": "Fire",
+   "note": "some explosives, flamethrower"
+  },
+  {
+   "tab": "Character",
+   "cell": "A7",
+   "label": "Charisma",
+   "note": "Unable to communicate on 0-."
+  },
+  {
+   "tab": "Character",
+   "cell": "I7",
+   "label": "Sneak",
+   "note": "stealth, stealing, sledge of hand, bonus stealth dmg\n- increases crit chance"
+  },
+  {
+   "tab": "Character",
+   "cell": "M7",
+   "label": "Laser",
+   "note": "Laser, heat, weather"
+  },
+  {
+   "tab": "Character",
+   "cell": "A8",
+   "label": "Intelligence",
+   "note": "In coma on 0-."
+  },
+  {
+   "tab": "Character",
+   "cell": "I8",
+   "label": "Survival",
+   "note": "perception and using of traps, defence against weather, getting resources from area, spears + some weapons\n- consumables are % more effective\n- increases healing rate\n- increases poison+rad resistanc\n- increases % water+food max"
+  },
+  {
+   "tab": "Character",
+   "cell": "A9",
+   "label": "Agility",
+   "note": "Paralyzed on 0-."
+  },
+  {
+   "tab": "Character",
+   "cell": "I9",
+   "label": "Crafting",
+   "note": "crafting of non-electric and mostly simple items and structures\n- some weapons"
+  },
+  {
+   "tab": "Character",
+   "cell": "M9",
+   "label": "Plasma",
+   "note": "plasma"
+  },
+  {
+   "tab": "Character",
+   "cell": "A10",
+   "label": "Luck",
+   "note": "Gains cancer on 0-."
+  },
+  {
+   "tab": "Character",
+   "cell": "I10",
+   "label": "Engineering",
+   "note": "crafting, repairing and enhancing of electric items"
+  },
+  {
+   "tab": "Character",
+   "cell": "M10",
+   "label": "Isolation",
+   "note": "Weather, teasers, electricity, EMP"
+  },
+  {
+   "tab": "Character",
+   "cell": "I11",
+   "label": "Chemistry",
+   "note": "crafting of explosives ammunition, medicine and fertilizers, using explosives"
+  },
+  {
+   "tab": "Character",
+   "cell": "I12",
+   "label": "Biology",
+   "note": "Farming, herbalism, animal handling, breading, growing"
+  },
+  {
+   "tab": "Character",
+   "cell": "I13",
+   "label": "Pilot",
+   "note": "vehical handling, racing"
+  },
+  {
+   "tab": "Character",
+   "cell": "A14",
+   "label": "Water",
+   "note": "Loses (2+0.1*hyperthermia)/hour, drinking 1l of water = 25 points,"
+  },
+  {
+   "tab": "Character",
+   "cell": "I14",
+   "label": "Economy",
+   "note": "barter, merchanting, business, value aproximating"
+  },
+  {
+   "tab": "Character",
+   "cell": "A15",
+   "label": "Food",
+   "note": "Loses 1/hour, massive meal gives 25, light meal gives 8"
+  },
+  {
+   "tab": "Character",
+   "cell": "I15",
+   "label": "Rhetorics",
+   "note": "persuation, deception, intimidation"
+  },
+  {
+   "tab": "Character",
+   "cell": "A16",
+   "label": "Sleep",
+   "note": "Loses 1/hour, sleeping returns 4/hour"
+  },
+  {
+   "tab": "Character",
+   "cell": "I16",
+   "label": "Gambling",
+   "note": "ability to play games. And win."
+  },
+  {
+   "tab": "Character",
+   "cell": "A17",
+   "label": "Poison",
+   "note": "Every poisonous attack that penetrates and triggeres poisoned roll. Failure adds 3 point per every damage dealt. Triggers new roll every hour, curing 1 poison if sucessful."
+  },
+  {
+   "tab": "Character",
+   "cell": "I17",
+   "label": "Guns",
+   "note": "using guns"
+  },
+  {
+   "tab": "Character",
+   "cell": "A18",
+   "label": "Rads",
+   "note": "Gained in irradiated area of from consumables. Never goes away (20+ years), but RadAway may cure it. May cause mutations."
+  },
+  {
+   "tab": "Character",
+   "cell": "I18",
+   "label": "Leadership",
+   "note": "+1/10 to other members to all skills, removes XP group penality by 1/3."
+  },
+  {
+   "tab": "Character",
+   "cell": "A19",
+   "label": "Hypothermia",
+   "note": "Gained in low temperature + 3x from Cold damage"
+  },
+  {
+   "tab": "Character",
+   "cell": "I19",
+   "label": "Derived Skills:",
+   "note": "Primitive = sum -25\n-Harder start, easy to level past 100\n- hammers, axes\n\nSimple= 3/4 sum -10\n- 1.3x herder to level, better past 100\n- bows, knifes\n\nAdvanced=2/3 sum\n- Easier start, 1.5x harder to level, a little better past 100\n- swords, rockets, granades\n\nComplex = avg+15\n- Easier start, 2x harder to level\n- energy guns, techno weapons"
+  },
+  {
+   "tab": "Character",
+   "cell": "L19",
+   "label": "TODO NPC table:",
+   "note": "Race\nAttribute points\nSkill points\nXP\nWeapon\nArmor\nHP\nWater\nFood\nSleep\nPoison\nRads\nHyperthermia\nHypothermia\nBlood\nPain\nTags\nFeats etc."
+  },
+  {
+   "tab": "Character",
+   "cell": "A20",
+   "label": "Hyperthermia",
+   "note": "Gained in high temperature +3x from fire and heat damage"
+  },
+  {
+   "tab": "Character",
+   "cell": "F20",
+   "label": "Weather",
+   "note": "-3 lil cold\n-6 cold\n-10 snowing\n-20 freezing\n+3 lil got\n+6 hot\n+10 terrible hot\n+20 Sahara"
+  },
+  {
+   "tab": "Character",
+   "cell": "I20",
+   "label": "Energy Weapons",
+   "note": "Complex\n1/2 guns, 1/2 Engineering+15"
+  },
+  {
+   "tab": "Character",
+   "cell": "L20",
+   "label": "TODO NPC data calculation:",
+   "note": "0. Race effects\n1. survival statue maximum (except Water, Food, Sleep)\n2. Survival effects\n3. Attributes + HP max + inc\n4. skills\n5. Rest derived statistics\n6. Water, Food, Sleep maximum"
+  },
+  {
+   "tab": "Character",
+   "cell": "A21",
+   "label": "Blood",
+   "note": "Decreased by normal damage criticals + bleeding. Regained 4/day naturally or use transfusion."
+  },
+  {
+   "tab": "Character",
+   "cell": "I21",
+   "label": "Bows",
+   "note": "Simple\n3/4 guns, 3/4 crafting -10"
+  },
+  {
+   "tab": "Character",
+   "cell": "A22",
+   "label": "Pain",
+   "note": "Gained 3x with every HP lost. +25 with crit or painful attacks. Lost with anestetics or sleep (-3/hour). When over 75, it lowers to 75 after hour of resting.\n\nPassing Survival check with pain value allows you to ignore pain effects."
+  },
+  {
+   "tab": "Character",
+   "cell": "C22",
+   "label": "=B22",
+   "note": "Use this field on fail of survival pain check."
+  },
+  {
+   "tab": "Character",
+   "cell": "I22",
+   "label": "Throwing",
+   "note": "athletics"
+  },
+  {
+   "tab": "Character",
+   "cell": "I23",
+   "label": "Unarmed",
+   "note": "athletics"
+  },
+  {
+   "tab": "Character",
+   "cell": "I24",
+   "label": "Traps",
+   "note": "Survival"
+  },
+  {
+   "tab": "Character",
+   "cell": "I25",
+   "label": "Explosives",
+   "note": "Chemistry"
+  },
+  {
+   "tab": "Character",
+   "cell": "I26",
+   "label": "Knives",
+   "note": "Simple\n3/4 medicine, 3/4 Survival -10"
+  },
+  {
+   "tab": "Character",
+   "cell": "I27",
+   "label": "Hammers",
+   "note": "Primitive\ncrafting, athletics -25"
+  },
+  {
+   "tab": "Character",
+   "cell": "I28",
+   "label": "Spears",
+   "note": "Survival"
+  },
+  {
+   "tab": "Character",
+   "cell": "I29",
+   "label": "Axes",
+   "note": "Primitive\n3/4 Biology, 3/4 athletics-10"
+  },
+  {
+   "tab": "Character",
+   "cell": "I30",
+   "label": "Swords",
+   "note": "Advanced\n2/3 Survival, 2/3 athletics"
+  },
+  {
+   "tab": "Character",
+   "cell": "I31",
+   "label": "Techno Weapons",
+   "note": "Complex\n1/2 Enginering, 1/2 athletics+15"
+  },
+  {
+   "tab": "Character",
+   "cell": "I32",
+   "label": "Grenades",
+   "note": "Advanced\n2/3 Chemistry, 2/3 athletics"
+  },
+  {
+   "tab": "Character",
+   "cell": "I33",
+   "label": "Rockets",
+   "note": "Advanced\n2/3 explosives, 2/3 guns"
+  },
+  {
+   "tab": "Effects",
+   "cell": "J22",
+   "label": "-4.0",
+   "note": "Half on success"
+  },
+  {
+   "tab": "Effects",
+   "cell": "J23",
+   "label": "-6.0",
+   "note": "Half on success"
+  },
+  {
+   "tab": "Battle",
+   "cell": "E1",
+   "label": "AC",
+   "note": "add stance bonus"
+  },
+  {
+   "tab": "Battle",
+   "cell": "G21",
+   "label": "Stance",
+   "note": "Stances:\nStand: 1 AP na 2 hexy\nCrunch: +2 AC, +5 hit ranged, -20 hit melee, 200% AP na pohyb\nProne: +4 AC, +15 hit ranged, cannot hit on melee, +20 to be hit on short range, 300% AP na pohyb\n1 Leg broken: 400% AP na pohyb\n2 Legs broken: 800% AP na pohyb"
+  },
+  {
+   "tab": "Battle",
+   "cell": "P21",
+   "label": "Calc",
+   "note": "3 different calculation types. Last seems best."
+  },
+  {
+   "tab": "Battle",
+   "cell": "T26",
+   "label": "=IF(T23<0, V22-5*(SUMIF(A:A,H19,P:P)-5), V22)",
+   "note": "TODO: set -1 if no crit"
+  },
+  {
+   "tab": "Battle",
+   "cell": "R29",
+   "label": "0.0",
+   "note": "TODO - at least melee bonus needed"
+  },
+  {
+   "tab": "Battle",
+   "cell": "I30",
+   "label": "",
+   "note": "Values of 2 (Endurance), 5 (Agility) and 6 (Luck) are used, but other stats will probably work as well. A value of -1 indicates that no check is to be made."
+  }
+ ]
+}

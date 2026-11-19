@@ -1,0 +1,15 @@
+{
+ "source": "the Fallouťák Google workbook, tab factions (dumped 2026-11-13)",
+ "rows": [
+  {
+   "name": "Smugler",
+   "count": 2,
+   "xp": 2000,
+   "level": 2,
+   "level_formula": "=(1/50)*(25+SQRT(5)*(SQRT(C2/B2+125)))"
+  },
+  {
+   "name": "kkti"
+  }
+ ]
+}

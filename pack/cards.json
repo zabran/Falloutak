@@ -1,0 +1,166 @@
+{
+ "style": "Simple cartoon line drawing in black ink of {thing}. The man is a cheerful lanky shelter warden with a long nose, round glasses, a round steel helmet and a belted work jacket. Retro 1950s instruction manual illustration, bold clean outlines, no shading, no colour, plain pure white background, no text",
+ "note": "Pip-Boy-like pictures for the sheet's hover texts (Marek 11-19). Our own mascot, not Vault Boy (Bethesda's).",
+ "cards": [
+  {
+   "key": "attr_strength",
+   "thing": "a man lifting a heavy steel girder high above his head with both arms, muscles bulging",
+   "seed": 1
+  },
+  {
+   "key": "attr_perception",
+   "thing": "a man peering through a pair of binoculars",
+   "seed": 1
+  },
+  {
+   "key": "attr_endurance",
+   "thing": "a man jogging through heavy rain with a big backpack, smiling",
+   "seed": 1
+  },
+  {
+   "key": "attr_charisma",
+   "thing": "a man shaking hands with a smiling woman and tipping his helmet",
+   "seed": 1
+  },
+  {
+   "key": "attr_intelligence",
+   "thing": "a man reading a thick book, a glowing light bulb above his head",
+   "seed": 1
+  },
+  {
+   "key": "attr_agility",
+   "thing": "a man leaping over an oil barrel in mid-air",
+   "seed": 1
+  },
+  {
+   "key": "attr_luck",
+   "thing": "a man holding up a big four-leaf clover and smiling",
+   "seed": 4
+  },
+  {
+   "key": "skill_athletics",
+   "thing": "a man running a race and jumping over a hurdle",
+   "seed": 3
+  },
+  {
+   "key": "skill_medicine",
+   "thing": "a man bandaging another man's arm",
+   "seed": 1
+  },
+  {
+   "key": "skill_computer_science",
+   "thing": "a man typing on a boxy old computer terminal with a round screen",
+   "seed": 1
+  },
+  {
+   "key": "skill_sneak",
+   "thing": "a man tiptoeing past a sleeping guard dog",
+   "seed": 1
+  },
+  {
+   "key": "skill_survival",
+   "thing": "a man warming a tin can over a small campfire",
+   "seed": 1
+  },
+  {
+   "key": "skill_crafting",
+   "thing": "a man hammering a piece of metal on an anvil",
+   "seed": 1
+  },
+  {
+   "key": "skill_engineering",
+   "thing": "a man tightening a big pipe with a large wrench beside a steam valve",
+   "seed": 2
+  },
+  {
+   "key": "skill_chemistry",
+   "thing": "a man pouring liquid from one glass flask into another, bubbles rising",
+   "seed": 2
+  },
+  {
+   "key": "skill_biology",
+   "thing": "a man looking into a microscope",
+   "seed": 1
+  },
+  {
+   "key": "skill_pilot",
+   "thing": "a man in flying goggles at the controls of a small propeller plane",
+   "seed": 1
+  },
+  {
+   "key": "skill_economy",
+   "thing": "a man counting a stack of coins at a table",
+   "seed": 1
+  },
+  {
+   "key": "skill_rhetorics",
+   "thing": "a man speaking passionately at a small podium, one finger raised",
+   "seed": 1
+  },
+  {
+   "key": "skill_gambling",
+   "thing": "a man holding a fan of playing cards, grinning",
+   "seed": 1
+  },
+  {
+   "key": "skill_guns",
+   "thing": "a man aiming a hunting rifle from one knee",
+   "seed": 1
+  },
+  {
+   "key": "skill_leadership",
+   "thing": "a man pointing forward and leading three men who march behind him",
+   "seed": 2
+  },
+  {
+   "key": "stat_water",
+   "thing": "a man drinking from a canteen",
+   "seed": 1
+  },
+  {
+   "key": "stat_food",
+   "thing": "a man eating from a tin can with a spoon",
+   "seed": 1
+  },
+  {
+   "key": "stat_sleep",
+   "thing": "a man asleep on a camp bed, snoring",
+   "seed": 1
+  },
+  {
+   "key": "stat_poison",
+   "thing": "a man looking sick after a snake bit his leg, the snake slithering away",
+   "seed": 2
+  },
+  {
+   "key": "stat_rads",
+   "thing": "a man holding up a clicking Geiger counter, his hair standing on end",
+   "seed": 1
+  },
+  {
+   "key": "stat_hypothermia",
+   "thing": "a man shivering in a blanket, icicles hanging from his moustache",
+   "seed": 1
+  },
+  {
+   "key": "stat_hyperthermia",
+   "thing": "a man sweating under a blazing sun, fanning himself with his helmet",
+   "seed": 1
+  },
+  {
+   "key": "stat_blood",
+   "thing": "a man lying on a cot receiving a blood transfusion from a hanging blood bag",
+   "seed": 1
+  },
+  {
+   "key": "stat_pain",
+   "thing": "a man holding his throbbing thumb after hitting it with a hammer",
+   "seed": 1
+  },
+  {
+   "key": "stat_oxygen",
+   "thing": "a man holding his breath underwater, cheeks puffed out",
+   "seed": 2
+  }
+ ]
+}

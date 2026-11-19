@@ -1,0 +1,2096 @@
+{
+ "source": "Fallouťák 03c §2, §2b, §5 and §8: every gene (free = the pool a player builds his own template from, Marek 11-16; the rest are given by therapy, 03d, or come with a template); fx = what the plugin counts, the rest is the text; loads on the fine scale (03c §7); written by fallout_part3_json.py",
+ "rows": [
+  {
+   "name": "Power fibres",
+   "slot": "Muscle",
+   "tier": "T1",
+   "load": 0,
+   "text": "S +1, E -1",
+   "free": true,
+   "real": "ACTN3 RR, sprinters",
+   "mods": {
+    "strength": 1,
+    "endurance": -1
+   },
+   "family": "ACTN3"
+  },
+  {
+   "name": "Endurance fibres",
+   "slot": "Muscle",
+   "tier": "T1",
+   "load": 0,
+   "text": "E +1, S -1",
+   "free": true,
+   "real": "ACTN3 XX",
+   "mods": {
+    "strength": -1,
+    "endurance": 1
+   },
+   "family": "ACTN3"
+  },
+  {
+   "name": "Dense bones",
+   "slot": "Frame",
+   "tier": "T1",
+   "load": 0,
+   "text": "a limb crippled at x1.5 the damage; sinks: swimming Athletics -30",
+   "free": true,
+   "real": "LRP5, one copy",
+   "family": "LRP5/SOST"
+  },
+  {
+   "name": "Highlander",
+   "slot": "Blood",
+   "tier": "T1",
+   "load": 6,
+   "text": "CO and sewer gas work x0.75 (03b §3c)",
+   "free": true,
+   "real": "EPAS1/EGLN1, Tibetans, from the Denisovans",
+   "other": {
+    "gas_blood": 0.75
+   },
+   "family": "EPAS1/EPOR"
+  },
+  {
+   "name": "Odourless",
+   "slot": "Skin",
+   "tier": "T1",
+   "load": 3,
+   "text": "scent-tracking finds you at half",
+   "free": true,
+   "real": "ABCC11, dry earwax"
+  },
+  {
+   "name": "Bright",
+   "slot": "Mind",
+   "tier": "T1",
+   "load": 0,
+   "text": "I +1, P -1 (myopic: long range -10 without glasses)",
+   "free": true,
+   "real": "polygenic; education and short sight share genes",
+   "mods": {
+    "intelligence": 1,
+    "perception": -1
+   }
+  },
+  {
+   "name": "Worrier",
+   "slot": "Temperament",
+   "tier": "T1",
+   "load": 0,
+   "text": "science skills +5 %, Pain x1.2",
+   "free": true,
+   "real": "COMT Met/Met",
+   "pain": 1.2,
+   "skills": {
+    "Computer Science": 5,
+    "Engineering": 5,
+    "Chemistry": 5,
+    "Biology": 5,
+    "Medicine": 5
+   }
+  },
+  {
+   "name": "Warrior",
+   "slot": "Temperament",
+   "tier": "T1",
+   "load": 0,
+   "text": "ignores Pain 10 more (the Pain check); science skills -5 %",
+   "free": true,
+   "real": "COMT Val/Val",
+   "skills": {
+    "Computer Science": -5,
+    "Engineering": -5,
+    "Chemistry": -5,
+    "Biology": -5,
+    "Medicine": -5
+   }
+  },
+  {
+   "name": "Arctic fat-burner",
+   "slot": "Cold",
+   "tier": "T1",
+   "load": 0,
+   "text": "isolation +10 %; the starvation stage one step sooner",
+   "free": true,
+   "real": "CPT1A, the Arctic peoples",
+   "iso": 0.1
+  },
+  {
+   "name": "Broad HLA",
+   "slot": "Immunity",
+   "tier": "T2",
+   "load": 2,
+   "text": "poison and disease +15 %; allergies (the antiserum's allergy x2, hay fever P -1 in spring and summer)",
+   "free": true,
+   "real": "a diverse immune set",
+   "poison": 0.15,
+   "family": "immunity"
+  },
+  {
+   "name": "Non-secretor",
+   "slot": "Immunity",
+   "tier": "T1",
+   "load": 4,
+   "text": "gut infections caught x1/2; a yearly 2 % Crohn's roll",
+   "free": true,
+   "real": "FUT2, norovirus-proof"
+  },
+  {
+   "name": "Healthy liver",
+   "slot": "Liver",
+   "tier": "T1",
+   "load": 4,
+   "text": "alcohol and Tier I-II food harm x0.75",
+   "free": true,
+   "real": "HSD17B13"
+  },
+  {
+   "name": "Flusher",
+   "slot": "Liver",
+   "tier": "T1",
+   "load": -5,
+   "text": "alcohol addiction x0.2; a drink: C -1 for its hour (red face)",
+   "free": true,
+   "real": "ALDH2*2, East Asia"
+  },
+  {
+   "name": "DEC2",
+   "slot": "Sleep",
+   "tier": "T2",
+   "load": 10,
+   "text": "sleep need x0.75: 6 hours do",
+   "free": true,
+   "real": "BHLHE41 P385R, a short-sleeping family",
+   "sleep": 0.75,
+   "family": "short sleep"
+  },
+  {
+   "name": "ADRB1",
+   "slot": "Sleep",
+   "tier": "T1",
+   "load": 6,
+   "text": "sleep need x0.85",
+   "free": true,
+   "real": "a short-sleeping family",
+   "sleep": 0.85,
+   "family": "short sleep"
+  },
+  {
+   "name": "Sleepy",
+   "slot": "Sleep",
+   "tier": "T1",
+   "load": -15,
+   "text": "sleep need x1.4 (a drawback)",
+   "free": true,
+   "real": "RimWorld's",
+   "sleep": 1.4
+  },
+  {
+   "name": "Keen nose",
+   "slot": "Ears and nose",
+   "tier": "T1",
+   "load": 3,
+   "text": "gas and spoiled food smelt: +10 % to spot them",
+   "free": true,
+   "real": "smell receptor variants"
+  },
+  {
+   "name": "Mild FAAH",
+   "slot": "Pain",
+   "tier": "T1",
+   "load": 8,
+   "text": "Pain gained x0.75",
+   "free": true,
+   "real": "FAAH, a milder form of the FAAH-OUT family's",
+   "pain": 0.75,
+   "family": "FAAH/SCN9A"
+  },
+  {
+   "name": "Red-haired",
+   "slot": "Pain",
+   "tier": "T1",
+   "load": -8,
+   "text": "Pain x1.2, anaesthesia needs x1.2 (a drawback)",
+   "free": true,
+   "real": "MC1R",
+   "pain": 1.2
+  },
+  {
+   "name": "Sweaty",
+   "slot": "Heat",
+   "tier": "T1",
+   "load": 0,
+   "text": "the heat stage one step later; water x1.1",
+   "free": true,
+   "real": "EDAR, more sweat glands",
+   "water": 1.1
+  },
+  {
+   "name": "CYP2D6 ultrarapid",
+   "slot": "Chem response",
+   "tier": "T1",
+   "load": 0,
+   "text": "codeine twice as strong, its addiction x2",
+   "free": true,
+   "real": "2-10 % of people"
+  },
+  {
+   "name": "CYP2D6 poor",
+   "slot": "Chem response",
+   "tier": "T1",
+   "load": -5,
+   "text": "codeine does nothing",
+   "free": true,
+   "real": "~7 % of Europeans"
+  },
+  {
+   "name": "Slow caffeine",
+   "slot": "Chem response",
+   "tier": "T1",
+   "load": 1,
+   "text": "caffeine lasts x2",
+   "free": true,
+   "real": "CYP1A2"
+  },
+  {
+   "name": "Fair",
+   "slot": "Skin",
+   "tier": "T1",
+   "load": 0,
+   "text": "enough vitamin D under the nuclear autumn's grey; sunburn in bright sun (Pain 5 an hour)",
+   "free": true,
+   "real": "SLC24A5, MC1R"
+  },
+  {
+   "name": "Dark",
+   "slot": "Skin",
+   "tier": "T1",
+   "load": 0,
+   "text": "no sun harm; vitamin D short in the grey years",
+   "free": true,
+   "real": "SLC24A5"
+  },
+  {
+   "name": "Tetrachromat",
+   "slot": "Eyes",
+   "tier": "T1",
+   "load": 3,
+   "text": "spotting +10 % (women only)",
+   "free": true,
+   "real": "OPN1LW"
+  },
+  {
+   "name": "Myopic",
+   "slot": "Eyes",
+   "tier": "T1",
+   "load": -8,
+   "text": "long range -10 without glasses (a drawback)",
+   "free": true,
+   "real": "polygenic"
+  },
+  {
+   "name": "Tall",
+   "slot": "Growth",
+   "tier": "T1",
+   "load": 0,
+   "text": "S +1, A -1, Sneak -10 %, food x1.1",
+   "free": true,
+   "real": "polygenic",
+   "mods": {
+    "strength": 1,
+    "agility": -1
+   },
+   "food": 1.1,
+   "skills": {
+    "Sneak": -10
+   },
+   "adult": false
+  },
+  {
+   "name": "Compact",
+   "slot": "Growth",
+   "tier": "T1",
+   "load": 0,
+   "text": "A +1, S -1, Sneak +10 %, food x0.9",
+   "free": true,
+   "real": "polygenic",
+   "mods": {
+    "strength": -1,
+    "agility": 1
+   },
+   "food": 0.9,
+   "skills": {
+    "Sneak": 10
+   },
+   "adult": false
+  },
+  {
+   "name": "Long-lived family",
+   "slot": "Cancer",
+   "tier": "T1",
+   "load": 5,
+   "text": "cancer and heart rolls x0.8",
+   "free": true,
+   "real": "CETP I405V, APOE2"
+  },
+  {
+   "name": "Diver",
+   "slot": "Breath",
+   "tier": "T1",
+   "load": 2,
+   "text": "breath held 2 min: Oxygen 20",
+   "free": true,
+   "real": "BDKRB2",
+   "other": {
+    "breath": 20
+   },
+   "family": "diving"
+  },
+  {
+   "name": "Bajau",
+   "slot": "Breath",
+   "tier": "T2",
+   "load": 6,
+   "text": "breath held 3 min (Oxygen 30), swimming Athletics +10",
+   "free": true,
+   "real": "PDE10A, a big spleen, the sea nomads",
+   "other": {
+    "breath": 30
+   },
+   "family": "diving"
+  },
+  {
+   "name": "Big boned",
+   "slot": "Metabolism",
+   "tier": "T1",
+   "load": 0,
+   "text": "E +2 (so +4 HP, healing, resistances); hunger and thirst twice as fast",
+   "free": true,
+   "rule": "Glutton",
+   "mods": {
+    "endurance": 2
+   },
+   "food": 2.0,
+   "water": 2.0
+  },
+  {
+   "name": "Fast metabolism",
+   "slot": "Metabolism",
+   "tier": "T1",
+   "load": 0,
+   "text": "healing rate +2; the Endurance and Survival parts of rad and poison resistance are lost [the loss not counted yet]",
+   "free": true,
+   "rule": "Fast Metabolism",
+   "other": {
+    "healing_rate": 2
+   }
+  },
+  {
+   "name": "Thrifty",
+   "slot": "Metabolism",
+   "tier": "T2",
+   "load": 5,
+   "text": "hunger and thirst half as fast, Survival +20; C -1",
+   "free": true,
+   "rule": "Weird Loner",
+   "mods": {
+    "charisma": -1
+   },
+   "food": 0.5,
+   "water": 0.5,
+   "skills": {
+    "Survival": 20
+   }
+  },
+  {
+   "name": "Night owl",
+   "slot": "Sleep",
+   "tier": "T1",
+   "load": 0,
+   "text": "I and P +1 at night (18-06), -1 by day",
+   "free": true,
+   "real": "CRY1 delta-11, a delayed body clock (Patke et al. 2017)",
+   "rule": "Night Person"
+  },
+  {
+   "name": "Rh-null",
+   "slot": "Blood",
+   "tier": "T2",
+   "load": 0,
+   "text": "HP +5; nobody can stabilise you (no Field Surgeon, no first aid when dying)",
+   "free": true,
+   "real": "golden blood, some 50 people known: takes only Rh-null blood, so no transfusion saves him",
+   "rule": "Medical Marvel"
+  },
+  {
+   "name": "Twitchy",
+   "slot": "Temperament",
+   "tier": "T1",
+   "load": 0,
+   "text": "Initiative +10, to hit -10",
+   "free": true,
+   "real": "DRD4 / COMT (low anxiety, high risk tolerance) and the adrenal response",
+   "rule": "Twitchy",
+   "other": {
+    "sequence": 10,
+    "to_hit": -10
+   }
+  },
+  {
+   "name": "Reckless",
+   "slot": "Temperament",
+   "tier": "T1",
+   "load": 0,
+   "text": "Initiative +5; no AC from Agility [the AC not counted yet]",
+   "free": true,
+   "real": "DRD4 / COMT: high risk tolerance",
+   "rule": "Kamikaze",
+   "other": {
+    "sequence": 5
+   }
+  },
+  {
+   "name": "Thick skin",
+   "slot": "Skin",
+   "tier": "T2",
+   "load": 5,
+   "text": "DT +2 against every damage type, AP -1",
+   "free": true,
+   "rule": "Thick-Skinned",
+   "dt": 2,
+   "other": {
+    "ap": -1
+   }
+  },
+  {
+   "name": "Brittle bones",
+   "slot": "Frame",
+   "tier": "T1",
+   "load": -5,
+   "text": "AP +2; movement costs double the AP",
+   "free": true,
+   "real": "COL1A1, mild brittle-bone disease (type I osteogenesis imperfecta), as a caricature",
+   "rule": "Brittle Bones"
+  },
+  {
+   "name": "Chem reliant",
+   "slot": "Chem response",
+   "tier": "T1",
+   "load": 0,
+   "text": "an addiction wears off twice as fast; twice the chance to get addicted",
+   "free": true,
+   "rule": "Chem Reliant"
+  },
+  {
+   "name": "Chem resistant",
+   "slot": "Chem response",
+   "tier": "T1",
+   "load": 0,
+   "text": "half the chance to get addicted; chems last half as long",
+   "free": true,
+   "rule": "Chem Resistant"
+  },
+  {
+   "name": "Lean muscle",
+   "slot": "Muscle",
+   "tier": "T2",
+   "load": 10,
+   "text": "S +1",
+   "free": false,
+   "real": "MSTN, one copy broken",
+   "mods": {
+    "strength": 1
+   },
+   "family": "MSTN"
+  },
+  {
+   "name": "Double muscle",
+   "slot": "Muscle",
+   "tier": "T3",
+   "load": 20,
+   "text": "S +2, melee damage +3 % (the orc's)",
+   "free": false,
+   "real": "MSTN both copies; a German boy 2004, Belgian Blue cattle",
+   "mods": {
+    "strength": 2
+   },
+   "melee": 0.03,
+   "family": "MSTN"
+  },
+  {
+   "name": "Designer muscle",
+   "slot": "Muscle",
+   "tier": "T4",
+   "load": 10,
+   "text": "S +2; starvation's Strength losses halved",
+   "free": false,
+   "real": "MSTN tuned + FBXO32 off: no wasting",
+   "mods": {
+    "strength": 2
+   },
+   "family": "MSTN"
+  },
+  {
+   "name": "Heavy muscle",
+   "slot": "Muscle",
+   "tier": "T2",
+   "load": 10,
+   "text": "S +2, AP -2 (the trait Bruiser's numbers)",
+   "free": false,
+   "real": "MSTN + slow fibres",
+   "mods": {
+    "strength": 2
+   },
+   "other": {
+    "ap": -2
+   },
+   "family": "MSTN"
+  },
+  {
+   "name": "Unstoppable",
+   "slot": "Muscle",
+   "tier": "T3",
+   "load": 10,
+   "text": "never knocked down or back (part 5)",
+   "free": false,
+   "real": "RimWorld's"
+  },
+  {
+   "name": "Mäntyranta",
+   "slot": "Blood",
+   "tier": "T2",
+   "load": 10,
+   "text": "E +1, Blood max +25 %; thick blood: a clot roll when bedridden",
+   "free": false,
+   "real": "EPOR, a Finnish skier's family: more red cells",
+   "mods": {
+    "endurance": 1
+   },
+   "family": "EPAS1/EPOR"
+  },
+  {
+   "name": "Oxygen tuned",
+   "slot": "Blood",
+   "tier": "T3",
+   "load": 10,
+   "text": "E +1, Blood +25 %, CO and sewer gas x0.5 (03b §3c)",
+   "free": false,
+   "mods": {
+    "endurance": 1
+   },
+   "other": {
+    "gas_blood": 0.5
+   },
+   "family": "EPAS1/EPOR"
+  },
+  {
+   "name": "Oxygen reserve",
+   "slot": "Blood",
+   "tier": "T4",
+   "load": 20,
+   "text": "E +2, breath held 5 min: Oxygen 50",
+   "free": false,
+   "mods": {
+    "endurance": 2
+   },
+   "other": {
+    "breath": 50
+   },
+   "family": "EPAS1/EPOR"
+  },
+  {
+   "name": "Bull heart",
+   "slot": "Blood",
+   "tier": "T3",
+   "load": 10,
+   "text": "E +2, HP +5: a big heart and lungs (the orc's)",
+   "free": false,
+   "mods": {
+    "endurance": 2
+   },
+   "hp": 5
+  },
+  {
+   "name": "Light-sensitive",
+   "slot": "Blood",
+   "tier": "T2",
+   "load": -10,
+   "text": "the sun's Pain (the dhampir's, the coldvein's)",
+   "free": false,
+   "real": "FECH, one weak copy: the mild form of erythropoietic protoporphyria",
+   "sun": "pain"
+  },
+  {
+   "name": "Protoporphyria",
+   "slot": "Blood",
+   "tier": "T4",
+   "load": -20,
+   "text": "the sun burns (the vampire's)",
+   "free": false,
+   "real": "FECH, both copies: erythropoietic protoporphyria",
+   "sun": "protoporphyria"
+  },
+  {
+   "name": "Sickle trait",
+   "slot": "Blood",
+   "tier": "T1",
+   "load": 0,
+   "text": "malaria caught x0.5, its severe stages x0.1; at the heat stage 3+ while running an Endurance roll or HP -1d6 (muscle breakdown)",
+   "free": true,
+   "real": "HBB E6V, one copy, West Africa: in a Kenyan cohort ~50 % less mild and ~90 % less severe malaria"
+  },
+  {
+   "name": "G6PD-deficient",
+   "slot": "Blood",
+   "tier": "T1",
+   "load": -3,
+   "text": "malaria x0.75; fava beans, primaquine and sulfa drugs: Blood -25 %",
+   "free": true,
+   "real": "G6PD A-, the Mediterranean and Africa"
+  },
+  {
+   "name": "Superclotting",
+   "slot": "Blood",
+   "tier": "T2",
+   "load": 10,
+   "text": "bleeding x1/2; a clot roll when bedridden",
+   "free": false,
+   "real": "RimWorld's",
+   "bleed": 0.5
+  },
+  {
+   "name": "Unbreakable",
+   "slot": "Frame",
+   "tier": "T2",
+   "load": 0,
+   "text": "HP +2, a limb crippled at x2 the damage; sinks",
+   "free": false,
+   "real": "LRP5 G171V, the family whose bones held in a car crash",
+   "hp": 2,
+   "family": "LRP5/SOST"
+  },
+  {
+   "name": "Sclerostin off",
+   "slot": "Frame",
+   "tier": "T3",
+   "load": 10,
+   "text": "HP +3, crippled at x2, no bone loss; sinks",
+   "free": false,
+   "real": "SOST: mice keep their bone",
+   "hp": 3,
+   "family": "LRP5/SOST"
+  },
+  {
+   "name": "Bone lattice",
+   "slot": "Frame",
+   "tier": "T4",
+   "load": 10,
+   "text": "HP +5, crippled at x2.5",
+   "free": false,
+   "hp": 5,
+   "family": "LRP5/SOST"
+  },
+  {
+   "name": "Light frame",
+   "slot": "Frame",
+   "tier": "T3",
+   "load": 0,
+   "text": "A +2, HP -5, crippled at x0.75 (the elf's)",
+   "free": false,
+   "mods": {
+    "agility": 2
+   },
+   "hp": -5,
+   "adult": false
+  },
+  {
+   "name": "Cat frame",
+   "slot": "Frame",
+   "tier": "T3",
+   "load": 10,
+   "text": "A +3, HP -3, half falling damage, Sneak +20 (the catfolk's flexible spine)",
+   "free": false,
+   "mods": {
+    "agility": 3
+   },
+   "hp": -3,
+   "fall": 0.5,
+   "skills": {
+    "Sneak": 20
+   },
+   "adult": false
+  },
+  {
+   "name": "Predator frame",
+   "slot": "Frame",
+   "tier": "T3",
+   "load": 10,
+   "text": "A +3, HP +5 (the dhampir's)",
+   "free": false,
+   "mods": {
+    "agility": 3
+   },
+   "hp": 5,
+   "adult": false
+  },
+  {
+   "name": "Apex frame",
+   "slot": "Frame",
+   "tier": "T4",
+   "load": 20,
+   "text": "A +6, E +2, HP +10 (the vampire's)",
+   "free": false,
+   "mods": {
+    "agility": 6,
+    "endurance": 2
+   },
+   "hp": 10,
+   "adult": false
+  },
+  {
+   "name": "Heavy frame",
+   "slot": "Frame",
+   "tier": "T4",
+   "load": 20,
+   "text": "S +2, E +4, HP +10 (the revenant's)",
+   "free": false,
+   "mods": {
+    "strength": 2,
+    "endurance": 4
+   },
+   "hp": 10,
+   "adult": false
+  },
+  {
+   "name": "Heartwood frame",
+   "slot": "Frame",
+   "tier": "T4",
+   "load": 20,
+   "text": "S +5, E +5, HP +25: wood-hard bones (the Ent's)",
+   "free": false,
+   "mods": {
+    "strength": 5,
+    "endurance": 5
+   },
+   "hp": 25,
+   "adult": false
+  },
+  {
+   "name": "Hollow bones",
+   "slot": "Frame",
+   "tier": "T4",
+   "load": 0,
+   "text": "A +3, HP -5, crippled at x0.75 (the Fallen Angel's)",
+   "free": false,
+   "mods": {
+    "agility": 3
+   },
+   "hp": -5,
+   "adult": false
+  },
+  {
+   "name": "FAAH-OUT",
+   "slot": "Pain",
+   "tier": "T2",
+   "load": 0,
+   "text": "Pain x1/2, healing +1; memory lapses: I -1",
+   "free": false,
+   "real": "a Scottish woman with little pain or fear who heals fast",
+   "mods": {
+    "intelligence": -1
+   },
+   "pain": 0.5,
+   "other": {
+    "healing_rate": 1
+   },
+   "family": "FAAH/SCN9A"
+  },
+  {
+   "name": "No pain",
+   "slot": "Pain",
+   "tier": "T3",
+   "load": 0,
+   "text": "no Pain at all; unnoticed harm: every wound one infection class worse, your bleeding not shown to you",
+   "free": false,
+   "real": "SCN9A, both copies",
+   "pain": 0.0,
+   "family": "FAAH/SCN9A"
+  },
+  {
+   "name": "Pain gate",
+   "slot": "Pain",
+   "tier": "T4",
+   "load": 10,
+   "text": "Pain x1/2, no drawback",
+   "free": false,
+   "pain": 0.5,
+   "family": "FAAH/SCN9A"
+  },
+  {
+   "name": "Nerve growth",
+   "slot": "Pain",
+   "tier": "T3",
+   "load": 10,
+   "text": "nerves grow into electrodes and around damage: the Neural Link one tier faster, a replacement implant one step better, a bionic limb +10 % and its penalties halved, a crippled limb's nerve harm heals twice as fast, no phantom pain (03d §10, ACCEPTED 11-17)",
+   "free": false,
+   "real": "nerve growth factors"
+  },
+  {
+   "name": "Marsili",
+   "slot": "Pain",
+   "tier": "T3",
+   "load": 10,
+   "text": "Pain x0.25; burns go unnoticed: fire damage +10 %",
+   "free": false,
+   "real": "ZFHX2, an Italian family that feels touch and heat but little pain (Habib et al. 2018)",
+   "pain": 0.25
+  },
+  {
+   "name": "Short sleep tuned",
+   "slot": "Sleep",
+   "tier": "T3",
+   "load": 20,
+   "text": "sleep need x0.6",
+   "free": false,
+   "real": "DEC2 + NPSR1 + GRM1",
+   "sleep": 0.6,
+   "family": "short sleep"
+  },
+  {
+   "name": "Rarely tired",
+   "slot": "Sleep",
+   "tier": "T4",
+   "load": 20,
+   "text": "sleep need x0.4",
+   "free": false,
+   "real": "RimWorld's low sleep",
+   "sleep": 0.4,
+   "family": "short sleep"
+  },
+  {
+   "name": "Angel's rest",
+   "slot": "Sleep",
+   "tier": "T4",
+   "load": 20,
+   "text": "sleep need x0.5 (the Fallen Angel's)",
+   "free": false,
+   "sleep": 0.5
+  },
+  {
+   "name": "Brown fat",
+   "slot": "Cold",
+   "tier": "T2",
+   "load": 0,
+   "text": "isolation +20 %, the cold stage one step later; the heat stage one step sooner",
+   "free": false,
+   "real": "TBX15/WARS2, the Inuit, from the Denisovans",
+   "iso": 0.2
+  },
+  {
+   "name": "Fur",
+   "slot": "Cold",
+   "tier": "T3",
+   "load": 0,
+   "text": "isolation +30 %; the heat stage sooner, C -1",
+   "free": false,
+   "real": "RimWorld's furskin",
+   "mods": {
+    "charisma": -1
+   },
+   "iso": 0.3
+  },
+  {
+   "name": "Thermal fat",
+   "slot": "Cold",
+   "tier": "T4",
+   "load": 10,
+   "text": "isolation +30 %, no heat drawback",
+   "free": false,
+   "iso": 0.3
+  },
+  {
+   "name": "Short fur",
+   "slot": "Cold",
+   "tier": "T2",
+   "load": 0,
+   "text": "isolation +20 %; the heat stage one step sooner (the catfolk's)",
+   "free": false,
+   "iso": 0.2
+  },
+  {
+   "name": "Insulating fat",
+   "slot": "Cold",
+   "tier": "T3",
+   "load": 10,
+   "text": "isolation +50 % (against cold and electricity alike), E +1, HP +3 (Pikachu's)",
+   "free": false,
+   "mods": {
+    "endurance": 1
+   },
+   "hp": 3,
+   "iso": 0.5
+  },
+  {
+   "name": "Cold-adapted",
+   "slot": "Cold",
+   "tier": "T3",
+   "load": 5,
+   "text": "E +1, the cold stage one step later, the heat stage one step sooner (the coldvein's)",
+   "free": false,
+   "mods": {
+    "endurance": 1
+   }
+  },
+  {
+   "name": "Heat tolerant",
+   "slot": "Heat",
+   "tier": "T3",
+   "load": 10,
+   "text": "the heat stage two steps later",
+   "free": false,
+   "real": "RimWorld's"
+  },
+  {
+   "name": "Fireproof",
+   "slot": "Heat",
+   "tier": "T4",
+   "load": 20,
+   "text": "the heat stage two steps later, fire damage x0.5 (the Tiefling's; no real gene)",
+   "free": false
+  },
+  {
+   "name": "Strong immunity",
+   "slot": "Immunity",
+   "tier": "T3",
+   "load": 10,
+   "text": "poison and disease +30 %; allergies",
+   "free": false,
+   "real": "RimWorld's",
+   "poison": 0.3,
+   "family": "immunity"
+  },
+  {
+   "name": "Perfect immunity",
+   "slot": "Immunity",
+   "tier": "T4",
+   "load": 20,
+   "text": "poison and disease +50 %",
+   "free": false,
+   "poison": 0.5,
+   "family": "immunity"
+  },
+  {
+   "name": "Prion-proof",
+   "slot": "Immunity",
+   "tier": "T2",
+   "load": 0,
+   "text": "eats human flesh without kuru (the trait Garrakg Returnz's body; its Survival and C stay the trait's)",
+   "free": false,
+   "real": "PRNP G127V, the Fore of Papua New Guinea"
+  },
+  {
+   "name": "Scavenger",
+   "slot": "Immunity",
+   "tier": "T2",
+   "load": 5,
+   "text": "poison and disease +10 %; rotten and raw food's germs x1/2 (the beasts')",
+   "free": false,
+   "real": "a vulture's acid stomach and gut flora (Roggenbuck et al. 2014)",
+   "poison": 0.1
+  },
+  {
+   "name": "Venom-proof",
+   "slot": "Immunity",
+   "tier": "T3",
+   "load": 5,
+   "text": "the paralysing snake venoms (cobras, mambas: the African League's) do nothing; the adder's venom is another kind",
+   "free": false,
+   "real": "CHRNA1 W187R, the honey badger's and the mongoose's: a nerve receptor cobra toxin cannot bind"
+  },
+  {
+   "name": "Arsenic-proof",
+   "slot": "Liver",
+   "tier": "T2",
+   "load": 0,
+   "text": "bad water's poison x1/2",
+   "free": false,
+   "real": "AS3MT, the Andes"
+  },
+  {
+   "name": "Big liver",
+   "slot": "Liver",
+   "tier": "T3",
+   "load": 10,
+   "text": "poison and disease +10 %, chems last x0.75 (the orc's)",
+   "free": false,
+   "poison": 0.1
+  },
+  {
+   "name": "Toxin immunity",
+   "slot": "Liver",
+   "tier": "T4",
+   "load": 20,
+   "text": "poison and disease +40 %, chems last x0.75",
+   "free": false,
+   "real": "RimWorld's",
+   "poison": 0.4
+  },
+  {
+   "name": "Grave liver",
+   "slot": "Liver",
+   "tier": "T3",
+   "load": 10,
+   "text": "poison and disease +25 % (the revenant's)",
+   "free": false,
+   "poison": 0.25
+  },
+  {
+   "name": "PON1 fast",
+   "slot": "Liver",
+   "tier": "T1",
+   "load": 3,
+   "text": "the farms' pesticide poisons x0.5",
+   "free": true,
+   "real": "PON1 192R breaks organophosphates down faster"
+  },
+  {
+   "name": "Addiction-resistant",
+   "slot": "Chem response",
+   "tier": "T3",
+   "load": 10,
+   "text": "addiction x1/2",
+   "free": false,
+   "real": "RimWorld's; NR2B in mice",
+   "other": {
+    "addiction": -0.5
+   }
+  },
+  {
+   "name": "Impervious",
+   "slot": "Chem response",
+   "tier": "T4",
+   "load": 20,
+   "text": "addiction x0",
+   "free": false,
+   "real": "RimWorld's",
+   "other": {
+    "addiction": -1.0
+   }
+  },
+  {
+   "name": "Thick hide",
+   "slot": "Skin",
+   "tier": "T3",
+   "load": 10,
+   "text": "DR +10 %, C -1 (the orc's)",
+   "free": false,
+   "mods": {
+    "charisma": -1
+   },
+   "dr": 0.1
+  },
+  {
+   "name": "Bark",
+   "slot": "Skin",
+   "tier": "T4",
+   "load": 20,
+   "text": "DT 5, DR +20 %, isolation +30 %, fire x2; fits no clothes or armour (the Ent's)",
+   "free": false,
+   "real": "osteoderms as in crocodiles",
+   "dt": 5,
+   "dr": 0.2,
+   "iso": 0.3
+  },
+  {
+   "name": "Aquatic skin",
+   "slot": "Skin",
+   "tier": "T3",
+   "load": 10,
+   "text": "DR -5 %, rad +50 %, poison +25 %, isolation +30 %, the sun's Pain (the necroat's)",
+   "free": false,
+   "dr": -0.05,
+   "rad": 0.5,
+   "poison": 0.25,
+   "iso": 0.3,
+   "sun": "pain"
+  },
+  {
+   "name": "Moss hair",
+   "slot": "Skin",
+   "tier": "T3",
+   "load": 0,
+   "text": "green mossy hair, tough and fast-growing: food x0.9 by day outdoors once long, sleep x0.75, isolation +10 % when long (Gerald's CoS gift)",
+   "free": false,
+   "sleep": 0.75,
+   "iso": 0.1
+  },
+  {
+   "name": "Dense skin",
+   "slot": "Skin",
+   "tier": "T4",
+   "load": 10,
+   "text": "DR +10 % (the vampire's)",
+   "free": false,
+   "dr": 0.1
+  },
+  {
+   "name": "Tough skin",
+   "slot": "Skin",
+   "tier": "T3",
+   "load": 10,
+   "text": "DT +2 against normal damage (Heavy Gravity)",
+   "free": false,
+   "dt": 2
+  },
+  {
+   "name": "Tapetum",
+   "slot": "Eyes",
+   "tier": "T3",
+   "load": 10,
+   "text": "P +1, the dark halved, no glare (the elf's)",
+   "free": false,
+   "real": "cats' and dogs' reflective layer",
+   "mods": {
+    "perception": 1
+   },
+   "senses": 1
+  },
+  {
+   "name": "Night eyes",
+   "slot": "Eyes",
+   "tier": "T4",
+   "load": 20,
+   "text": "P +1, night vision",
+   "free": false,
+   "real": "tapetum + rods",
+   "mods": {
+    "perception": 1
+   },
+   "senses": 2
+  },
+  {
+   "name": "Sharp sight",
+   "slot": "Eyes",
+   "tier": "T2",
+   "load": 10,
+   "text": "P +1 (Pikachu's)",
+   "free": false,
+   "real": "20/10 eyes, a few % of people",
+   "mods": {
+    "perception": 1
+   }
+  },
+  {
+   "name": "Colour-blind",
+   "slot": "Eyes",
+   "tier": "T1",
+   "load": 0,
+   "text": "+10 % to spot a camouflaged foe or trap; red and green signals and wires confused (-10 % on those)",
+   "free": true,
+   "real": "red-green, 8 % of European men; dichromats break colour camouflage (Morgan, Adam and Mollon 1992)"
+  },
+  {
+   "name": "Watcher's eyes",
+   "slot": "Eyes",
+   "tier": "T4",
+   "load": 20,
+   "text": "P +2; true faces: +25 % to see through disguises, lies and hidden intent (the Fallen Angel's)",
+   "free": false,
+   "mods": {
+    "perception": 2
+   }
+  },
+  {
+   "name": "Seraph eyes",
+   "slot": "Eyes",
+   "tier": "T4",
+   "load": 20,
+   "text": "P +3; true faces (the graced Fallen Angel's)",
+   "free": false,
+   "mods": {
+    "perception": 3
+   }
+  },
+  {
+   "name": "Big ears",
+   "slot": "Ears and nose",
+   "tier": "T3",
+   "load": 10,
+   "text": "P +1 (the elf's)",
+   "free": false,
+   "mods": {
+    "perception": 1
+   }
+  },
+  {
+   "name": "Scent",
+   "slot": "Ears and nose",
+   "tier": "T3",
+   "load": 10,
+   "text": "tracking +30 %",
+   "free": false,
+   "real": "a dog's smell receptors"
+  },
+  {
+   "name": "Keen senses",
+   "slot": "Ears and nose",
+   "tier": "T3",
+   "load": 10,
+   "text": "P +1: hears a heartbeat within 2 hexes, smells blood (the dhampir's)",
+   "free": false,
+   "mods": {
+    "perception": 1
+   }
+  },
+  {
+   "name": "Hunter's senses",
+   "slot": "Ears and nose",
+   "tier": "T4",
+   "load": 20,
+   "text": "P +3: hears heartbeats through a wall, smells blood a street away (the vampire's)",
+   "free": false,
+   "mods": {
+    "perception": 3
+   }
+  },
+  {
+   "name": "Supertaster",
+   "slot": "Ears and nose",
+   "tier": "T1",
+   "load": 0,
+   "text": "bitter poisons in food and water noticed +10 %",
+   "free": true,
+   "real": "TAS2R38 and others, ~25 % of people"
+  },
+  {
+   "name": "Tough eardrums",
+   "slot": "Ears and nose",
+   "tier": "T3",
+   "load": 5,
+   "text": "the eardrum roll and the ringing halved (03b §3c)",
+   "free": false,
+   "real": "no real gene: the caricature",
+   "other": {
+    "ears_tough": 0.5
+   }
+  },
+  {
+   "name": "Laron",
+   "slot": "Growth",
+   "tier": "T2",
+   "load": 0,
+   "text": "cancer rolls x0.1; ~1.2 m: S -2, A +1, HP -3, Sneak +15 %",
+   "free": false,
+   "real": "GHR, both copies, an Ecuadorian village",
+   "mods": {
+    "strength": -2,
+    "agility": 1
+   },
+   "hp": -3,
+   "skills": {
+    "Sneak": 15
+   },
+   "adult": false
+  },
+  {
+   "name": "Giant",
+   "slot": "Growth",
+   "tier": "T4",
+   "load": 20,
+   "text": "S +5, E +5, P -2, A -5, huge (+15 to hit you), Sneak -30 %, guns -20 % (fingers too big), food x2 (the Ent's)",
+   "free": false,
+   "mods": {
+    "strength": 5,
+    "endurance": 5,
+    "perception": -2,
+    "agility": -5
+   },
+   "skills": {
+    "Sneak": -30,
+    "Guns": -20
+   },
+   "food": 2.0,
+   "huge": true,
+   "adult": false
+  },
+  {
+   "name": "Elephant p53",
+   "slot": "Cancer",
+   "tier": "T3",
+   "load": 10,
+   "text": "cancer rolls x0.25",
+   "free": false,
+   "real": "20 copies of TP53 in elephants (Abegglen et al. 2015)"
+  },
+  {
+   "name": "Mole-rat",
+   "slot": "Cancer",
+   "tier": "T4",
+   "load": 20,
+   "text": "cancer x0.1, slow ageing (the Fallen Angel's unaging)",
+   "free": false,
+   "real": "the naked mole rat's HAS2"
+  },
+  {
+   "name": "PCSK9 off",
+   "slot": "Cancer",
+   "tier": "T2",
+   "load": 5,
+   "text": "heart rolls x0.2",
+   "free": false,
+   "real": "PCSK9 loss, both copies: very low LDL"
+  },
+  {
+   "name": "Long life",
+   "slot": "Cancer",
+   "tier": "T3",
+   "load": 10,
+   "text": "ageing slowed",
+   "free": false,
+   "real": "SERPINE1 null, an Amish family living ~10 years longer"
+  },
+  {
+   "name": "Dsup",
+   "slot": "Radiation",
+   "tier": "T3",
+   "load": 10,
+   "text": "rad +20 %",
+   "free": false,
+   "real": "a tardigrade protein: ~40 % less X-ray damage in human cells (Hashimoto et al. 2016)",
+   "rad": 0.2
+  },
+  {
+   "name": "Rad shield",
+   "slot": "Radiation",
+   "tier": "T4",
+   "load": 20,
+   "text": "rad +40 %, cancer x0.5",
+   "free": false,
+   "real": "Dsup + repair tuned; CTNNB1 in mice",
+   "rad": 0.4
+  },
+  {
+   "name": "Fragile DNA",
+   "slot": "Radiation",
+   "tier": "T3",
+   "load": -20,
+   "text": "rad -100 % (the vampire's)",
+   "free": false,
+   "rad": -1.0
+  },
+  {
+   "name": "ATM carrier",
+   "slot": "Radiation",
+   "tier": "T1",
+   "load": -5,
+   "text": "rad -10 % (the coldvein's)",
+   "free": true,
+   "real": "one broken ATM copy, ~1 % of people: more sensitive to radiation",
+   "rad": -0.1
+  },
+  {
+   "name": "Made for change",
+   "slot": "Radiation",
+   "tier": "T3",
+   "load": 10,
+   "text": "its therapies' conflict roll +1, radiation never twists them (only switches them off), no infection rolls from implants (the necroat's, 03d §11)",
+   "free": false
+  },
+  {
+   "name": "Diving reflex",
+   "slot": "Breath",
+   "tier": "T3",
+   "load": 10,
+   "text": "breath held 5 min (Oxygen 50), swims as it walks (the necroat's)",
+   "free": false,
+   "other": {
+    "breath": 50
+   },
+   "family": "diving"
+  },
+  {
+   "name": "Anoxia",
+   "slot": "Breath",
+   "tier": "T4",
+   "load": 20,
+   "text": "breath held 10 min (Oxygen 100); every gas x0.2 (the revenant's)",
+   "free": false,
+   "real": "the painted turtle",
+   "other": {
+    "breath": 100,
+    "gas_lungs": 0.2
+   },
+   "family": "diving"
+  },
+  {
+   "name": "Cold blood",
+   "slot": "Breath",
+   "tier": "T3",
+   "load": 10,
+   "text": "the clinical-death window x2, breath held 2 min (Oxygen 20): the brain bears the want of oxygen (the dhampir's)",
+   "free": false,
+   "window": 2.0,
+   "other": {
+    "breath": 20
+   }
+  },
+  {
+   "name": "Sharp",
+   "slot": "Mind",
+   "tier": "T2",
+   "load": 0,
+   "text": "I +1; P -1 after 40",
+   "free": false,
+   "real": "RIMS1 R844H",
+   "mods": {
+    "intelligence": 1
+   }
+  },
+  {
+   "name": "Quick study",
+   "slot": "Mind",
+   "tier": "T3",
+   "load": 20,
+   "text": "skill points +2 a level",
+   "free": false,
+   "real": "RimWorld's; NR2B in mice",
+   "other": {
+    "skill_points_level": 2
+   }
+  },
+  {
+   "name": "Designer mind",
+   "slot": "Mind",
+   "tier": "T4",
+   "load": 20,
+   "text": "I +2",
+   "free": false,
+   "mods": {
+    "intelligence": 2
+   }
+  },
+  {
+   "name": "Gifted",
+   "slot": "Mind",
+   "tier": "T3",
+   "load": 10,
+   "text": "+1 every attribute, skills -10, skill points -5 a level (the trait Gifted's numbers)",
+   "free": false,
+   "real": "a designer genome of the 2030s",
+   "mods": {
+    "strength": 1,
+    "perception": 1,
+    "endurance": 1,
+    "charisma": 1,
+    "intelligence": 1,
+    "agility": 1,
+    "luck": 1
+   },
+   "other": {
+    "skill_points_level": -5
+   }
+  },
+  {
+   "name": "Sharp-plus",
+   "slot": "Mind",
+   "tier": "T3",
+   "load": 10,
+   "text": "I +2, S -1 (the necroat's)",
+   "free": false,
+   "mods": {
+    "intelligence": 2,
+    "strength": -1
+   }
+  },
+  {
+   "name": "Tongues",
+   "slot": "Mind",
+   "tier": "T4",
+   "load": 20,
+   "text": "I +2; a language's gist after an hour of listening, spoken after a day, fluent after a week (the Fallen Angel's)",
+   "free": false,
+   "real": "a hyperpolyglot's language centre; FOXP2, the speech gene",
+   "mods": {
+    "intelligence": 2
+   }
+  },
+  {
+   "name": "Steady",
+   "slot": "Temperament",
+   "tier": "T2",
+   "load": 0,
+   "text": "morale checks +10",
+   "free": false,
+   "real": "NR3C1, low PTSD risk",
+   "other": {
+    "morale": 10
+   }
+  },
+  {
+   "name": "Dead calm",
+   "slot": "Temperament",
+   "tier": "T3",
+   "load": 10,
+   "text": "never panics",
+   "free": false,
+   "real": "RimWorld's",
+   "other": {
+    "morale": 100
+   }
+  },
+  {
+   "name": "Calm",
+   "slot": "Temperament",
+   "tier": "T1",
+   "load": 0,
+   "text": "morale +5, Initiative -2",
+   "free": true,
+   "real": "TPH2, low anxiety",
+   "other": {
+    "morale": 5,
+    "sequence": -2
+   }
+  },
+  {
+   "name": "Hair trigger",
+   "slot": "Temperament",
+   "tier": "T3",
+   "load": 10,
+   "text": "A +3, I -1 (Pikachu's)",
+   "free": false,
+   "mods": {
+    "agility": 3,
+    "intelligence": -1
+   }
+  },
+  {
+   "name": "Non serviam",
+   "slot": "Temperament",
+   "tier": "T4",
+   "load": 10,
+   "text": "Leadership +20 %; no leader's bonus works on her, she follows no order she does not agree with (the Fallen Angel's)",
+   "free": false,
+   "skills": {
+    "Leadership": 20
+   }
+  },
+  {
+   "name": "No master",
+   "slot": "Temperament",
+   "tier": "T4",
+   "load": 20,
+   "text": "as Non serviam, and immune to charm, mind control and possession (the graced Fallen Angel's)",
+   "free": false,
+   "skills": {
+    "Leadership": 20
+   }
+  },
+  {
+   "name": "Claws",
+   "slot": "ORGAN",
+   "tier": "T3",
+   "load": 10,
+   "text": "retractable keratin claws: unarmed +3 (the catfolk's)",
+   "free": false,
+   "adult": false
+  },
+  {
+   "name": "Webbing",
+   "slot": "ORGAN",
+   "tier": "T3",
+   "load": 0,
+   "text": "swims as it walks, Crafting -5 %",
+   "free": false,
+   "skills": {
+    "Crafting": -5
+   },
+   "adult": false
+  },
+  {
+   "name": "Six fingers",
+   "slot": "ORGAN",
+   "tier": "T3",
+   "load": 0,
+   "text": "Crafting +10 %, gloves fit nobody",
+   "free": false,
+   "real": "HOXA11, Church's list",
+   "skills": {
+    "Crafting": 10
+   },
+   "adult": false
+  },
+  {
+   "name": "Electric organ",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 20,
+   "text": "the discharge: 1d6 Lightning at touch + an Endurance roll against a round's stun, 3 a day (Pikachu's)",
+   "free": false,
+   "real": "the electric eel's electrocytes",
+   "adult": false
+  },
+  {
+   "name": "Leaves",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 10,
+   "text": "enrooting; with the moss hair: food x0.85 by day, sleep x0.75 beside the enrooting (the Ent's)",
+   "free": false,
+   "real": "chlorophyll",
+   "adult": false
+  },
+  {
+   "name": "Blood gut",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 0,
+   "text": "blood only, ~1.5 l a day; poison +50 % (the filter) (the vampire's)",
+   "free": false,
+   "real": "the vampire bat's",
+   "poison": 0.5,
+   "adult": false
+  },
+  {
+   "name": "Half blood gut",
+   "slot": "ORGAN",
+   "tier": "T3",
+   "load": 0,
+   "text": "blood up to half the food (the dhampir's)",
+   "free": false,
+   "adult": false
+  },
+  {
+   "name": "Cold metabolism",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": -10,
+   "text": "runs at ~30 °C: food and water x0.6, sleep x0.75, healing x1/2, bleeding x1/2, the window x4 (the coldvein's)",
+   "free": false,
+   "food": 0.6,
+   "water": 0.6,
+   "sleep": 0.75,
+   "heal": 0.5,
+   "bleed": 0.5,
+   "window": 4.0,
+   "adult": false
+  },
+  {
+   "name": "Torpor",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 10,
+   "text": "at clinical death a coma while not burned (the vampire's)",
+   "free": false,
+   "at_death": "torpor",
+   "adult": false
+  },
+  {
+   "name": "Self-mending",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 20,
+   "text": "at clinical death it shuts down and mends 1 HP a day, -10 % XP (the revenant's)",
+   "free": false,
+   "at_death": "self-mend",
+   "adult": false
+  },
+  {
+   "name": "Spark fingers",
+   "slot": "ORGAN",
+   "tier": "T3",
+   "load": 10,
+   "text": "a small electric organ in the forearm: a snap lights tinder, a touch shocks for 1 (the Tiefling's)",
+   "free": false,
+   "adult": false
+  },
+  {
+   "name": "Glide wings",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 10,
+   "text": "black feathered wings: glide, no fall damage from up to 20 m and half above, HP +5 of the wing muscle, Sneak -10 %, armour needs slits (the Fallen Angel's)",
+   "free": false,
+   "hp": 5,
+   "fall": 0.5,
+   "skills": {
+    "Sneak": -10
+   },
+   "adult": false
+  },
+  {
+   "name": "Seraph wings",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 20,
+   "text": "wings that fly (10 hexes a turn for three turns, then a rest), eyespot feathers: be not afraid (the graced form's)",
+   "free": false,
+   "hp": 5,
+   "fall": 0.0,
+   "skills": {
+    "Sneak": -10
+   },
+   "adult": false
+  },
+  {
+   "name": "Photophores",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 10,
+   "text": "the smite of light: a 3-hex cone, an Endurance roll or blinded for a round, once a fight (the graced form's)",
+   "free": false,
+   "real": "deep-sea fish and fireflies make light",
+   "adult": false
+  },
+  {
+   "name": "Healing palms",
+   "slot": "ORGAN",
+   "tier": "T4",
+   "load": 10,
+   "text": "the healing touch: a minute, 2d10 HP or a dying man back at 1 HP, 10 % of her Blood (the graced form's)",
+   "free": false,
+   "real": "saliva's histatin speeds wound closure (Oudhoff et al. 2008)",
+   "adult": false
+  },
+  {
+   "name": "Racing metabolism",
+   "slot": "Metabolism",
+   "tier": "T2",
+   "load": 10,
+   "text": "healing +3, chems at once, their after-effects and withdrawal x0.75, no resistance lost (the shop's Drug stash)",
+   "free": false,
+   "other": {
+    "healing_rate": 3
+   }
+  },
+  {
+   "name": "Regeneration",
+   "slot": "Metabolism",
+   "tier": "T4",
+   "load": 20,
+   "text": "healing +3 (the revenant's)",
+   "free": false,
+   "real": "RimWorld's superfast healing",
+   "other": {
+    "healing_rate": 3
+   }
+  },
+  {
+   "name": "Blood-fed mending",
+   "slot": "Metabolism",
+   "tier": "T4",
+   "load": 10,
+   "text": "healing +3 while fed: a feeding in 24 h (the vampire's)",
+   "free": false,
+   "other": {
+    "healing_rate_fed": 3
+   }
+  },
+  {
+   "name": "Milk-intolerant",
+   "slot": "Metabolism",
+   "tier": "T1",
+   "load": -3,
+   "text": "fresh milk feeds half and costs 10 water",
+   "free": true,
+   "real": "no lactase persistence: ~24 % of Czechs in a 2017 sample, most of the world"
+  },
+  {
+   "name": "Fat storer",
+   "slot": "Metabolism",
+   "tier": "T2",
+   "load": 0,
+   "text": "food x0.85, A -1",
+   "free": false,
+   "real": "CREBRF R457Q, Samoa: heavier, less diabetes",
+   "mods": {
+    "agility": -1
+   },
+   "food": 0.85
+  },
+  {
+   "name": "Red cheeks",
+   "slot": "Look",
+   "tier": "T3",
+   "load": -5,
+   "text": "C -1 (Pikachu's)",
+   "free": false,
+   "mods": {
+    "charisma": -1
+   }
+  },
+  {
+   "name": "Dark allure",
+   "slot": "Look",
+   "tier": "T3",
+   "load": 10,
+   "text": "C +2: pale skin, striking eyes (the dhampir's)",
+   "free": false,
+   "mods": {
+    "charisma": 2
+   }
+  },
+  {
+   "name": "Glamour",
+   "slot": "Look",
+   "tier": "T4",
+   "load": 20,
+   "text": "C +5 (the vampire's)",
+   "free": false,
+   "mods": {
+    "charisma": 5
+   }
+  },
+  {
+   "name": "Grey pallor",
+   "slot": "Look",
+   "tier": "T3",
+   "load": -10,
+   "text": "C -2 (the revenant's)",
+   "free": false,
+   "mods": {
+    "charisma": -2
+   }
+  },
+  {
+   "name": "Cool beauty",
+   "slot": "Look",
+   "tier": "T3",
+   "load": 5,
+   "text": "C +1 (the coldvein's)",
+   "free": false,
+   "mods": {
+    "charisma": 1
+   }
+  },
+  {
+   "name": "Perfect beauty",
+   "slot": "Look",
+   "tier": "T4",
+   "load": 20,
+   "text": "C +4: Ezekiel's cherub, perfect in beauty (the Fallen Angel's)",
+   "free": false,
+   "mods": {
+    "charisma": 4
+   }
+  },
+  {
+   "name": "Graced beauty",
+   "slot": "Look",
+   "tier": "T4",
+   "load": 20,
+   "text": "C +5 (the graced form's)",
+   "free": false,
+   "mods": {
+    "charisma": 5
+   }
+  },
+  {
+   "name": "Cat's eyes and white hair",
+   "slot": "Look",
+   "tier": "T3",
+   "load": -10,
+   "text": "C -3 (the Witcher's)",
+   "free": false,
+   "mods": {
+    "charisma": -3
+   }
+  },
+  {
+   "name": "Infernal look",
+   "slot": "Look",
+   "tier": "T3",
+   "load": 5,
+   "text": "red skin, horn studs: C +1, intimidation +10 % (the Tiefling's)",
+   "free": false,
+   "mods": {
+    "charisma": 1
+   }
+  },
+  {
+   "name": "Fashion: hair",
+   "slot": "Look",
+   "tier": "T1",
+   "load": 0,
+   "text": "a hair colour: C +1 with those who like it, -1 with those who don't (the GM's call)",
+   "free": false
+  },
+  {
+   "name": "Fashion: eyes",
+   "slot": "Look",
+   "tier": "T1",
+   "load": 0,
+   "text": "an eye colour: C +1 or -1 by taste",
+   "free": false
+  },
+  {
+   "name": "Fashion: skin pattern",
+   "slot": "Look",
+   "tier": "T1",
+   "load": 0,
+   "text": "a skin tone or pattern: C +1 or -1 by taste",
+   "free": false
+  },
+  {
+   "name": "Fashion: glow",
+   "slot": "Look",
+   "tier": "T1",
+   "load": 0,
+   "text": "a soft glow in the dark: C +1 or -1 by taste, Sneak -20 % in the dark",
+   "free": false
+  },
+  {
+   "name": "Wild instinct",
+   "slot": "Aptitude",
+   "tier": "T3",
+   "load": 10,
+   "text": "Survival +20 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Survival": 20
+   },
+   "aptitude": "Survival"
+  },
+  {
+   "name": "Forest sense",
+   "slot": "Aptitude",
+   "tier": "T4",
+   "load": 20,
+   "text": "Survival +50 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Survival": 50
+   },
+   "aptitude": "Survival"
+  },
+  {
+   "name": "Root lore",
+   "slot": "Aptitude",
+   "tier": "T3",
+   "load": 10,
+   "text": "Biology +20 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Biology": 20
+   },
+   "aptitude": "Biology"
+  },
+  {
+   "name": "Silver tongue",
+   "slot": "Aptitude",
+   "tier": "T3",
+   "load": 10,
+   "text": "Rhetorics +20 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Rhetorics": 20
+   },
+   "aptitude": "Rhetorics"
+  },
+  {
+   "name": "Steady hands",
+   "slot": "Aptitude",
+   "tier": "T3",
+   "load": 10,
+   "text": "Medicine +20 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Medicine": 20
+   },
+   "aptitude": "Medicine"
+  },
+  {
+   "name": "Athletic",
+   "slot": "Aptitude",
+   "tier": "T2",
+   "load": 5,
+   "text": "Athletics +10 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Athletics": 10
+   },
+   "aptitude": "Athletics"
+  },
+  {
+   "name": "Born athlete",
+   "slot": "Aptitude",
+   "tier": "T3",
+   "load": 10,
+   "text": "Athletics +20 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Athletics": 20
+   },
+   "aptitude": "Athletics"
+  },
+  {
+   "name": "Maker's hands",
+   "slot": "Aptitude",
+   "tier": "T3",
+   "load": 10,
+   "text": "Crafting +20 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Crafting": 20
+   },
+   "aptitude": "Crafting"
+  },
+  {
+   "name": "Haggler",
+   "slot": "Aptitude",
+   "tier": "T3",
+   "load": 10,
+   "text": "Economy +20 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Economy": 20
+   },
+   "aptitude": "Economy"
+  },
+  {
+   "name": "Green thumb",
+   "slot": "Aptitude",
+   "tier": "T2",
+   "load": 5,
+   "text": "Biology +10 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Biology": 10
+   },
+   "aptitude": "Biology"
+  },
+  {
+   "name": "Occult sense",
+   "slot": "Aptitude",
+   "tier": "T3",
+   "load": 10,
+   "text": "Occultism +20 %",
+   "free": false,
+   "real": "talent is partly inborn: twin studies put the heritability of most traits near half (Polderman et al. 2015); RimWorld's aptitude genes",
+   "skills": {
+    "Occultism": 20
+   },
+   "aptitude": "Occultism"
+  },
+  {
+   "name": "Watchers' arts",
+   "slot": "Aptitude",
+   "tier": "T4",
+   "load": 10,
+   "text": "a free tag on Crafting (weapons and metals), Biology (roots) or a science (the stars), chosen at birth (the Fallen Angel's)",
+   "free": false,
+   "aptitude": "tag"
+  }
+ ]
+}

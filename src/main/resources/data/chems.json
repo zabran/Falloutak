@@ -1,0 +1,341 @@
+{
+ "source": "03b §8 (the stages and the lengths per chem RULED 11-16); 04 and 04c (RadAway, Rad-X, painkillers); Fallout 2's code",
+ "rows": [
+  {
+   "name": "Caffeine",
+   "chance": 0.1,
+   "roll": "day",
+   "effect": {
+    "hours": 4,
+    "other": {
+     "sleep_stage_off": 1
+    }
+   },
+   "withdrawal": {
+    "hours": 72,
+    "mods": {
+     "intelligence": -1
+    }
+   },
+   "dependence": {
+    "hours": 168
+   },
+   "source": "04c (the sleep stage off); withdrawal: headache, fatigue, poor concentration from 12-24 h, in about half of regular users (Juliano & Griffiths 2004, a review); the 10 % a day and the -1 Intelligence [mine]; lengths RULED (03b §8)"
+  },
+  {
+   "name": "Alcohol",
+   "chance": 0.05,
+   "effect": {
+    "hours": 1,
+    "mods": {
+     "perception": -1
+    },
+    "other": {
+     "pain_felt": -10
+    }
+   },
+   "withdrawal": {
+    "hours": 168,
+    "mods": {
+     "agility": -1,
+     "charisma": -1
+    }
+   },
+   "dependence": {
+    "hours": 504
+   },
+   "source": "Fallout 2's beer (-1 Perception, no hangover); 1 h = a drink cleared (the liver ~1 a hour); Pain -10 (04c); 5 % a drink as New Vegas (Fallout 2 20 %, Fallout 4 15-25 %; our 7-day count raises it with every drink); the addiction -1 Agility -1 Charisma (New Vegas and Fallout 4 alike); lengths RULED"
+  },
+  {
+   "name": "Nicotine",
+   "chance": 0.1,
+   "roll": "day",
+   "effect": {
+    "hours": 1,
+    "mods": {
+     "perception": 1
+    }
+   },
+   "withdrawal": {
+    "hours": 504,
+    "mods": {
+     "charisma": -1,
+     "intelligence": -1
+    }
+   },
+   "dependence": {
+    "hours": 504
+   },
+   "source": "attention and reaction time better (Heishman et al. 2010, a meta-analysis); the most addictive of the common drugs: 32 % of those who ever smoke become dependent, twice alcohol's 15 % (Anthony, Warner & Kessler 1994); the withdrawal irritable and unfocused (DSM-5); lengths RULED"
+  },
+  {
+   "name": "Codeine",
+   "chance": 0.03,
+   "roll": "day",
+   "effect": {
+    "hours": 6,
+    "other": {
+     "pain_felt": -20
+    }
+   },
+   "withdrawal": {
+    "hours": 240,
+    "mods": {
+     "agility": -1
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "04c §4b (-20 for 6 h, 3 % a day); the withdrawal half of morphine's; the painkillers' lengths RULED (03b §8)"
+  },
+  {
+   "name": "Morphine",
+   "chance": 0.1,
+   "roll": "day",
+   "effect": {
+    "hours": 4,
+    "other": {
+     "pain_felt": -40
+    }
+   },
+   "withdrawal": {
+    "hours": 240,
+    "mods": {
+     "agility": -1,
+     "intelligence": -1
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "04c §4b (Fallout's Med-X: -40 for 4 h, 10 % a day); the addiction -1 Agility -1 Intelligence = Med-X's in New Vegas; lengths RULED"
+  },
+  {
+   "name": "Ketamine",
+   "chance": 0,
+   "effect": {
+    "hours": 1,
+    "other": {
+     "pain_felt": -50
+    }
+   },
+   "crash": {
+    "hours": 1,
+    "mods": {
+     "intelligence": -2
+    }
+   },
+   "source": "04c §4b (-50 for 1 h, Intelligence -2 an hour on waking)"
+  },
+  {
+   "name": "Amphetamine",
+   "chance": 0.1,
+   "effect": {
+    "hours": 6,
+    "mods": {
+     "agility": 1
+    },
+    "other": {
+     "sleep_stage_off": 1
+    }
+   },
+   "crash": {
+    "hours": 12,
+    "mods": {
+     "agility": -1,
+     "intelligence": -1
+    }
+   },
+   "withdrawal": {
+    "hours": 504,
+    "mods": {
+     "agility": -1,
+     "charisma": -1
+    }
+   },
+   "dependence": {
+    "hours": 4320
+   },
+   "source": "11 % of users become dependent (Anthony et al. 1994, stimulants other than cocaine); 4-6 h awake and quicker; the crash and withdrawal: fatigue and low mood (their numbers [mine], set like Buffout's crash); lengths RULED"
+  },
+  {
+   "name": "Buffout",
+   "chance": 0.25,
+   "effect": {
+    "hours": 6,
+    "mods": {
+     "strength": 2,
+     "endurance": 3,
+     "agility": 2
+    }
+   },
+   "crash": {
+    "hours": 18,
+    "mods": {
+     "strength": -2,
+     "endurance": -1,
+     "agility": -2
+    }
+   },
+   "withdrawal": {
+    "hours": 336,
+    "mods": {
+     "strength": -2,
+     "endurance": -2,
+     "agility": -3
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "Fallout 2 (fallout.wiki; the addiction's -2 S -2 E -3 A from its engine's perk table); lengths RULED"
+  },
+  {
+   "name": "Mentats",
+   "chance": 0.15,
+   "effect": {
+    "hours": 24,
+    "mods": {
+     "perception": 2,
+     "intelligence": 2,
+     "charisma": 1
+    }
+   },
+   "crash": {
+    "hours": 96,
+    "mods": {
+     "perception": -2,
+     "intelligence": -2,
+     "charisma": -2
+    }
+   },
+   "withdrawal": {
+    "hours": 336,
+    "mods": {
+     "intelligence": -3,
+     "agility": -2
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "Fallout 2 (fallout.wiki: a day, then -2/-2/-2 for 4 days; the addiction -3 I -2 A from the engine); lengths RULED"
+  },
+  {
+   "name": "Psycho",
+   "chance": 0.2,
+   "effect": {
+    "hours": 4,
+    "mods": {
+     "agility": 3,
+     "intelligence": -3
+    },
+    "other": {
+     "dr": 50
+    }
+   },
+   "crash": {
+    "hours": 8,
+    "mods": {
+     "intelligence": -2
+    },
+    "other": {
+     "dr": 25
+    }
+   },
+   "withdrawal": {
+    "hours": 336,
+    "mods": {
+     "intelligence": -2
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "Fallout 2 (fallout.wiki: 4 h, then -2 I and DR +25 for 8 h; the addiction -2 I from the engine); lengths RULED"
+  },
+  {
+   "name": "Jet",
+   "chance": 0.5,
+   "effect": {
+    "hours": 0.08333333333333333,
+    "mods": {
+     "strength": 1,
+     "perception": 1
+    },
+    "other": {
+     "ap": 2
+    }
+   },
+   "crash": {
+    "hours": 24,
+    "mods": {
+     "strength": -3,
+     "perception": -3
+    },
+    "other": {
+     "ap": -2
+    }
+   },
+   "withdrawal": {
+    "hours": 672,
+    "mods": {
+     "strength": -1,
+     "perception": -1
+    },
+    "other": {
+     "ap": -1
+    }
+   },
+   "dependence": {
+    "hours": 17520
+   },
+   "antidote": "Jet Antidote",
+   "source": "Fallout 2 (fallout.wiki: 5 minutes, then 24 h; 50 %; the addiction -1 AP -1 S -1 P from the engine, until the antidote); lengths RULED"
+  },
+  {
+   "name": "Jet Antidote",
+   "chance": 0,
+   "cures": "Jet",
+   "effect": {
+    "hours": 1
+   },
+   "source": "Fallout 2: ends Jet's addiction"
+  },
+  {
+   "name": "RadAway",
+   "chance": 0.1,
+   "effect": {
+    "hours": 4,
+    "other": {
+     "radaway": 1
+    }
+   },
+   "withdrawal": {
+    "hours": 504,
+    "other": {
+     "rad_res": -20
+    }
+   },
+   "source": "04 (RULED 11-15/16): 50 + Medicine rads out over 4 h, 10 % a dose, -20 rad resistance for about 3 weeks"
+  },
+  {
+   "name": "Rad-X",
+   "chance": 0,
+   "effect": {
+    "hours": 24,
+    "other": {
+     "rad_res": 50
+    }
+   },
+   "crash": {
+    "hours": 48,
+    "other": {
+     "rad_res": 25
+    }
+   },
+   "source": "04 (RULED: as Fallout 2): +50 % rad resistance for 24 h, then +25 % for 48 h"
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+# Fallouťák: the resource packs the server sends a player on joining (Marek 11-19: "use the GitHub release variant").
+# The public pack holds only Falloutak's own work (icons, models); tools/build_pack.py builds it and prints its SHA-1.
+resource-pack:
+  url: ""
+  sha1: ""
+  required: false
+  prompt: "Fallouťák: the game's icons and pictures"
+# Optional: the Fallout 2 sound pack (tools/fallout2_sounds.py, made from a player's OWN copy of Fallout 2). Interplay's sounds:
+# never on a public page. Players who load it hear Fallout 2's sounds; the others Minecraft's.
+fallout2-pack:
+  url: ""
+  sha1: ""
