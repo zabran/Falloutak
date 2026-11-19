@@ -3,6 +3,15 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.33.0 (2026-11-19): the sounds after round 2 of the listening test.**
+- **Picks:** the turn's start and the other hand as picked; a bullet in flesh, a missed bullet, a knife in flesh and the
+  footsteps play one of the liked recordings at random (several sounds in one event).
+- **The falls cry out in the free pack itself:** a cry, then the body hitting the ground in two knocks, made like Fallout 2's
+  from free recordings (new CC0 sources: *Male Grunt/Yelling sounds*, *Dying Voices - Female - RPG*, *Female screams*, *75 CC0
+  breaking / falling / hit sfx*, *Thwack Sounds*); with the free pack the plugin adds no hurt voice, and a woman's knockback
+  plays her own fall. New candidates for the falls and the level-up (two new starts before the chime, the chime longer).
+- **The narrator:** 96 lines; one more groin crit, in both forms and in the second person.
+
 **Version 0.32.0 (2026-11-19): the sounds after Marek's listening test; more narrator lines, some for the player hit.**
 - **Sounds** (his verdicts, sound by sound): 19 keys play Minecraft's own sound again (the turn's end, lacking AP, the
   grenade's throw, the explosion, burning, the medical ones, the Pip-Boy, the Radmie...), the flare Minecraft's throw; a crit

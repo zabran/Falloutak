@@ -134,6 +134,14 @@ class SfxTest extends MockGame {
             Sfx.fall(p.getLocation(), "down.male", false);
             assertEquals(List.of("down.male"), heard);
             plugin.character(p).fallout2Sounds = false;
+            heard.clear();
+            plugin.character(p).pictures = true;                                // round 2: the free pack's falls carry their cry
+            Sfx.fall(p.getLocation(), "down.male", false);
+            Sfx.fall(p.getLocation(), "knockback", false);
+            Sfx.fall(p.getLocation(), "knockback", true);                       // her knockback = her own fall
+            assertEquals(List.of("down.male", "knockback", "down.female"), heard);
+            plugin.character(p).pictures = null;
+            heard.clear();
             Character c = plugin.character(p);
             c.dose(Data.CHEMS.get("Mentats"), new Random(1));
             c.dose(Data.CHEMS.get("Psycho"), new Random(1));

@@ -1,5 +1,5 @@
 {
- "source": "The narrator's comments on critical hits and critical failures (Marek 11-19: 'Fallout had funny comments - at least in Czech version. Could you the documentary narrator speak the comments to crits?'). OUR OWN text, written for Falloutak in a deadpan nature-documentary voice; nothing is taken from Fallout's messages. Round 2 (Marek 11-19: 'if english version is protected, look for Czech version, that one is quite different (I think it was fan made) and be translating it into english in free form, it becomes completely different'): new lines written freely from the IDEAS of the Czech fan translation's crit messages (patch000.dat, 2000), never their words or Interplay's. kind you.* = second person, heard only by the player who is hit (Narrator.crit with a victim); everyone else hears the third-person line. kind = what the crit or the failure did (the most striking effect wins, Narrator.java); {he} {him} {his} {himself} {He} {His} become she/her/herself for a woman, and tools/narrator.py voices both forms with the English documentary narrator (Kokoro bm_lewis at 0.92, Marek by ear). Players with the public pack hear it; everyone reads it in the chat.",
+ "source": "The narrator's comments on critical hits and critical failures (Marek 11-19: 'Fallout had funny comments - at least in Czech version. Could you the documentary narrator speak the comments to crits?'). OUR OWN text, written for Falloutak in a deadpan nature-documentary voice; nothing is taken from Fallout's messages. Round 2 (Marek 11-19: 'if english version is protected, look for Czech version, that one is quite different (I think it was fan made) and be translating it into english in free form, it becomes completely different'): new lines written freely from the IDEAS of the Czech fan translation's crit messages (patch000.dat, 2000), never their words or Interplay's. groin.6 and you.groin.2 (Marek 11-19: 'I remember one extra crude remark ... could that one be used? Change it a bit, if it is needed.'): the Czech version's joke on a woman's crit (its own, the English says only that her organs were exposed), reworded and made for either sex. kind you.* = second person, heard only by the player who is hit (Narrator.crit with a victim); everyone else hears the third-person line. kind = what the crit or the failure did (the most striking effect wins, Narrator.java); {he} {him} {his} {himself} {He} {His} become she/her/herself for a woman, and tools/narrator.py voices both forms with the English documentary narrator (Kokoro bm_lewis at 0.92, Marek by ear). Players with the public pack hear it; everyone reads it in the chat.",
  "lines": [
   {
    "id": "dies.1",
@@ -372,6 +372,11 @@
    "text": "That hurt more than any bad date ever could."
   },
   {
+   "id": "groin.6",
+   "kind": "crit.groin",
+   "text": "{His} most intimate parts are now open to public viewing. From the inside out."
+  },
+  {
    "id": "turn.4",
    "kind": "crit.turn",
    "text": "A crushing blow. {He} is fully stunned, and only partly aware of it."
@@ -455,6 +460,11 @@
    "id": "you.groin.1",
    "kind": "you.groin",
    "text": "Somewhere, a linguist is still searching for a word for what you feel right now."
+  },
+  {
+   "id": "you.groin.2",
+   "kind": "you.groin",
+   "text": "Your most intimate parts are now open to public viewing. From the inside out."
   },
   {
    "id": "you.eyes.1",

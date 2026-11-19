@@ -84,6 +84,14 @@
    {
     "name": "falloutak:free/bullet_flesh",
     "stream": false
+   },
+   {
+    "name": "falloutak:free/bullet_flesh_2",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/bullet_flesh_3",
+    "stream": false
    }
   ]
  },
@@ -91,6 +99,10 @@
   "sounds": [
    {
     "name": "falloutak:free/bullet_miss",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/bullet_miss_2",
     "stream": false
    }
   ]
@@ -115,6 +127,10 @@
   "sounds": [
    {
     "name": "falloutak:free/knife_flesh",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/knife_flesh_2",
     "stream": false
    }
   ]
@@ -179,6 +195,14 @@
   "sounds": [
    {
     "name": "falloutak:free/step",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/step_2",
+    "stream": false
+   },
+   {
+    "name": "falloutak:free/step_3",
     "stream": false
    }
   ]
@@ -1119,6 +1143,22 @@
    }
   ]
  },
+ "narrator.groin.6": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/groin_6",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.groin.6.f": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/groin_6_f",
+    "stream": false
+   }
+  ]
+ },
  "narrator.turn.4": {
   "sounds": [
    {
@@ -1267,6 +1307,14 @@
   "sounds": [
    {
     "name": "falloutak:narrator/you_groin_1",
+    "stream": false
+   }
+  ]
+ },
+ "narrator.you.groin.2": {
+  "sounds": [
+   {
+    "name": "falloutak:narrator/you_groin_2",
     "stream": false
    }
   ]

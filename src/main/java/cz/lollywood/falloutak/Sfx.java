@@ -104,17 +104,27 @@ final class Sfx {
     /**
      * A body falling or thrown back WITH its pain voice (Marek 11-19 on the knockdown and the knockback: *"original makes sound of
      * pain and body hitting ground. Both is missing in our and MC."*): Fallout 2's own fall already cries out; for everyone else
-     * the free pack's or Minecraft's body hitting the ground plus the man's or the woman's hurt voice.
+     * Minecraft's body hitting the ground plus the man's or the woman's hurt voice. The free pack's falls carry their own cry
+     * since round 2 of the listening test ({@link #VOICED}, tools/free_sounds.py: a cry, then the body hitting the ground, as
+     * Fallout 2's), so they play alone; Fallout 2's knockback is its man's fall, so a woman's knockback plays her own fall.
      */
     static void fall(Location l, String key, boolean female) {
         row(key);
         if (l == null || l.getWorld() == null) return;
         for (Player p : l.getWorld().getPlayers()) {
             if (p.getLocation().distanceSquared(l) > HEARD * HEARD) continue;
-            play(p, l, key);
-            if (!f2(p)) play(p, l, body("hurt", female));
+            if (f2(p)) play(p, l, key);
+            else if (VOICED.contains(key) && free(p, key))
+                play(p, l, female && key.equals("knockback") ? body("down", true) : key);
+            else {
+                play(p, l, key);
+                play(p, l, body("hurt", female));
+            }
         }
     }
+
+    /** The free pack's sounds that already carry the body's cry (a fall: the cry, then the body hitting the ground). */
+    static final java.util.Set<String> VOICED = java.util.Set.of("knockback", "down.male", "down.female");
 
     /** Heard by one player only (his turn, his menus, his own body's signals). */
     static void to(Player p, String key) {

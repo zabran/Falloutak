@@ -23,56 +23,73 @@ K = "kenney_"
 # revived, pipboy, radmie; crit is gone ("Just make crits have normal sound + the narrator speach").
 # A value is one candidate, or a LIST of candidates: the first goes into the pack, all of them into build/free-cands/ for the
 # listening page. A candidate = (file, pitch, gain dB, seconds kept: N or (start, end) or None), or ("seq", [(file, at seconds,
-# gain dB, kept, pitch), ...]) = several recordings laid one after another (steps, clicks).
-FALL = [("oga_impact/qubodupImpactMeat02.ogg", 0.9, 2, None),        # a body hits the ground; the voice comes from the plugin
-        ("oga_fleshy/hammer-1a.wav", 0.8, 0, None),
-        ("oga_impacts/Impact Rash 2.wav", 1.0, 0, 0.8)]
+# gain dB, kept, pitch), ...]) = several recordings laid one after another (steps, clicks). ("variants", [candidate, ...]) = ALL of
+# them in the pack, the client picks one each time (round 2, 11-19: where Marek found several good, "ABC all are good").
+# The falls (round 2: "none fits - original has painful scream and body falling on ground"): Fallout 2's is a short cry, then the
+# body hitting the ground ~0.4 s later in two knocks (the trunk, then the limbs). Ours is made the same way from free recordings:
+# a cry, then a heavy soft thump, a slap and a second smaller knock. The cry is in the file, so the plugin adds no hurt voice to
+# these (Sfx.VOICED); a woman's knockback plays down.female.
+THUDS = [[("kenney_impact-sounds/Audio/impactSoft_heavy_001.ogg", 0.0, -1, None, 1.0), ("oga_fleshy/punch_alt-2b.wav", 0.0, -6, None, 1.0),
+          ("kenney_impact-sounds/Audio/impactSoft_medium_002.ogg", 0.13, -5, None, 1.0)],
+         [("kenney_impact-sounds/Audio/impactPunch_heavy_000.ogg", 0.0, -1, None, 1.0), ("oga_bfh/bfh1_hit_06.ogg", 0.01, -6, None, 1.0),
+          ("kenney_impact-sounds/Audio/impactSoft_medium_001.ogg", 0.12, -5, None, 1.0)],
+         [("kenney_impact-sounds/Audio/impactSoft_heavy_003.ogg", 0.0, -1, None, 1.0), ("oga_thwack/thwack-06.wav", 0.0, -7, None, 1.0),
+          ("oga_bfh/bfh1_misc_03.ogg", 0.15, -6, None, 1.0)]]
+
+
+def fall(cry, keep, gain, thud, at):
+    """A cry (file, the part kept, gain dB), then the body hitting the ground `at` seconds later."""
+    return ("seq", [(cry, 0.0, gain, keep, 1.0)] + [(f, at + dt, g, k, p) for f, dt, g, k, p in THUDS[thud]])
+
+
+MAN = [fall("oga_yell/1yell12.wav", (0.31, 0.82), 4, 0, 0.42),         # whisper: "Argh!"
+       fall("oga_yell/3grunt2.wav", (0.29, 0.89), 8, 1, 0.45),         # "Ugh!"
+       fall("oga_yell/1yell16.wav", (0.55, 0.86), 6, 2, 0.36)]         # "Ah!"
+WOMAN = [fall("oga_female_screams/4.ogg", (0.01, 0.55), -5, 0, 0.42),                  # "AHHH!"
+         fall("oga_dying_female/high_ugh_ouch.mp3", (0.07, 0.37), 7, 1, 0.36),         # "Oh!"
+         fall("oga_dying_female/nerf_this_death_noises.mp3", (0.81, 1.26), 8, 2, 0.40)]   # "Ugh."
 MAP = {
     "combat.start": ("kenney_digital-audio/Audio/lowThreeTone.ogg", 0.9, 0, None),
     "combat.end": ("kenney_interface-sounds/Audio/confirmation_002.ogg", 1.0, 0, None),
-    "turn.start": [("kenney_interface-sounds/Audio/select_003.ogg", 1.0, 0, None),     # was twoTone1: "Sounds more like a failure"
-                   ("kenney_interface-sounds/Audio/toggle_003.ogg", 1.0, 0, None),
-                   ("kenney_interface-sounds/Audio/select_004.ogg", 1.0, 0, None)],
+    "turn.start": ("kenney_interface-sounds/Audio/select_003.ogg", 1.0, 0, None),      # round 2: "pick A"
     "mode.next": ("kenney_rpg-audio/Audio/metalClick.ogg", 1.2, 0, None),
     "stance": ("kenney_rpg-audio/Audio/cloth1.ogg", 1.0, 0, None),
-    "hands": [("oga_shotguncock_0.wav", 1.0, 0, None),                                 # "original has reload sounds"
-              ("oga_gunreload1.wav", 1.0, 0, (0.0, 0.55)),
-              ("oga_assaultriflereload1_0.wav", 1.0, 0, (0.12, 0.65))],
+    "hands": ("oga_shotguncock_0.wav", 1.0, 0, None),                                  # round 2: "pick A"
     "pistol.single": ("oga_sounds/sounds/cz.wav", 1.0, 0, (0.2, 1.1)),   # the shot starts 0.2 s in
     "pistol.burst": ("burst:oga_sounds/sounds/cz.wav", 1.05, 0, (0.2, 1.0)),
     "pistol.empty": ("kenney_rpg-audio/Audio/metalLatch.ogg", 1.4, 0, 0.4),
     "pistol.reload": ("oga_reload.wav", 1.0, 0, None),
-    "bullet.flesh": [("oga_fleshy/guns-arm-2b.wav", 1.0, 0, None),                    # "ours bounced off like rubber"
-                     ("oga_fleshy/gun-1b.wav", 1.0, 0, None),
-                     ("oga_impact/qubodupImpactMeat01.ogg", 1.0, 0, None)],
-    "bullet.miss": [("oga_impacts/Impact 7.wav", 1.0, 0, 0.6),                        # "does not sound like bullet impact"
-                    ("oga_impact/qubodupImpactStone.ogg", 1.0, 0, None),
-                    ("oga_impacts/Impact 1.wav", 1.0, 0, 0.6)],
+    "bullet.flesh": ("variants", [("oga_fleshy/guns-arm-2b.wav", 1.0, 0, None),     # round 2: "ABC all are good."
+                                  ("oga_fleshy/gun-1b.wav", 1.0, 0, None),
+                                  ("oga_impact/qubodupImpactMeat01.ogg", 1.0, 0, None)]),
+    "bullet.miss": ("variants", [("oga_impacts/Impact 7.wav", 1.0, 0, 0.6),         # round 2: "AC are good"
+                                 ("oga_impacts/Impact 1.wav", 1.0, 0, 0.6)]),
     "knife.swing": ("kenney_rpg-audio/Audio/drawKnife1.ogg", 1.1, 0, None),
     "knife.thrust": ("kenney_rpg-audio/Audio/drawKnife2.ogg", 0.85, 0, None),
-    "knife.flesh": [("oga_fleshy/piercing-1a.wav", 1.0, 0, None),                     # "ours is hitting steel"
-                    ("oga_fleshy/piercing-arm-2a.wav", 1.0, 0, None),
-                    ("oga_impact/qubodupImpactMeat02.ogg", 1.1, 0, None)],
+    "knife.flesh": ("variants", [("oga_fleshy/piercing-1a.wav", 1.0, 0, None),      # round 2: "AB fits"
+                                 ("oga_fleshy/piercing-arm-2a.wav", 1.0, 0, None)]),
     "melee.miss": ("kenney_rpg-audio/Audio/cloth3.ogg", 1.3, 0, None),
     "crit.fail": ("kenney_rpg-audio/Audio/metalPot1.ogg", 1.0, 0, None),
     "weapon.drop": ("kenney_rpg-audio/Audio/metalPot1.ogg", 1.0, 0, None),             # "use our crit.fail sound"
     "weapon.pickup": ("kenney_rpg-audio/Audio/handleSmallLeather.ogg", 1.0, 0, None),
-    "knockback": FALL,
-    "down.male": [(f, p * 0.95, g, k) for f, p, g, k in FALL],
-    "down.female": [(f, p * 1.1, g, k) for f, p, g, k in FALL],
-    "step": [("seq", [("kenney_impact-sounds/Audio/footstep_grass_00%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)]),
-             ("seq", [("kenney_impact-sounds/Audio/footstep_concrete_00%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)]),
-             ("seq", [("kenney_rpg-audio/Audio/footstep0%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)])],
+    "knockback": MAN,                                                                  # Fallout 2's knockback IS its man's fall
+    "down.male": MAN,
+    "down.female": WOMAN,
+    "step": ("variants", [                                                             # round 2: "ABC - all are great."
+        ("seq", [("kenney_impact-sounds/Audio/footstep_grass_00%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)]),
+        ("seq", [("kenney_impact-sounds/Audio/footstep_concrete_00%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)]),
+        ("seq", [("kenney_rpg-audio/Audio/footstep0%d.ogg" % i, 0.05 + 0.39 * i, -1.5 * i, None, 1.0) for i in range(4)])]),
     "geiger": ("synth:geiger", 1.0, 0, None),
-    "levelup": [("seq", [("kenney_interface-sounds/Audio/tick_004.ogg", 0.0, 0, None, 1.0),   # "a very specific clicking earned sound"
-                         ("kenney_interface-sounds/Audio/tick_004.ogg", 0.2, 0, None, 1.1),
-                         ("kenney_interface-sounds/Audio/tick_004.ogg", 0.26, 0, None, 1.2),
-                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.44, -2, None, 1.0)]),
-                ("seq", [("kenney_interface-sounds/Audio/toggle_002.ogg", 0.0, 0, None, 1.0),
-                         ("kenney_interface-sounds/Audio/toggle_002.ogg", 0.21, 0, None, 1.05),
-                         ("kenney_interface-sounds/Audio/toggle_002.ogg", 0.42, 0, None, 1.1),
-                         ("kenney_interface-sounds/Audio/glass_001.ogg", 0.55, -3, None, 1.0)]),
-                ("kenney_interface-sounds/Audio/confirmation_003.ogg", 1.0, 0, None)],
+    # round 2: "C is good but short. A is close (it ends with C), but the start sounds bad. Please, try to change the start into
+    # something which sounds better." -> two new starts before C's chime (the clicks nearest Fallout 2's first burst), and C longer
+    "levelup": [("seq", [("kenney_interface-sounds/Audio/toggle_003.ogg", 0.0, -2, None, 1.0),
+                         ("kenney_interface-sounds/Audio/toggle_003.ogg", 0.12, -2, None, 1.12),
+                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.26, 0, None, 1.0)]),
+                ("seq", [("kenney_interface-sounds/Audio/open_002.ogg", 0.0, -2, None, 1.0),
+                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.24, 0, None, 1.0)]),
+                ("seq", [("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.0, 0, None, 1.0),   # C with an echo tail
+                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.16, -9, None, 1.0),
+                         ("kenney_interface-sounds/Audio/confirmation_003.ogg", 0.32, -15, None, 1.0)])],
     "store.take": ("kenney_rpg-audio/Audio/handleSmallLeather2.ogg", 1.0, 0, None),
     "store.sort": ("kenney_rpg-audio/Audio/dropLeather.ogg", 1.0, 0, None),
 }
@@ -151,13 +168,13 @@ def render(base, cand, dst):
             f = ["aresample=44100"]
             if keep:
                 x, y = (0, keep) if not isinstance(keep, tuple) else keep
-                f.append("atrim=%s:%s,asetpts=PTS-STARTPTS" % (x, y))
+                f.append("atrim=%s:%s,asetpts=PTS-STARTPTS,afade=t=out:st=%s:d=0.05" % (x, y, max(0, y - x - 0.05)))
             if pitch != 1.0:
                 f.append("asetrate=44100*%s,aresample=44100" % pitch)
             f.append("volume=%sdB" % gain)
             f.append("adelay=%d|%d" % (at * 1000, at * 1000))
             chains.append("[%d:a]%s,aformat=channel_layouts=mono[s%d]" % (i, ",".join(f), i))
-        fc = ";".join(chains) + ";" + "".join("[s%d]" % i for i in range(len(parts))) + "amix=inputs=%d:normalize=0:duration=longest" % len(parts)
+        fc = ";".join(chains) + ";" + "".join("[s%d]" % i for i in range(len(parts))) + "amix=inputs=%d:normalize=0:duration=longest,alimiter=limit=0.95:level=disabled" % len(parts)
         subprocess.run(args + ["-filter_complex", fc, "-ac", "1", "-c:a", "libvorbis", "-q:a", "5", dst], check=True)
         return srcs
     rel, pitch, gain, keep = cand
@@ -176,14 +193,26 @@ def render(base, cand, dst):
 def main():
     base = sys.argv[1]
     os.makedirs(OUT, exist_ok=True)
-    for old in os.listdir(OUT):   # a key given back to Minecraft leaves the pack
-        if old.endswith(".ogg") and old[:-4].replace("_", ".") not in {k for k in MAP} and old[:-4] not in {k.replace(".", "_") for k in MAP}:
+    for old in os.listdir(OUT):   # every file is written again below; a key given back to Minecraft leaves the pack
+        if old.endswith(".ogg"):
             os.remove(os.path.join(OUT, old))
+    for old in os.listdir(os.path.join(ROOT, "build", "free-cands")) if os.path.isdir(os.path.join(ROOT, "build", "free-cands")) else []:
+        os.remove(os.path.join(ROOT, "build", "free-cands", old))
     cands_dir = os.path.join(ROOT, "build", "free-cands")
     os.makedirs(cands_dir, exist_ok=True)
     events, credits, cands = {}, [], {}
     for key, val in MAP.items():
         name = key.replace(".", "_")
+        if isinstance(val, tuple) and val[0] == "variants":   # all of them in the pack, one event of several sounds
+            srcs, files = [], []
+            for i, cand in enumerate(val[1]):
+                fn = name + ("" if i == 0 else "_%d" % (i + 1))
+                srcs += render(base, cand, os.path.join(OUT, fn + ".ogg"))
+                files.append(fn)
+            credits.append((key, "; ".join(dict.fromkeys(os.path.relpath(x, base).replace(os.sep, "/") for x in srcs)),
+                            "; ".join(sorted({licence(os.path.relpath(x, base).replace(os.sep, "/").split("/")[0]) for x in srcs}))))
+            events[key] = {"sounds": [{"name": "falloutak:free/" + f, "stream": False} for f in files]}
+            continue
         options = val if isinstance(val, list) else [val]
         for i, cand in enumerate(options):
             dst = os.path.join(OUT, name + ".ogg") if i == 0 else os.path.join(cands_dir, "%s_%s.ogg" % (name, "abc"[i]))
@@ -231,6 +260,13 @@ SOURCES = {
     "oga_impact": "CC0, OpenGameArt, Impact by Iwan 'qubodup' Gabovitch, opengameart.org/content/impact",
     "oga_impacts": "CC0, OpenGameArt, Impacts/Gun/sfx by Eldritch Grim, opengameart.org/content/impactsgunsfx",
     "oga_fleshy": "OGA-BY 3.0 (credit required), OpenGameArt, Fleshy Fight Sounds by will_leamon, opengameart.org/content/fleshy-fight-sounds",
+    # round 3 (11-19): the falls' cries and the body hitting the ground; dual-licensed packs used under their CC0
+    "oga_yell": "CC0, OpenGameArt, Male Grunt/Yelling sounds (CC0 or OGA-BY 3.0, used as CC0), opengameart.org/content/male-gruntyelling-sounds",
+    "oga_slightscreams": "CC0, OpenGameArt, 15 vocal male strain/hurt/pain/jump sounds, opengameart.org/content/15-vocal-male-strainhurtpainjump-sounds",
+    "oga_dying_female": "CC0, OpenGameArt, Dying Voices - Female - RPG by Galacti-Chron (CC0 or CC-BY 3.0, used as CC0), opengameart.org/content/dying-voices-female-rpg",
+    "oga_female_screams": "CC0, OpenGameArt, Female screams (files 1-4 CC0 per its license.txt; 4 = WomanScream by Archeos), opengameart.org/content/female-screams",
+    "oga_bfh": "CC0, OpenGameArt, 75 CC0 breaking / falling / hit sfx by rubberduck, opengameart.org/content/75-cc0-breaking-falling-hit-sfx",
+    "oga_thwack": "CC0, OpenGameArt, Thwack Sounds by AntumDeluge, opengameart.org/content/thwack-sounds",
 }
 
 if __name__ == "__main__":
