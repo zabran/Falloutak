@@ -3,6 +3,8 @@ package cz.lollywood.falloutak;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -260,5 +262,33 @@ class ExperienceTest extends MockGame {
         click("Pick a perk (1)");
         click("Awareness");
         assertTrue(plugin.store.loadNpc("Smugler").hasPerk("Awareness"));           // saved
+    }
+
+    @Test
+    void boundPerksPickFromLists() throws Exception {   // Marek 11-20: "Should we not make it a selection?"
+        PlayerMock p = member();
+        Character c = plugin.character(p);
+        c.level = 3;                                                                   // a human: one perk due
+        c.points[Rules.skillIndex("Medicine")] += 100;                                // Old Friend: Chemistry or Medicine 100
+        Menus.actions(p);
+        click("Pick a perk (1)");
+        click("Old Friend");
+        assertEquals(new java.util.ArrayList<>(Data.CHEMS.keySet()), Menus.boundChoices(c, Data.PERKS.get("Old Friend")));
+        click("Take it", "b", "Psycho");
+        assertTrue(c.hasPerk("Old Friend: Psycho"));
+        String r = c.dose(Data.CHEMS.get("Psycho"), new java.util.Random(1));
+        assertTrue(r.contains("never addicts"), r);
+        assertTrue(c.addictions.isEmpty());
+        assertEquals(75, c.inSlot("chem:Psycho").other().get("dr"), 1e-9);             // its 50 % DR x1.5
+        // the other lists
+        Population pop = plugin.roster.pop;
+        assertTrue(Menus.boundChoices(c, Data.PERKS.get("Nemesis")).contains("Raiders"));
+        List<String> mine = Menus.boundChoices(c, Data.PERKS.get("My People"));
+        assertEquals(c.group, mine.get(0));                                            // his own group first
+        assertEquals(pop.groups.size(), mine.size());
+        assertEquals(List.of("The base"), Menus.boundChoices(c, Data.PERKS.get("Home Turf")));
+        plugin.roster.discover(List.of(), "Jihlava");                                  // the GM names an area found
+        assertEquals(List.of("The base", "Jihlava"), Menus.boundChoices(c, Data.PERKS.get("Home Turf")));
+        assertFalse(Menus.boundChoices(c, Data.PERKS.get("Tag!")).stream().anyMatch(c.tags::contains));
     }
 }

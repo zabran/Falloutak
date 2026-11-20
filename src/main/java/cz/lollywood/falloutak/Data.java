@@ -269,6 +269,12 @@ public final class Data {
     }
 
     public static final Map<String, Perk> PERKS = new LinkedHashMap<>();
+    /**
+     * Nemesis's choices (02c, Marek 11-20: *"Should we not make it a selection?"*): the kinds of foe and the world's powers of `01`,
+     * in `data/foes.json` [the list mine; the GM adds rows].
+     */
+    public record Foe(String name, String kind, String note) {}
+    public static final List<Foe> FOES = new ArrayList<>();
 
     /** A chem's stage: how long, what it does. */
     public record Stage(double hours, int[] mods, Map<String, Double> other) {}
@@ -395,6 +401,10 @@ public final class Data {
             String name = o.get("name").getAsString();
             PERKS.put(name, new Perk(name, s(o, "kind", ""), s(o, "gate", ""), List.copyOf(alts), s(o, "effect", ""),
                     o.has("parked") && o.get("parked").getAsBoolean(), o.has("bound") && o.get("bound").getAsBoolean(), attrs(o, "mods"), nums(o, "other")));
+        }
+        for (JsonElement e : rows("foes")) {
+            JsonObject o = e.getAsJsonObject();
+            FOES.add(new Foe(o.get("name").getAsString(), s(o, "kind", ""), s(o, "note", "")));
         }
         for (JsonElement e : rows("items")) ITEMS.add(e.getAsJsonObject());
         for (JsonElement e : rows("notes")) {

@@ -126,6 +126,47 @@ class RulesTest {
     }
 
     @Test
+    void theMeleeFamiliesAndTheWeaponSkills() {   // Marek 11-20, round 9
+        double[] v = new double[Rules.SKILLS.size()];
+        Data.Perk slayer = Data.PERKS.get("Slayer");                                   // Unarmed or a melee family 150
+        v[Rules.skillIndex("Engineering")] = 150;
+        v[Rules.skillIndex("Athletics")] = 140;                                        // Techno Weapons 160, Unarmed 140, Hammers 115
+        assertTrue(Rules.gateMet(v, slayer));                                          // "technoweapons are technically also melee"
+        v[Rules.skillIndex("Engineering")] = 100;                                      // Techno Weapons 135
+        assertFalse(Rules.gateMet(v, slayer));
+        assertTrue(Rules.MELEE.contains("Unarmed"));                                   // "also unarmed"
+        double[] w = new double[Rules.SKILLS.size()];
+        Data.Perk crits = Data.PERKS.get("More Criticals");                            // any weapon skill 100
+        w[Rules.skillIndex("Chemistry")] = 100;                                        // "chemistry is also explosives"
+        assertTrue(Rules.gateMet(w, crits));
+        w[Rules.skillIndex("Chemistry")] = 0;
+        w[Rules.skillIndex("Athletics")] = 100;                                        // "athletics is unarmed"
+        assertTrue(Rules.gateMet(w, crits));
+        assertEquals(15, Rules.weaponSkills().size());                                 // Guns + the 14 combinations
+        // the bound perks the battle runs
+        Character c = Character.sample("x");
+        c.level = 9;                                                                   // a human: 3 due
+        c.points[Rules.skillIndex("Guns")] += 150;
+        Battle.Weapon gun = Battle.SMG;
+        Battle.Mode single = gun.modes.get(0);
+        Battle.Target t = new Battle.Target("Nájezdník 1");
+        int ap = Battle.apOf(c, gun, single);
+        assertEquals(1, Battle.perkDamage(c, gun, t), 1e-9);
+        assertTrue(c.takePerk(Data.PERKS.get("Weapon Master"), "Guns").contains("taken"));
+        assertEquals(Math.max(1, ap - 1), Battle.apOf(c, gun, single));
+        assertEquals(Battle.KNIFE.modes.get(0).ap(), Battle.apOf(c, Battle.KNIFE, Battle.KNIFE.modes.get(0)));   // another family
+        assertEquals(1.25, Battle.perkDamage(c, gun, t), 1e-9);
+        assertTrue(c.takePerk(Data.PERKS.get("Nemesis"), "Raiders").contains("taken"));
+        assertEquals(1.5, Battle.perkDamage(c, gun, t), 1e-9);                         // each +25 %, added
+        t.kind = "Ghouls";
+        assertEquals(1.25, Battle.perkDamage(c, gun, t), 1e-9);
+        assertTrue(c.takePerk(Data.PERKS.get("Signature Weapon"), gun.name).contains("taken"));
+        assertEquals(3, Battle.perkDegree(c, gun, 2));                                 // one crit degree better
+        assertEquals(6, Battle.perkDegree(c, gun, 6));
+        assertEquals(2, Battle.perkDegree(c, Battle.KNIFE, 2));
+    }
+
+    @Test
     void workbookData() {
         assertEquals(27, Data.TEMPLATES.size());   // part 3: the workbook's seven + the eight basic gene templates (03c §6, Golden Blood since round 8) + the ten premium + the Fallen Angel and her graced form (03f §2)
         assertEquals(39, Data.TEMPLATES.get("Ghoul").attributePoints());

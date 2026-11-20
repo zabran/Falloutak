@@ -144,8 +144,21 @@ public final class Rules {
     // ------------------------------------------------------------------ perks' gates (02c §2: they read permanent values, Marek 11-14)
     /** The sciences (02c §2: *"any science = Computer Science, Engineering, Chemistry, Biology or Medicine"*). */
     public static final List<String> SCIENCES = List.of("Computer Science", "Engineering", "Chemistry", "Biology", "Medicine");
-    /** The melee families (a gate's "a melee family"). [the list mine] */
-    public static final List<String> MELEE = List.of("Knives", "Hammers", "Spears", "Axes", "Swords");
+    /**
+     * The melee families (a gate's "a melee family"): Marek 11-20, *"also unarmed. And I think technoweapons are technically also
+     * melee (most of them)."*
+     */
+    public static final List<String> MELEE = List.of("Unarmed", "Knives", "Hammers", "Spears", "Axes", "Swords", "Techno Weapons");
+    /**
+     * The weapon skills, a gate's "any weapon skill" and Weapon Master's families: Guns and the 14 combination skills. Athletics and
+     * Chemistry count through them (Marek 11-20: *"athletics is unarmed (your body is a weapon) and chemistry is also explosives"*:
+     * Unarmed = Athletics, Explosives = Chemistry).
+     */
+    public static List<String> weaponSkills() {
+        List<String> l = new java.util.ArrayList<>(List.of("Guns"));
+        for (Combo co : COMBOS) l.add(co.name());
+        return l;
+    }
 
     /** A skill's or a weapon skill's value from the 15 skills' values. */
     public static double skillValue(double[] skills, String name) {
@@ -158,7 +171,7 @@ public final class Rules {
     static double best(double[] skills, Data.Alt a) {
         List<String> names = switch (a.any()) {
             case "skill" -> SKILLS.stream().map(Skill::name).toList();
-            case "weapon" -> java.util.stream.Stream.concat(java.util.stream.Stream.of("Guns"), COMBOS.stream().map(Combo::name)).toList();
+            case "weapon" -> weaponSkills();
             case "science" -> SCIENCES;
             case "melee" -> MELEE;
             default -> a.skills();

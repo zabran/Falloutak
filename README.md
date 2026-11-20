@@ -3,6 +3,21 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.40.0 (2026-11-20): the bound perks pick from lists and run; the melee families.**
+- **Bound perks as a selection** (Marek: *"how will it work mechanically? Should we not make it a selection?"*): each of the
+  seven picks from what the plugin knows, and the pick becomes part of the perk's name on the sheet (*Nemesis: Raiders*), which is
+  what the game reads. Tag! the untagged skills · Signature Weapon your weapons at skill 100+ · Weapon Master the weapon skills
+  at 150+ · Nemesis the kinds of foe and the world's powers (`data/foes.json`, the GM adds rows) · Old Friend the chems · My People
+  the groups (your own first) · Home Turf the base and the areas the GM named when they were found (*Award XP → An area found*).
+- **They run:** Nemesis +15 to hit and +25 % damage against its kind (the demo's raiders are *Raiders*); Signature Weapon +15 to
+  hit, one crit degree better, no wear and no harm from a critical failure; Weapon Master −1 AP (at least 1) and +25 % damage
+  with its family (the two +25 % add); Old Friend its chem's effect ×1.5 and no addiction roll. Home Turf and My People stay the
+  GM's (no places in the plugin before the local map, no leadership bonus in play yet).
+- **The melee families** (Marek: *"also unarmed. And I think technoweapons are technically also melee (most of them)."*): Unarmed,
+  Knives, Hammers, Spears, Axes, Swords, Techno Weapons. **Any weapon skill** = Guns and the 14 combinations, so Athletics counts
+  as Unarmed and Chemistry as Explosives (his *"athletics is unarmed ... chemistry is also explosives"*).
+- 117 tests.
+
 **Version 0.39.0 (2026-11-20): our perks; a new character from the group; lessons by level.**
 - **Our perks** (Marek: *"please, add our perks. We already have almost all usable ones."*): the 111 perks of `02c` §2-§3 in
   `data/perks.json` (`_tools/fallout_perks_json.py` in LollyWood-Lore), each with its gate (a skill at a value, or any skill, any

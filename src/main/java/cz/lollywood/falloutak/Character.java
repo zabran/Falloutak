@@ -1055,9 +1055,20 @@ public final class Character {
             other.put("rads_per_hour", -(50 + skill("Medicine")) / s.hours());
         }
         int n = nextStage(ch, i);
-        return new Effect(ch.name() + STAGE_NAMES[i], "chem", "chem:" + ch.name(), false, s.mods().clone(), other, s.hours(),
+        int[] mods = s.mods().clone();
+        if (i == 0 && oldFriend(ch)) {   // Old Friend (02c): the effect x1.5 (a switch such as a sleep stage off stays one)
+            for (int k = 0; k < mods.length; k++) mods[k] = (int) (Math.signum(mods[k]) * Math.round(Math.abs(mods[k]) * 1.5));
+            other.replaceAll((k, v) -> OLD_FRIEND_SWITCHES.contains(k) ? v : v * 1.5);
+        }
+        return new Effect(ch.name() + STAGE_NAMES[i], "chem", "chem:" + ch.name(), false, mods, other, s.hours(),
                 n < 0 ? null : ch.name() + STAGE_NAMES[n], 100);
     }
+
+    /** The chems' switches, which Old Friend does not multiply. */
+    static final Set<String> OLD_FRIEND_SWITCHES = Set.of("sleep_stage_off");
+
+    /** Old Friend bound to this chem (02c). */
+    boolean oldFriend(Data.Chem ch) { return hasPerk("Old Friend: " + ch.name()); }
 
     /** When a timed effect runs out: a chem's next stage (or clean: an addiction that has run its course ends), else nothing. */
     Effect afterStage(Effect e) {
@@ -1097,6 +1108,7 @@ public final class Character {
             sb.append(was ? "the " + ch.cures() + " addiction ends. " : "no " + ch.cures() + " addiction to end. ");
         }
         if (addictions.contains(ch.name())) sb.append("addicted: the stages start again. ");
+        else if (oldFriend(ch)) sb.append("Old Friend: x1.5, and it never addicts you. ");
         else {
             Effect cur = inSlot("chem:" + ch.name());
             if (cur != null && cur.name().endsWith("(dependence)")) { addictions.add(ch.name()); sb.append("in dependence: ADDICTED again at once. "); }

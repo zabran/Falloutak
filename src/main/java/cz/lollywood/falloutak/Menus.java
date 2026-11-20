@@ -716,19 +716,54 @@ final class Menus {
         if (open.isEmpty()) { say(p, "! no perk's gate is met yet (" + Data.PERKS.size() + " perks; their gates read the skills' permanent values)"); return; }
         pick(p, "Pick a perk · " + c.name, c.perksDue() + " to pick. Only the perks whose gate " + c.name + " meets; hover for the gate and the effect.",
                 open, n -> n, n -> { Data.Perk k = Data.PERKS.get(n); String nums = perkNumbers(k);
-                    return k.gate() + "\n" + k.effect() + (k.bound() ? "\nYou name the thing it is bound to." : "")
-                            + (nums.isEmpty() ? "\nThe GM applies it (its rule is not in the plugin yet)." : "\nThe sheet applies: " + nums + "."); },
+                    return k.gate() + "\n" + k.effect() + (k.bound() ? "\nYou pick what it is bound to. It runs in " + BOUND_RUNS.getOrDefault(k.name(), "the GM's hands") + "."
+                            : nums.isEmpty() ? "\nThe GM applies it (its rule is not in the plugin yet)." : "\nThe sheet applies: " + nums + "."); },
                 (x, n) -> {
                     Data.Perk k = Data.PERKS.get(n);
                     if (!k.bound()) { perkDone(x, c, k, "", saved); return; }
+                    List<String> l = boundChoices(c, k);
+                    if (l.isEmpty()) { say(x, "! nothing to bind " + k.name() + " to yet (" + k.gate() + ")"); return; }
                     List<Ui.In> in = new ArrayList<>();
-                    if (k.name().equals("Tag!")) {
-                        List<String> free = new ArrayList<>();
-                        for (Rules.Skill s : Rules.SKILLS) if (!c.tags.contains(s.name())) free.add(s.name());
-                        in.add(choice("b", "The fourth tagged skill", free));
-                    } else in.add(Ui.In.text("b", Component.text("What it is bound to")).initial("").maxLength(60).build());
-                    ask(x, k.name(), k.effect(), in, form("Take it", "the perk", (v, y) -> perkDone(y, c, k, v.getText("b"), saved)), z -> perkPick(z, c, saved));
+                    in.add(choice("b", BOUND_LABELS.getOrDefault(k.name(), "Bound to"), l));
+                    ask(x, k.name(), k.effect() + "\nIt runs in " + BOUND_RUNS.getOrDefault(k.name(), "the GM's hands") + ".", in,
+                            form("Take it", "the perk", (v, y) -> perkDone(y, c, k, v.getText("b"), saved)), z -> perkPick(z, c, saved));
                 }, null);
+    }
+
+    /** Where each bound perk runs (02c; Marek 11-20: *"how will it work mechanically?"*). */
+    static final Map<String, String> BOUND_RUNS = Map.of(
+            "Tag!", "the sheet (the skill is tagged)",
+            "Signature Weapon", "the battle (+15 to hit, one crit degree better, it never breaks)",
+            "Weapon Master", "the battle (the family's attacks -1 AP, +25 % damage)",
+            "Nemesis", "the battle (+15 to hit and +25 % damage against it)",
+            "Old Friend", "every dose (its effect x1.5, never addicted)",
+            "Home Turf", "the GM's hands (the plugin has no places to stand in until the local map, part 9)",
+            "My People", "the GM's hands (the leadership bonus is not in the plugin yet)");
+    static final Map<String, String> BOUND_LABELS = Map.of(
+            "Tag!", "The fourth tagged skill", "Signature Weapon", "Your weapon (its skill 100+)", "Weapon Master", "The family (its skill 150+)",
+            "Home Turf", "The place", "My People", "Your people", "Nemesis", "The foe or power", "Old Friend", "The chem");
+
+    /**
+     * A bound perk's choices (Marek 11-20: *"Should we not make it a selection?"*): what the plugin knows of the thing it binds to; the
+     * pick becomes part of the perk's name on the sheet (*Nemesis: Raiders*), which is what the battle and the doses read.
+     */
+    static List<String> boundChoices(Character c, Data.Perk k) {
+        double[] v = c.skills(true);
+        List<String> l = new ArrayList<>();
+        switch (k.name()) {
+            case "Tag!" -> { for (Rules.Skill s : Rules.SKILLS) if (!c.tags.contains(s.name())) l.add(s.name()); }
+            case "Signature Weapon" -> { for (Battle.Weapon w : Battle.weapons()) if (Rules.skillValue(v, w.skill) >= 100) l.add(w.name); }
+            case "Weapon Master" -> { for (String f : Rules.weaponSkills()) if (Rules.skillValue(v, f) >= 150) l.add(f); }
+            case "Home Turf" -> { l.add("The base"); l.addAll(pl.roster.pop.areas); }
+            case "My People" -> {
+                if (c.group != null && !c.group.isEmpty()) l.add(c.group);
+                for (Population.Group g : pl.roster.pop.groups) if (!l.contains(g.name)) l.add(g.name);
+            }
+            case "Nemesis" -> { for (Data.Foe f : Data.FOES) l.add(f.name()); }
+            case "Old Friend" -> l.addAll(Data.CHEMS.keySet());
+            default -> { }
+        }
+        return l;
     }
 
     static void perkDone(Player p, Character c, Data.Perk k, String bound, Consumer<Player> saved) {
@@ -867,9 +902,11 @@ final class Menus {
     }
 
     static void xpDiscover(Player g) {
+        List<Ui.In> in = teamInputs();
+        in.add(Ui.In.text("n", Component.text("Its name (Home Turf can be bound to it)")).initial("").maxLength(60).build());
         ask(g, "An area found", "A non-generic area (not a random encounter's map): each ticked PC gets 100 × " + pl.roster.pop.areasFound + " = "
-                        + Rules.discoveryXp(pl.roster.pop.areasFound) + " XP, and it counts as found.", teamInputs(),
-                form("Found", "award and count it", (v, x) -> { say(x, pl.roster.discover(teamOf(v))); xpMenu(x); }), Menus::xpMenu);
+                        + Rules.discoveryXp(pl.roster.pop.areasFound) + " XP, and it counts as found.", in,
+                form("Found", "award and count it", (v, x) -> { say(x, pl.roster.discover(teamOf(v), v.getText("n"))); xpMenu(x); }), Menus::xpMenu);
     }
 
     static void xpResearch(Player g) {

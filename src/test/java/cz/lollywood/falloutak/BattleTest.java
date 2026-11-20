@@ -105,6 +105,28 @@ class BattleTest extends MockGame {
     }
 
     @Test
+    void theBoundPerksInPlay() {   // Marek 11-20: "how will it work mechanically?"
+        PlayerMock p = facingSouth();
+        Character c = plugin.character(p);
+        c.level = 9;
+        c.points[Rules.skillIndex("Guns")] += 150;
+        assertTrue(c.takePerk(Data.PERKS.get("Weapon Master"), "Guns").contains("taken"));
+        assertTrue(c.takePerk(Data.PERKS.get("Nemesis"), "Raiders").contains("taken"));
+        assertTrue(c.takePerk(Data.PERKS.get("Signature Weapon"), Battle.SMG.name).contains("taken"));
+        p.performCommand("sheet battle");
+        Battle.State s = plugin.battle.state(p);
+        said(p);
+        server.getScheduler().performTicks(2);
+        int ap = s.ap;
+        use(p, 0, Action.LEFT_CLICK_AIR);                                              // the SMG's single shot at the close raider
+        String shot = said(p);
+        assertEquals(ap - (Battle.SMG.modes.get(0).ap() - 1), s.ap, shot);             // Weapon Master: -1 AP
+        assertTrue(shot.contains("+15 Signature Weapon") && shot.contains("+15 Nemesis"), shot);
+        assertEquals(Battle.SMG.maxHealth, s.health.getOrDefault(Battle.SMG.name, Battle.SMG.maxHealth), 1e-9);   // it does not wear
+        p.performCommand("sheet battle");
+    }
+
+    @Test
     void quickItems() {
         PlayerMock p = facingSouth();
         Character c = plugin.character(p);

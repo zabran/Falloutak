@@ -94,6 +94,22 @@ public final class Battle implements Listener {
         return k;
     }
 
+    // ------------------------------------------------------------------ the bound perks the battle runs (02c; Marek 11-20)
+    /** The weapons the plugin knows: Signature Weapon's choices (more come with part 7's items). */
+    static List<Weapon> weapons() { return List.of(SMG, KNIFE); }
+    /** Signature Weapon on this weapon (02c): +15 to hit, one crit degree better, it never breaks (wear or a critical failure). */
+    static boolean signature(Character c, Weapon w) { return c.hasPerk("Signature Weapon: " + w.name); }
+    /** Weapon Master on this weapon's family (02c): its attacks −1 AP (at least 1) and +25 % damage. */
+    static boolean master(Character c, Weapon w) { return c.hasPerk("Weapon Master: " + w.skill); }
+    /** Nemesis against this target's kind (02c): +15 to hit and +25 % damage. */
+    static boolean nemesis(Character c, Target t) { return t != null && c.hasPerk("Nemesis: " + t.kind); }
+    /** A mode's AP for this character (Weapon Master). */
+    static int apOf(Character c, Weapon w, Mode m) { return master(c, w) ? Math.max(1, m.ap() - 1) : m.ap(); }
+    /** The perks' damage factor: each +25 % added, not multiplied [mine]. */
+    static double perkDamage(Character c, Weapon w, Target t) { return 1 + (master(c, w) ? 0.25 : 0) + (nemesis(c, t) ? 0.25 : 0); }
+    /** A crit's degree with Signature Weapon: one better, at most 6. */
+    static int perkDegree(Character c, Weapon w, int degree) { return signature(c, w) ? Math.min(6, degree + 1) : degree; }
+
     /**
      * Part 5's target: the Battle tab's own raider, Nájezdník 2 (AC 5, DR 20 %, DT 2, PE 6, ST 5, EN 3, AG 4, LK 5; C and I not
      * given, 5) [EXAMPLE: 30 HP, the tab gives him none]. Blood = 4 x HP max (the workbook). Dying from 0 to -EN HP, dead below.
@@ -114,6 +130,8 @@ public final class Battle implements Listener {
         boolean dropped, broken, moved, steadied, lostTurn;
         /** Lying on the ground (knocked down or out, dying): the prone +4 AC and +20 to be hit within reach. */
         boolean lying() { return down || out || dying(); }
+        /** What he is, for Nemesis (`data/foes.json`): the demo's raiders are Raiders. */
+        String kind = "Raiders";
         Target(String name) { this.name = name; }
         boolean dying() { return !dead && hp <= 0; }
         String label() {
@@ -409,7 +427,7 @@ public final class Battle implements Listener {
                     : a.part() == null ? who(a.target()) + ": aim at the body"
                     : who(a.target()) + " · " + a.part().label + (m.aimed() ? " (" + sign(a.part().toHit) + ")" : "") + " · " + SheetGui.f(Math.round(a.dist() * 10) / 10.0) + " bl."
                     + " · " + Combat.toHit(shot(p, s, c, w, m, a, pen)).chance() + " %";
-            bar = Component.text(w.name + ": " + m.name() + " · " + m.ap() + " AP", NamedTextColor.WHITE)
+            bar = Component.text(w.name + ": " + m.name() + " · " + apOf(c, w, m) + " AP", NamedTextColor.WHITE)
                     .append(Component.text(m.toHit() != 0 ? " · to hit " + sign(m.toHit()) : "", NamedTextColor.YELLOW))
                     .append(Component.text(pen != 0 ? " · moved " + pen + " (steady: 1 AP)" : "", NamedTextColor.RED))
                     .append(Component.text(!w.melee() ? " · ammo " + s.ammo.get("smg") + "/" + w.magazine : "", NamedTextColor.GRAY))
@@ -514,7 +532,7 @@ public final class Battle implements Listener {
         Combat.Shot sh = shot(p, s, c, w, m, a, pen);
         Combat.ToHit th = Combat.toHit(sh);
         if (th.outOfRange()) { Sfx.to(p, "ap.lacking"); show(p, s, c, "out of range (" + w.range + " blocks)"); return; }
-        if (!pay(p, s, c, m.ap(), m.name())) return;
+        if (!pay(p, s, c, apOf(c, w, m), m.name())) return;
         Sfx.at(p.getLocation(), w.melee() ? (m.name().startsWith("Thrust") ? "knife.thrust" : "knife.swing") : m.ammo() > 1 ? "pistol.burst" : "pistol.single");
         int[] me = c.attrs(false);
         double cc = Rules.critChance(me, c.skill("Sneak"));
@@ -525,7 +543,7 @@ public final class Battle implements Listener {
         boolean burst = !w.melee() && m.ammo() > 1;
         StringBuilder log = new StringBuilder();
         log.append(!w.melee() ? "Fired at " : "Struck at ").append(tg != null ? tg.name : who(a.target())).append(", ").append(sh.blocks).append(" blocks: ")
-                .append(m.name()).append(m.aimed() ? " at the " + a.part().label : "").append(" (").append(m.ap()).append(" AP). To hit ")
+                .append(m.name()).append(m.aimed() ? " at the " + a.part().label : "").append(" (").append(apOf(c, w, m)).append(" AP). To hit ")
                 .append(th.chance()).append(" % =");
         th.terms().forEach((k, v) -> log.append(" ").append(k.equals("skill") ? w.skill + " " + v : sign(v) + " " + k));
         log.append(". Rolled ").append(r.d100()).append(r.d100() >= 100 ? " (a 100 always misses)" : "").append(": ");
@@ -556,13 +574,14 @@ public final class Battle implements Listener {
                 Sfx.at(a.target().getLocation(), w.melee() ? "melee.miss" : "bullet.miss");
             } else {
                 Rules.Part part = m.aimed() ? a.part() : Rules.Part.TORSO;   // F2: an unaimed shot uses the uncalled (torso) table
-                int deg = r.crit() ? r.degree() : 0;
+                int deg = r.crit() ? perkDegree(c, w, r.degree()) : 0;
                 Combat.CritEffects fx = Combat.critEffects(part, deg, tg != null ? tg.a : new int[]{5, 5, 5, 5, 5, 5, 5});
                 double mult = Combat.critMultiplier(part, deg);
                 int total = 0;
                 List<Integer> each = new ArrayList<>();
                 for (int i = 0; i < hits; i++) {
-                    double base = (w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + (w.melee() ? Rules.meleeBonus(me) : 0)) * Combat.conditionDamage(cond(s, w));
+                    double base = (w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + (w.melee() ? Rules.meleeBonus(me) : 0)) * Combat.conditionDamage(cond(s, w))
+                            * perkDamage(c, w, tg);
                     int dmg = Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, tg != null ? tg.dt : 0, tg != null ? tg.dr : 0, fx.bypass());
                     each.add(dmg);
                     total += dmg;
@@ -571,6 +590,7 @@ public final class Battle implements Listener {
                         .append(total).append(hits > 1 ? " " + each : "").append(" (").append(w.minDmg).append("-").append(w.maxDmg)
                         .append(w.melee() ? " + " + Rules.meleeBonus(me) + " melee" : ", " + w.ammo)
                         .append(Combat.conditionDamage(cond(s, w)) < 1 ? "; x" + SheetGui.f(Math.round(Combat.conditionDamage(cond(s, w)) * 100) / 100.0) + " for its condition" : "")
+                        .append(perkDamage(c, w, tg) > 1 ? "; x" + SheetGui.f(perkDamage(c, w, tg)) + (master(c, w) ? " Weapon Master" : "") + (nemesis(c, tg) ? " Nemesis" : "") : "")
                         .append("; DT ").append(tg != null ? tg.dt : 0)
                         .append(", DR ").append(tg != null ? Math.round(tg.dr * 100) : 0).append(" %").append(fx.bypass() ? ", through the armour" : "").append(").");
                 if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
@@ -589,7 +609,7 @@ public final class Battle implements Listener {
         }
         if (!w.melee()) {
             double h = health(s, w);
-            if (!Combat.broken(h)) {   // FNV: 0.2 item health a round fired
+            if (!Combat.broken(h) && !signature(c, w)) {   // FNV: 0.2 item health a round fired; a Signature Weapon never breaks
                 s.health.put(w.name, Math.max(1, h - Combat.WEAR_PER_ROUND * m.ammo()));
                 if (Combat.broken(health(s, w))) log.append(" The ").append(w.name).append(" breaks from wear (its last health point): /sheet repair.");
             }
@@ -636,6 +656,8 @@ public final class Battle implements Listener {
         sh.stance = s.stance();
         sh.senses = c.senses();
         sh.extra.put("prosthetic arm", c.armToHit(w.twoHanded));
+        if (signature(c, w)) sh.extra.put("Signature Weapon", 15);
+        if (nemesis(c, tg)) sh.extra.put("Nemesis", 15);
         if (m.aimed()) sh.extra.put("targeting eyes", (int) Math.round(c.other("aimed")));
         if (c.other("to_hit") != 0) sh.extra.put("Twitchy", (int) Math.round(c.other("to_hit")));   // the trait as a gene (03c §8)
         int gasHit = c.gasPenalty()[1];
@@ -835,12 +857,13 @@ public final class Battle implements Listener {
     private void critFailure(Player p, State s, Character c, Weapon w, Combat.Failure f, StringBuilder log) {
         if (f.losesAmmo() && !w.melee()) { s.ammo.put("smg", 0); log.append(" The magazine is empty."); }
         if (f.dropsWeapon()) { Sfx.at(p.getLocation(), "weapon.drop"); s.dropped.add(w.name); log.append(" Left click again to pick it up (2 AP)."); }
-        if (f.weaponDamaged()) {
+        if ((f.weaponDamaged() || f.weaponDestroyed()) && signature(c, w)) log.append(" Your Signature Weapon takes no harm.");
+        else if (f.weaponDamaged()) {
             s.health.put(w.name, Combat.damaged(health(s, w), w.maxHealth));
             log.append(" The ").append(w.name).append(" is damaged: condition ").append(Math.round(cond(s, w) * 100)).append(" % (a tenth of its health, EXAMPLE)")
                     .append(Combat.broken(health(s, w)) ? ", BROKEN: /sheet repair." : ".");
         }
-        if (f.weaponDestroyed()) { s.broken.add(w.name); log.append(" The " + w.name + " is destroyed."); }
+        if (f.weaponDestroyed() && !signature(c, w)) { s.broken.add(w.name); log.append(" The " + w.name + " is destroyed."); }
         if (f.hitsRandom()) {
             List<UUID> others = new ArrayList<>(s.dummies);
             Collections.shuffle(others, rnd);

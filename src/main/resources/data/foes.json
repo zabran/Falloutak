@@ -1,0 +1,17 @@
+{
+  "source": "Nemesis's choices (02c; Marek 11-20: \"Should we not make it a selection?\"): the kinds of foe and the world's powers of 01-STORY-WORLD [the list mine; the GM adds rows]",
+  "rows": [
+    {"name": "Raiders", "kind": "foe", "note": "everywhere, because taking is easiest (01); the battle's raiders"},
+    {"name": "Ghouls", "kind": "foe", "note": "irradiated and mutated people, mostly in Moravia, near Prague and Plzeň (01)"},
+    {"name": "Radmie", "kind": "foe", "note": "the Czech radscorpion (01)"},
+    {"name": "Trhač", "kind": "foe", "note": "the rapeseed boar (01)"},
+    {"name": "Der Protector", "kind": "foe", "note": "the two-tailed white lion of Prague (01)"},
+    {"name": "Robots and androids", "kind": "foe", "note": "the Union's bureaucratic androids and other machines (01)"},
+    {"name": "The Pirates", "kind": "faction", "note": "Bratrstvo Pirátů (01)"},
+    {"name": "The army's remnants", "kind": "faction", "note": "a few towns, some units joined the raiders (01)"},
+    {"name": "The farm towns", "kind": "faction", "note": "Vysočina and the north (01)"},
+    {"name": "The Regulátorská Unie", "kind": "faction", "note": "Germany and the Union's armies (01)"},
+    {"name": "The Techno-Tsar", "kind": "faction", "note": "what is left of Russia (01)"},
+    {"name": "Africká Liga", "kind": "faction", "note": "the south, Italy and the Balkans (01)"}
+  ]
+}

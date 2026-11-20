@@ -50,6 +50,8 @@ final class Population {
     double worldHours;
     /** The non-generic areas the players have found (06b §5.4.5: the next one gives each PC 100 × this). */
     int areasFound;
+    /** The names the GM gave the areas found (Home Turf's places, besides the base). */
+    final List<String> areas = new ArrayList<>();
 
     final List<Person> people = new ArrayList<>();
     @com.google.gson.annotations.SerializedName(value = "groups", alternate = {"factions"}) final List<Group> groups = new ArrayList<>();

@@ -232,9 +232,13 @@ final class Roster implements CommandExecutor {
     }
 
     /** Reaching a non-generic area (06b §5.4.5): each PC 100 × the areas found before it; then one more is found. */
-    String discover(List<Player> team) {
+    String discover(List<Player> team) { return discover(team, ""); }
+
+    /** The same with the area's name (kept for Home Turf's choices). */
+    String discover(List<Player> team, String name) {
         long x = Rules.discoveryXp(pop.areasFound);
         pop.areasFound++;
+        if (name != null && !name.isBlank() && !pop.areas.contains(name.trim())) pop.areas.add(name.trim());
         save();
         List<String> out = new ArrayList<>();
         for (Player p : team) out.add(award(p, x, "area " + pop.areasFound + " found"));
