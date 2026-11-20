@@ -3,6 +3,12 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.41.0 (2026-11-20): Weapon Master and Nemesis multiply; My People faction-wide.**
+- **Weapon Master × Nemesis** (Marek: *"they probably should multiply, if read as written"*): ×1.25 × 1.25 = ×1.5625.
+- **My People** (Marek: *"Group is tiny. Make it faction-wide. And make it weaker if it becomes too OP by that"*): no longer
+  bound; the whole faction gets the leader's plain bonus (a tenth of his Leadership) whatever the range (`02c`). The GM's until
+  the leadership bonus is in the plugin.
+
 **Version 0.40.0 (2026-11-20): the bound perks pick from lists and run; the melee families.**
 - **Bound perks as a selection** (Marek: *"how will it work mechanically? Should we not make it a selection?"*): each of the
   seven picks from what the plugin knows, and the pick becomes part of the perk's name on the sheet (*Nemesis: Raiders*), which is

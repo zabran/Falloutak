@@ -737,11 +737,10 @@ final class Menus {
             "Weapon Master", "the battle (the family's attacks -1 AP, +25 % damage)",
             "Nemesis", "the battle (+15 to hit and +25 % damage against it)",
             "Old Friend", "every dose (its effect x1.5, never addicted)",
-            "Home Turf", "the GM's hands (the plugin has no places to stand in until the local map, part 9)",
-            "My People", "the GM's hands (the leadership bonus is not in the plugin yet)");
+            "Home Turf", "the GM's hands (the plugin has no places to stand in until the local map, part 9)");
     static final Map<String, String> BOUND_LABELS = Map.of(
             "Tag!", "The fourth tagged skill", "Signature Weapon", "Your weapon (its skill 100+)", "Weapon Master", "The family (its skill 150+)",
-            "Home Turf", "The place", "My People", "Your people", "Nemesis", "The foe or power", "Old Friend", "The chem");
+            "Home Turf", "The place", "Nemesis", "The foe or power", "Old Friend", "The chem");
 
     /**
      * A bound perk's choices (Marek 11-20: *"Should we not make it a selection?"*): what the plugin knows of the thing it binds to; the
@@ -755,10 +754,6 @@ final class Menus {
             case "Signature Weapon" -> { for (Battle.Weapon w : Battle.weapons()) if (Rules.skillValue(v, w.skill) >= 100) l.add(w.name); }
             case "Weapon Master" -> { for (String f : Rules.weaponSkills()) if (Rules.skillValue(v, f) >= 150) l.add(f); }
             case "Home Turf" -> { l.add("The base"); l.addAll(pl.roster.pop.areas); }
-            case "My People" -> {
-                if (c.group != null && !c.group.isEmpty()) l.add(c.group);
-                for (Population.Group g : pl.roster.pop.groups) if (!l.contains(g.name)) l.add(g.name);
-            }
             case "Nemesis" -> { for (Data.Foe f : Data.FOES) l.add(f.name()); }
             case "Old Friend" -> l.addAll(Data.CHEMS.keySet());
             default -> { }

@@ -157,7 +157,7 @@ class RulesTest {
         assertEquals(Battle.KNIFE.modes.get(0).ap(), Battle.apOf(c, Battle.KNIFE, Battle.KNIFE.modes.get(0)));   // another family
         assertEquals(1.25, Battle.perkDamage(c, gun, t), 1e-9);
         assertTrue(c.takePerk(Data.PERKS.get("Nemesis"), "Raiders").contains("taken"));
-        assertEquals(1.5, Battle.perkDamage(c, gun, t), 1e-9);                         // each +25 %, added
+        assertEquals(1.5625, Battle.perkDamage(c, gun, t), 1e-9);                      // x1.25 x 1.25: they multiply (Marek 11-20)
         t.kind = "Ghouls";
         assertEquals(1.25, Battle.perkDamage(c, gun, t), 1e-9);
         assertTrue(c.takePerk(Data.PERKS.get("Signature Weapon"), gun.name).contains("taken"));

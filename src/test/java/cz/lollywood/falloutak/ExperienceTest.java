@@ -281,11 +281,8 @@ class ExperienceTest extends MockGame {
         assertTrue(c.addictions.isEmpty());
         assertEquals(75, c.inSlot("chem:Psycho").other().get("dr"), 1e-9);             // its 50 % DR x1.5
         // the other lists
-        Population pop = plugin.roster.pop;
         assertTrue(Menus.boundChoices(c, Data.PERKS.get("Nemesis")).contains("Raiders"));
-        List<String> mine = Menus.boundChoices(c, Data.PERKS.get("My People"));
-        assertEquals(c.group, mine.get(0));                                            // his own group first
-        assertEquals(pop.groups.size(), mine.size());
+        assertFalse(Data.PERKS.get("My People").bound());                              // faction-wide (Marek 11-20: "Group is tiny")
         assertEquals(List.of("The base"), Menus.boundChoices(c, Data.PERKS.get("Home Turf")));
         plugin.roster.discover(List.of(), "Jihlava");                                  // the GM names an area found
         assertEquals(List.of("The base", "Jihlava"), Menus.boundChoices(c, Data.PERKS.get("Home Turf")));

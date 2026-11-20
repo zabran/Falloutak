@@ -1502,9 +1502,9 @@
      "value": 100
     }
    ],
-   "effect": "name your faction: its people and the PCs in your range get your leadership bonus ×1.5 (Marek: \"I would add a bit smaller increase\"; it was ×2)",
+   "effect": "your whole faction (every group and every PC) gets your leadership bonus whatever your range, at its plain size (a tenth of your Leadership, not ×1.5) (Marek 11-20: \"Group is tiny. Make it faction-wide. And make it weaker if it becomes too OP by that, but players are not expected to go out with their people most of the time.\"; it was ×2, then ×1.5 in your range; the plain size mine)",
    "parked": false,
-   "bound": true,
+   "bound": false,
    "mods": {},
    "other": {}
   },

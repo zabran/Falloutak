@@ -105,8 +105,8 @@ public final class Battle implements Listener {
     static boolean nemesis(Character c, Target t) { return t != null && c.hasPerk("Nemesis: " + t.kind); }
     /** A mode's AP for this character (Weapon Master). */
     static int apOf(Character c, Weapon w, Mode m) { return master(c, w) ? Math.max(1, m.ap() - 1) : m.ap(); }
-    /** The perks' damage factor: each +25 % added, not multiplied [mine]. */
-    static double perkDamage(Character c, Weapon w, Target t) { return 1 + (master(c, w) ? 0.25 : 0) + (nemesis(c, t) ? 0.25 : 0); }
+    /** The perks' damage factor: each ×1.25, multiplied (Marek 11-20: *"they probably should multiply, if read as written"*). */
+    static double perkDamage(Character c, Weapon w, Target t) { return (master(c, w) ? 1.25 : 1) * (nemesis(c, t) ? 1.25 : 1); }
     /** A crit's degree with Signature Weapon: one better, at most 6. */
     static int perkDegree(Character c, Weapon w, int degree) { return signature(c, w) ? Math.min(6, degree + 1) : degree; }
 
