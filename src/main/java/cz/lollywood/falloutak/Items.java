@@ -54,6 +54,7 @@ final class Items {
                 default -> Material.GLASS_BOTTLE;
             };
             case "supplies" -> Material.PAPER;
+            case "thing" -> thingMaterial(k[1]);
             default -> Material.CLOCK;   // the Pip-Boy
         };
         ItemStack it = new ItemStack(m, Math.max(1, count));
@@ -87,7 +88,67 @@ final class Items {
             case "armour" -> k[1].replaceAll("\\|.*", "") + " (" + k[1].replaceAll(".*\\|", "").toLowerCase(Locale.ROOT) + ")";
             case "gear" -> k[1];
             case "supplies" -> "Surgical supplies (" + switch (k[1]) { case "tier3" -> "Tier III"; case "tier4" -> "Tier IV"; default -> "improvised"; } + ")";
+            case "thing" -> k[1].replaceAll(".*\\|", "");
             default -> "Pip-Boy";
+        };
+    }
+
+    // ------------------------------------------------------------------ part 7's things: thing:<type>|<tier>|<rarity>|<name>
+    static String thingId(String type, int tier, int rarity, String name) { return "thing:" + type + "|" + tier + "|" + rarity + "|" + name; }
+
+    /** A thing's type, tier, rarity and name, or null. */
+    static String[] thing(String id) {
+        if (id == null || !id.startsWith("thing:")) return null;
+        String[] k = id.substring(6).split("\\|", 4);
+        return k.length == 4 ? k : null;
+    }
+
+    /** What an item of the store is as a row: {type, tier, rarity, name} for a thing, a chem or a gear item the catalogue knows; else null. */
+    static String[] ttrOf(String id) {
+        String[] t = thing(id);
+        if (t != null) return t;
+        if (id == null || !(id.startsWith("chem:") || id.startsWith("gear:"))) return null;
+        for (Production.ItemType ty : Production.TYPES.values())
+            for (Production.Named n : ty.items)
+                if (id.equals(n.id)) return new String[]{ty.name, String.valueOf(n.tier), String.valueOf(n.rarity), n.name};
+        return null;
+    }
+
+    /** The item a store row hands out: the plugin's own (a chem, a gear item) where it has one, else a thing. */
+    static String storeId(String type, int tier, int rarity, String name) {
+        Production.ItemType ty = Production.TYPES.get(type);
+        if (ty != null) for (Production.Named n : ty.items)
+            if (n.name.equals(name) && n.tier == tier && n.rarity == rarity && !n.id.isEmpty()) return n.id;
+        return thingId(type, tier, rarity, name);
+    }
+
+    private static Material thingMaterial(String body) {
+        String type = body.replaceAll("\\|.*", "");
+        Production.ItemType t = Production.TYPES.get(type);
+        String g = t == null ? "" : t.group;
+        return switch (type) {
+            case "Metal" -> Material.IRON_NUGGET;
+            case "Wood" -> Material.STICK;
+            case "Textile" -> Material.LEATHER;
+            case "Stone and glass" -> Material.BRICK;
+            case "Chemicals" -> Material.SUGAR;
+            case "Fuel" -> Material.CHARCOAL;
+            case "Parts" -> Material.TRIPWIRE_HOOK;
+            case "Salvage" -> Material.FLINT;
+            case "Food" -> Material.BAKED_POTATO;
+            case "Water" -> Material.POTION;
+            case "Medicine" -> Material.PAPER;
+            case "Power" -> Material.REDSTONE;
+            case "Seeds" -> Material.WHEAT_SEEDS;
+            case "Livestock" -> Material.RABBIT_HIDE;
+            case "Gene therapy", "Implants" -> Material.AMETHYST_SHARD;
+            default -> switch (g) {
+                case "Ammunition" -> Material.ARROW;
+                case "Melee weapons" -> Material.IRON_SWORD;
+                case "Ranged weapons" -> Material.CROSSBOW;
+                case "Explosives and traps" -> Material.FIRE_CHARGE;
+                default -> Material.PAPER;
+            };
         };
     }
 
@@ -132,6 +193,13 @@ final class Items {
                 default -> "a revival: the chance × 1.0 (kept)";
             };
             case "supplies" -> "an operation: × " + Rules.SUPPLIES.getOrDefault(k[1], 0.6) + " (used up)";
+            case "thing" -> {
+                String[] t = thing(id);
+                Production.ItemType ty = t == null ? null : Production.TYPES.get(t[0]);
+                yield t == null ? "" : t[0] + " · Tier " + Rules.roman(Integer.parseInt(t[1])) + ", rarity " + t[2]
+                        + (ty == null ? "" : "\n" + ty.use + (ty.tiers.containsKey(Rules.roman(Integer.parseInt(t[1]))) ? "\nthis tier: " + ty.tiers.get(Rules.roman(Integer.parseInt(t[1]))) : ""))
+                        + "\nback into the store through the Mess Chest";
+            }
             default -> "right click: your actions · sneak + right click: your sheet";
         };
     }

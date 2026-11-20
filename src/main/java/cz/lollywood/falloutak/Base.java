@@ -140,9 +140,8 @@ final class Base {
 
     /** The rows of one type's chest with something in them, by tier then rarity: each with its unlocked items (the data's order). */
     List<Row> rows(String type) {
-        String slot = slotOf(type);
         List<Row> l = new ArrayList<>();
-        if (slot == null) return l;
+        if (slotOf(type) == null && !Production.TYPES.containsKey(type)) return l;
         List<Pool> ps = new ArrayList<>();
         for (Pool p : pools.values()) if (p.type.equals(type) && p.count > 0) ps.add(p);
         ps.sort(Comparator.comparingInt((Pool p) -> p.tier).thenComparingInt(p -> p.rarity));
@@ -153,9 +152,100 @@ final class Base {
     List<String> choices(Pool p) {
         String slot = slotOf(p.type);
         List<String> l = new ArrayList<>();
-        for (Data.Armour a : Data.ARMOUR.values())
-            if (a.tier() == p.tier && a.rarity() == p.rarity && unlocked(a, slot)) l.add(a.name());
+        if (slot != null) {
+            for (Data.Armour a : Data.ARMOUR.values())
+                if (a.tier() == p.tier && a.rarity() == p.rarity && unlocked(a, slot)) l.add(a.name());
+            return l;
+        }
+        Production.ItemType t = Production.TYPES.get(p.type);
+        if (t != null) for (Production.Named n : t.items)
+            if (n.tier == p.tier && n.rarity == p.rarity && unlocked(t.name, n)) l.add(n.name);
+        if (l.isEmpty() && (madeAtStart(p.tier, p.rarity) || unlocked.contains(key(p.type, p.tier, p.rarity))))
+            l.add(genericName(p.type, p.tier, p.rarity));   // a row with no named item: the type itself (part 7)
         return l;
+    }
+
+    /** Tier I-II at rarity 1: the base makes it from the start (the gate, 05c §7). */
+    static boolean madeAtStart(int tier, int rarity) { return tier <= 2 && rarity == 1; }
+
+    /** A named item (not armour) can be handed out: made from the start, its row made or brought in, or unlocked by the GM. */
+    boolean unlocked(String type, Production.Named n) {
+        return madeAtStart(n.tier, n.rarity) || unlocked.contains(n.name) || unlocked.contains(key(type, n.tier, n.rarity));
+    }
+
+    static String genericName(String type, int tier, int rarity) { return type + " " + Rules.roman(tier) + (rarity > 1 ? " R" + rarity : ""); }
+
+    // ------------------------------------------------------------------ units (part 7: production takes and makes them)
+    /** How many of a type and tier (rarity 0 = any). */
+    int count(String type, int tier, int rarity) {
+        int n = 0;
+        for (Pool p : pools.values()) if (p.type.equals(type) && p.tier == tier && (rarity == 0 || p.rarity == rarity)) n += p.count;
+        return n;
+    }
+
+    /**
+     * Takes n units (rarity 0 = the lowest rarities first), the worn ones first so the undamaged stay. Returns the lowest rarity
+     * taken, or 0 when there were not n (then nothing is taken).
+     */
+    int takeUnits(String type, int tier, int rarity, int n) {
+        if (n <= 0) return rarity == 0 ? 1 : rarity;
+        if (count(type, tier, rarity) < n) return 0;
+        List<Pool> ps = new ArrayList<>();
+        for (Pool p : pools.values()) if (p.type.equals(type) && p.tier == tier && (rarity == 0 || p.rarity == rarity) && p.count > 0) ps.add(p);
+        ps.sort(Comparator.comparingInt(q -> q.rarity));
+        int lowest = 0, left = n;
+        for (Pool p : ps) {
+            while (left > 0 && p.count > 0) {
+                if (p.worn() > 0) { double c = p.average(); p.condition = p.worn() == 1 ? 0 : Math.max(0, p.condition - c); }
+                else p.fresh--;
+                p.count--;
+                left--;
+                if (lowest == 0) lowest = p.rarity;
+            }
+            if (left == 0) break;
+        }
+        save();
+        return lowest;
+    }
+
+    /** n units made in the base: undamaged, into their row; the row is unlocked (made in the base, 05c §7). */
+    void addUnits(String type, int tier, int rarity, int n) {
+        for (int i = 0; i < n; i++) add(type, tier, rarity, 100);
+        unlocked.add(key(type, tier, rarity));
+        if (slotOf(type) != null) for (Data.Armour a : Data.ARMOUR.values())
+            if (a.tier() == tier && a.rarity() == rarity && a.pieces().contains(slotOf(type))) unlocked.add(pieceId(a.name(), slotOf(type)));
+        save();
+    }
+
+    /** A tool wears: one item of the row loses these points of condition; at 0 it is gone [mine]. */
+    void wear(String type, int tier, double points) {
+        Pool p = null;
+        for (Pool q : pools.values()) if (q.type.equals(type) && q.tier == tier && q.count > 0 && (p == null || q.rarity < p.rarity)) p = q;
+        if (p == null) return;
+        if (p.worn() == 0) { p.fresh--; p.condition += 100; }   // an undamaged one becomes the worn one
+        p.condition -= points;
+        if (p.condition <= 0) { p.count--; p.condition = 0; }   // worn out: gone
+        save();
+    }
+
+    /** A thing (not armour) into its row through the Mess Chest: undamaged, unlocked. False if the type is unknown. */
+    boolean putThing(String type, int tier, int rarity, String name, int n) {
+        if (!Production.TYPES.containsKey(type) || n <= 0) return false;
+        for (int i = 0; i < n; i++) add(type, tier, rarity, 100);
+        if (name != null && !name.isBlank()) unlocked.add(name);
+        save();
+        return true;
+    }
+
+    /** One named thing out of a row (a click on its chest): a worn one first (things have no condition yet). False if none. */
+    boolean takeThing(String key, String name) {
+        Pool p = pools.get(key);
+        if (p == null || p.count <= 0 || !choices(p).contains(name)) return false;
+        if (p.worn() > 0) { double c = p.average(); p.condition = p.worn() == 1 ? 0 : Math.max(0, p.condition - c); }
+        else p.fresh--;
+        p.count--;
+        save();
+        return true;
     }
 
     /** A worn one if the row has any, else an undamaged one (the chest's left click). */
@@ -202,8 +292,12 @@ final class Base {
         save();
     }
 
-    /** Every type a chest can hold. */
-    static List<String> types() { return new ArrayList<>(ARMOUR_TYPE.values()); }
+    /** Every type a chest can hold: the armour's four, then part 7's catalogue (`data/itemtypes.json`). */
+    static List<String> types() {
+        List<String> l = new ArrayList<>(ARMOUR_TYPE.values());
+        for (String t : Production.TYPES.keySet()) if (!l.contains(t)) l.add(t);
+        return l;
+    }
 
     // ------------------------------------------------------------------ the file
     private void load() {
@@ -211,7 +305,7 @@ final class Base {
         try {
             Saved s = Store.GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Saved.class);
             if (s == null) return;
-            if (s.pools != null) for (Pool p : s.pools) if (p != null && slotOf(p.type) != null) {
+            if (s.pools != null) for (Pool p : s.pools) if (p != null && (slotOf(p.type) != null || Production.TYPES.containsKey(p.type))) {
                 // 0.26.0 summed every item: a row that was all at full condition is all undamaged now
                 if (p.fresh == 0 && p.count > 0 && p.condition / p.count >= UNDAMAGED) { p.fresh = p.count; p.condition = 0; }
                 pools.put(p.key(), p);

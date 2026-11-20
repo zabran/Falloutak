@@ -75,7 +75,7 @@ final class Population {
      * Work OUTSIDE the base (Marek 11-20: *"these are all outside of base and most likely on local map. We still have no rules for
      * that at all."*): nothing from the base's clock until the local map has its rules (part 9). [the list mine]
      */
-    static final java.util.Set<String> OUTSIDE = java.util.Set.of("scavenging", "scavenge", "patrol", "patrolling", "wasteland", "expedition", "scouting", "hunting");
+    static final java.util.Set<String> OUTSIDE = java.util.Set.of("scavenging", "scavenge", "patrol", "patrolling", "wasteland", "expedition", "scouting", "hunting", "gathering");
 
     /** A member-hour of this activity in the base: 1 XP, or 0 resting or outside. */
     static int workXp(String activity) {

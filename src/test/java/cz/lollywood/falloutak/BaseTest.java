@@ -114,7 +114,8 @@ class BaseTest {
         assertEquals(2, b.chests.get(Base.MESS).size());
         b.forget(List.of(m));
         assertNull(b.chestAt("world", 5, 4, 5));
-        assertEquals(List.of("Head armour", "Body armour", "Leg armour", "Footwear"), Base.types());
+        assertEquals(List.of("Head armour", "Body armour", "Leg armour", "Footwear"), Base.types().subList(0, 4));
+        assertEquals(46, Base.types().size());                                         // part 7's catalogue: a chest a type
     }
 
     @Test

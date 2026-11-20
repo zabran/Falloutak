@@ -134,10 +134,26 @@ final class Storage implements Listener {
             List<String> about = new ArrayList<>();
             if (pool.fresh > 0) about.add(pool.fresh + " undamaged (100 %)");
             if (pool.worn() > 0) about.add(pool.worn() + " worn, " + Math.round(pool.average()) + " % on average");
-            about.add(line.length == 1 ? "none of it unlocked: the GM's Base page" : "left click an item: a worn one · right click: an undamaged one");
-            inv.setItem(at, label(Material.PAPER, "Tier " + Rules.roman(pool.tier) + ", rarity " + pool.rarity, about.toArray(new String[0])));
             String slot = Base.slotOf(h.type);
+            about.add(line.length == 1 ? "none of it unlocked: the GM's Base page" : slot == null ? "left click an item: one · shift + left click: up to 16"
+                    : "left click an item: a worn one · right click: an undamaged one");
+            inv.setItem(at, label(Material.PAPER, "Tier " + Rules.roman(pool.tier) + ", rarity " + pool.rarity, about.toArray(new String[0])));
             for (int k = 1; k < line.length; k++) {
+                if (slot == null) {   // part 7's things: no condition yet, one or a handful a click
+                    ItemStack it = Items.make(Items.storeId(pool.type, pool.tier, pool.rarity, line[k]), 1);
+                    ItemMeta im = it.getItemMeta();
+                    List<Component> lore = new ArrayList<>(im.lore() == null ? List.of() : im.lore());
+                    lore.add(0, Component.text("left click: one · shift + left click: up to 16 (" + pool.count + " in the store)", NamedTextColor.GREEN)
+                            .decoration(TextDecoration.ITALIC, false));
+                    im.lore(lore);
+                    int n = Math.max(1, Math.min(99, pool.count));
+                    Battle.cosmetic(() -> im.setMaxStackSize(n));
+                    it.setItemMeta(im);
+                    Battle.cosmetic(() -> it.setAmount(n));
+                    inv.setItem(at + k, it);
+                    h.takes.put(at + k, new String[]{line[0], line[k]});
+                    continue;
+                }
                 ItemStack it = Items.piece(new Character.Worn(line[k], slot, pool.worn() > 0 ? pool.average() : 100, fit));
                 ItemMeta im = it.getItemMeta();
                 List<Component> lore = new ArrayList<>(im.lore() == null ? List.of() : im.lore());
@@ -175,12 +191,25 @@ final class Storage implements Listener {
     /** A left click: a worn one (an undamaged one if the row has no worn ones). */
     String click(Player p, Holder h, int slot) { return click(p, h, slot, false); }
 
+    String click(Player p, Holder h, int slot, boolean undamaged) { return click(p, h, slot, undamaged, false); }
+
     /** A click on the store's screen: take the item under it (a right click: an undamaged one), or turn the page. Returns what the player is told (or null). */
-    String click(Player p, Holder h, int slot, boolean undamaged) {
+    String click(Player p, Holder h, int slot, boolean undamaged, boolean shift) {
         if (slot == h.prev) { open(p, h.type, h.page - 1); return null; }
         if (slot == h.next) { open(p, h.type, h.page + 1); return null; }
         String[] t = h.takes.get(slot);
         if (t == null) return null;
+        if (Base.slotOf(h.type) == null) {   // a thing (part 7)
+            Base.Pool pool = pl.base.pools.get(t[0]);
+            if (pool == null) { fill(h, p); return "! none left in the store"; }
+            int want = shift ? 16 : 1, got = 0;
+            while (got < want && pl.base.takeThing(t[0], t[1])) got++;
+            if (got == 0) { fill(h, p); return "! none left in the store"; }
+            Items.giveStack(p, Items.make(Items.storeId(pool.type, pool.tier, pool.rarity, t[1]), got));
+            Sfx.to(p, "store.take");
+            fill(h, p);
+            return "You take " + got + " × " + t[1] + ".";
+        }
         String fit = pl.character(p).fit();
         Base.Pool pool = pl.base.pools.get(t[0]);
         if (undamaged && pool != null && pool.count > 0 && pool.fresh == 0) return "! no undamaged ones in this row: a left click takes a worn one";
@@ -198,7 +227,7 @@ final class Storage implements Listener {
         if (!(e.getView().getTopInventory().getHolder() instanceof Holder h)) return;
         e.setCancelled(true);   // nothing goes in or moves: items come back through the Mess Chest
         if (!(e.getWhoClicked() instanceof Player p) || e.getClickedInventory() != h.inv) return;
-        String r = click(p, h, e.getSlot(), e.getClick().isRightClick());
+        String r = click(p, h, e.getSlot(), e.getClick().isRightClick(), e.getClick().isShiftClick());
         if (r != null) Menus.say(p, r);
     }
 
@@ -221,6 +250,12 @@ final class Storage implements Listener {
         int n = 0;
         for (int i = 0; i < inv.getSize(); i++) {
             ItemStack it = inv.getItem(i);
+            String[] th = it == null ? null : Items.ttrOf(Items.id(it));
+            if (th != null && base.putThing(th[0], Integer.parseInt(th[1]), Integer.parseInt(th[2]), th[3], Math.max(1, it.getAmount()))) {
+                n += Math.max(1, it.getAmount());   // a thing, a chem or a gear item the catalogue knows (part 7)
+                inv.setItem(i, null);
+                continue;
+            }
             Character.Worn w = Items.worn(it);
             if (w == null) continue;
             if (!base.put(w)) continue;   // a piece the store does not know stays in the chest

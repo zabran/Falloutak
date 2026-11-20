@@ -237,6 +237,7 @@ final class Menus {
                     + "training, XP = the pool / the headcount; your own attributes, traits and perks; the last 2 levels' points again)", x -> takeOverPick(x, c)));
         if (c.perksDue() > 0 && !c.dead) b.add(btn("Pick a perk (" + c.perksDue() + ")", "a perk level: the perks whose gate you meet", x -> perkPick(x, c, null)));
         b.add(btn("Groups", "the base's people: each group's level, its points to spend (any player levels them up), lessons", Menus::groups));
+        b.add(btn("Production", "the base's buildings, their jobs and crews (part 7): any player runs them", Works::main));
         b.add(btn("My sheet", "your character sheet", x -> SheetView.open(x, c, SheetGui.Page.OVERVIEW)));
         if (p.hasPermission("falloutak.gm")) b.add(btn("GM menu", "the game master's tools", Menus::gm));
         if (!cannot.isEmpty()) {
@@ -605,10 +606,13 @@ final class Menus {
         List<Ui.Btn> b = new ArrayList<>();
         List<Component> lines = new ArrayList<>();
         lines.add(line("The store's chests (look at a chest, then click what it becomes):", NamedTextColor.WHITE));
+        int none = 0;
         for (String type : Base.types()) {
             List<Base.Spot> s = base.chests.get(type);
-            lines.add(line(" " + type + ": " + (s == null ? "no chest yet" : s.get(0).text()), s == null ? NamedTextColor.DARK_GRAY : NamedTextColor.GRAY));
+            if (s == null) { none++; continue; }
+            lines.add(line(" " + type + ": " + s.get(0).text(), NamedTextColor.GRAY));
         }
+        if (none > 0) lines.add(line(" " + none + " of the " + Base.types().size() + " types have no chest yet (part 7's catalogue).", NamedTextColor.DARK_GRAY));
         List<Base.Spot> mess = base.chests.getOrDefault(Base.MESS, List.of());
         lines.add(line(" " + Base.MESS + ": " + (mess.isEmpty() ? "none yet" : String.join(", ", mess.stream().map(Base.Spot::text).toList())),
                 mess.isEmpty() ? NamedTextColor.DARK_GRAY : NamedTextColor.GRAY));
@@ -618,9 +622,10 @@ final class Menus {
                 + "; unlocked beyond the start: " + base.unlocked.size() + ".", NamedTextColor.GRAY));
         b.add(btn("Mess Chest: the chest you look at", "players put items in; on closing, the store's items go to their rows (and are unlocked)",
                 x -> say(x, setChest(x.getTargetBlockExact(6), Base.MESS))));
-        for (String type : Base.types())
-            b.add(btn(type + " chest: the chest you look at", "opens as the store's " + type.toLowerCase(Locale.ROOT) + ": a row for each tier and rarity",
-                    x -> say(x, setChest(x.getTargetBlockExact(6), type))));
+        b.add(btn("A type's chest: the chest you look at", "pick the type (" + Base.types().size() + "): it opens as that type's store, a row for each tier and rarity",
+                x -> pick(x, "Which type's chest?", "Look at the chest while you pick.", Base.types(), t -> t,
+                        t -> "opens as the store's " + t.toLowerCase(Locale.ROOT) + ": a row for each tier and rarity",
+                        (y, t) -> { say(y, setChest(y.getTargetBlockExact(6), t)); gmBase(y); }, Menus::gmBase)));
         b.add(btn("No store chest: the chest you look at", "a plain chest again (what the store holds stays)", x -> say(x, setChest(x.getTargetBlockExact(6), null))));
         b.add(btn("Unlocked items", "beyond Tier I-II at rarity 1 (made from the start) and what was brought in", Menus::unlockMenu));
         menu(g, "Base", lines, b, Menus::gm);
@@ -998,7 +1003,13 @@ final class Menus {
                     }
                     if (all) pl.zones.rounds((int) Math.round(min * 10));   // the zones that count down: the world's time
                     say(x, s.trim() + " passed" + (all ? " for everyone" : " for " + only.name()) + ".");
+                    double before = pl.roster.pop.worldHours;
                     if (all) for (String w : pl.roster.work(min / 60)) say(x, w + ".");   // the groups' people work (06 §2.1)
+                    if (all) {   // part 7: the buildings' jobs, power and water by the day, upkeep by the week
+                        for (String w : pl.production.advance(min / 60, before, pl.base, pl.workforce(), pl.roster.pop.people.size())) say(x, w);
+                        pl.production.save();
+                        pl.roster.save();
+                    }
                 }), only == null ? Menus::gm : x -> gmOn(x, only));
     }
 

@@ -221,7 +221,7 @@
      "value": 50
     }
    ],
-   "effect": "skill books give twice as much [F2 +50 %] (if skill books exist: part 7)",
+   "effect": "skill books give twice as much: +10 instead of +5 (Marek 11-20, `07` §4.11) [F2 +50 %]",
    "parked": false,
    "bound": false,
    "mods": {},
@@ -1502,7 +1502,7 @@
      "value": 100
     }
    ],
-   "effect": "your whole faction (every group and every PC) gets your leadership bonus whatever your range, at its plain size (a tenth of your Leadership, not ×1.5) (Marek 11-20: \"Group is tiny. Make it faction-wide. And make it weaker if it becomes too OP by that, but players are not expected to go out with their people most of the time.\"; it was ×2, then ×1.5 in your range; the plain size mine)",
+   "effect": "your whole faction (every group and every PC) gets your leadership bonus whatever your range, at its plain size (a tenth of your Leadership, not ×1.5) (Marek 11-20: \"Group is tiny. Make it faction-wide. And make it weaker if it becomes too OP by that, but players are not expected to go out with their people most of the time.\"; it was ×2, then ×1.5 in your range; the plain size RULED: \"the full bonus for whole faction is good enough, double would be too strong anyway\")",
    "parked": false,
    "bound": false,
    "mods": {},

@@ -33,13 +33,14 @@ class StorageTest extends MockGame {
         mess.addItem(Items.piece(new Character.Worn("Leather Armor", "Legs", 70)));
         mess.addItem(Items.make("gear:Stimpak", 2));
         mess.addItem(new ItemStack(Material.DIRT, 5));
-        assertEquals(2, Storage.sortMess(mess, plugin.base));
+        assertEquals(4, Storage.sortMess(mess, plugin.base));                         // part 7: the Stimpaks are store items too
         assertEquals(1, plugin.base.pools.get("Body armour, Tier II, rarity 1").count);
         assertTrue(plugin.base.unlocked(Data.ARMOUR.get("Leather Armor"), "Legs"));   // brought in: unlocked
         assertTrue(mess.contains(Material.DIRT));                                      // the rest stays in the chest
         int stims = 0;
         for (ItemStack it : mess.getContents()) if ("gear:Stimpak".equals(Items.id(it))) stims += it.getAmount();
-        assertEquals(2, stims);
+        assertEquals(0, stims);
+        assertEquals(2, plugin.base.count("Medicine", 4, 1));                          // the catalogue's row (07b)
     }
 
     @Test
@@ -122,7 +123,7 @@ class StorageTest extends MockGame {
         PlayerMock gm = player(0.5, 0.5, true);
         Menus.gm(gm);
         Ui.Page base = click("Base");
-        assertTrue(base.text().contains("Body armour: no chest yet"), base.text());
+        assertTrue(base.text().contains("46 of the 46 types have no chest yet"), base.text());
         Block b = chest(4, 4);
         assertEquals("That chest is now the head armour chest (4 4 4).", Menus.setChest(b, "Head armour"));
         assertEquals("Head armour", plugin.base.chestAt(world.getName(), 4, 4, 4));

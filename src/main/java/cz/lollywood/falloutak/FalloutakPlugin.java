@@ -31,12 +31,45 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
     Base base;
     /** The store's chests (Marek 11-19: one chest per type, the Mess Chest). */
     Storage storage;
+    /** Part 7: the base's buildings, jobs and crews (`07-PRODUCTION.md`). */
+    Production production;
+
+    /**
+     * Who can work in the base (part 7, round 2: *"your idea works"*): the groups' members who idle or already produce (each at his
+     * group's statblock, part 6) and the characters online set to *Work in the base*.
+     */
+    Production.Workforce workforce() {
+        return new Production.Workforce() {
+            @Override public List<Production.Worker> all() {
+                List<Production.Worker> l = new ArrayList<>();
+                Map<String, Character> sheets = new HashMap<>();
+                for (Population.Person p : roster.pop.people) {
+                    String a = p.activity == null ? "" : p.activity.trim().toLowerCase(java.util.Locale.ROOT);
+                    if (!(a.isEmpty() || a.equals("idling") || a.equals("idle") || a.equals("production") || a.equals("gathering")) || p.group.isBlank()) continue;
+                    Character sb = sheets.computeIfAbsent(p.group.toLowerCase(java.util.Locale.ROOT), g -> roster.statblock(p.group));
+                    l.add(new Production.Worker("person:" + p.name, p.name + " (" + p.group + ")", sb));
+                }
+                for (Player pl : getServer().getOnlinePlayers()) {
+                    Character c = character(pl);
+                    if (c.working && !c.dead) l.add(new Production.Worker("pc:" + pl.getUniqueId(), c.name.isBlank() ? pl.getName() : c.name, c));
+                }
+                return l;
+            }
+
+            @Override public void assign(String id, String activity) {
+                if (!id.startsWith("person:")) return;
+                Population.Person p = roster.pop.person(id.substring(7));
+                if (p != null) { p.activity = activity.isEmpty() ? "Idling" : activity; roster.save(); }
+            }
+        };
+    }
 
     @Override
     public void onEnable() {
         store = new Store(getDataFolder().toPath());
         zones = new Zones(getDataFolder().toPath());
         base = new Base(getDataFolder().toPath());
+        production = Production.load(getDataFolder().toPath());
         Items.KEY = new org.bukkit.NamespacedKey(this, "fo_thing");
         Items.NPC = new org.bukkit.NamespacedKey(this, "fo_npc");
         Items.COND = new org.bukkit.NamespacedKey(this, "fo_cond");

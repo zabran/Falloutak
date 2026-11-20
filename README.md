@@ -3,6 +3,28 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.42.0 (2026-11-20): part 7, production: the recipe catalogue and the production engine.**
+- **The catalogue** (`07b-RECIPES.md`, generated with `data/itemtypes.json`, `buildings.json` and `recipes.json` by
+  `LollyWood-Lore/_tools/fallout_catalogue.py`; Marek: *"there should be several ways to get the same TTR - and it should make sense
+  to research more effective ways"*): 46 item types (a store chest each), 15 building kinds, 220 recipes, 172 known at the start and
+  48 by research. Every Tier I-II rarity-1 type has at least two ways, one known at the start whose inputs can be made too (the
+  gate, a test). A start recipe marks all its inputs for the rarity, a researched one only its main material. Every number EXAMPLE.
+- **The store holds every type**: things (materials, food, water, medicine, ammunition, tools...) in the chest rows by tier and
+  rarity, a click takes one, shift + click up to 16; the Mess Chest takes them back, chems and gear items too.
+- ***Actions → Production*** (any player: *"In base, players are kings"*): the base's buildings, one job each (a recipe, how many
+  times, the rarity of its marked inputs), **the automatic pick** of the best free workers (the groups' idle members at their
+  statblock, the characters set to *Work in the base*), a worker added or removed by hand; work anywhere in the base; gathering
+  outside (0 XP until part 9). **The GM:** the shelter's seven rooms, a building of any kind and tier, researched recipes
+  unlocked, the harvest factor (the nuclear autumn).
+- **Pass time for everyone runs it**: each worker's hour × his skill ÷ the minimum (×4 at most), the hours add up, an extra ×1.5;
+  the inputs out of the store, the output in at the lowest rarity of the marked inputs, unlocked; **power and water a day**, only
+  on the days a building works, the kitchen and the automatic rooms every day, the people's 2 l first; **upkeep 2 h × tier a week**,
+  done first by the crew, a missed week −25 condition, at 0 the building stops and its crew repairs it; days that must pass
+  (tanning, brewing, crops); harvests × the GM's factor; a project makes a building (a kiln, a still, pens, a field).
+- The production perks (Master Craftsman, Perfectionist, Foreman, Assembly Line, Cook, Good Harvest, Salvager) run in the engine
+  but stay parked, not offered, until Marek agrees on them (11-14: *"lets first complete the reasearch+production"*).
+- Comprehension: skill books +10 (perks.json, part 7's books).
+
 **Version 0.41.0 (2026-11-20): Weapon Master and Nemesis multiply; My People faction-wide.**
 - **Weapon Master × Nemesis** (Marek: *"they probably should multiply, if read as written"*): ×1.25 × 1.25 = ×1.5625.
 - **My People** (Marek: *"Group is tiny. Make it faction-wide. And make it weaker if it becomes too OP by that"*): no longer
