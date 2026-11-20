@@ -69,6 +69,8 @@ public final class Character {
     /** Downtime work in the base (06b §5.4.7: 1 XP an hour, RULED); the hours worked wait here until the GM's clock awards them. */
     public boolean working = false;
     public int workedHours = 0;
+    /** While a dead PC's player creates his new character from his group (Marek 11-20): the group and the member; never saved. */
+    public transient String fromGroup, fromMember;
     /** Bleeding = Blood lost a round (absolute, Marek 11-14); broken legs 0-2 (the stance table's 400 % / 800 %). */
     public double locationRads = 0, bleeding = 0;
     public int brokenLegs = 0;
@@ -162,7 +164,52 @@ public final class Character {
     /** Sets the time of day, keeping the day (a time earlier than now turns the clock back within the day). */
     public void setTimeOfDay(double hour) { dayStart += hour - hourOfDay(); }
 
-    public boolean hasPerk(String perk) { for (Feat t : perks) if (t.name().equals(perk)) return true; return false; }
+    public boolean hasPerk(String perk) { for (Feat t : perks) if (t.name().equals(perk) || t.name().startsWith(perk + ": ")) return true; return false; }
+
+    /** A perk's own name (a bound perk is kept as "Nemesis: raiders"). */
+    static String perkBase(String shown) { int i = shown.indexOf(": "); return i < 0 ? shown : shown.substring(0, i); }
+
+    /** The level perks owned (02c §2: one each perk level), not the point shop's. */
+    public int levelPerks() {
+        int n = 0;
+        for (Feat f : perks) if (Data.PERKS.containsKey(perkBase(f.name()))) n++;
+        return n;
+    }
+
+    /** Perks to pick: one a perk level of the template's rate, less those taken. */
+    public int perksDue() { return templatePerkRate <= 0 ? 0 : Math.max(0, level / templatePerkRate - levelPerks()); }
+
+    /** The perks this character may pick now: the gate met (permanent values), not taken, not parked (parts 7-8). */
+    public List<Data.Perk> perksOpen() {
+        double[] v = skills(true);
+        List<Data.Perk> l = new ArrayList<>();
+        for (Data.Perk p : Data.PERKS.values()) if (!p.parked() && !hasPerk(p.name()) && Rules.gateMet(v, p)) l.add(p);
+        return l;
+    }
+
+    /**
+     * Takes a perk (02c §2): on the sheet, its numbers as a permanent effect; a bound one carries the thing named ("Nemesis:
+     * raiders"); Tag! tags the skill named; Here and Now gives the XP to the next level. Returns what happened, "!" when refused.
+     */
+    public String takePerk(Data.Perk p, String bound) {
+        if (perksDue() <= 0) return "! no perk to pick now (one every " + templatePerkRate + " levels)";
+        if (p.parked()) return "! " + p.name() + " waits for parts 7-8";
+        if (hasPerk(p.name())) return "! " + p.name() + " is taken already";
+        if (!Rules.gateMet(skills(true), p)) return "! the gate is not met: " + p.gate();
+        String b = bound == null ? "" : bound.trim();
+        if (p.bound() && b.isEmpty()) return "! name the thing " + p.name() + " is bound to";
+        if (p.name().equals("Tag!")) {
+            if (Rules.SKILLS.stream().noneMatch(s -> s.name().equals(b))) return "! Tag! needs one of the 15 skills";
+            if (tags.contains(b)) return "! " + b + " is tagged already";
+            tags.add(b);
+        }
+        perks.add(new Feat(b.isEmpty() ? p.name() : p.name() + ": " + b, p.gate(), p.effect()));
+        if (p.hasNumbers())
+            effects.add(new Effect(p.name(), "perk", "perk:" + p.name(), true, p.mods().clone(), new LinkedHashMap<>(p.other()), 0, null, 100));
+        String more = "";
+        if (p.name().equals("Here and Now")) more = " " + gainXp(Math.max(1, Rules.xpForLevel(level + 1) - xp));
+        return (p.name() + (b.isEmpty() ? "" : ": " + b) + " taken." + more).trim();
+    }
 
     /** Takes the template's numbers (`data/species.json`, part 3). */
     public void applyTemplate(String name) {

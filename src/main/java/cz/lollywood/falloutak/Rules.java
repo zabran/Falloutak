@@ -141,6 +141,39 @@ public final class Rules {
     /** At most 8 lesson hours a member a week (06 §2.5). */
     public static final int LESSON_HOURS_A_WEEK = 8;
 
+    // ------------------------------------------------------------------ perks' gates (02c §2: they read permanent values, Marek 11-14)
+    /** The sciences (02c §2: *"any science = Computer Science, Engineering, Chemistry, Biology or Medicine"*). */
+    public static final List<String> SCIENCES = List.of("Computer Science", "Engineering", "Chemistry", "Biology", "Medicine");
+    /** The melee families (a gate's "a melee family"). [the list mine] */
+    public static final List<String> MELEE = List.of("Knives", "Hammers", "Spears", "Axes", "Swords");
+
+    /** A skill's or a weapon skill's value from the 15 skills' values. */
+    public static double skillValue(double[] skills, String name) {
+        for (int i = 0; i < SKILLS.size(); i++) if (SKILLS.get(i).name().equals(name)) return skills[i];
+        for (Combo co : COMBOS) if (co.name().equals(name)) return co.value().applyAsDouble(skills);
+        return 0;
+    }
+
+    /** The best value a gate alternative can use. */
+    static double best(double[] skills, Data.Alt a) {
+        List<String> names = switch (a.any()) {
+            case "skill" -> SKILLS.stream().map(Skill::name).toList();
+            case "weapon" -> java.util.stream.Stream.concat(java.util.stream.Stream.of("Guns"), COMBOS.stream().map(Combo::name)).toList();
+            case "science" -> SCIENCES;
+            case "melee" -> MELEE;
+            default -> a.skills();
+        };
+        double b = Double.NEGATIVE_INFINITY;
+        for (String n : names) b = Math.max(b, skillValue(skills, n));
+        return b;
+    }
+
+    /** A perk's gate is met when any of its alternatives is (02c §2). */
+    public static boolean gateMet(double[] skills, Data.Perk p) {
+        for (Data.Alt a : p.alts()) if (best(skills, a) >= a.value()) return true;
+        return false;
+    }
+
     /** Ruled 11-14 (02c §7): dying from 0 HP down to −Endurance, dead below. */
     public static int deathFloor(int[] a) { return -a[E]; }
 

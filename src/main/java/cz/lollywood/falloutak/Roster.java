@@ -171,6 +171,7 @@ final class Roster implements CommandExecutor {
         int pts = 0;
         List<Integer> perks = new ArrayList<>();
         for (int l = g.statLevel + 1; l <= whole; l++) {
+            g.pointsAt.putIfAbsent(l, sb.points.clone());   // before this level's points are spent (a new PC redoes his last 2)
             pts += sb.skillRate();
             if (sb.templatePerkRate > 0 && l % sb.templatePerkRate == 0) perks.add(l);
         }
@@ -197,6 +198,7 @@ final class Roster implements CommandExecutor {
     /** Hours of the world's time pass: the members work (06 §2.1). Returns one line a group that gained, for the GM. */
     List<String> work(double hours) {
         List<String> out = new ArrayList<>();
+        if (hours > 0) pop.worldHours += hours;   // the world's clock (the lesson week)
         for (Map.Entry<String, Double> e : pop.work(hours).entrySet()) {
             Population.Group g = pop.group(e.getKey());
             String up = levelUp(g);
@@ -299,62 +301,77 @@ final class Roster implements CommandExecutor {
     }
 
     /**
-     * A dead PC's player goes on as a member of his group (06 §2.3, RULED; the presentation: *„Až zemřete, hrajete za jednoho z
-     * nich“*): his sheet = the group's statblock, his XP = the pool / the headcount (the level from it, no points to spend), his
-     * traits from his own row, his HP his row's; he leaves the group's count and his share leaves the pool; from then on he is a PC.
-     * The dead one is kept (fallen/). Returns the message, "!" first when refused.
+     * The new character from the group is created (Marek 11-20: *"the player can create a new character in character creation, using the
+     * the group instead of template, pick his own traits, attribute values and perks + redo the last 2 levels (skill points)"*): his XP =
+     * the pool / the headcount (06 §2.3) and the level from it; the group's skill points of all levels but his last 2 (the snapshot),
+     * those 2 levels' points to spend again at his own rate; his own traits (already applied by the form), attributes and perks; the
+     * member he was leaves the count with his share; the dead one is kept (fallen/). Then the spend form and the perks.
      */
-    String takeOver(Player p, String memberName) {
+    void finishFromGroup(Player p, Character d) {
+        Population.Group g = pop.group(d.fromGroup);
+        Population.Person m = pop.person(d.fromMember);
         Character dead = pl.character(p);
-        if (!dead.dead) return "! only when your character is dead";
-        Population.Person m = pop.person(memberName);
-        if (m == null || !m.group.equalsIgnoreCase(dead.group)) return "! " + memberName + " is not in your group (" + dead.group + ")";
-        Population.Group g = pop.group(m.group);
-        Character sb = g == null ? null : statblock(g.name);
-        if (sb == null) return "! " + m.group + " has no statblock yet (the GM: /npc edit " + m.group + ")";
+        if (g == null || m == null || !m.group.equalsIgnoreCase(g.name) || !dead.dead) {
+            say(p, "! the new character cannot be made: " + (dead.dead ? "the member or the group is gone" : "your character is not dead"), NamedTextColor.RED);
+            return;
+        }
         int n = pop.members(g.name);
         double share = n > 0 ? g.xp / n : 0;
-        Character c = Store.fromJson(Store.toJson(sb));
-        c.name = m.name;
-        c.player = dead.player.isEmpty() ? p.getName() : dead.player;
-        c.group = g.name;
-        c.xp = Math.round(share);
-        c.level = Rules.levelFor(c.xp);
-        c.unspentSkillPoints = 0;
-        c.traits.clear();
-        for (String t : m.traits) {
-            Data.Trait d = null;
-            for (Data.Trait x : Data.TRAITS.values()) if (x.name().equalsIgnoreCase(t.trim())) d = x;
-            c.traits.add(d != null ? new Character.Feat(d.name(), "trait (" + d.from() + ")", d.bonus() + "; " + d.drawback())
-                    : new Character.Feat(t.trim(), "trait", ""));
-        }
-        if (m.hpMax > 0) c.hp = Math.max(1, Math.min(c.hpMax(), m.hp));
-        c.working = false;
-        c.sleeping = false;
+        d.xp = Math.round(share);
+        d.level = Rules.levelFor(d.xp);
+        int redo = Math.min(2, d.level - 1);
+        double[] base = g.pointsAt.get(d.level - redo + 1);
+        if (base != null) System.arraycopy(base, 0, d.points, 0, d.points.length);
+        d.unspentSkillPoints = base != null ? redo * d.skillRate() : 0;
+        d.hp = m.hpMax > 0 ? Math.max(1, Math.min(d.hpMax(), m.hp)) : d.hpMax();
+        for (Rules.Stat st : Rules.Stat.values())
+            d.survival.put(st, switch (st) { case POISON, RADS, HYPOTHERMIA, HYPERTHERMIA, PAIN -> 0.0; default -> d.max(st); });
+        d.dead = false;
+        d.fromGroup = null;
+        d.fromMember = null;
         try { pl.store.saveFallen(p.getUniqueId(), dead); } catch (Exception e) { pl.getLogger().warning("could not keep the fallen " + dead.name + ": " + e); }
         g.xp = Math.max(0, g.xp - share);
         pop.people.remove(m);
         save();
-        pl.characters.put(p.getUniqueId(), c);
-        try { pl.store.save(p.getUniqueId(), c); } catch (Exception e) { pl.getLogger().warning("could not save " + c.name + ": " + e); }
-        return "You go on as " + c.name + " of " + g.name + ": level " + c.level + " (" + c.xp + " XP, the group's pool / " + n + "). "
-                + dead.name + " is kept among the fallen.";
+        pl.characters.put(p.getUniqueId(), d);
+        try { pl.store.save(p.getUniqueId(), d); } catch (Exception e) { pl.getLogger().warning("could not save " + d.name + ": " + e); }
+        say(p, "You go on as " + d.name + " of " + g.name + ": level " + d.level + " (" + d.xp + " XP, the pool / " + n + "). "
+                + (base != null ? (redo > 0 ? "The last " + redo + (redo == 1 ? " level's" : " levels'") + " skill points are yours to spend again: "
+                + d.unspentSkillPoints + "." : "") : "The group has no record of its levels from before 0.39.0: its skill points stay as they are.")
+                + (d.perksDue() > 0 ? " Perks to pick: " + d.perksDue() + "." : "") + " " + dead.name + " is kept among the fallen.", NamedTextColor.GREEN);
+        java.util.function.Consumer<Player> perks = x -> { if (d.perksDue() > 0) Menus.perkPick(x, d, null); else SheetView.open(x, d, SheetGui.Page.OVERVIEW); };
+        if (d.unspentSkillPoints > 0) Forms.spend(p, pl, d, perks); else perks.accept(p);
+    }
+
+    /** A teacher by name: a player online, else an NPC statblock (a group's or any). */
+    Character teacher(String name) {
+        Player tp = org.bukkit.Bukkit.getPlayerExact(name);
+        if (tp != null) return pl.character(tp);
+        return statblock(name);
+    }
+
+    /** A teacher's level: a player's own; a group's statblock teaches at its group's level now; any other NPC at its sheet's. */
+    int teacherLevel(String name, Character t) {
+        Population.Group tg = org.bukkit.Bukkit.getPlayerExact(name) == null ? pop.group(name) : null;
+        return tg != null ? (int) Math.floor(Population.level(tg.xp, pop.members(tg.name)) + 1e-9) : t.level;
     }
 
     /**
-     * Lessons (06 §2.5, RULED 11-20: teaching is XP only): a PC teaches a subject the group knows less of; each student (a class of
-     * 1 + Leadership / 10) gets 1 + Leadership / 25 XP an hour INSTEAD of his work's 1, so the pool gains the difference; at most 8
-     * lesson hours a game week a group; the teacher earns his own work's 1 XP an hour. Returns the message ("!" when refused).
+     * Lessons (06 §2.5, RULED: teaching is XP only; Marek 11-20: *"I would base this on level, since it gives XP anyway. And I think
+     * NPC should be able to teach as well."*): a teacher (a player's character or an NPC statblock) of a HIGHER level than the group
+     * teaches it; each student (a class of 1 + Leadership / 10) gets 1 + Leadership / 25 XP an hour INSTEAD of his work's 1, so the
+     * pool gains the difference; at most 8 lesson hours a group a game week (the world's clock); the teacher earns his own work's 1
+     * XP an hour (a player's character, or into his group's pool). Returns the message ("!" when refused).
      */
-    String lessons(Player teacher, String group, String subject, int hours) {
+    String lessons(String teacherName, String group, int hours) {
         Population.Group g = pop.group(group);
         if (g == null) return "! no group " + group;
-        Character sb = statblock(g.name), t = pl.character(teacher);
-        if (sb == null) return "! " + g.name + " has no statblock yet";
-        if (Rules.SKILLS.stream().noneMatch(x -> x.name().equals(subject))) return "! no skill " + subject;
-        if (t.skill(subject) <= sb.skill(subject))
-            return "! " + t.name + " (" + subject + " " + SheetGui.f(t.skill(subject)) + " %) does not know more than " + g.name + " (" + SheetGui.f(sb.skill(subject)) + " %)";
-        long week = (long) Math.floor(t.now() / 168);
+        Character t = teacher(teacherName);
+        if (t == null) return "! no teacher " + teacherName + " (a player online or an NPC statblock)";
+        if (teacherName.equalsIgnoreCase(g.name)) return "! a group cannot teach itself";
+        int tl = teacherLevel(teacherName, t), gl = (int) Math.floor(Population.level(g.xp, pop.members(g.name)) + 1e-9);
+        if (tl <= gl) return "! " + t.name + " (level " + tl + ") is not above " + g.name + " (level " + gl + ")";
+        long week = (long) Math.floor(pop.worldHours / 168);
         if (g.lessonWeek != week) { g.lessonWeek = week; g.lessonHours = 0; }
         int h = Math.min(hours, Rules.LESSON_HOURS_A_WEEK - g.lessonHours);
         if (h <= 0) return "! " + g.name + " has had its " + Rules.LESSON_HOURS_A_WEEK + " lesson hours this week";
@@ -364,11 +381,15 @@ final class Roster implements CommandExecutor {
         double gain = students * h * (Rules.lessonXp(lead) - Rules.workXp(true));
         g.lessonHours += h;
         String up = pool(g.name, gain);
-        String mine = award(teacher, h * Rules.workXp(true), "teaching");
-        return t.name + " taught " + subject + " to " + students + " of " + g.name + " for " + h + " h (" + SheetGui.f(Rules.lessonXp(lead))
-                + " XP a student-hour instead of 1): the pool +" + Math.round(gain) + (up.isEmpty() ? "" : "; " + up) + ". " + mine
+        Player tp = org.bukkit.Bukkit.getPlayerExact(teacherName);
+        String mine = tp != null ? award(tp, (long) h * Rules.workXp(true), "teaching")
+                : pop.group(teacherName) != null ? teacherName + "'s pool +" + h + appended(pool(teacherName, h * Rules.workXp(true))) : t.name + " (an NPC)";
+        return t.name + " (level " + tl + ") taught " + students + " of " + g.name + " (level " + gl + ") for " + h + " h (" + SheetGui.f(Rules.lessonXp(lead))
+                + " XP a student-hour instead of 1): the pool +" + Math.round(gain) + appended(up) + ". " + mine
                 + ". Lesson hours left this week: " + (Rules.LESSON_HOURS_A_WEEK - g.lessonHours) + ".";
     }
+
+    private static String appended(String s) { return s.isEmpty() ? "" : "; " + s; }
 
     // ------------------------------------------------------------------ /pop
     private void pop(CommandSender s, String sub, String[] a) {
@@ -462,7 +483,7 @@ final class Roster implements CommandExecutor {
                 Character sb = statblock(f.name);
                 if (sb == null) { say(s, f.name + " has no statblock yet (/npc edit " + f.name + ", the GM).", NamedTextColor.RED); return; }
                 if (sb.unspentSkillPoints <= 0) { say(s, f.name + " has no skill points to spend (level " + f.statLevel + ").", NamedTextColor.GRAY); return; }
-                Forms.spend(p, pl, sb, x -> putStatblock(f.name, sb));
+                Forms.spend(p, pl, sb, x -> { putStatblock(f.name, sb); Menus.group(x, f.name); });
             }
             case "unlock" -> {   // 03b §2b (RULED 11-16: "yes, pay twice and whole group can use it")
                 if (!gm(s)) return;

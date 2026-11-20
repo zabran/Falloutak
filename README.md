@@ -3,6 +3,23 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.39.0 (2026-11-20): our perks; a new character from the group; lessons by level.**
+- **Our perks** (Marek: *"please, add our perks. We already have almost all usable ones."*): the 111 perks of `02c` §2-§3 in
+  `data/perks.json` (`_tools/fallout_perks_json.py` in LollyWood-Lore), each with its gate (a skill at a value, or any skill, any
+  weapon skill, any science, a melee family; permanent values). At a perk level *Pick a perk* (Actions, the sheet's Traits &
+  perks page, a group's page) lists the ones whose gate is met; parked ones (parts 7-8) are not offered; bound ones ask for the
+  thing (Tag! for the skill). The sheet applies the numbers of 17 of them (Gain X, Educated, Toughness, Action Boy, Faster
+  Healing, Rad Child, Lifegiver, Earlier Sequence, Thief, Sniper, Here and Now); the rest are the GM's until their rules run.
+- **A new character from the group** (Marek: *"the player can create a new character in character creation, using the the group
+  instead of template, pick his own traits, attribute values and perks + redo the last 2 levels (skill points)"*): when a
+  character dies, *A new character from <group>* asks who of the group he becomes, then the creation pages with the group's
+  statblock in place of the template: his own attributes and traits, XP = the pool / the headcount, the group's skill points of
+  all but his last 2 levels, those 2 levels' points to spend again, then his perks. The tags stay the group's. A group keeps its
+  statblock's points at each level from this version on.
+- **Lessons by level, NPCs teach too** (Marek: *"I would base this on level, since it gives XP anyway. And I think NPC should be
+  able to teach as well."*): a teacher of a higher level than the group (a player's character or an NPC statblock; a group's
+  statblock teaches at its group's level), no subject; the week counts on the world's clock (the hours the GM passes for all).
+
 **Version 0.38.0 (2026-11-20): the groups for every player; taking over a member; lessons; downtime work.**
 - **No faction leader** (Marek: *"any player, it does not really matter who does faction management"*): *Actions → Groups* shows
   every group (its level, people, activities) and anyone spends a group's points there (or `/group spend`); `/group leader` is gone.

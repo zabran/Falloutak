@@ -233,8 +233,9 @@ final class Menus {
         }
         if (by.isEmpty()) cannot.add("Help someone: nobody within 4 blocks");
         if (c.dead && !c.group.isEmpty() && !pl.roster.pop.membersOf(c.group).isEmpty())
-            b.add(btn("! Go on as one of " + c.group, "your character is dead: play a member of his group (its statblock, XP = the pool / "
-                    + "the headcount, his own traits)", x -> takeOverPick(x, c)));
+            b.add(btn("! A new character from " + c.group, "your character is dead: make a new one from his group (its template and "
+                    + "training, XP = the pool / the headcount; your own attributes, traits and perks; the last 2 levels' points again)", x -> takeOverPick(x, c)));
+        if (c.perksDue() > 0 && !c.dead) b.add(btn("Pick a perk (" + c.perksDue() + ")", "a perk level: the perks whose gate you meet", x -> perkPick(x, c, null)));
         b.add(btn("Groups", "the base's people: each group's level, its points to spend (any player levels them up), lessons", Menus::groups));
         b.add(btn("My sheet", "your character sheet", x -> SheetView.open(x, c, SheetGui.Page.OVERVIEW)));
         if (p.hasPermission("falloutak.gm")) b.add(btn("GM menu", "the game master's tools", Menus::gm));
@@ -698,6 +699,46 @@ final class Menus {
                 }), Menus::gm);
     }
 
+    // ------------------------------------------------------------------ perks (02c §2-§3, Marek 11-20: "please, add our perks")
+    /** What the sheet applies for a perk, or "" when the GM does. */
+    static String perkNumbers(Data.Perk p) {
+        return Forms.traitNumbers(new Data.Trait(p.name(), "", "", "", "", "", p.mods(), p.other()));
+    }
+
+    /**
+     * Picks a perk for {@code c} (a PC or a group's statblock): the perks whose gate he meets, not taken, not parked; a bound one asks
+     * for the thing it is bound to (Tag! for the skill). {@code saved} runs after a pick (a statblock is written by it, and it opens
+     * what follows when none is due); without it the sheet opens.
+     */
+    static void perkPick(Player p, Character c, Consumer<Player> saved) {
+        List<String> open = new ArrayList<>();
+        for (Data.Perk k : c.perksOpen()) open.add(k.name());
+        if (open.isEmpty()) { say(p, "! no perk's gate is met yet (" + Data.PERKS.size() + " perks; their gates read the skills' permanent values)"); return; }
+        pick(p, "Pick a perk · " + c.name, c.perksDue() + " to pick. Only the perks whose gate " + c.name + " meets; hover for the gate and the effect.",
+                open, n -> n, n -> { Data.Perk k = Data.PERKS.get(n); String nums = perkNumbers(k);
+                    return k.gate() + "\n" + k.effect() + (k.bound() ? "\nYou name the thing it is bound to." : "")
+                            + (nums.isEmpty() ? "\nThe GM applies it (its rule is not in the plugin yet)." : "\nThe sheet applies: " + nums + "."); },
+                (x, n) -> {
+                    Data.Perk k = Data.PERKS.get(n);
+                    if (!k.bound()) { perkDone(x, c, k, "", saved); return; }
+                    List<Ui.In> in = new ArrayList<>();
+                    if (k.name().equals("Tag!")) {
+                        List<String> free = new ArrayList<>();
+                        for (Rules.Skill s : Rules.SKILLS) if (!c.tags.contains(s.name())) free.add(s.name());
+                        in.add(choice("b", "The fourth tagged skill", free));
+                    } else in.add(Ui.In.text("b", Component.text("What it is bound to")).initial("").maxLength(60).build());
+                    ask(x, k.name(), k.effect(), in, form("Take it", "the perk", (v, y) -> perkDone(y, c, k, v.getText("b"), saved)), z -> perkPick(z, c, saved));
+                }, null);
+    }
+
+    static void perkDone(Player p, Character c, Data.Perk k, String bound, Consumer<Player> saved) {
+        String r = c.takePerk(k, bound);
+        say(p, r);
+        if (r.startsWith("!")) return;
+        if (saved != null) saved.accept(p);
+        if (c.perksDue() > 0) perkPick(p, c, saved); else if (saved == null) SheetView.open(p, c, SheetGui.Page.TRAITS);
+    }
+
     // ------------------------------------------------------------------ part 6: the groups, for any player (Marek 11-20)
     static void groups(Player p) {
         Population pop = pl.roster.pop;
@@ -712,7 +753,7 @@ final class Menus {
                     + Math.round(g.xp) + (n > 0 ? " (" + Math.round(g.xp / n) + " a member; level " + (whole + 1) + " at " + Rules.xpForLevel(whole + 1) + ")" : "")
                     + (sb == null ? "; no statblock yet (the GM: /npc edit " + g.name + ")" : ""), x -> group(x, g.name)));
         }
-        b.add(btn("Lessons", "a character teaches a group: 1 + Leadership / 25 XP a student-hour instead of work's 1, 8 hours a week", Menus::lessonsForm));
+        b.add(btn("Lessons", "a teacher of a higher level (a character or an NPC) teaches a group: 1 + Leadership / 25 XP a student-hour instead of work's 1, 8 hours a week", Menus::lessonsForm));
         menu(p, "Groups", List.of(line("A group's level = its pool / its people, on the characters' table. Work in the base adds 1 XP a "
                 + "member-hour when the GM passes time, and every character's XP goes into his group's pool too.", NamedTextColor.GRAY)), b, Menus::actions);
     }
@@ -731,25 +772,25 @@ final class Menus {
         List<Ui.Btn> b = new ArrayList<>();
         if (sb != null && sb.unspentSkillPoints > 0)
             b.add(btn("Spend " + sb.unspentSkillPoints + " skill points", "the group's level-up: one statblock for all its people",
-                    x -> Forms.spend(x, pl, sb, y -> pl.roster.putStatblock(g.name, sb))));
+                    x -> Forms.spend(x, pl, sb, y -> { pl.roster.putStatblock(g.name, sb); group(y, g.name); })));
+        if (sb != null && sb.perksDue() > 0)
+            b.add(btn("Pick a perk (" + sb.perksDue() + ")", "the group's perk: the gates read its statblock", x -> perkPick(x, sb, y -> { pl.roster.putStatblock(g.name, sb); if (sb.perksDue() == 0) group(y, g.name); })));
         menu(p, "Group " + g.name, lines, b, Menus::groups);
     }
 
     static void lessonsForm(Player p) {
-        List<String> names = new ArrayList<>(), groups = new ArrayList<>(), skills = new ArrayList<>();
+        List<String> names = new ArrayList<>(), groups = new ArrayList<>();
         for (Player o : Bukkit.getOnlinePlayers()) names.add(o.getName());
+        for (String n : pl.store.npcNames()) if (!names.contains(n)) names.add(n);
         for (Population.Group g : pl.roster.pop.groups) groups.add(g.name);
-        for (Rules.Skill s : Rules.SKILLS) skills.add(s.name());
         if (groups.isEmpty()) { say(p, "! no groups"); return; }
-        ask(p, "Lessons", "A character teaches a group a skill he knows better than its statblock. Each student (a class of 1 + "
-                        + "Leadership / 10) gets 1 + Leadership / 25 XP an hour instead of his work's 1; at most "
-                        + Rules.LESSON_HOURS_A_WEEK + " lesson hours a group a week; the teacher earns his work's 1 XP an hour.",
-                List.of(choice("t", "Teacher", names), choice("g", "Group", groups), choice("s", "Subject", skills),
+        ask(p, "Lessons", "A teacher of a higher level than the group (a player's character, or an NPC statblock: a group's teaches at its "
+                        + "group's level) teaches it. Each student (a class of 1 + Leadership / 10) gets 1 + Leadership / 25 XP an hour "
+                        + "instead of his work's 1; at most " + Rules.LESSON_HOURS_A_WEEK + " lesson hours a group a week; the teacher earns his work's 1 XP an hour.",
+                List.of(choice("t", "Teacher", names), choice("g", "Group", groups),
                         Ui.In.numberRange("h", Component.text("Hours"), 1, Rules.LESSON_HOURS_A_WEEK).step(1f).initial(Rules.LESSON_HOURS_A_WEEK).width(300).build()),
                 form("Teach", "the lessons", (v, x) -> {
-                    Player t = Bukkit.getPlayerExact(v.getText("t"));
-                    if (t == null) { say(x, "! " + v.getText("t") + " is not online"); return; }
-                    say(x, pl.roster.lessons(t, v.getText("g"), v.getText("s"), Math.round(v.getFloat("h"))));
+                    say(x, pl.roster.lessons(v.getText("t"), v.getText("g"), Math.round(v.getFloat("h"))));
                     groups(x);
                 }), Menus::groups);
     }
@@ -758,13 +799,10 @@ final class Menus {
     static void takeOverPick(Player p, Character dead) {
         List<String> who = new ArrayList<>();
         for (Population.Person m : pl.roster.pop.membersOf(dead.group)) who.add(m.name);
-        pick(p, "Go on as", "Your character is dead. Pick who of " + dead.group + " you play now: the group's statblock, his own traits, XP = the pool / the headcount.",
+        pick(p, "Who you become", "Your character is dead. Pick who of " + dead.group + " you become (he leaves the group's count with his share); "
+                        + "then set his attributes and traits, his perks and the last 2 levels' skill points.",
                 who, m -> m, m -> { Population.Person q = pl.roster.pop.person(m); return q == null ? "" : q.activity + (q.traits.isEmpty() ? "" : " · " + String.join(", ", q.traits)); },
-                (x, m) -> {
-                    String r = pl.roster.takeOver(x, m);
-                    say(x, r);
-                    if (!r.startsWith("!")) SheetView.open(x, pl.character(x), SheetGui.Page.OVERVIEW);
-                }, Menus::actions);
+                (x, m) -> Forms.fromGroup(x, pl, m), Menus::actions);
     }
 
     // ------------------------------------------------------------------ part 6: the XP awards (06b §5.4, RULED 11-20)

@@ -252,6 +252,24 @@ public final class Data {
 
     public static final Map<String, Trait> TRAITS = new LinkedHashMap<>();
 
+    /** A perk's gate alternative: a skill of {@code skills} (or the best of {@code any}: skill, weapon, science, melee) at {@code value}. */
+    public record Alt(List<String> skills, String any, double value) {}
+
+    /**
+     * A perk of part 2 (`02c` §2-§3, ACCEPTED 11-14; `data/perks.json`, made by `_tools/fallout_perks_json.py`; Marek 11-20: *"please,
+     * add our perks"*): its gate, its effect, {@code parked} until parts 7-8, {@code bound} = the player names the thing at the pick;
+     * the numbers the sheet applies as a permanent effect, the rest is the GM's until its rule runs in the plugin.
+     */
+    public record Perk(String name, String kind, String gate, List<Alt> alts, String effect, boolean parked, boolean bound,
+                       int[] mods, Map<String, Double> other) {
+        public boolean hasNumbers() {
+            for (int m : mods) if (m != 0) return true;
+            return !other.isEmpty();
+        }
+    }
+
+    public static final Map<String, Perk> PERKS = new LinkedHashMap<>();
+
     /** A chem's stage: how long, what it does. */
     public record Stage(double hours, int[] mods, Map<String, Double> other) {}
 
@@ -366,6 +384,17 @@ public final class Data {
             String name = o.get("name").getAsString();
             TRAITS.put(name, new Trait(name, s(o, "from", ""), s(o, "group", ""), s(o, "bonus", ""), s(o, "drawback", ""), s(o, "status", "in"),
                     attrs(o, "mods"), nums(o, "other")));
+        }
+        for (JsonElement e : rows("perks")) {
+            JsonObject o = e.getAsJsonObject();
+            List<Alt> alts = new ArrayList<>();
+            for (JsonElement a : o.getAsJsonArray("alts")) {
+                JsonObject x = a.getAsJsonObject();
+                alts.add(new Alt(strs(x, "skills"), s(x, "any", ""), x.get("value").getAsDouble()));
+            }
+            String name = o.get("name").getAsString();
+            PERKS.put(name, new Perk(name, s(o, "kind", ""), s(o, "gate", ""), List.copyOf(alts), s(o, "effect", ""),
+                    o.has("parked") && o.get("parked").getAsBoolean(), o.has("bound") && o.get("bound").getAsBoolean(), attrs(o, "mods"), nums(o, "other")));
         }
         for (JsonElement e : rows("items")) ITEMS.add(e.getAsJsonObject());
         for (JsonElement e : rows("notes")) {

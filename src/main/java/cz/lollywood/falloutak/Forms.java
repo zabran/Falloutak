@@ -57,6 +57,35 @@ public final class Forms {
                 }, null);
     }
 
+    /**
+     * A dead PC's player creates his new character from his group (Marek 11-20): the group's statblock in place of the template
+     * (its template, genes and skill points), the member's name; he sets his own attributes and traits here, his perks and the last 2
+     * levels' skill points after (Roster#finishFromGroup). The tags stay the group's (the points were spent on them). [mine]
+     */
+    public static void fromGroup(Player p, FalloutakPlugin pl, String member) {
+        Population.Person m = pl.roster.pop.person(member);
+        Character dead = pl.character(p);
+        if (m == null || !dead.dead || !m.group.equalsIgnoreCase(dead.group)) { Menus.say(p, "! only a member of your own group, when your character is dead"); return; }
+        Character sb = pl.roster.statblock(m.group);
+        if (sb == null) { Menus.say(p, "! " + m.group + " has no statblock yet (the GM: /npc edit " + m.group + ")"); return; }
+        Character d = Store.fromJson(Store.toJson(sb));
+        d.name = m.name;
+        d.player = dead.player.isEmpty() ? p.getName() : dead.player;
+        d.group = m.group;
+        d.fromGroup = m.group;
+        d.fromMember = m.name;
+        d.traits.clear();
+        d.perks.clear();
+        d.effects.clear();
+        d.working = false;
+        d.sleeping = false;
+        for (String t : m.traits) {
+            Data.Trait x = Data.find(Data.TRAITS, t);
+            if (x != null && d.traits.size() < 2) d.traits.add(new Character.Feat(x.name(), "trait (" + x.from() + ")", x.bonus() + "; " + x.drawback()));
+        }
+        attributes(p, pl, d, "");
+    }
+
     /** The points a template starts with: 5 each inside its range, the rest left to share (03b §1). */
     static void startPoints(Character draft) {
         Data.Template t = draft.tpl();
@@ -109,16 +138,17 @@ public final class Forms {
                 attributes(x, pl, draft, "");
             }));
         }
-        b.add(Menus.form("Next: the tags", "share every point first", (v, x) -> {
+        boolean fromGroup = draft.fromGroup != null;
+        b.add(Menus.form(fromGroup ? "Next: the traits" : "Next: the tags", "share every point first", (v, x) -> {
             keepName(v, draft);
             String bad = draft.checkPoints();
             if (bad != null) { attributes(x, pl, draft, bad + "."); return; }
-            tags(x, pl, draft);
+            if (fromGroup) traits(x, pl, draft); else tags(x, pl, draft);
         }));
-        b.add(Menus.form("Change the template", "back to the list", (v, x) -> { keepName(v, draft); create(x, pl, draft); }));
-        Menus.menu(p, "New character · 2 · name and attributes", lines,
+        if (!fromGroup) b.add(Menus.form("Change the template", "back to the list", (v, x) -> { keepName(v, draft); create(x, pl, draft); }));
+        Menus.menu(p, fromGroup ? "New character from " + draft.fromGroup + " · name and attributes" : "New character · 2 · name and attributes", lines,
                 List.of(Ui.In.text("name", Component.text("Name")).initial(draft.name).maxLength(32).build()), b,
-                x -> { if (Data.CUSTOM.equals(draft.template)) genesMenu(x, pl, draft); else create(x, pl, draft); }, 2);
+                x -> { if (fromGroup) Menus.actions(x); else if (Data.CUSTOM.equals(draft.template)) genesMenu(x, pl, draft); else create(x, pl, draft); }, 2);
     }
 
     private static void keepName(DialogResponseView v, Character draft) {
@@ -297,7 +327,8 @@ public final class Forms {
                 + "The traits that are bodies (Big boned, Night owl, Rh-null, Brittle bones...) are genes now, on the template's page.", NamedTextColor.GRAY));
         if (shown == 0) lines.add(Component.text("Nothing matches: change the filter.", NamedTextColor.RED));
         List<Ui.In> in = List.of(Ui.In.text("f", Component.text("Filter")).initial(filter == null ? "" : filter).maxLength(32).build());
-        Menus.menu(p, "New character · 4 · traits", lines, in, b, x -> tags(x, pl, draft), 2);
+        Menus.menu(p, draft.fromGroup != null ? "New character from " + draft.fromGroup + " · traits" : "New character · 4 · traits", lines, in, b,
+                x -> { if (draft.fromGroup != null) attributes(x, pl, draft, ""); else tags(x, pl, draft); }, 2);
     }
 
     private static void toggle(Player p, FalloutakPlugin pl, Character draft, Data.Trait t, String filter) {
@@ -332,6 +363,7 @@ public final class Forms {
             }
         draft.effects.clear();
         applyTraits(draft);
+        if (draft.fromGroup != null) { pl.roster.finishFromGroup(pp, draft); return; }   // Marek 11-20: from the group
         java.util.Arrays.fill(draft.points, 0);
         draft.unspentSkillPoints = Rules.skillPointsPerLevel(draft.attrs(true), draft.templateSkillPoints);
         draft.hp = draft.hpMax();
@@ -345,7 +377,7 @@ public final class Forms {
     // ------------------------------------------------------------------ level-up: skill points, one slider a skill
     public static void spend(Player p, FalloutakPlugin pl, Character c) { spend(p, pl, c, null); }
 
-    /** {@code onSpent} runs after points are spent (a group's statblock is saved by it, 06 §2.2). */
+    /** {@code onSpent} runs after points are spent and opens what follows (a group's statblock is saved by it, 06 §2.2). */
     public static void spend(Player p, FalloutakPlugin pl, Character c, java.util.function.Consumer<Player> onSpent) {
         List<Ui.In> in = new ArrayList<>();
         double[] perm = c.skills(true);
@@ -386,8 +418,7 @@ public final class Forms {
                         sb.append(Rules.SKILLS.get(i).name()).append(" +").append(SheetGui.f(gain)).append(" %  ");
                     }
                     pp.sendMessage(Component.text("Spent: " + sb, NamedTextColor.GREEN));
-                    if (onSpent != null) onSpent.accept(pp);
-                    SheetView.open(pp, c, SheetGui.Page.SKILLS);
+                    if (onSpent != null) onSpent.accept(pp); else SheetView.open(pp, c, SheetGui.Page.SKILLS);   // onSpent opens what follows
                 }),
                 button("Cancel", "nothing spent", (v, pp) -> SheetView.open(pp, c, SheetGui.Page.SKILLS)));
     }

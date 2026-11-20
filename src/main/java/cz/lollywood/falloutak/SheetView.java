@@ -73,6 +73,8 @@ public final class SheetView {
             buttons.add(button((pg == page ? "» " : "") + title(pg), "open " + title(pg), 100, pp -> open(pp, c, pg)));
         if (page == SheetGui.Page.SKILLS)
             buttons.add(button("Spend " + c.unspentSkillPoints + " points", "the level-up form", 100, pp -> Forms.spend(pp, null, c)));
+        if (page == SheetGui.Page.TRAITS && c.perksDue() > 0)
+            buttons.add(button("Pick a perk (" + c.perksDue() + ")", "the perks whose gate you meet", 100, pp -> Menus.perkPick(pp, c, null)));
         Ui.Btn close = button("Close", "close the sheet", 100, pp -> {});
         Ui.show(new Ui.Page(p, c.name + " · " + title(page), body, WIDTH, List.of(), Ui.Type.MULTI, buttons, close, 4, true));
     }
@@ -255,16 +257,14 @@ public final class SheetView {
         if (c.traits.isEmpty()) t.row(c("none", HOW), NONE, NONE);
         for (Character.Feat tr : c.traits) t.row(Icons.tip("name_tag", tr.text(), null), c(tr.name(), NamedTextColor.GOLD), c(tr.gate(), HOW), NONE);
         body.add(t.render());
-        body.add(new Table(W).title("Perks", c.perks.size() + " owned · " + c.tpl().perkText() + " · gates read permanent values").render());
+        int due = c.perksDue();
+        body.add(new Table(W).title("Perks", c.perks.size() + " owned · " + c.tpl().perkText() + (due > 0 ? " · " + due + " to pick" : "")
+                + " · " + c.perksOpen().size() + " open to you").render());
         Table l = new Table(P).minWidths(LABEL + 10, 50).gap(6), rt = new Table(P).minWidths(LABEL + 10, 50).gap(6);
+        if (c.perks.isEmpty()) l.row(c("none yet", HOW), NONE, NONE);
         int i = 0;
-        for (Character.Feat f : Character.SAMPLE_PERKS) {
-            boolean owned = c.perks.stream().anyMatch(x -> x.name().equals(f.name()));
-            boolean ok = c.meets(f);
-            (i++ < 8 ? l : rt).row(Icons.tip("nether_star", f.text() + "\ngate: " + f.gate(), null),
-                    c(f.name(), owned ? NamedTextColor.GOLD : ok ? NamedTextColor.GREEN : NamedTextColor.GRAY),
-                    c(owned ? "owned" : ok ? "gate met" : "locked", owned ? NamedTextColor.GOLD : ok ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY), NONE);
-        }
+        for (Character.Feat f : c.perks)
+            (i++ % 2 == 0 ? l : rt).row(Icons.tip("nether_star", f.text() + "\ngate: " + f.gate(), null), c(f.name(), NamedTextColor.GOLD), NONE);
         body.add(sideBySide(l, rt, G));
     }
 

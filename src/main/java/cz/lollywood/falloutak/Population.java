@@ -36,10 +36,18 @@ final class Population {
         List<String> unlocked = new ArrayList<>();
         /** The whole level its statblock has been given the skill points of (a diluted group earns its next level later). */
         int statLevel = 1;
-        /** Lessons (06 §2.5): the game week (game hours / 168) and the lesson hours already given in it (at most 8). */
+        /** Lessons (06 §2.5): the game week (the world's hours / 168) and the lesson hours already given in it (at most 8). */
         long lessonWeek = -1;
         int lessonHours;
+        /**
+         * The statblock's skill points as they were when it reached each level, before that level's points were spent: a new PC from
+         * the group keeps the points of all but his last 2 levels and spends those again (Marek 11-20).
+         */
+        java.util.Map<Integer, double[]> pointsAt = new java.util.TreeMap<>();
     }
+
+    /** The world's clock: the game hours the GM has passed for everyone (the lesson week counts on it). */
+    double worldHours;
     /** The non-generic areas the players have found (06b §5.4.5: the next one gives each PC 100 × this). */
     int areasFound;
 

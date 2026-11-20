@@ -88,6 +88,44 @@ class RulesTest {
     }
 
     @Test
+    void ourPerksAndTheirGates() {
+        assertEquals(111, Data.PERKS.size());                                        // 02c §2-§3
+        assertTrue(Data.PERKS.get("Cook").parked());
+        assertTrue(Data.PERKS.get("Nemesis").bound());
+        Character c = Character.sample("x");
+        double[] v = c.skills(true);
+        Data.Perk tough = Data.PERKS.get("Toughness"), weapon = Data.PERKS.get("More Criticals"), slayer = Data.PERKS.get("Slayer");
+        assertEquals(v[Rules.skillIndex("Athletics")] >= 75 || v[Rules.skillIndex("Survival")] >= 75, Rules.gateMet(v, tough));
+        v[Rules.skillIndex("Guns")] = 100;                                            // any weapon skill: Guns counts
+        assertTrue(Rules.gateMet(v, weapon));
+        assertFalse(Rules.gateMet(v, slayer));                                        // Unarmed or a melee family 150
+        v[Rules.skillIndex("Athletics")] = 150;                                       // Unarmed = Athletics
+        assertTrue(Rules.gateMet(v, slayer));
+        assertEquals(1, Data.PERKS.get("Gain Strength").mods()[Rules.S]);
+        // taking them
+        assertTrue(c.takePerk(tough, "").startsWith("!"));                           // level 1: none due
+        c.level = 6;                                                                  // a human: 2 due
+        assertEquals(2, c.perksDue());
+        c.points[Rules.skillIndex("Athletics")] += 80;
+        int ap = c.apMax();
+        assertTrue(c.takePerk(Data.PERKS.get("Action Boy"), "").contains("taken"));
+        assertEquals(ap + 2, c.apMax());
+        Data.Perk tag = Data.PERKS.get("Tag!");
+        assertTrue(c.takePerk(tag, "").startsWith("!"));                             // name the skill
+        assertTrue(c.takePerk(tag, "Guns").startsWith("!"));                         // tagged already
+        assertTrue(c.takePerk(tag, "Pilot").contains("taken"));
+        assertTrue(c.tags.contains("Pilot"));
+        assertEquals(0, c.perksDue());
+        assertTrue(c.takePerk(Data.PERKS.get("Thief"), "").startsWith("!"));         // none due
+        c.level = 9;
+        assertTrue(c.takePerk(Data.PERKS.get("Action Boy"), "").startsWith("!"));    // taken already
+        assertTrue(c.takePerk(Data.PERKS.get("Cook"), "").startsWith("!"));          // parked
+        long xp = c.xp;
+        assertTrue(c.takePerk(Data.PERKS.get("Here and Now"), "").contains("taken")); // the XP to the next level
+        assertTrue(c.xp >= Rules.xpForLevel(10) && c.xp > xp);
+    }
+
+    @Test
     void workbookData() {
         assertEquals(27, Data.TEMPLATES.size());   // part 3: the workbook's seven + the eight basic gene templates (03c §6, Golden Blood since round 8) + the ten premium + the Fallen Angel and her graced form (03f §2)
         assertEquals(39, Data.TEMPLATES.get("Ghoul").attributePoints());

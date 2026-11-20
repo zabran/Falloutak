@@ -149,42 +149,68 @@ class ExperienceTest extends MockGame {
     }
 
     @Test
-    void aDeadCharactersPlayerGoesOnAsAMember() throws Exception {
+    void aDeadCharactersPlayerMakesANewOneFromTheGroup() throws Exception {
+        PlayerMock gm = player();
         PlayerMock p = member();
         Population pop = plugin.roster.pop;
         Population.Group g = pop.group("Smugler");
-        g.xp = 3000;
-        int n = pop.members("Smugler");
+        int n0 = pop.members("Smugler");
+        gm.performCommand("group xp Smugler " + (n0 * 957 - Math.round(g.xp)));   // level 3 a member: two levels' points
+        int gi = Rules.skillIndex("Guns");
+        double gunsBefore = g.pointsAt.get(2)[gi];                                  // the points before level 2's
+        Character sb = plugin.store.loadNpc("Smugler");
+        sb.points[gi] += 20;                                                        // the group spent its levels on Guns
+        sb.unspentSkillPoints = 0;
+        plugin.store.saveNpc("Smugler", sb);
         Character dead = plugin.character(p);
         dead.dead = true;
         Menus.actions(p);
-        click("! Go on as one of Smugler");
+        click("! A new character from Smugler");
+        assertEquals("Who you become", page().title());
         click("Faiden");
+        assertTrue(page().title().startsWith("New character from Smugler"), page().title());
+        assertFalse(page().labels().contains("Change the template"));
+        click("− Endurance");
+        click("+ Charisma");
+        click("Next: the traits");
+        String trait = Forms.offeredTraits(Character.sample("x")).get(0).name();
+        click(trait);
+        click("Create the character");
         Character c = plugin.character(p);
         assertNotSame(dead, c);
         assertEquals("Faiden", c.name);
         assertEquals("Smugler", c.group);
-        assertEquals(Math.round(3000.0 / n), c.xp);
-        assertEquals(Rules.levelFor(c.xp), c.level);
-        assertEquals(0, c.unspentSkillPoints);
-        assertEquals(java.util.List.of("Genius"), c.traits.stream().map(Character.Feat::name).toList());   // his own row's trait
-        assertEquals(Math.min(c.hpMax(), 15), c.hp);                                                      // his row's HP
+        assertEquals(957, c.xp);
+        assertEquals(3, c.level);
+        assertEquals(gunsBefore, c.points[gi], 1e-9);                                // the last 2 levels undone
+        assertEquals(2 * c.skillRate(), c.unspentSkillPoints);                       // and his to spend again
+        assertEquals(sb.base[Rules.E] - 1, c.base[Rules.E]);                         // his own attributes
+        assertEquals(sb.base[Rules.C] + 1, c.base[Rules.C]);
+        assertTrue(c.traits.stream().anyMatch(f -> f.name().equals(trait)));       // his own trait
         assertFalse(c.dead);
-        assertNull(pop.person("Faiden"));                                   // he left the count with his share
-        assertEquals(n - 1, pop.members("Smugler"));
-        assertEquals(3000 - 3000.0 / n, g.xp, 1e-6);
+        assertNull(pop.person("Faiden"));                                            // he left the count with his share
+        assertEquals(n0 - 1, pop.members("Smugler"));
+        assertEquals(n0 * 957 - 957, g.xp, 1e-6);
         assertTrue(java.nio.file.Files.list(plugin.getDataFolder().toPath().resolve("fallen")).findAny().isPresent());
-        assertTrue(plugin.roster.takeOver(p, "Honza").startsWith("!"));     // only when dead
+        assertTrue(page().title().startsWith("Skill points: " + 2 * c.skillRate()), page().title());
+        click("Spend", "s" + gi, 4f);
+        assertEquals(1, c.perksDue());                                               // a human: a perk at level 3
+        assertTrue(page().title().startsWith("Pick a perk"), page().title());
+        click("Awareness");                                                          // Guns 50
+        assertTrue(c.hasPerk("Awareness"));
+        assertEquals(0, c.perksDue());
     }
 
     @Test
-    void lessonsAddXpUpToEightHoursAWeek() throws Exception {
+    void lessonsByLevelUpToEightHoursAWeek() throws Exception {
         PlayerMock p = member();
         Population pop = plugin.roster.pop;
-        Population.Group g = pop.group("Smugler");
+        Population.Group g = pop.group("Smugler");                                   // 2000 XP, 2 people: level 3
         Character t = plugin.character(p);
+        assertTrue(plugin.roster.lessons(p.getName(), "Smugler", 2).startsWith("!"));   // level 1: not above the group
+        t.xp = 5000;
+        t.level = 5;
         t.points[Rules.skillIndex("Leadership")] += 60;
-        t.points[Rules.skillIndex("Medicine")] += 80;
         double lead = t.skill("Leadership");
         int students = Math.min(pop.members("Smugler"), Rules.classSize(lead));
         double pool = g.xp;
@@ -192,15 +218,47 @@ class ExperienceTest extends MockGame {
         Menus.actions(p);
         click("Groups");
         click("Lessons");
-        click("Teach", "t", p.getName(), "g", "Smugler", "s", "Medicine", "h", 5f);
-        assertEquals(pool + students * 5 * (Rules.lessonXp(lead) - 1) + 5, g.xp, 1e-6);   // + the teacher's own 5 (100 % into the pool)
+        click("Teach", "t", p.getName(), "g", "Smugler", "h", 5f);
+        assertEquals(pool + students * 5 * (Rules.lessonXp(lead) - 1) + 5, g.xp, 1e-6);   // + the teacher's own 5 into his pool
         assertEquals(tx + 5, t.xp);
-        String r = plugin.roster.lessons(p, "Smugler", "Medicine", 8);       // 3 hours left this week
-        assertTrue(r.contains("for 3 h"), r);
-        assertTrue(plugin.roster.lessons(p, "Smugler", "Medicine", 1).startsWith("!"));
-        assertTrue(plugin.roster.lessons(p, "Smugler", "Juggling", 1).startsWith("!"));   // no such skill
-        t.clock += 168;                                                       // a new week
-        assertFalse(plugin.roster.lessons(p, "Smugler", "Medicine", 1).startsWith("!"));
-        assertTrue(plugin.roster.lessons(p, "Smugler", "Sneak", 1).startsWith("!"));      // he knows no more Sneak than the group
+        // an NPC teaches too (Marek 11-20): a statblock of a higher level
+        Character npc = Character.sample("Mentor");
+        npc.name = "Mentor";
+        npc.level = 6;
+        plugin.store.saveNpc("Mentor", npc);
+        String r = plugin.roster.lessons("Mentor", "Smugler", 8);                   // 3 hours left this week
+        assertTrue(r.contains("for 3 h") && r.contains("(an NPC)"), r);
+        assertTrue(plugin.roster.lessons("Mentor", "Smugler", 1).startsWith("!"));
+        assertTrue(plugin.roster.lessons("Smugler", "Smugler", 1).startsWith("!"));  // a group cannot teach itself
+        assertTrue(plugin.roster.lessons("Nobody", "Smugler", 1).startsWith("!"));
+        pop.worldHours += 168;                                                       // the world's next week
+        assertFalse(plugin.roster.lessons("Mentor", "Smugler", 1).startsWith("!"));
+    }
+
+    @Test
+    void perksArePickedAtPerkLevels() throws Exception {
+        PlayerMock p = member();
+        Character c = plugin.character(p);
+        c.level = 3;
+        assertEquals(1, c.perksDue());
+        c.points[Rules.skillIndex("Athletics")] += 60;
+        Menus.actions(p);
+        click("Pick a perk (1)");
+        assertTrue(page().labels().contains("Toughness"), page().labels().toString());
+        assertFalse(page().labels().contains("Cook"));                                // parked (parts 7-8)
+        double dr = c.resistances()[0];
+        click("Toughness");
+        assertTrue(c.hasPerk("Toughness"));
+        assertEquals(dr + 10, c.resistances()[0], 1e-9);                             // the sheet applies its +10 % DR
+        // a group's statblock picks too, from its page
+        Character sb = plugin.store.loadNpc("Smugler");
+        sb.level = 3;
+        plugin.store.saveNpc("Smugler", sb);
+        Menus.actions(p);
+        click("Groups");
+        click("Smugler");
+        click("Pick a perk (1)");
+        click("Awareness");
+        assertTrue(plugin.store.loadNpc("Smugler").hasPerk("Awareness"));           // saved
     }
 }

@@ -1,0 +1,2157 @@
+{
+ "source": "02c §2-§3 (the perks ACCEPTED 11-14; gates parsed, the numbers the plugin applies [mine]; parked = parts 7-8)",
+ "rows": [
+  {
+   "name": "Gain Strength",
+   "kind": "general",
+   "gate": "Athletics 100",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+1 Strength, once per attribute [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {
+    "strength": 1
+   },
+   "other": {}
+  },
+  {
+   "name": "Gain Perception",
+   "kind": "general",
+   "gate": "Guns or Survival 100",
+   "alts": [
+    {
+     "skills": [
+      "Guns",
+      "Survival"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+1 Perception, once per attribute [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {
+    "perception": 1
+   },
+   "other": {}
+  },
+  {
+   "name": "Gain Endurance",
+   "kind": "general",
+   "gate": "Survival or Biology 100",
+   "alts": [
+    {
+     "skills": [
+      "Survival",
+      "Biology"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+1 Endurance, once per attribute [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {
+    "endurance": 1
+   },
+   "other": {}
+  },
+  {
+   "name": "Gain Charisma",
+   "kind": "general",
+   "gate": "Rhetorics or Economy or Leadership 100",
+   "alts": [
+    {
+     "skills": [
+      "Rhetorics",
+      "Economy",
+      "Leadership"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+1 Charisma, once per attribute [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {
+    "charisma": 1
+   },
+   "other": {}
+  },
+  {
+   "name": "Gain Intelligence",
+   "kind": "general",
+   "gate": "Computer Science or Engineering 100",
+   "alts": [
+    {
+     "skills": [
+      "Computer Science",
+      "Engineering"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+1 Intelligence, once per attribute [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {
+    "intelligence": 1
+   },
+   "other": {}
+  },
+  {
+   "name": "Gain Agility",
+   "kind": "general",
+   "gate": "Sneak or Athletics 100",
+   "alts": [
+    {
+     "skills": [
+      "Sneak",
+      "Athletics"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+1 Agility, once per attribute [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {
+    "agility": 1
+   },
+   "other": {}
+  },
+  {
+   "name": "Gain Luck",
+   "kind": "general",
+   "gate": "Gambling 100",
+   "alts": [
+    {
+     "skills": [
+      "Gambling"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+1 Luck, once per attribute [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {
+    "luck": 1
+   },
+   "other": {}
+  },
+  {
+   "name": "Tag!",
+   "kind": "general",
+   "gate": "any skill 100",
+   "alts": [
+    {
+     "skills": [],
+     "any": "skill",
+     "value": 100
+    }
+   ],
+   "effect": "a fourth tagged skill (grows twice as fast from now)",
+   "parked": false,
+   "bound": true,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Swift Learner",
+   "kind": "general",
+   "gate": "any skill 50",
+   "alts": [
+    {
+     "skills": [],
+     "any": "skill",
+     "value": 50
+    }
+   ],
+   "effect": "+15 % XP [F2 +5 %]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Educated",
+   "kind": "general",
+   "gate": "any skill 100",
+   "alts": [
+    {
+     "skills": [],
+     "any": "skill",
+     "value": 100
+    }
+   ],
+   "effect": "+4 skill points a level [F2 +2]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "skill_points_level": 4
+   }
+  },
+  {
+   "name": "Comprehension",
+   "kind": "general",
+   "gate": "Computer Science or Rhetorics 50",
+   "alts": [
+    {
+     "skills": [
+      "Computer Science",
+      "Rhetorics"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "skill books give twice as much [F2 +50 %] (if skill books exist: part 7)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Awareness",
+   "kind": "general",
+   "gate": "Survival or Guns 50",
+   "alts": [
+    {
+     "skills": [
+      "Survival",
+      "Guns"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "you see the HP, armour, weapon and ammo of anyone you see [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Toughness",
+   "kind": "general",
+   "gate": "Athletics or Survival 75",
+   "alts": [
+    {
+     "skills": [
+      "Athletics",
+      "Survival"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "+10 % DR and +2 DT against normal damage [F2 +10 % DR]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "dr": 10,
+    "dt": 2
+   }
+  },
+  {
+   "name": "More Criticals",
+   "kind": "general",
+   "gate": "any weapon skill 100",
+   "alts": [
+    {
+     "skills": [],
+     "any": "weapon",
+     "value": 100
+    }
+   ],
+   "effect": "+10 % crit chance [F2 +5 %]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Better Criticals",
+   "kind": "general",
+   "gate": "any weapon skill 150",
+   "alts": [
+    {
+     "skills": [],
+     "any": "weapon",
+     "value": 150
+    }
+   ],
+   "effect": "+20 on the crit table [F2 the same, but late]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Bonus Move",
+   "kind": "skill",
+   "gate": "Athletics 50",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "+3 AP of movement only, each turn [F2 +2]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Heave Ho!",
+   "kind": "skill",
+   "gate": "Athletics 75",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "throwing range ×2, +25 % thrown damage",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Action Boy",
+   "kind": "skill",
+   "gate": "Athletics 100",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+2 AP [F2 +1]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "ap": 2
+   }
+  },
+  {
+   "name": "Dodger",
+   "kind": "skill",
+   "gate": "Athletics 100",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+10 AC [F2 +5]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Strong Back",
+   "kind": "skill",
+   "gate": "Athletics 150",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "+50 carry weight, no slowdown up to a quarter overloaded [F2 +50]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Medic!",
+   "kind": "skill",
+   "gate": "Medicine 50",
+   "alts": [
+    {
+     "skills": [
+      "Medicine"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "healing an ally takes half the AP and heals ×1.5",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Living Anatomy",
+   "kind": "skill",
+   "gate": "Medicine 100",
+   "alts": [
+    {
+     "skills": [
+      "Medicine"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+5 damage a hit against the living, +15 to aimed shots at body parts [F2 +5]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Field Surgeon",
+   "kind": "skill",
+   "gate": "Medicine 150",
+   "alts": [
+    {
+     "skills": [
+      "Medicine"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "brings a dying ally (not dead) back to 1 HP for 4 AP, once per ally a battle",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Power User",
+   "kind": "skill",
+   "gate": "Computer Science 50",
+   "alts": [
+    {
+     "skills": [
+      "Computer Science"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "every CS task (programming, a hack, a data search, setting up a device) takes half the time; a failed one may be retried once",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Backdoor",
+   "kind": "skill",
+   "gate": "Computer Science 100",
+   "alts": [
+    {
+     "skills": [
+      "Computer Science"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "a system you have once got into stays open to you from any terminal on its network, no new check",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Data Miner",
+   "kind": "skill",
+   "gate": "Computer Science 100",
+   "alts": [
+    {
+     "skills": [
+      "Computer Science"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "every archive or database you read is searched for inspirations for your research (part 8)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Daemon",
+   "kind": "skill",
+   "gate": "Computer Science 150",
+   "alts": [
+    {
+     "skills": [
+      "Computer Science"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "a program you leave in a hacked turret, robot or drone runs it by itself: it acts every turn on its own AP with your CS as its skill",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Silent Running",
+   "kind": "skill",
+   "gate": "Sneak 50",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "sneak at full speed [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Silent Death",
+   "kind": "skill",
+   "gate": "Sneak 100",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "×2 damage on an attack made from sneak before you are seen",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Ghost",
+   "kind": "skill",
+   "gate": "Sneak 150",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "unseen beyond 10 blocks in the dark, moving or not",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Pathfinder",
+   "kind": "skill",
+   "gate": "Survival 50",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "world-map travel −25 % time, for the whole team travelling with you (Marek) [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Faster Healing",
+   "kind": "skill",
+   "gate": "Survival 50",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "healing rate +3 [F2 +2]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "healing_rate": 3
+   }
+  },
+  {
+   "name": "Rad Child",
+   "kind": "skill",
+   "gate": "Survival 100",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+25 % rad and poison resistance",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "rad_res": 25,
+    "poison_res": 25
+   }
+  },
+  {
+   "name": "Scrounger",
+   "kind": "skill",
+   "gate": "Survival 100",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "one more roll on every scavenging table",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Survivalist",
+   "kind": "skill",
+   "gate": "Survival 150",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "hunger and thirst half as fast; eats anything without sickness",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Mr. Fixit",
+   "kind": "skill",
+   "gate": "Crafting 50",
+   "alts": [
+    {
+     "skills": [
+      "Crafting"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "repairs restore twice as much",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Salvager",
+   "kind": "skill",
+   "gate": "Crafting 50",
+   "alts": [
+    {
+     "skills": [
+      "Crafting"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "taking items apart gives +50 % materials",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Jury Rigging",
+   "kind": "skill",
+   "gate": "Crafting 100",
+   "alts": [
+    {
+     "skills": [
+      "Crafting"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "repairs any item with any item of its tier [NV]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Assembly Line",
+   "kind": "skill",
+   "gate": "Crafting 100",
+   "alts": [
+    {
+     "skills": [
+      "Crafting"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "a batch of the same item takes half the time a piece (part 7)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Master Craftsman",
+   "kind": "skill",
+   "gate": "Crafting 150",
+   "alts": [
+    {
+     "skills": [
+      "Crafting"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "what you make comes out one rarity higher (part 7)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Grease Monkey",
+   "kind": "skill",
+   "gate": "Engineering 50",
+   "alts": [
+    {
+     "skills": [
+      "Engineering"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "+15 to hit and damage against vehicles and robots [WL3]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Overclock",
+   "kind": "skill",
+   "gate": "Engineering 100",
+   "alts": [
+    {
+     "skills": [
+      "Engineering"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "energy and techno weapons you maintain +25 % damage, wear twice as fast",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Reverse Engineer",
+   "kind": "skill",
+   "gate": "Engineering 100",
+   "alts": [
+    {
+     "skills": [
+      "Engineering"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "taking a working item apart gives you its schematic (part 7)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Prototype",
+   "kind": "skill",
+   "gate": "Engineering 150",
+   "alts": [
+    {
+     "skills": [
+      "Engineering"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "your prototypes pass their first test (part 8)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Cook",
+   "kind": "skill",
+   "gate": "Chemistry 50",
+   "alts": [
+    {
+     "skills": [
+      "Chemistry"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "chems you make come out double (part 7)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Demolition Expert",
+   "kind": "skill",
+   "gate": "Chemistry 100",
+   "alts": [
+    {
+     "skills": [
+      "Chemistry"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+50 % explosive damage, your charges never fail and are set for half the AP",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Pharmacist",
+   "kind": "skill",
+   "gate": "Chemistry 150",
+   "alts": [
+    {
+     "skills": [
+      "Chemistry"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "chems you take last twice as long",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Animal Friend",
+   "kind": "skill",
+   "gate": "Biology 50",
+   "alts": [
+    {
+     "skills": [
+      "Biology"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "wild animals leave you alone unless provoked; one can be tamed",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Good Harvest",
+   "kind": "skill",
+   "gate": "Biology 100",
+   "alts": [
+    {
+     "skills": [
+      "Biology"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "fields you or your faction tend yield ×1.5 (part 7)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Beast Companion",
+   "kind": "skill",
+   "gate": "Biology 100",
+   "alts": [
+    {
+     "skills": [
+      "Biology"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "your tamed animal acts on its own AP right after your turn",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Hunter",
+   "kind": "skill",
+   "gate": "Biology 150",
+   "alts": [
+    {
+     "skills": [
+      "Biology"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "+25 % damage to creatures, double meat and hides from them [ATOM, Trudograd]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Road Warrior",
+   "kind": "skill",
+   "gate": "Pilot 50",
+   "alts": [
+    {
+     "skills": [
+      "Pilot"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "shoot from a moving vehicle without penalty",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Drone Jockey",
+   "kind": "skill",
+   "gate": "Pilot 100",
+   "alts": [
+    {
+     "skills": [
+      "Pilot"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "your drone acts on its own AP (half yours) right after your turn",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Ace",
+   "kind": "skill",
+   "gate": "Pilot 150",
+   "alts": [
+    {
+     "skills": [
+      "Pilot"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "vehicles you drive +2 AC, +25 % speed",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Master Trader",
+   "kind": "skill",
+   "gate": "Economy 50",
+   "alts": [
+    {
+     "skills": [
+      "Economy"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "buy 25 % cheaper [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Quartermaster",
+   "kind": "skill",
+   "gate": "Economy 100",
+   "alts": [
+    {
+     "skills": [
+      "Economy"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "your faction's upkeep −20 % (part 6)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Fixer",
+   "kind": "skill",
+   "gate": "Economy 150",
+   "alts": [
+    {
+     "skills": [
+      "Economy"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "once a session, a seller for anything that exists in the region",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Negotiator",
+   "kind": "skill",
+   "gate": "Rhetorics 50",
+   "alts": [
+    {
+     "skills": [
+      "Rhetorics"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "retry a failed talk check once, with a new argument",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Presence",
+   "kind": "skill",
+   "gate": "Rhetorics 100",
+   "alts": [
+    {
+     "skills": [
+      "Rhetorics"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "a foe of lower level must pass morale before attacking you first",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Silver Tongue",
+   "kind": "skill",
+   "gate": "Rhetorics 150",
+   "alts": [
+    {
+     "skills": [
+      "Rhetorics"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "you may always try to talk a fight down, even mid-battle and with a boss: a Rhetorics check against their morale; success means they stop, parley or flee as fits",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Lucky Streak",
+   "kind": "skill",
+   "gate": "Gambling 50",
+   "alts": [
+    {
+     "skills": [
+      "Gambling"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "your lucky procs ×1.5 chance",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Mysterious Stranger",
+   "kind": "skill",
+   "gate": "Gambling 100",
+   "alts": [
+    {
+     "skills": [
+      "Gambling"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "once a session, a friendly stranger turns up in a fight; for Arag twice a session and bringing a gift (Marek: upgraded for him; his CoS achievement Divine Support already sends him a stranger with gifts)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Dead Man's Hand",
+   "kind": "skill",
+   "gate": "Gambling 150",
+   "alts": [
+    {
+     "skills": [
+      "Gambling"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "once a battle, a crit or a killing blow against you is rerolled automatically (Marek)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Quick Draw",
+   "kind": "skill",
+   "gate": "Guns 50",
+   "alts": [
+    {
+     "skills": [
+      "Guns"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "reloading and switching weapons cost half the AP",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Sniper",
+   "kind": "skill",
+   "gate": "Guns 100",
+   "alts": [
+    {
+     "skills": [
+      "Guns"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "aimed shots +25 to hit, no range penalty within the weapon's range",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "aimed": 25
+   }
+  },
+  {
+   "name": "Bonus Rate of Fire",
+   "kind": "skill",
+   "gate": "Guns 150",
+   "alts": [
+    {
+     "skills": [
+      "Guns"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "gun attacks −1 AP",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Bonus Ranged Damage",
+   "kind": "skill",
+   "gate": "Guns 150",
+   "alts": [
+    {
+     "skills": [
+      "Guns"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "+4 damage a bullet [F2 +2]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Rally",
+   "kind": "skill",
+   "gate": "Leadership 50",
+   "alts": [
+    {
+     "skills": [
+      "Leadership"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "+2 AP to everyone in your range this turn, even above their maximum; once a battle, and automatically at the start of the first turn in which all your allies are in range (Marek)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Commander",
+   "kind": "skill",
+   "gate": "Leadership 100",
+   "alts": [
+    {
+     "skills": [
+      "Leadership"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "your range ×2",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Mentor",
+   "kind": "skill",
+   "gate": "Leadership 150",
+   "alts": [
+    {
+     "skills": [
+      "Leadership"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "your faction learns by doing ×1.5 (part 6)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Foreman",
+   "kind": "research",
+   "gate": "Leadership or Crafting 100",
+   "alts": [
+    {
+     "skills": [
+      "Leadership",
+      "Crafting"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "your faction's production +25 % while you supervise (parts 6-7)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Lab Rat",
+   "kind": "research",
+   "gate": "any science 100",
+   "alts": [
+    {
+     "skills": [],
+     "any": "science",
+     "value": 100
+    }
+   ],
+   "effect": "experiments take half the time (part 8)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Eureka",
+   "kind": "research",
+   "gate": "any science 150",
+   "alts": [
+    {
+     "skills": [],
+     "any": "science",
+     "value": 150
+    }
+   ],
+   "effect": "once per research project, an inspiration without the item that would give it (part 8)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Signature Weapon",
+   "kind": "weapon",
+   "gate": "that weapon's skill 100",
+   "alts": [
+    {
+     "skills": [],
+     "any": "weapon",
+     "value": 100
+    }
+   ],
+   "effect": "name one weapon you own: with it +15 to hit, one crit degree better, it never jams or breaks; lost, the perk moves to a new weapon after a week of use",
+   "parked": false,
+   "bound": true,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Weapon Master",
+   "kind": "weapon",
+   "gate": "the family's skill 150",
+   "alts": [
+    {
+     "skills": [],
+     "any": "weapon",
+     "value": 150
+    }
+   ],
+   "effect": "name one family: its attacks −1 AP and +25 % damage",
+   "parked": false,
+   "bound": true,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Slayer",
+   "kind": "weapon",
+   "gate": "Unarmed or a melee family 150",
+   "alts": [
+    {
+     "skills": [
+      "Unarmed"
+     ],
+     "any": "",
+     "value": 150
+    },
+    {
+     "skills": [],
+     "any": "melee",
+     "value": 150
+    }
+   ],
+   "effect": "every melee hit rolls on the crit table [F2 the same]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Home Turf",
+   "kind": "bound",
+   "gate": "Survival 100",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "name a place (a district, your base): there +2 AP and +10 to every skill",
+   "parked": false,
+   "bound": true,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "My People",
+   "kind": "bound",
+   "gate": "Leadership 100",
+   "alts": [
+    {
+     "skills": [
+      "Leadership"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "name your faction: its people and the PCs in your range get your leadership bonus ×1.5 (Marek: \"I would add a bit smaller increase\"; it was ×2)",
+   "parked": false,
+   "bound": true,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Nemesis",
+   "kind": "bound",
+   "gate": "any weapon skill 100",
+   "alts": [
+    {
+     "skills": [],
+     "any": "weapon",
+     "value": 100
+    }
+   ],
+   "effect": "name a kind of foe or a faction: +25 % damage and +15 to hit against it [WL3]",
+   "parked": false,
+   "bound": true,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Old Friend",
+   "kind": "bound",
+   "gate": "Chemistry or Medicine 100",
+   "alts": [
+    {
+     "skills": [
+      "Chemistry",
+      "Medicine"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "name a chem: its effect ×1.5, and it never addicts you",
+   "parked": false,
+   "bound": true,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Bonus HtH Damage",
+   "kind": "old",
+   "gate": "Athletics 75",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "+4 melee and unarmed damage [F2 +2]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Bonus HtH Attacks",
+   "kind": "old",
+   "gate": "Unarmed or a melee family 125",
+   "alts": [
+    {
+     "skills": [
+      "Unarmed"
+     ],
+     "any": "",
+     "value": 125
+    },
+    {
+     "skills": [],
+     "any": "melee",
+     "value": 125
+    }
+   ],
+   "effect": "melee and unarmed attacks −1 AP",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Earlier Sequence",
+   "kind": "old",
+   "gate": "Survival or Sneak 50",
+   "alts": [
+    {
+     "skills": [
+      "Survival",
+      "Sneak"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "+10 Initiative [F2 +2]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "sequence": 10
+   }
+  },
+  {
+   "name": "Cautious Nature",
+   "kind": "old",
+   "gate": "Survival 50",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "never surprised: you always act in the first round",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Light Step",
+   "kind": "old",
+   "gate": "Sneak 50",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "your steps never set off traps and mines",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Quick Recovery",
+   "kind": "old",
+   "gate": "Athletics 50",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "getting up costs 1 AP",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Quick Pockets",
+   "kind": "old",
+   "gate": "Athletics 50",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "taking an item from your pack costs 1 AP less",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Weapon Handling",
+   "kind": "old",
+   "gate": "Athletics 50",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "weapons' Strength requirements −2",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Stonewall",
+   "kind": "old",
+   "gate": "Athletics 100",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "you are never knocked down",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Lifegiver",
+   "kind": "old",
+   "gate": "Athletics or Survival 150",
+   "alts": [
+    {
+     "skills": [
+      "Athletics",
+      "Survival"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "+5 HP (small, Marek's HP rule)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "hp_max": 5
+   }
+  },
+  {
+   "name": "Magnetic Personality",
+   "kind": "old",
+   "gate": "Leadership or Rhetorics 50",
+   "alts": [
+    {
+     "skills": [
+      "Leadership",
+      "Rhetorics"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "recruiting: +20 to recruiting checks, ~25 % more visitors come to your base to be recruited (part 6)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Scout",
+   "kind": "old",
+   "gate": "Survival 50",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "you know what kind of resources an area holds without searching, always know where the nearest settlement is, and see foes from 20 % farther",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Fortune Finder",
+   "kind": "old",
+   "gate": "Gambling or Survival 50",
+   "alts": [
+    {
+     "skills": [
+      "Gambling",
+      "Survival"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "the Double Loot proc 4x as likely (Marek: twice was weak against Lucky Streak)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Explorer",
+   "kind": "old",
+   "gate": "Survival 100",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "on world-map travel you skip the generic encounters: only the special ones come",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Pyromaniac",
+   "kind": "old",
+   "gate": "Chemistry 75 or Energy Weapons 100",
+   "alts": [
+    {
+     "skills": [
+      "Chemistry"
+     ],
+     "any": "",
+     "value": 75
+    },
+    {
+     "skills": [
+      "Energy Weapons"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+25 % fire damage",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Mutate!",
+   "kind": "old",
+   "gate": "any skill 100",
+   "alts": [
+    {
+     "skills": [],
+     "any": "skill",
+     "value": 100
+    }
+   ],
+   "effect": "swap one of your traits for another (Marek: good; as a perk it reaches people without mods or therapies)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Night Vision",
+   "kind": "old",
+   "gate": "Survival 75",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "see in the dark as at dusk (the same, without an implant)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Lead Belly",
+   "kind": "old",
+   "gate": "Survival 50",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "half the rads and sickness from food and water",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Hand Loader",
+   "kind": "old",
+   "gate": "Crafting 50",
+   "alts": [
+    {
+     "skills": [
+      "Crafting"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "reload your own ammo from spent cases (part 7)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Run 'n Gun",
+   "kind": "old",
+   "gate": "Guns 75",
+   "alts": [
+    {
+     "skills": [
+      "Guns"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "no penalty for shooting after moving (Marek 11-14: \"I would add the penalty, seem usable.\": part 5 adds one, below)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Nerd Rage!",
+   "kind": "old",
+   "gate": "Computer Science or Engineering 100",
+   "alts": [
+    {
+     "skills": [
+      "Computer Science",
+      "Engineering"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "under 20 % HP: +3 S and +15 DT",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Grim Reaper's Sprint",
+   "kind": "old",
+   "gate": "any weapon skill 125",
+   "alts": [
+    {
+     "skills": [],
+     "any": "weapon",
+     "value": 125
+    }
+   ],
+   "effect": "a kill gives back 2 AP, once a turn",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Ferocious Loyalty",
+   "kind": "old",
+   "gate": "Leadership 100",
+   "alts": [
+    {
+     "skills": [
+      "Leadership"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "below half your HP, your people in range +5 DT",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Drunken Master",
+   "kind": "old",
+   "gate": "Athletics 75",
+   "alts": [
+    {
+     "skills": [
+      "Athletics"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "drunk: +20 to Unarmed and melee (with Way of the Squeezins, a drunkard's build)",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Die Hard",
+   "kind": "old",
+   "gate": "Survival 100",
+   "alts": [
+    {
+     "skills": [
+      "Survival"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "under 20 % HP: +20 % DR",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Tunnel Rat",
+   "kind": "old",
+   "gate": "Sneak 75",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "crawling costs no more AP than walking",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Thief",
+   "kind": "old",
+   "gate": "Sneak 50",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 50
+    }
+   ],
+   "effect": "+10 Sneak (stealing with it), +10 to traps",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "skill:Sneak": 10
+   }
+  },
+  {
+   "name": "Pickpocket",
+   "kind": "old",
+   "gate": "Sneak 75",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "stealing ignores the item's size and which way the victim faces",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Harmless",
+   "kind": "old",
+   "gate": "Sneak 75",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 75
+    }
+   ],
+   "effect": "the first time someone catches you stealing, they do not turn hostile",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Master Thief",
+   "kind": "old",
+   "gate": "Sneak 100",
+   "alts": [
+    {
+     "skills": [
+      "Sneak"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "+20 to stealing and lockpicking",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Here and Now",
+   "kind": "old",
+   "gate": "any skill 50",
+   "alts": [
+    {
+     "skills": [],
+     "any": "skill",
+     "value": 50
+    }
+   ],
+   "effect": "the XP to your next level at once, and +2 HP (Marek: \"Add +2 HP if it is a perk.\")",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {
+    "hp_max": 2
+   }
+  }
+ ]
+}
