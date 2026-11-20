@@ -1122,6 +1122,26 @@ public final class Character {
     /** Skill points a level: 2 × I + the template's, + the Neural Link's memory (T II +1, III +2, IV +3; 03b §3b). */
     public int skillRate() { return Rules.skillPointsPerLevel(attrs(true), templateSkillPoints) + (int) Math.round(other("skill_points_level", true)); }
 
+    /**
+     * XP earned (part 6, `06b`): added, and at each threshold of the table ({@link Rules#xpForLevel}) the level rises and that
+     * level's skill points ({@link #skillRate}, read from the permanent values) are added to spend; a perk level is named (the
+     * template's rate). Returns what happened ("" if nothing).
+     */
+    public String gainXp(long n) {
+        if (n <= 0 || dead) return "";
+        xp += n;
+        StringBuilder sb = new StringBuilder();
+        while (xp >= Rules.xpForLevel(level + 1)) {
+            level++;
+            int pts = skillRate();
+            unspentSkillPoints += pts;
+            sb.append(" Level ").append(level).append(": +").append(pts).append(" skill points");
+            if (templatePerkRate > 0 && level % templatePerkRate == 0) sb.append(" and a perk");
+            sb.append('.');
+        }
+        return sb.toString().trim();
+    }
+
     /** The game time of this character in hours (his clock + the minutes into the hour). */
     public double now() { return clock + minuteAcc / 60; }
 
@@ -1954,7 +1974,7 @@ public final class Character {
         c.points[Rules.skillIndex("Medicine")] = 25;
         c.points[Rules.skillIndex("Sneak")] = 12;
         c.unspentSkillPoints = 19;
-        c.xp = 640;
+        c.xp = 120;   // level 1 on the PCs' table (level 2 at 250)
         c.hp = c.hpMax();
         c.survival.put(Rules.Stat.WATER, 0.85 * c.max(Rules.Stat.WATER));
         c.survival.put(Rules.Stat.FOOD, c.max(Rules.Stat.FOOD));

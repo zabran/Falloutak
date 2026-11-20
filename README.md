@@ -3,6 +3,20 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.37.0 (2026-11-20): experience (part 6).**
+- **The XP table, for the PCs and the groups** (Marek: *"this seems a lot better, accepted"*): a level L → L+1 costs
+  250 × L × √L (level 2 at 250, 5 at 4 256, 10 at 27 762, 15 at 79 995); it replaced Fallout 2's 1000 × n (n − 1) / 2. Reaching
+  a level adds its skill points to spend and names a perk level.
+- **XP awards** (the GM's menu, *Award XP*, or `/xp`): enemies beaten (3.1 × HP^1.09 each, a peaceful end the same) shared by
+  the team leader's Leadership, 1 / (1 + (n − 1) × max(0, 1 − L / 250)), the leader included; a passed check = its difficulty,
+  at least 10, Doctor doubled; a non-generic area found = 100 × the areas found before, to each; research = 100 × tier ×
+  rarity; a quest or any amount. The battle demo gives the raiders' kill XP when the fight is won.
+- **The groups learn** (Marek: *"they should learn by doing"*): every PC's XP goes whole into his group's pool, and when the GM
+  passes the world's time each member adds 1 XP an hour of work, 2 in danger outside (scavenging, patrols), nothing idle,
+  asleep or sick. A group's level = the pool / the headcount on the same table; each whole level gives its statblock the skill
+  points, and **the faction leader** (`/group leader <player>`, expected Spoke: *"The faction leader (Spoke) can manage all of
+  them."*) spends them: `/group spend <group>`. A newcomer dilutes the level; points already given stay.
+
 **Version 0.36.0 (2026-11-19): smoke and fog hide; the pollen allergy; all three falls.**
 - **Smoke and the acid fog hide like the pollen** (Marek: *"yes, it should hide it in the same way when the target is in the
   cloud"*): a ranged shot into, out of or through a smoke or acid fog zone −10 × its strength (before, smoke only hindered a

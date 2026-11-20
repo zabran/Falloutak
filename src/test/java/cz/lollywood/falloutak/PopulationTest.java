@@ -10,15 +10,33 @@ import static org.junit.jupiter.api.Assertions.*;
 /** The data store, step 2: the workbook's Population, Factions and NPC tabs, and its survival maxima. */
 class PopulationTest {
     @Test
-    void theGroupLevelIsTheWorkbooksFormula() {
-        // Factions!D2: Smugler, 2 members, 2000 XP -> 2 (the workbook shows 2)
-        assertEquals(2.0, Population.level(2000, 2), 1e-9);
+    void theGroupLevelIsThePCsTableOnTheXpPerMember() {
+        // 06 §2.1 (RULED 11-20): the pool / the headcount on the PCs' table (it replaced the workbook's Fallout 2 formula)
+        assertEquals(Rules.levelExact(1000), Population.level(2000, 2), 1e-9);
         assertEquals(1.0, Population.level(0, 2), 1e-9);
-        assertEquals(3.0, Population.level(3 * 3000, 3), 1e-9);   // 3000 a member = level 3 in Fallout 2's table
-        assertEquals(3000, Population.xpForLevel(3), 1e-9);
-        // the same as the workbook's own expression
-        double x = 1234.5;
-        assertEquals((1.0 / 50) * (25 + Math.sqrt(5) * Math.sqrt(x / 3 + 125)), Population.level(x, 3), 1e-9);
+        assertEquals(1.0, Population.level(500, 0), 1e-9);
+        assertEquals(3.0, Population.level(3 * 957, 3), 1e-9);    // 957 a member = level 3
+        assertEquals(957, Population.xpForLevel(3), 1e-9);
+        // a newcomer with nothing dilutes it (06 §2.3)
+        assertTrue(Population.level(3 * 957, 4) < 3);
+    }
+
+    @Test
+    void membersWorkIntoTheirGroupsPool() {
+        Population p = Population.example();                  // Honza idling, Faiden healing: no work
+        assertTrue(p.work(8).isEmpty());
+        assertEquals(0, Population.workXp("Idling"));
+        assertEquals(0, Population.workXp("Sleeping"));
+        assertEquals(1, Population.workXp("Farming"));
+        assertEquals(2, Population.workXp("Scavenging"));
+        double xp = p.group("Smugler").xp;
+        p.person("Honza").activity = "Farming";
+        p.person("Faiden").activity = "Patrol";
+        java.util.Map<String, Double> got = p.work(8);
+        assertEquals(8 + 16, got.get("Smugler"), 1e-9);
+        assertEquals(xp + 24, p.group("Smugler").xp, 1e-9);
+        p.person("Faiden").group = "nobody";                  // a group that does not exist gains nothing
+        assertEquals(8, p.work(8).get("Smugler"), 1e-9);
     }
 
     @Test

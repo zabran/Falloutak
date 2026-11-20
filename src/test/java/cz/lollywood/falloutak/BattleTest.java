@@ -76,6 +76,7 @@ class BattleTest extends MockGame {
         PlayerMock p = facingSouth();
         Character c = plugin.character(p);
         c.base[Rules.A] = 10;                                                      // a good shot, so the demo ends in a few rounds
+        long xp0 = c.xp;
         p.performCommand("sheet battle");
         Battle.State s = plugin.battle.state(p);
         Set<String> heard = new HashSet<>();
@@ -94,6 +95,8 @@ class BattleTest extends MockGame {
             s.broken.clear();
         }
         assertTrue(s.over || s.targets.values().stream().noneMatch(Battle::canFight), "the fight ends when no raider can fight");
+        // part 6: each raider beaten gives his kill XP (3.1 x 30^1.09 = 126) to the one player
+        if (s.over) assertEquals(xp0 + 126L * s.targets.size(), c.xp);
         Sfx.recorder = null;
         // every action is heard (Marek 11-19): his shots, the hits or misses, the clock, his turns, the raiders' shots and the end
         assertTrue(heard.containsAll(List.of("pistol.single", "turn.end", "turn.start", "combat.end")), heard.toString());

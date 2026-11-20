@@ -664,6 +664,7 @@ final class Menus {
         b.add(btn("Gas zones" + (pl.zones.list.isEmpty() ? "" : " (" + pl.zones.list.size() + ")"), "a gas over an area: a factory hall, an anomaly, a cloud (03b §3c)", Menus::zonesMenu));
         b.add(btn("Time of day (everyone)", "set the hour and minute on everyone's clock (the day stays)", x -> timeOfDay(x, null)));
         b.add(btn("Base", "the store's chests (one a type, the Mess Chest) and the unlocked items (05c §7)", Menus::gmBase));
+        b.add(btn("Award XP", "kills, checks, a found area, research, a quest (part 6): into the PCs and their groups' pools", Menus::xpMenu));
         menu(g, "GM menu", List.of(line("Game time moves only here (and by a fight's rounds). NPC statblocks: /npc.", NamedTextColor.GRAY)), b, null);
     }
 
@@ -688,6 +689,102 @@ final class Menus {
                     pick(x, "Template of " + n, "", new ArrayList<>(Data.TEMPLATES.keySet()), t -> t, Menus::templateTip,
                             (y, t) -> say(y, pl.spawnFigurant(y.getLocation(), n, t)), Menus::spawnForm);
                 }), Menus::gm);
+    }
+
+    // ------------------------------------------------------------------ part 6: the XP awards (06b §5.4, RULED 11-20)
+    /** One toggle a player online: who is in the team (all ticked). */
+    static List<Ui.In> teamInputs() {
+        List<Ui.In> in = new ArrayList<>();
+        int i = 0;
+        for (Player o : Bukkit.getOnlinePlayers())
+            in.add(Ui.In.bool("p" + i++, Component.text(o.getName() + " · " + pl.character(o).name)).initial(true).build());
+        return in;
+    }
+
+    /** The players ticked in {@link #teamInputs}. */
+    static List<Player> teamOf(DialogResponseView v) {
+        List<Player> l = new ArrayList<>();
+        int i = 0;
+        for (Player o : Bukkit.getOnlinePlayers()) if (Boolean.TRUE.equals(v.getBoolean("p" + i++))) l.add(o);
+        return l;
+    }
+
+    static void xpMenu(Player g) {
+        List<Ui.Btn> b = new ArrayList<>();
+        b.add(btn("Enemies beaten", "their kill XP, 3.1 × HP^1.09 each, to the whole team, shared by the team leader's Leadership "
+                + "(a peaceful end gives the same)", Menus::xpKill));
+        b.add(btn("A passed check", "its difficulty in % (at least " + Rules.CHECK_XP_MIN + "), Doctor doubled, to the person", Menus::xpCheck));
+        b.add(btn("An area found", "a non-generic area: 100 × the areas found before (" + pl.roster.pop.areasFound + " so far), to each", Menus::xpDiscover));
+        b.add(btn("Research finished", "100 × tier × rarity to each researcher", Menus::xpResearch));
+        b.add(btn("A quest or any XP", "a set amount to each", Menus::xpGive));
+        menu(g, "GM · award XP", List.of(line("Every PC's XP also goes whole into his group's pool; levels and skill points come by themselves.", NamedTextColor.GRAY),
+                line("The table: a level L → L+1 costs 250 × L × √L (level 2 at 250, 5 at 4 256, 10 at 27 762).", NamedTextColor.GRAY)), b, Menus::gm);
+    }
+
+    static void xpKill(Player g) {
+        List<Ui.In> in = teamInputs();
+        in.add(Ui.In.text("hp", Component.text("The enemies' HP (one number each, commas)")).initial("30, 30, 30").maxLength(200).build());
+        ask(g, "Enemies beaten", "Tick the team. Each gets the sum × his share: 1 / (1 + (n − 1) × max(0, 1 − Leadership / 250)), the best Leadership in the team.", in,
+                form("Award", "the kill XP", (v, x) -> {
+                    List<Double> hps = new ArrayList<>();
+                    for (String t : v.getText("hp").split("[,; ]+")) {
+                        if (t.isBlank()) continue;
+                        try { hps.add(Double.parseDouble(t.trim())); } catch (NumberFormatException e) { say(x, "! not a number: " + t); return; }
+                    }
+                    say(x, pl.roster.killAward(teamOf(v), hps, "enemies beaten"));
+                    xpMenu(x);
+                }), Menus::xpMenu);
+    }
+
+    static void xpCheck(Player g) {
+        List<String> names = new ArrayList<>();
+        for (Player o : Bukkit.getOnlinePlayers()) names.add(o.getName());
+        if (names.isEmpty()) { say(g, "! nobody online"); return; }
+        ask(g, "A passed check", "XP = the difficulty (the penalty in % points: a −40 % lock = 40), at least " + Rules.CHECK_XP_MIN + ", Doctor doubled.",
+                List.of(choice("who", "Who", names), Ui.In.numberRange("d", Component.text("Difficulty (%)"), 0, 100).step(5f).initial(20f).width(300).build(),
+                        Ui.In.bool("doc", Component.text("Doctor (doubled)")).initial(false).build()),
+                form("Award", "the check's XP", (v, x) -> {
+                    Player who = Bukkit.getPlayerExact(v.getText("who"));
+                    if (who == null) { say(x, "! " + v.getText("who") + " is not online"); return; }
+                    boolean doc = Boolean.TRUE.equals(v.getBoolean("doc"));
+                    say(x, pl.roster.award(who, Rules.checkXp(v.getFloat("d"), doc), doc ? "Doctor" : "a check"));
+                    xpMenu(x);
+                }), Menus::xpMenu);
+    }
+
+    static void xpDiscover(Player g) {
+        ask(g, "An area found", "A non-generic area (not a random encounter's map): each ticked PC gets 100 × " + pl.roster.pop.areasFound + " = "
+                        + Rules.discoveryXp(pl.roster.pop.areasFound) + " XP, and it counts as found.", teamInputs(),
+                form("Found", "award and count it", (v, x) -> { say(x, pl.roster.discover(teamOf(v))); xpMenu(x); }), Menus::xpMenu);
+    }
+
+    static void xpResearch(Player g) {
+        List<Ui.In> in = teamInputs();
+        in.add(Ui.In.numberRange("t", Component.text("Tier"), 1, 4).step(1f).initial(1f).width(300).build());
+        in.add(Ui.In.numberRange("r", Component.text("Rarity"), 1, 5).step(1f).initial(1f).width(300).build());
+        ask(g, "Research finished", "Each ticked researcher gets 100 × tier × rarity.", in,
+                form("Award", "the research XP", (v, x) -> {
+                    int t = Math.round(v.getFloat("t")), r = Math.round(v.getFloat("r"));
+                    List<String> out = new ArrayList<>();
+                    for (Player p : teamOf(v)) out.add(pl.roster.award(p, Rules.researchXp(t, r), "research, T" + t + " R" + r));
+                    say(x, out.isEmpty() ? "! nobody ticked" : String.join(" · ", out));
+                    xpMenu(x);
+                }), Menus::xpMenu);
+    }
+
+    static void xpGive(Player g) {
+        List<Ui.In> in = teamInputs();
+        in.add(Ui.In.text("n", Component.text("XP each")).initial("100").maxLength(9).build());
+        in.add(Ui.In.text("why", Component.text("For (shown to them)")).initial("a quest").maxLength(60).build());
+        ask(g, "A quest or any XP", "The same amount to each ticked PC.", in,
+                form("Award", "the XP", (v, x) -> {
+                    long n;
+                    try { n = Long.parseLong(v.getText("n").trim()); } catch (NumberFormatException e) { say(x, "! a whole number, please"); return; }
+                    List<String> out = new ArrayList<>();
+                    for (Player p : teamOf(v)) out.add(pl.roster.award(p, n, v.getText("why").trim()));
+                    say(x, out.isEmpty() ? "! nobody ticked" : String.join(" · ", out));
+                    xpMenu(x);
+                }), Menus::xpMenu);
     }
 
     /** Everyone the clock moves for: the players online and the NPCs loaded. */
@@ -750,6 +847,7 @@ final class Menus {
                     }
                     if (all) pl.zones.rounds((int) Math.round(min * 10));   // the zones that count down: the world's time
                     say(x, s.trim() + " passed" + (all ? " for everyone" : " for " + only.name()) + ".");
+                    if (all) for (String w : pl.roster.work(min / 60)) say(x, w + ".");   // the groups' people work (06 §2.1)
                 }), only == null ? Menus::gm : x -> gmOn(x, only));
     }
 

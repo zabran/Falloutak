@@ -81,7 +81,63 @@ public final class Rules {
     }
     public static double critChance(int[] a, double sneak) { return a[L] + sneak / 10; }
     public static int skillPointsPerLevel(int[] a, int species) { return 2 * a[I] + species; }
-    public static long xpForLevel(int n) { return 1000L * n * (n - 1) / 2; }
+
+    // ------------------------------------------------------------------ part 6: experience (06b §5.4-§5.5, 06 §2, RULED 11-20)
+    /**
+     * A level L → L+1 costs 250 × L × √L (06b §5.5, Marek 11-20: *"this seems a lot better, accepted. I think it would be usable. On
+     * the conditions that PC do not die often."*), for the PCs AND the groups (*"leader players can optimize the groups just like
+     * player characters"*). It replaced Fallout 2's 1000 × n (n − 1) / 2.
+     */
+    public static double levelStep(int l) { return 250.0 * l * Math.sqrt(l); }
+    /** The XP to reach level n, the steps 1 … n−1 rounded: L2 250, L3 957, L5 4 256, L10 27 762, L15 79 995, L30 472 575. */
+    public static long xpForLevel(int n) {
+        double s = 0;
+        for (int l = 1; l < n; l++) s += levelStep(l);
+        return Math.round(s);
+    }
+    /** The level an XP total reaches (at least 1). */
+    public static int levelFor(double xp) {
+        int n = 1;
+        while (n < 500 && xpForLevel(n + 1) <= xp) n++;
+        return n;
+    }
+    /** The level with the way to the next one as a fraction (a group's level, 06 §2.1). */
+    public static double levelExact(double xp) {
+        int n = levelFor(xp);
+        double a = xpForLevel(n), b = xpForLevel(n + 1);
+        return n + Math.max(0, xp - a) / (b - a);
+    }
+    /** A kill: 3.1 × HP^1.09 (06b §5.4.1: Fallout 1/2's own creature XP, fitted; Marek 11-20: *"OK, I am in"*). */
+    public static long killXp(double hp) { return hp <= 0 ? 0 : Math.round(3.1 * Math.pow(hp, 1.09)); }
+    /**
+     * Each one's share of the team's XP: 1 / (1 + (n − 1) × max(0, 1 − L / 250)), L the team leader's Leadership, the leader
+     * included (06b §5.4.1: Mark's own rule of 2023, fitted on his four points; RULED *"This leadership effect should work on the
+     * leader as well."*). L 0: 1/n; six people at L 100: 1/4, at L 200: 1/2; from L 250 nobody loses anything.
+     */
+    public static double xpShare(int n, double leadership) {
+        if (n <= 1) return 1;
+        return 1 / (1 + (n - 1) * Math.max(0, 1 - leadership / 250));
+    }
+    /** The minimum of a check that could fail (06b §5.4.2, Marek 11-20: *"probably, it seems fine"*). */
+    public static final int CHECK_XP_MIN = 10;
+    /** A passed check: its difficulty (the penalty in % points: a −40 % lock = 40), at least 10, Doctor doubled (06b §5.4.2). */
+    public static long checkXp(double difficulty, boolean doctor) {
+        long x = Math.max(CHECK_XP_MIN, Math.round(Math.abs(difficulty)));
+        return doctor ? 2 * x : x;
+    }
+    /** Reaching a non-generic area: 100 × the areas found before it, to EACH PC (06b §5.4.5: the 1st 0, the 10th 900). */
+    public static long discoveryXp(int foundBefore) { return 100L * Math.max(0, foundBefore); }
+    /** A finished schematic: 100 × tier × rarity to each researcher (06b §5.4.6: a T1 R1 100, a T3 R2 600). */
+    public static long researchXp(int tier, int rarity) { return 100L * Math.max(0, tier) * Math.max(0, rarity); }
+    /** A member-hour of work: 1 XP, 2 for dangerous work outside (06 §2.1: EXAMPLE, the pace RULED *"seems OK"*); resting 0. */
+    public static int workXp(boolean working, boolean danger) { return !working ? 0 : danger ? 2 : 1; }
+    /** A lesson hour: 1 + the teacher's Leadership / 25 XP a student (06 §2.5, RULED round 4: 0 → 1, 50 → 3, 100 → 5). */
+    public static double lessonXp(double leadership) { return 1 + Math.max(0, leadership) / 25; }
+    /** A class: 1 + the teacher's Leadership / 10 students (06 §2.5). */
+    public static int classSize(double leadership) { return 1 + (int) Math.floor(Math.max(0, leadership) / 10); }
+    /** At most 8 lesson hours a member a week (06 §2.5). */
+    public static final int LESSON_HOURS_A_WEEK = 8;
+
     /** Ruled 11-14 (02c §7): dying from 0 HP down to −Endurance, dead below. */
     public static int deathFloor(int[] a) { return -a[E]; }
 

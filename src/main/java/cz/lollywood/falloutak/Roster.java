@@ -14,7 +14,9 @@ import java.util.*;
 /**
  * /npc, /pop and /group: the data store's step 2 (the workbook's NPC, Population and Factions tabs). Anyone may look; changing
  * needs {@code falloutak.gm} (operators). An NPC statblock is a character sheet saved under its name; {@code /npc edit} puts it in
- * place of your own sheet, so every /sheet page and form works on it, and {@code /npc done} gives yours back.
+ * place of your own sheet, so every /sheet page and form works on it, and {@code /npc done} gives yours back. Part 6 (RULED
+ * 11-20): the PCs' XP and the members' work fill a group's pool, its whole levels give its statblock skill points, and the faction
+ * leader (or the GM) spends them ({@code /group spend}).
  */
 final class Roster implements CommandExecutor {
     private final FalloutakPlugin pl;
@@ -57,6 +59,7 @@ final class Roster implements CommandExecutor {
             case "npc" -> npc(s, sub, a);
             case "pop" -> pop(s, sub, a);
             case "group" -> group(s, sub, a);
+            case "xp" -> xp(s, sub, a);
             default -> { return false; }
         }
         return true;
@@ -128,6 +131,180 @@ final class Roster implements CommandExecutor {
         return true;
     }
 
+    // ------------------------------------------------------------------ part 6: XP into the PCs and the groups
+    /**
+     * A PC earns XP (`06b`): his own, and 100 % of it into his group's pool too (06 §2.1, RULED: *"It is a bonus, it won't change
+     * much when divided into many people."*). Tells him; returns the line for the GM.
+     */
+    String award(Player who, long n, String why) {
+        if (n <= 0) return who.getName() + ": no XP";
+        Character c = pl.character(who);
+        String up = c.gainXp(n);
+        String g = pool(c.group, n);
+        who.sendMessage(Component.text("+" + n + " XP" + (why.isEmpty() ? "" : " (" + why + ")") + ": " + c.xp + " / "
+                + Rules.xpForLevel(c.level + 1) + " to level " + (c.level + 1) + "." + (up.isEmpty() ? "" : " " + up), NamedTextColor.GREEN));
+        if (!up.isEmpty()) Sfx.to(who, "levelup");
+        return who.getName() + " +" + n + (up.isEmpty() ? "" : " (" + up + ")") + (g.isEmpty() ? "" : "; " + g);
+    }
+
+    /** XP into a group's pool (a PC's, or work); its statblock catches up with the level. Returns what happened ("" for no group). */
+    String pool(String group, double n) {
+        Population.Group g = pop.group(group);
+        if (g == null || n <= 0) return "";
+        g.xp += n;
+        String r = levelUp(g);
+        save();
+        return r;
+    }
+
+    /**
+     * A group's statblock catches up with its level (06 §2.1-§2.2): each whole level above the last one given adds the statblock's
+     * skill points a level (and names a perk level) for the faction leader to spend. A level lost to dilution (§2.3) is not taken
+     * back: the next one simply comes later. Returns what happened ("" if nothing).
+     */
+    String levelUp(Population.Group g) {
+        int whole = (int) Math.floor(Population.level(g.xp, pop.members(g.name)) + 1e-9);
+        if (whole <= g.statLevel) return "";
+        Character sb = statblock(g.name);
+        if (sb == null) return g.name + " reached level " + whole + " (no statblock yet: /npc edit " + g.name + ")";
+        int pts = 0;
+        List<Integer> perks = new ArrayList<>();
+        for (int l = g.statLevel + 1; l <= whole; l++) {
+            pts += sb.skillRate();
+            if (sb.templatePerkRate > 0 && l % sb.templatePerkRate == 0) perks.add(l);
+        }
+        sb.level = whole;
+        sb.unspentSkillPoints += pts;
+        g.statLevel = whole;
+        putStatblock(g.name, sb);
+        String r = g.name + " is level " + whole + ": +" + pts + " skill points" + (perks.isEmpty() ? "" : " and a perk (level "
+                + perks.get(perks.size() - 1) + ")") + " for the leader (/group spend " + g.name + ")";
+        Player lead = pop.leader.isEmpty() ? null : org.bukkit.Bukkit.getPlayerExact(pop.leader);
+        if (lead != null) say(lead, r + ".", NamedTextColor.GOLD);
+        return r;
+    }
+
+    /** A group's statblock: the one someone is editing (/npc edit) if so, else the saved one. */
+    Character statblock(String name) {
+        for (Map.Entry<UUID, String> e : editing.entrySet())
+            if (e.getValue().equalsIgnoreCase(name)) return pl.characters.get(e.getKey());
+        return pl.store.loadNpc(name);
+    }
+
+    void putStatblock(String name, Character c) {
+        for (Map.Entry<UUID, String> e : editing.entrySet()) if (e.getValue().equalsIgnoreCase(name)) return;   // saved by /npc done
+        try { pl.store.saveNpc(name, c); } catch (Exception e) { pl.getLogger().warning("could not save NPC " + name + ": " + e); }
+    }
+
+    /** Hours of the world's time pass: the members work (06 §2.1). Returns one line a group that gained, for the GM. */
+    List<String> work(double hours) {
+        List<String> out = new ArrayList<>();
+        for (Map.Entry<String, Double> e : pop.work(hours).entrySet()) {
+            Population.Group g = pop.group(e.getKey());
+            String up = levelUp(g);
+            out.add(g.name + " +" + Math.round(e.getValue()) + " XP from work" + (up.isEmpty() ? "" : "; " + up));
+        }
+        if (!out.isEmpty()) save();
+        return out;
+    }
+
+    /** The team leader's Leadership: the best in the team (leaders do not stack, 02c). [the pick mine] */
+    double teamLeadership(List<Player> team) {
+        double best = 0;
+        for (Player p : team) best = Math.max(best, pl.character(p).skill("Leadership"));
+        return best;
+    }
+
+    /**
+     * Enemies beaten (killed, or the encounter resolved peacefully: the same, 06b §5.4.3): the sum of their kill XP to the whole team,
+     * each his share by the team leader's Leadership, the leader included (06b §5.4.1). Returns a line for the GM.
+     */
+    String killAward(List<Player> team, List<Double> hps, String why) {
+        if (team.isEmpty() || hps.isEmpty()) return "nobody to award";
+        long total = 0;
+        for (double hp : hps) total += Rules.killXp(hp);
+        double lead = teamLeadership(team), share = Rules.xpShare(team.size(), lead);
+        long each = Math.round(total * share);
+        List<String> out = new ArrayList<>();
+        for (Player p : team) out.add(award(p, each, why));
+        return total + " XP for " + hps.size() + (hps.size() == 1 ? " enemy" : " enemies") + ", " + team.size() + " in the team, Leadership "
+                + Math.round(lead) + ": " + Math.round(share * 100) + " % each. " + String.join(" · ", out);
+    }
+
+    /** Reaching a non-generic area (06b §5.4.5): each PC 100 × the areas found before it; then one more is found. */
+    String discover(List<Player> team) {
+        long x = Rules.discoveryXp(pop.areasFound);
+        pop.areasFound++;
+        save();
+        List<String> out = new ArrayList<>();
+        for (Player p : team) out.add(award(p, x, "area " + pop.areasFound + " found"));
+        return "Area " + pop.areasFound + " found: " + x + " XP each" + (team.isEmpty() ? "" : ". " + String.join(" · ", out));
+    }
+
+    /** A team written as "all" (every player online) or names with commas. Unknown or offline names are listed in {@code missing}. */
+    static List<Player> team(String arg, List<String> missing) {
+        List<Player> l = new ArrayList<>();
+        if (arg.equalsIgnoreCase("all")) { l.addAll(org.bukkit.Bukkit.getOnlinePlayers()); return l; }
+        for (String n : arg.split(",")) {
+            if (n.isBlank()) continue;
+            Player p = org.bukkit.Bukkit.getPlayerExact(n.trim());
+            if (p == null) missing.add(n.trim()); else if (!l.contains(p)) l.add(p);
+        }
+        return l;
+    }
+
+    // ------------------------------------------------------------------ /xp (the GM)
+    private void xp(CommandSender s, String sub, String[] a) {
+        if (!sub.equals("list") && !gm(s)) return;
+        List<String> missing = new ArrayList<>();
+        try {
+            switch (sub) {
+                case "give", "quest" -> {   // a quest set in advance (06b §5.4.4), or any XP by hand
+                    if (a.length < 3) { say(s, "/xp " + sub + " <team: all or names,with,commas> <amount>", NamedTextColor.GRAY); return; }
+                    long n = Long.parseLong(a[2]);
+                    List<String> out = new ArrayList<>();
+                    for (Player p : team(a[1], missing)) out.add(award(p, n, sub.equals("quest") ? "a quest" : "the GM"));
+                    say(s, String.join(" · ", out), NamedTextColor.GREEN);
+                }
+                case "kill" -> {
+                    if (a.length < 3) { say(s, "/xp kill <team> <enemy HP> [HP ...]: their kill XP (3.1 × HP^1.09) shared by the team leader's Leadership", NamedTextColor.GRAY); return; }
+                    List<Double> hps = new ArrayList<>();
+                    for (int i = 2; i < a.length; i++) hps.add(Double.parseDouble(a[i]));
+                    say(s, killAward(team(a[1], missing), hps, "enemies beaten"), NamedTextColor.GREEN);
+                }
+                case "check" -> {
+                    if (a.length < 3) { say(s, "/xp check <player> <difficulty: the penalty in %> [doctor]: at least " + Rules.CHECK_XP_MIN + ", Doctor doubled", NamedTextColor.GRAY); return; }
+                    boolean doc = a.length > 3 && a[3].equalsIgnoreCase("doctor");
+                    long n = Rules.checkXp(Double.parseDouble(a[2]), doc);
+                    List<String> out = new ArrayList<>();
+                    for (Player p : team(a[1], missing)) out.add(award(p, n, doc ? "Doctor" : "a check"));
+                    say(s, String.join(" · ", out), NamedTextColor.GREEN);
+                }
+                case "discover" -> {
+                    if (a.length < 2) { say(s, "/xp discover <team>: a non-generic area; each gets 100 × the areas found before (" + pop.areasFound + " so far)", NamedTextColor.GRAY); return; }
+                    say(s, discover(team(a[1], missing)), NamedTextColor.GREEN);
+                }
+                case "research" -> {
+                    if (a.length < 4) { say(s, "/xp research <researchers> <tier> <rarity>: 100 × tier × rarity each", NamedTextColor.GRAY); return; }
+                    long n = Rules.researchXp(Integer.parseInt(a[2]), Integer.parseInt(a[3]));
+                    List<String> out = new ArrayList<>();
+                    for (Player p : team(a[1], missing)) out.add(award(p, n, "research, T" + a[2] + " R" + a[3]));
+                    say(s, String.join(" · ", out), NamedTextColor.GREEN);
+                }
+                default -> say(s, "/xp give|quest <team> <amount> · kill <team> <HP> [HP ...] · check <player> <difficulty> [doctor] · discover <team> · "
+                        + "research <team> <tier> <rarity> (a team = all, or names,with,commas)", NamedTextColor.GRAY);
+            }
+        } catch (NumberFormatException e) {
+            say(s, "A number, please: " + e.getMessage(), NamedTextColor.RED);
+        }
+        if (!missing.isEmpty()) say(s, "Not online: " + String.join(", ", missing), NamedTextColor.RED);
+    }
+
+    /** May this one spend a group's points: the faction leader or the GM (06 §2.2: *"faction leader (expected Spoke) manages that."*). */
+    boolean leads(CommandSender s) {
+        return s.hasPermission("falloutak.gm") || (!pop.leader.isEmpty() && s.getName().equalsIgnoreCase(pop.leader));
+    }
+
     // ------------------------------------------------------------------ /pop
     private void pop(CommandSender s, String sub, String[] a) {
         switch (sub) {
@@ -182,7 +359,8 @@ final class Roster implements CommandExecutor {
     private void group(CommandSender s, String sub, String[] a) {
         switch (sub) {
             case "list" -> {
-                say(s, "Groups (the level = Fallout 2's table on the XP per member, the workbook's formula):", NamedTextColor.AQUA);
+                say(s, "Groups (the level = the PCs' table on the XP per member; the faction leader: " + (pop.leader.isEmpty() ? "none, /group leader <player>" : pop.leader)
+                        + "; areas found " + pop.areasFound + "):", NamedTextColor.AQUA);
                 for (Population.Group f : pop.groups) {
                     int n = pop.members(f.name);
                     double lv = Population.level(f.xp, n);
@@ -190,7 +368,7 @@ final class Roster implements CommandExecutor {
                     say(s, " " + f.name + " · " + n + (n == 1 ? " person" : " people") + " · XP " + Math.round(f.xp)
                             + (n > 0 ? " (" + Math.round(f.xp / n) + " a member)" : "") + " · level " + whole + " (" + SheetGui.f(Math.round(lv * 100) / 100.0)
                             + "; level " + (whole + 1) + " at " + Math.round(Population.xpForLevel(whole + 1)) + " a member)"
-                            + " · statblock " + (pl.store.loadNpc(f.name) != null ? "yes" : "none (/npc edit " + f.name + ")")
+                            + " · statblock " + (pl.store.loadNpc(f.name) != null ? "level " + f.statLevel : "none (/npc edit " + f.name + ")")
                             + (f.unlocked.isEmpty() ? "" : " · unlocked " + String.join(", ", f.unlocked)), NamedTextColor.WHITE);
                 }
             }
@@ -203,12 +381,32 @@ final class Roster implements CommandExecutor {
             }
             case "xp" -> {
                 if (!gm(s)) return;
-                if (a.length < 3) { say(s, "/group xp <name> <amount> (how a group learns is part 6's open question: this only records it)", NamedTextColor.GRAY); return; }
+                if (a.length < 3) { say(s, "/group xp <name> <amount>: XP into the group's pool by hand (work and the PCs' XP add it by themselves)", NamedTextColor.GRAY); return; }
                 Population.Group f = pop.group(a[1]);
                 if (f == null) { say(s, "No group " + a[1] + ".", NamedTextColor.RED); return; }
                 try { f.xp = Math.max(0, f.xp + Double.parseDouble(a[2])); } catch (NumberFormatException e) { say(s, "A number, please.", NamedTextColor.RED); return; }
+                String up = levelUp(f);
                 save();
-                say(s, f.name + ": XP " + Math.round(f.xp) + ", level " + SheetGui.f(Math.round(Population.level(f.xp, pop.members(f.name)) * 100) / 100.0), NamedTextColor.GREEN);
+                say(s, f.name + ": XP " + Math.round(f.xp) + ", level " + SheetGui.f(Math.round(Population.level(f.xp, pop.members(f.name)) * 100) / 100.0)
+                        + (up.isEmpty() ? "" : ". " + up), NamedTextColor.GREEN);
+            }
+            case "leader" -> {   // 06 §2.4 (RULED 11-20): the faction leader runs every group
+                if (a.length < 2) { say(s, "The faction leader: " + (pop.leader.isEmpty() ? "none" : pop.leader) + " (/group leader <player>, the GM)", NamedTextColor.AQUA); return; }
+                if (!gm(s)) return;
+                pop.leader = a[1];
+                save();
+                say(s, a[1] + " leads the faction: he spends every group's points (/group spend <group>).", NamedTextColor.GREEN);
+            }
+            case "spend" -> {   // 06 §2.2 (RULED 11-20): the leader spends the statblock's points
+                if (!(s instanceof Player p)) { say(s, "Only a player can spend (it opens a form).", NamedTextColor.RED); return; }
+                if (!leads(s)) { say(s, "Only the faction leader (" + (pop.leader.isEmpty() ? "none set" : pop.leader) + ") or the GM spends a group's points.", NamedTextColor.RED); return; }
+                if (a.length < 2) { say(s, "/group spend <group>", NamedTextColor.GRAY); return; }
+                Population.Group f = pop.group(a[1]);
+                if (f == null) { say(s, "No group " + a[1] + ".", NamedTextColor.RED); return; }
+                Character sb = statblock(f.name);
+                if (sb == null) { say(s, f.name + " has no statblock yet (/npc edit " + f.name + ", the GM).", NamedTextColor.RED); return; }
+                if (sb.unspentSkillPoints <= 0) { say(s, f.name + " has no skill points to spend (level " + f.statLevel + ").", NamedTextColor.GRAY); return; }
+                Forms.spend(p, pl, sb, x -> putStatblock(f.name, sb));
             }
             case "unlock" -> {   // 03b §2b (RULED 11-16: "yes, pay twice and whole group can use it")
                 if (!gm(s)) return;
@@ -239,7 +437,7 @@ final class Roster implements CommandExecutor {
                 if (!c.unlocked.contains(t.name())) c.unlocked.add(t.name());
                 say(s, t.name() + " unlocked for " + who.getName() + " (" + t.cosPoints() + " CoS points): /sheet create offers it.", NamedTextColor.GREEN);
             }
-            default -> say(s, "/group [list] · add <name> · xp <name> <amount> · unlock <group> <template> · grant <player> <template> · join <player> <group>", NamedTextColor.GRAY);
+            default -> say(s, "/group [list] · add <name> · xp <name> <amount> · leader <player> · spend <group> · unlock <group> <template> · grant <player> <template> · join <player> <group>", NamedTextColor.GRAY);
         }
     }
 }

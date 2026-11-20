@@ -22,6 +22,73 @@ class RulesTest {
     }
 
     @Test
+    void theXpTableAndTheAwards() {
+        // 06b §5.5 (RULED 11-20): a level L -> L+1 costs 250 x L x sqrt(L)
+        assertEquals(0, Rules.xpForLevel(1));
+        assertEquals(250, Rules.xpForLevel(2));
+        assertEquals(957, Rules.xpForLevel(3));
+        assertEquals(4256, Rules.xpForLevel(5));
+        assertEquals(27762, Rules.xpForLevel(10));
+        assertEquals(79995, Rules.xpForLevel(15));
+        assertEquals(472575, Rules.xpForLevel(30));
+        for (int l = 1; l < 40; l++) assertEquals(250 * l * Math.sqrt(l), Rules.xpForLevel(l + 1) - Rules.xpForLevel(l), 1.0);
+        assertEquals(1, Rules.levelFor(0));
+        assertEquals(1, Rules.levelFor(249));
+        assertEquals(2, Rules.levelFor(250));
+        assertEquals(9, Rules.levelFor(27761));
+        assertEquals(10, Rules.levelFor(27762));
+        assertEquals(3.0, Rules.levelExact(957), 1e-9);
+        assertEquals(3.5, Rules.levelExact((957 + 2256) / 2.0), 1e-9);
+        // kills: 3.1 x HP^1.09 (a raider of 30 HP 126)
+        assertEquals(126, Rules.killXp(30));
+        assertEquals(38, Rules.killXp(10));
+        assertEquals(0, Rules.killXp(0));
+        // the split: Mark's 2023 rule on his four points for six people, the leader included
+        assertEquals(1.0 / 6, Rules.xpShare(6, 0), 1e-9);
+        assertEquals(1.0 / 4, Rules.xpShare(6, 100), 1e-9);
+        assertEquals(1.0 / 2, Rules.xpShare(6, 200), 1e-9);
+        assertEquals(1.0, Rules.xpShare(6, 250), 1e-9);
+        assertEquals(1.0, Rules.xpShare(6, 300), 1e-9);
+        assertEquals(1.0, Rules.xpShare(1, 0), 1e-9);
+        // checks: the difficulty, at least 10, Doctor doubled
+        assertEquals(40, Rules.checkXp(-40, false));
+        assertEquals(10, Rules.checkXp(0, false));
+        assertEquals(20, Rules.checkXp(5, true));
+        assertEquals(80, Rules.checkXp(40, true));
+        // discovery: 100 x the areas found before (the 1st 0, the 10th 900); research 100 x tier x rarity
+        assertEquals(0, Rules.discoveryXp(0));
+        assertEquals(900, Rules.discoveryXp(9));
+        assertEquals(600, Rules.researchXp(3, 2));
+        // work and teaching (06 §2.1, §2.5)
+        assertEquals(0, Rules.workXp(false, true));
+        assertEquals(1, Rules.workXp(true, false));
+        assertEquals(2, Rules.workXp(true, true));
+        assertEquals(1, Rules.lessonXp(0), 1e-9);
+        assertEquals(3, Rules.lessonXp(50), 1e-9);
+        assertEquals(5, Rules.lessonXp(100), 1e-9);
+        assertEquals(11, Rules.classSize(100));
+    }
+
+    @Test
+    void xpRaisesTheLevelAndGivesItsSkillPoints() {
+        Character c = Character.sample("x");
+        assertEquals(1, c.level);
+        assertEquals(120, c.xp);
+        int pts = c.unspentSkillPoints, rate = c.skillRate();
+        assertEquals("", c.gainXp(100));                     // 220: still level 1
+        assertEquals(1, c.level);
+        String up = c.gainXp(800);                           // 1 020: past 250 and 957
+        assertEquals(3, c.level);
+        assertEquals(pts + 2 * rate, c.unspentSkillPoints);
+        assertTrue(up.contains("Level 2") && up.contains("Level 3"), up);
+        assertTrue(up.contains("perk"), up);                 // a human: a perk every 3 levels
+        assertEquals("", c.gainXp(0));
+        c.dead = true;
+        assertEquals("", c.gainXp(5000));
+        assertEquals(3, c.level);
+    }
+
+    @Test
     void workbookData() {
         assertEquals(27, Data.TEMPLATES.size());   // part 3: the workbook's seven + the eight basic gene templates (03c §6, Golden Blood since round 8) + the ten premium + the Fallen Angel and her graced form (03f §2)
         assertEquals(39, Data.TEMPLATES.get("Ghoul").attributePoints());

@@ -45,7 +45,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         hud = new Hud(this);
         battle = new Battle(this);
         roster = new Roster(this);
-        for (String n : List.of("npc", "pop", "group")) { var cmd = getCommand(n); if (cmd != null) cmd.setExecutor(roster); }
+        for (String n : List.of("npc", "pop", "group", "xp")) { var cmd = getCommand(n); if (cmd != null) cmd.setExecutor(roster); }
         var gmCmd = getCommand("gm");
         if (gmCmd != null) gmCmd.setExecutor((s, c, l, a) -> { if (s instanceof Player p) Menus.gm(p); else s.sendMessage("Players only."); return true; });
         var sndCmd = getCommand("sounds");

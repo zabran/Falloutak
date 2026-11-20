@@ -343,7 +343,10 @@ public final class Forms {
     }
 
     // ------------------------------------------------------------------ level-up: skill points, one slider a skill
-    public static void spend(Player p, FalloutakPlugin pl, Character c) {
+    public static void spend(Player p, FalloutakPlugin pl, Character c) { spend(p, pl, c, null); }
+
+    /** {@code onSpent} runs after points are spent (a group's statblock is saved by it, 06 §2.2). */
+    public static void spend(Player p, FalloutakPlugin pl, Character c, java.util.function.Consumer<Player> onSpent) {
         List<Ui.In> in = new ArrayList<>();
         double[] perm = c.skills(true);
         int max = Math.max(1, c.unspentSkillPoints);
@@ -361,7 +364,7 @@ public final class Forms {
                     for (int i = 0; i < want.length; i++) { want[i] = Math.round(v.getFloat("s" + i)); total += want[i]; }
                     if (total > c.unspentSkillPoints) {
                         notice(pp, "Too many points", total + " points chosen, " + c.unspentSkillPoints + " to spend.",
-                                button("Back", "choose again", (v2, p2) -> spend(p2, pl, c)));
+                                button("Back", "choose again", (v2, p2) -> spend(p2, pl, c, onSpent)));
                         return;
                     }
                     StringBuilder sb = new StringBuilder();
@@ -383,6 +386,7 @@ public final class Forms {
                         sb.append(Rules.SKILLS.get(i).name()).append(" +").append(SheetGui.f(gain)).append(" %  ");
                     }
                     pp.sendMessage(Component.text("Spent: " + sb, NamedTextColor.GREEN));
+                    if (onSpent != null) onSpent.accept(pp);
                     SheetView.open(pp, c, SheetGui.Page.SKILLS);
                 }),
                 button("Cancel", "nothing spent", (v, pp) -> SheetView.open(pp, c, SheetGui.Page.SKILLS)));

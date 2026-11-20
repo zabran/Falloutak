@@ -15,7 +15,9 @@ import java.util.Locale;
  * row each with the tab's columns; a group's statblock is an NPC sheet of the group's name ({@code npcs/<name>.json}, the
  * Factions tab's own note: *"výběr characteru viz character - load a save do NPC sheetu"*), so every member uses it (Marek's brief
  * for part 6: one statblock per group). Both live in {@code plugins/Falloutak/population.json}, written whole like a character.
- * Pure Java: the tests run it. How a group gains XP is part 6's open question; here it is only recorded.
+ * Pure Java: the tests run it. **Part 6 (RULED 11-20, `06-GROUPS.md`):** a group's pool gains 1 XP a member-hour of work, 2 in
+ * danger outside, and 100 % of its PCs' XP; its level = the pool / the headcount on the PCs' own table; every group is run by the
+ * faction leader ({@link #leader}, expected Spoke: *"The faction leader (Spoke) can manage all of them."*), who spends its points.
  */
 final class Population {
     /** A person of the base: the workbook's Population columns. */
@@ -32,23 +34,58 @@ final class Population {
         double xp;
         /** Premium templates unlocked for every member at 2 x the CoS points (03b §2b, RULED 11-16). */
         List<String> unlocked = new ArrayList<>();
+        /** The whole level its statblock has been given the skill points of (a diluted group earns its next level later). */
+        int statLevel = 1;
     }
+
+    /** The faction leader (a player's name): he spends every group's points (06 §2.2, §2.4 RULED 11-20). */
+    String leader = "";
+    /** The non-generic areas the players have found (06b §5.4.5: the next one gives each PC 100 × this). */
+    int areasFound;
 
     final List<Person> people = new ArrayList<>();
     @com.google.gson.annotations.SerializedName(value = "groups", alternate = {"factions"}) final List<Group> groups = new ArrayList<>();
 
     /**
-     * The workbook's group level (Factions!D2): (1/50) x (25 + sqrt(5) x sqrt(XP / count + 125)) = 0.5 + sqrt(0.25 + XP per member
-     * / 500), i.e. the level whose threshold in Fallout 2's table, 1000 x n (n - 1) / 2 (the Production tab), the XP PER MEMBER
-     * reaches. Fractional (the part above the whole level is the way to the next); 1 with no XP or no members.
+     * A group's level = the pool / the headcount on the PCs' own table (06 §2.1, RULED 11-20: *"it is usable and simple"* and *"yes,
+     * leader players can optimize the groups just like player characters"*; it replaced the workbook's Fallout 2 formula).
+     * Fractional (the part above the whole level is the way to the next); 1 with no XP or no members.
      */
     static double level(double xp, int count) {
         if (count <= 0 || xp <= 0) return 1;
-        return 0.5 + Math.sqrt(0.25 + xp / count / 500);
+        return Rules.levelExact(xp / count);
     }
 
-    /** Fallout 2's XP for level n (the workbook's Production tab): 1000 x n (n - 1) / 2. */
-    static double xpForLevel(int n) { return 1000.0 * n * (n - 1) / 2; }
+    /** The XP a member needs for level n: the PCs' table. */
+    static double xpForLevel(int n) { return Rules.xpForLevel(n); }
+
+    /** Activities that are not work (06 §2.1: *"Idling, sleep, sickness add nothing"*). [the list mine] */
+    static final java.util.Set<String> RESTING = java.util.Set.of("", "idling", "idle", "healing", "sleeping", "sleep", "sick", "resting", "rest");
+    /** Dangerous work outside, 2 XP an hour (06 §2.1: *"scavenging, patrols, the wasteland"*). [the list mine] */
+    static final java.util.Set<String> DANGER = java.util.Set.of("scavenging", "scavenge", "patrol", "patrolling", "wasteland", "expedition", "scouting", "hunting");
+
+    /** A member-hour of this activity: 0, 1 or 2 XP. */
+    static int workXp(String activity) {
+        String a = activity == null ? "" : activity.trim().toLowerCase(Locale.ROOT);
+        return Rules.workXp(!RESTING.contains(a), DANGER.contains(a));
+    }
+
+    /**
+     * Hours of work pass (the GM's *Pass time* for everyone): each member adds his activity's XP an hour to his group's pool.
+     * Returns the XP each group gained (only those that gained).
+     */
+    java.util.Map<String, Double> work(double hours) {
+        java.util.Map<String, Double> got = new java.util.LinkedHashMap<>();
+        if (hours <= 0) return got;
+        for (Person p : people) {
+            int x = workXp(p.activity);
+            Group g = group(p.group);
+            if (x == 0 || g == null) continue;
+            g.xp += x * hours;
+            got.merge(g.name, x * hours, Double::sum);
+        }
+        return got;
+    }
 
     Person person(String name) {
         for (Person p : people) if (p.name.equalsIgnoreCase(name)) return p;

@@ -748,6 +748,10 @@ public final class Battle implements Listener {
         for (Target t : s.targets.values())
             why.add(t.name + ": " + (t.dead ? "dead" : t.dying() ? "dying" : t.broken ? "gun destroyed" : "gun broken"));
         p.sendMessage(Component.text("The fight is over: no raider can fight (" + String.join("; ", why) + "). Round " + s.round + ".", NamedTextColor.GREEN));
+        // part 6 (06b §5.4.1, RULED 11-20): every raider beaten gives his kill XP, 3.1 × HP^1.09, to the team (here the one player)
+        List<Double> hps = new ArrayList<>();
+        for (Target t : s.targets.values()) hps.add((double) t.hpMax);
+        if (pl.roster != null) pl.roster.killAward(List.of(p), hps, "the raiders beaten");
         show(p, s, c, "the fight is over");
         pl.getServer().getScheduler().runTaskLater(pl, () -> { if (inBattle(p) && states.get(p.getUniqueId()) == s) stop(p); }, 40L);
         return true;
