@@ -308,10 +308,40 @@ class ProductionTest {
         assertEquals(r0 - 30, reactor.condition, 1e-9);
         assertTrue(pr.status(reactor).contains("WAITS: it needs Gear and tools of Tier IV or better"), pr.status(reactor));
         base.addUnits("Gear and tools", 4, 1, 1);
-        pr.advance(1 + 10, t + 5, base, crew, 0);                                      // 1 h upkeep (Tier IV), then repairs +2 an hour
-        assertEquals(r0 - 30 + 20, reactor.condition, 1e-9);
+        pr.advance(1 + 10, t + 5, base, crew, 0);                                      // 1 h upkeep (Tier IV), then repairs +0.4 an hour
+        assertEquals(r0 - 30 + 4, reactor.condition, 1e-9);                            // round 7: a Tier IV room far more time demanding
+        assertEquals((100 - reactor.condition) / 0.4, Production.repairHours(reactor), 1e-9);
+        assertTrue(pr.status(reactor).contains(", repair " + SheetGui.f((100 - reactor.condition) / 0.4) + " crew h"), pr.status(reactor));
         assertEquals(89, base.pools.get(Base.key("Gear and tools", 4, 1)).average(), 1e-9);   // 11 h of work: the TOOL 11 %
         assertEquals(1, base.pools.get(Base.key("Gear and tools", 3, 1)).fresh);      // the Tier III one untouched
+    }
+
+    @Test
+    void aRoomsRepairIsSlowerTheHigherItsTier() {
+        // round 7 (Marek 11-21: "Yes, needed far less often, but far more time demanding.") [the numbers EXAMPLE]
+        assertEquals(4, Production.repairPerHour(1), 1e-9);
+        assertEquals(2, Production.repairPerHour(2), 1e-9);
+        assertEquals(1, Production.repairPerHour(3), 1e-9);
+        assertEquals(0.4, Production.repairPerHour(4), 1e-9);
+        Production pr = new Production();
+        int[] fromZero = {25, 50, 100, 250};
+        for (int tier = 1; tier <= 4; tier++) {
+            Production.Building b = pr.build("Workshop", tier, "W" + tier);
+            b.condition = 0;
+            assertEquals(fromZero[tier - 1], Production.repairHours(b), 1e-9);
+        }
+        // two workers repair twice as fast (their hours add up), the tool wears 1 % a crew hour
+        Production.Building ws = pr.build("Workshop", 2, "W");
+        ws.condition = 50;
+        ws.upkeepWeek = 0;                                                             // this week's upkeep already done
+        ws.upkeepDone = ws.upkeepNeed();
+        Base base = new Base(null);
+        base.addUnits("Gear and tools", 2, 1, 1);
+        Crew crew = new Crew(worker("A", "Crafting", 40), worker("B", "Crafting", 40));
+        pr.pick(ws, crew);
+        pr.advance(5, 1, base, crew, 0);
+        assertEquals(50 + 2 * 5 * 2, ws.condition, 1e-9);
+        assertEquals(90, base.pools.get(Base.key("Gear and tools", 2, 1)).average(), 1e-9);
     }
 
     @Test

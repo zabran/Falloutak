@@ -32,7 +32,8 @@ import java.util.*;
  * <li>Upkeep: a weekly project, fewer hours the higher the tier; a missed week costs its wear, by the tier, for the hours it ran and
  * stood idle ({@link Wear}, round 6: *"bigger tier, the less maintanance and the longer it lasts abandoned"*); at 0 the building
  * stops [mine]; the players manage the crews (round 4: *"Upkeep and crews - this is for players to manage."*).</li>
- * <li>A building works and makes less as its condition falls (round 4: *"it will get worse as condition worsens"*): {@link #efficiency}.</li>
+ * <li>A building works and makes less as its condition falls (round 4: *"it will get worse as condition worsens"*): {@link #efficiency}.
+ * Its repair is slower the higher its tier (round 7: *"needed far less often, but far more time demanding"*): {@link #repairPerHour}.</li>
  * <li>Round 4 (Marek 11-20): the base makes PARTS, the items are ASSEMBLED from them when going out ({@code data/designs.json};
  * *"creating just the parts and the item assembled out of them when going out would work better"*): {@link Base#assemble}.</li>
  * <li>Round 5 (Marek 11-20): water of a lower tier from the store, the best first where it goes into the product (*"Lower-tier water -
@@ -116,10 +117,16 @@ final class Production {
      */
     static final class Wear {
         double[] upkeep_hours = {4, 3, 2, 1}, run_weeks = {26, 104, 260, 1300}, idle_weeks = {260, 780, 2080, 5200};
-        /** A worn or broken room's repair by its crew, % an hour, with the tool of its tier. */
-        double repair_per_hour = 2;
+        /**
+         * A worn or broken room's repair, % a crew hour with the tool of its tier, Tier I-IV (round 7, Marek 11-21, verbatim: *"Yes,
+         * needed far less often, but far more time demanding."*) [the numbers EXAMPLE, mine]: 0 → 100 % in 25 / 50 / 100 / 250 crew hours.
+         */
+        double[] repair_per_hour = {4, 2, 1, 0.4};
     }
     static Wear WEAR = new Wear();
+
+    /** % of condition a crew hour of repair gives back to a building of this tier (round 7). */
+    static double repairPerHour(int tier) { return WEAR.repair_per_hour[Math.max(1, Math.min(4, tier)) - 1]; }
 
     /** % of condition an hour of running (or of standing idle) costs a building of this tier when its upkeep is missed. */
     static double wearPerHour(int tier, boolean running) {
@@ -673,7 +680,7 @@ final class Production {
                 continue;
             }
             if (r == null || b.condition <= 0) {
-                if (tool > 0 && b.condition < 100) { b.condition = Math.min(100, b.condition + WEAR.repair_per_hour * dt); base.wear(UPKEEP_TOOL, tool, dt); }   // [EXAMPLE]
+                if (tool > 0 && b.condition < 100) { b.condition = Math.min(100, b.condition + repairPerHour(b.tier) * dt); base.wear(UPKEEP_TOOL, tool, dt); }   // [EXAMPLE]
                 continue;
             }
             free += dt * Math.min(4, w.skill(r.skill) / Math.max(1, r.min));
@@ -918,10 +925,14 @@ final class Production {
         if (upkeep(b) > 0) sb.append(" · upkeep ").append(SheetGui.f(b.upkeepDone)).append("/").append(SheetGui.f(upkeep(b))).append(" h this week")
                 .append(b.noTool ? " (WAITS: it needs " + UPKEEP_TOOL + " of Tier " + Rules.roman(b.tier) + " or better)" : "");
         if (b.condition < 100) sb.append(" · condition ").append(pct(b.condition)).append(" %")
-                .append(efficiency(b) < 1 ? " (works at " + Math.round(100 * efficiency(b)) + " %)" : "");
+                .append(efficiency(b) < 1 ? " (works at " + Math.round(100 * efficiency(b)) + " %)" : "")
+                .append(", repair ").append(SheetGui.f(repairHours(b))).append(" crew h");
         if (b.job != null && !b.job.waiting.isEmpty()) sb.append(" · WAITS: ").append(b.job.waiting);
         return sb.toString();
     }
+
+    /** The crew hours a repair to 100 % still takes (round 7). */
+    static double repairHours(Building b) { return Math.max(0, 100 - b.condition) / repairPerHour(b.tier); }
 
     /** Today's power and water. */
     String supply() {

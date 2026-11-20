@@ -93,7 +93,8 @@ final class Works {
         Production.Building x = pr().building(id);
         if (x == null) { main(p); return; }
         ask(p, "An event damages " + x.name, "Now " + Production.pct(x.condition) + " %. Below 75 % it works less, at 0 it stops until its crew repairs it with "
-                        + Production.UPKEEP_TOOL + " of Tier " + Rules.roman(x.tier) + " or better.",
+                        + Production.UPKEEP_TOOL + " of Tier " + Rules.roman(x.tier) + " or better, "
+                        + SheetGui.f(Production.repairPerHour(x.tier)) + " % a crew hour (10 points = " + SheetGui.f(10 / Production.repairPerHour(x.tier)) + " crew hours).",
                 List.of(Ui.In.numberRange("d", Component.text("Condition lost (% points)"), 0, 100).step(5f).initial(20f).width(300).build()),
                 form("Damage", "the condition falls", (v, y) -> { say(y, pr().damage(x, v.getFloat("d"))); pr().save(); building(y, x.id); }),
                 y -> building(y, x.id));

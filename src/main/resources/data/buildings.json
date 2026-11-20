@@ -57,7 +57,12 @@
    2080,
    5200
   ],
-  "repair_per_hour": 2
+  "repair_per_hour": [
+   4,
+   2,
+   1,
+   0.4
+  ]
  },
  "rows": [
   {

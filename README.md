@@ -3,6 +3,12 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.46.0 (2026-11-21): part 7 round 7: a room's repair slower the higher its tier.**
+- **Repair by the tier** (Marek: *"Yes, needed far less often, but far more time demanding."*) [the numbers EXAMPLE]: a worn or broken
+  room gains 4 / 2 / 1 / 0.4 % a crew hour with the tool for Tier I-IV, so 0 → 100 % takes 25 / 50 / 100 / 250 crew hours (the
+  reactor's quarter of a year of one man's shifts); the workers' hours add up and the tool wears 1 % a crew hour, so a whole repair of
+  the reactor uses 2.5 Tier IV tools. A building's line shows the crew hours left; the GM's event says what 10 points cost.
+
 **Version 0.45.0 (2026-11-21): part 7 round 6: the buildings wear by their tier, Hands-On Learner, the GM's events.**
 - **The buildings wear in absolute numbers by their tier** (Marek: *"bigger tier, the less maintanance and the longer it lasts
   abandoned"* · *"players must not be forced out before first year"*) [the numbers EXAMPLE]: upkeep 4 / 3 / 2 / 1 h a week for Tier
