@@ -29,7 +29,11 @@ import java.util.*;
  * perks and traits cheat it (Master Craftsman, Perfectionist).</li>
  * <li>Power and water: daily amounts, counted only on the days a building works; the kitchen and the automatic rooms every day
  * (round 1: *"Workshop does not need to work 24/7 ... But you do need kitchen as daily amount all the time."*).</li>
- * <li>Upkeep: a weekly project, 2 h × the tier [EXAMPLE]; missed, the condition falls; at 0 the building stops [mine].</li>
+ * <li>Upkeep: a weekly project, 2 h × the tier [EXAMPLE]; missed, the condition falls; at 0 the building stops [mine]; the players
+ * manage the crews (round 4: *"Upkeep and crews - this is for players to manage."*).</li>
+ * <li>A building works and makes less as its condition falls (round 4: *"it will get worse as condition worsens"*): {@link #efficiency}.</li>
+ * <li>Round 4 (Marek 11-20): the base makes PARTS, the items are ASSEMBLED from them when going out ({@code data/designs.json};
+ * *"creating just the parts and the item assembled out of them when going out would work better"*): {@link Base#assemble}.</li>
  * </ul>
  */
 final class Production {
@@ -56,11 +60,35 @@ final class Production {
     static final class Named { String name = "", id = ""; int tier = 1, rarity = 1; }
     static final class ItemType { String name = "", group = "", use = ""; boolean found_only; Map<String, String> tiers = new HashMap<>(); List<Named> items = new ArrayList<>(); }
     static final class Room { String kind = "", name = ""; int tier = 1; }
+    /** One kind of part an assembly takes (of the item's tier unless the data says another). */
+    static final class Part { String type = ""; int tier = 1, count = 1; }
+    /**
+     * An item assembled from parts when going out (round 4): no building, no skill, no time [mine]; the parts all at the item's rarity;
+     * a batch gives {@code makes} items (rounds, arrows); an armour piece names its set and slot (05c).
+     */
+    static final class Design {
+        String category = "", group = "", skill = "", name = "", slot = "", set = "";
+        int tier = 1, rarity = 1, makes = 1;
+        List<Part> parts = new ArrayList<>();
+
+        boolean armour() { return slot != null && !slot.isEmpty(); }
+
+        String key() { return category + "|" + name; }
+
+        String label() { return name + " (" + Rules.roman(tier) + (rarity > 1 ? " R" + rarity : "") + ")"; }
+    }
+    static final class Category { String name = "", group = "", skill = "", note = ""; }
+    /** An old type of 0.42.0 → its parts: {@code per} units give them (the store converts what it held). */
+    static final class Legacy { List<Part> parts = new ArrayList<>(); int per = 1; }
 
     static final Map<String, Recipe> RECIPES = new LinkedHashMap<>();
     static final Map<String, Kind> KINDS = new LinkedHashMap<>();
     static final Map<String, ItemType> TYPES = new LinkedHashMap<>();
     static final List<Room> SHELTER = new ArrayList<>();
+    /** What is assembled, by {@link Design#key()}; the categories in the data's order; the old types. */
+    static final Map<String, Design> DESIGNS = new LinkedHashMap<>();
+    static final List<Category> CATEGORIES = new ArrayList<>();
+    static final Map<String, Legacy> LEGACY = new LinkedHashMap<>();
     /** A Workshop does a Workbench's work of its tier [mine]. */
     static final Map<String, List<String>> SERVES = Map.of("Workshop", List.of("Workbench"));
     /** Pseudo-buildings: no room, any number of workers; a job there gets its own site (07b §3). */
@@ -71,12 +99,35 @@ final class Production {
         for (JsonElement e : rows("itemtypes")) { ItemType t = g.fromJson(e, ItemType.class); TYPES.put(t.name, t); }
         for (JsonElement e : rows("buildings")) { Kind k = g.fromJson(e, Kind.class); KINDS.put(k.kind, k); }
         for (JsonElement e : rows("recipes")) { Recipe r = g.fromJson(e, Recipe.class); RECIPES.put(r.id, r); }
-        try (InputStream in = Production.class.getResourceAsStream("/data/buildings.json")) {
-            if (in != null) {
-                JsonObject o = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
-                if (o.has("shelter")) for (JsonElement e : o.getAsJsonArray("shelter")) SHELTER.add(g.fromJson(e, Room.class));
-            }
-        } catch (IOException ignored) { }
+        for (JsonElement e : rows("designs")) { Design d = g.fromJson(e, Design.class); DESIGNS.put(d.key(), d); }
+        JsonObject o = whole("buildings");
+        if (o != null && o.has("shelter")) for (JsonElement e : o.getAsJsonArray("shelter")) SHELTER.add(g.fromJson(e, Room.class));
+        o = whole("designs");
+        if (o != null && o.has("categories")) for (JsonElement e : o.getAsJsonArray("categories")) CATEGORIES.add(g.fromJson(e, Category.class));
+        if (o != null && o.has("legacy")) for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("legacy").entrySet())
+            LEGACY.put(e.getKey(), g.fromJson(e.getValue(), Legacy.class));
+    }
+
+    private static JsonObject whole(String name) {
+        try (InputStream in = Production.class.getResourceAsStream("/data/" + name + ".json")) {
+            return in == null ? null : JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    static Design design(String category, String name) { return DESIGNS.get(category + "|" + name); }
+
+    /** The design of an armour set's piece (05c's sets: every piece is one). */
+    static Design piece(String set, String slot) {
+        for (Design d : DESIGNS.values()) if (d.armour() && d.set.equals(set) && d.slot.equals(slot)) return d;
+        return null;
+    }
+
+    static String partsText(Design d) {
+        StringJoiner j = new StringJoiner(" + ");
+        for (Part p : d.parts) j.add(p.count + " " + p.type + " " + Rules.roman(p.tier));
+        return j + (d.rarity > 1 ? ", rarity " + d.rarity : "") + (d.makes > 1 ? " → " + d.makes : "");
     }
 
     private static List<JsonElement> rows(String name) {
@@ -118,6 +169,8 @@ final class Production {
         double work, startedAt = -1;
         boolean inputsTaken, extra;
         int madeRarity = 1;
+        /** The parts of an output a run could not give whole (a harvest × the factor, Salvager's +50 %): kept for the next run [mine]. */
+        Map<String, Double> carry = new HashMap<>();
         /** Why it does not move now ("" = it works). */
         String waiting = "";
     }
@@ -167,6 +220,8 @@ final class Production {
     long day = Long.MIN_VALUE;
     double powerUsed, waterUsed;
     int nextId = 1;
+    /** A Quartermaster among the base's workers (02c: "your faction's upkeep −20 %"), as of the last hour run. */
+    transient boolean quartermaster;
     private transient Path file;
 
     // ------------------------------------------------------------------ what can be done
@@ -338,6 +393,19 @@ final class Production {
         return null;
     }
 
+    /** A building's upkeep this week: its hours, −20 % with a Quartermaster in the base (02c) [the base's upkeep: mine]. */
+    double upkeep(Building b) { return b.upkeepNeed() * (quartermaster ? 0.8 : 1); }
+
+    /**
+     * How well a building works at its condition (round 4, Marek 11-20: *"could be good at the start, since it will get worse as condition
+     * worsens."*): full down to 75 %, then down to half at 1 %, and at 0 it stops [the curve mine: 05 §5b's for weapons]. Its power or
+     * water made and its crew's work alike.
+     */
+    static double efficiency(Building b) {
+        if (b.condition <= 0) return 0;
+        return b.condition >= 75 ? 1 : 0.5 + 0.5 * b.condition / 75;
+    }
+
     // ------------------------------------------------------------------ power and water
     double powerCap() { return produced("power"); }
 
@@ -347,7 +415,7 @@ final class Production {
         double s = 0;
         for (Building b : buildings) {
             Kind k = b.kind();
-            if (k != null && k.automatic && b.condition > 0) s += k.produces.getOrDefault(what, 0.0);
+            if (k != null && k.automatic && b.condition > 0) s += k.produces.getOrDefault(what, 0.0) * efficiency(b);
         }
         return s;
     }
@@ -380,7 +448,8 @@ final class Production {
         List<String> out = new ArrayList<>();
         if (hours <= 0) return out;
         Map<String, Worker> byId = new HashMap<>();
-        for (Worker w : wf.all()) byId.put(w.id(), w);
+        quartermaster = false;
+        for (Worker w : wf.all()) { byId.put(w.id(), w); if (w.perk("Quartermaster")) quartermaster = true; }
         double t = worldHours, end = worldHours + hours;
         while (t < end - 1e-9) {
             double dt = Math.min(1, end - t);
@@ -389,10 +458,10 @@ final class Production {
             long week = (long) Math.floor(t / 168);
             for (Building b : new ArrayList<>(buildings)) {
                 if (b.upkeepWeek != week) {
-                    if (b.upkeepWeek >= 0 && b.upkeepNeed() > 0 && b.upkeepDone < b.upkeepNeed() - 1e-9) {
+                    if (b.upkeepWeek >= 0 && upkeep(b) > 0 && b.upkeepDone < upkeep(b) - 1e-9) {
                         double before = b.condition;
-                        b.condition = Math.max(0, b.condition - 25 * (1 - b.upkeepDone / b.upkeepNeed()));   // [EXAMPLE]
-                        out.add(b.name + ": upkeep missed (" + Math.round(b.upkeepDone) + " of " + Math.round(b.upkeepNeed()) + " h), condition "
+                        b.condition = Math.max(0, b.condition - 25 * (1 - b.upkeepDone / upkeep(b)));   // [EXAMPLE]
+                        out.add(b.name + ": upkeep missed (" + Math.round(b.upkeepDone) + " of " + Math.round(upkeep(b)) + " h), condition "
                                 + Math.round(before) + " → " + Math.round(b.condition) + " %" + (b.condition <= 0 ? ": IT STOPS" : ""));
                     }
                     b.upkeepWeek = week;
@@ -425,7 +494,7 @@ final class Production {
         double free = 0;
         boolean foreman = false;
         for (Worker w : crew) {
-            if (b.upkeepDone < b.upkeepNeed()) { b.upkeepDone = Math.min(b.upkeepNeed(), b.upkeepDone + dt); continue; }
+            if (b.upkeepDone < upkeep(b)) { b.upkeepDone = Math.min(upkeep(b), b.upkeepDone + dt); continue; }
             if (r == null || b.condition <= 0) { b.condition = Math.min(100, b.condition + 2 * dt); continue; }   // [EXAMPLE]
             free += dt * Math.min(4, w.skill(r.skill) / Math.max(1, r.min));
             if (w.perk("Foreman")) foreman = true;
@@ -439,8 +508,19 @@ final class Production {
         if (free > 0 && b.chargedDay != day && !charge(b)) { b.job.waiting = "no power or water left today"; return; }
         if (crew.isEmpty() && r.hours > 0 && b.job.work < need(b, r, crew)) { b.job.waiting = "no workers"; return; }
         b.job.waiting = "";
-        b.job.work += free * (foreman ? 1.25 : 1) * (b.job.extra ? 1.5 : 1);
+        b.job.work += free * efficiency(b) * (foreman ? 1.25 : 1) * (b.job.extra ? 1.5 : 1);
         if (b.job.work >= need(b, r, crew) - 1e-9 && t + dt - b.job.startedAt >= r.days * 24 - 1e-9) finish(b, r, base, wf, crew, out);
+    }
+
+    /** A recipe that takes found junk apart (Salvager, 02c: *"taking items apart gives +50 % materials"*): Salvage is its only input. */
+    static boolean salvage(Recipe r) {
+        boolean any = false;
+        for (Ttr i : r.inputs) {
+            if (i.tool || i.extra) continue;
+            if (!"Salvage".equals(i.type)) return false;
+            any = true;
+        }
+        return any;
     }
 
     /** The run's work in hours at the minimum: Perfectionist twice (02c), Assembly Line half from the second piece on (02c). */
@@ -491,8 +571,12 @@ final class Production {
             double n = m.count;
             if (r.harvest) n *= harvest / 100 * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
             if ("Chems".equals(m.type) && crew.stream().anyMatch(w -> w.perk("Cook"))) n *= 2;
-            if (r.id.startsWith("take-apart") && crew.stream().anyMatch(w -> w.perk("Salvager"))) n *= 1.5;
-            int k = (int) Math.floor(n + 1e-9);
+            if (salvage(r) && crew.stream().anyMatch(w -> w.perk("Salvager"))) n *= 1.5;
+            String ck = m.type + "|" + m.tier;
+            double total = n + (j.carry == null ? 0 : j.carry.getOrDefault(ck, 0.0));
+            int k = (int) Math.floor(total + 1e-9);
+            if (j.carry == null) j.carry = new HashMap<>();
+            j.carry.put(ck, Math.max(0, total - k));
             if (k <= 0) continue;
             base.addUnits(m.type, m.tier, rarity, k);
             made.add(k + " " + m.type + " " + Rules.roman(m.tier) + " R" + rarity);
@@ -519,8 +603,9 @@ final class Production {
         sb.append(r == null ? "no job" : r.name + (b.job.runs == 0 ? " (until stopped" : " (" + b.job.done + " of " + b.job.runs) + ", this run "
                 + Math.round(100 * Math.min(1, b.job.work / Math.max(0.01, r.hours))) + " %)");
         sb.append(" · crew ").append(b.crew.size()).append(b.site ? "" : "/" + b.slots());
-        if (b.upkeepNeed() > 0) sb.append(" · upkeep ").append(Math.round(b.upkeepDone)).append("/").append(Math.round(b.upkeepNeed())).append(" h this week");
-        if (b.condition < 100) sb.append(" · condition ").append(Math.round(b.condition)).append(" %");
+        if (upkeep(b) > 0) sb.append(" · upkeep ").append(Math.round(b.upkeepDone)).append("/").append(Math.round(upkeep(b))).append(" h this week");
+        if (b.condition < 100) sb.append(" · condition ").append(Math.round(b.condition)).append(" %")
+                .append(efficiency(b) < 1 ? " (works at " + Math.round(100 * efficiency(b)) + " %)" : "");
         if (b.job != null && !b.job.waiting.isEmpty()) sb.append(" · WAITS: ").append(b.job.waiting);
         return sb.toString();
     }

@@ -33,13 +33,18 @@ class ServerSmokeTest extends MockGame {
         c.armour.put("Head", new Character.Worn("Metal Armor", "Head", 30));
         Items.writeArmour(p, c);
         assertEquals(30, Items.worn(p.getInventory().getHelmet()).condition(), 1e-9);
-        // back in the base: the Mess Chest takes it in, the body armour row gives it out as another Tier II item
+        // back in the base: the Mess Chest takes it apart, the damaged share lost (round 4); fresh parts make it whole again
         Inventory mess = server.createInventory(null, 27);
         mess.addItem(p.getInventory().getHelmet());
         assertEquals(1, Storage.sortMess(mess, plugin.base));
         assertTrue(mess.isEmpty());
-        Character.Worn back = plugin.base.take("Head armour, Tier II, rarity 1", "Metal Armor", c.fit());
-        assertEquals(new Character.Worn("Metal Armor", "Head", 30), back);
+        assertEquals(1, plugin.base.count("Hard armour parts", 2, 1));                // 2 hard x 30 % = 1; 1 soft x 30 % = 0
+        assertEquals(0, plugin.base.count("Soft armour parts", 2, 1));
+        Production.Design helmet = Production.piece("Metal Armor", "Head");
+        assertEquals(0, plugin.base.canAssemble(helmet));
+        plugin.base.addUnits("Hard armour parts", 2, 1, 1);
+        plugin.base.addUnits("Soft armour parts", 2, 1, 1);
+        assertTrue(plugin.base.assemble(helmet, 1));                                   // undamaged again: the repair
     }
 
     @Test

@@ -3,6 +3,25 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.43.0 (2026-11-20): part 7 round 4: the base makes PARTS, the items are assembled from them when going out.**
+- **26 types instead of 46** (Marek: *"I think creating just the parts and the item assembled out of them when going out would work
+  better."*): soft and hard armour parts, hard (metal) and light (wood, other) weapon parts, firearm parts, electronics, machinery,
+  **one Ammo** for pistols, rifles, shotguns and heavy guns (a rifle round or a shell takes 2), explosives, the seven materials, food
+  and water, medical, supplies. The catalogue DRAFT 2: 140 recipes (113 at the start, 27 researched), the gate met for every type.
+- ***Actions → Production → Assemble items to take out*** (any player): 167 items in 27 categories (the 37 armour sets' 98 pieces, a
+  piece = its kg in parts; weapons, rounds, arrows, grenades, traps), instant, out of the store's parts at the item's tier and rarity;
+  unlocked as before (Tier I-II rarity 1, brought in, the GM's). An armour piece is made for the taker's body.
+- **The Mess Chest takes items apart** (*"It also simplifies repair."*): an assembled item or an armour piece back into its parts, the
+  damaged share lost (a piece at 60 % gives 60 % of its parts); that is the repair in the base. What the store held of the old types
+  is converted into parts once.
+- **A building works less as its condition falls** (*"it will get worse as condition worsens"*): full to 75 %, down to half at 1 %,
+  stopped at 0 (the weapons' curve, 05 §5b) [mine]: the power, the water and the crew's work.
+- **The production perks offered** (*"Production perks - yes, add them as part of this update."*): Master Craftsman, Assembly Line,
+  Salvager (now any recipe taking found junk apart), Cook, Good Harvest, Foreman, **Quartermaster** (the base's upkeep −20 %),
+  **Reverse Engineer** (an item taken apart through the Mess Chest teaches the base the researched ways to its parts), the trait
+  Perfectionist; the research ones wait for part 8. A run's fractions carry to the next (1.5 + 1.5 = 3).
+- Upkeep and crews stay the players' to manage (*"this is for players to manage."*).
+
 **Version 0.42.0 (2026-11-20): part 7, production: the recipe catalogue and the production engine.**
 - **The catalogue** (`07b-RECIPES.md`, generated with `data/itemtypes.json`, `buildings.json` and `recipes.json` by
   `LollyWood-Lore/_tools/fallout_catalogue.py`; Marek: *"there should be several ways to get the same TTR - and it should make sense

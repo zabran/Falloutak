@@ -27,9 +27,10 @@ import java.util.*;
 /**
  * The base's store in Minecraft chests (Marek 11-19: *"one chest per type, rows by tiers and rarities. And physical Mess Chest that
  * players can return items into."*). A type's chest opens as a chest screen: a row for each tier and rarity in the store, its first
- * slot naming the row (how many undamaged, how many worn and their average condition), then every unlocked item of it; a left click
- * takes a worn one, a right click an undamaged one (Marek 11-19: undamaged ones apart, for the most dangerous jobs). The Mess Chest is a
- * plain chest: whatever store items are in it when it is closed go into their rows (and are unlocked); anything else stays.
+ * slot naming the row, then every unlocked item of it; a click takes one, shift + click up to 16. Since round 4 the chests hold PARTS
+ * and materials: the items are assembled from them when going out ({@link Works#assemble}). The Mess Chest is a plain chest: whatever
+ * store items are in it when it is closed go into their rows (and are unlocked), an assembled item or an armour piece comes apart
+ * into its parts, the damaged share lost (round 4: *"It also simplifies repair."*); anything else stays.
  */
 final class Storage implements Listener {
     final FalloutakPlugin pl;
@@ -134,33 +135,14 @@ final class Storage implements Listener {
             List<String> about = new ArrayList<>();
             if (pool.fresh > 0) about.add(pool.fresh + " undamaged (100 %)");
             if (pool.worn() > 0) about.add(pool.worn() + " worn, " + Math.round(pool.average()) + " % on average");
-            String slot = Base.slotOf(h.type);
-            about.add(line.length == 1 ? "none of it unlocked: the GM's Base page" : slot == null ? "left click an item: one · shift + left click: up to 16"
-                    : "left click an item: a worn one · right click: an undamaged one");
+            about.add(line.length == 1 ? "none of it unlocked: the GM's Base page" : "left click an item: one · shift + left click: up to 16");
             inv.setItem(at, label(Material.PAPER, "Tier " + Rules.roman(pool.tier) + ", rarity " + pool.rarity, about.toArray(new String[0])));
             for (int k = 1; k < line.length; k++) {
-                if (slot == null) {   // part 7's things: no condition yet, one or a handful a click
-                    ItemStack it = Items.make(Items.storeId(pool.type, pool.tier, pool.rarity, line[k]), 1);
-                    ItemMeta im = it.getItemMeta();
-                    List<Component> lore = new ArrayList<>(im.lore() == null ? List.of() : im.lore());
-                    lore.add(0, Component.text("left click: one · shift + left click: up to 16 (" + pool.count + " in the store)", NamedTextColor.GREEN)
-                            .decoration(TextDecoration.ITALIC, false));
-                    im.lore(lore);
-                    int n = Math.max(1, Math.min(99, pool.count));
-                    Battle.cosmetic(() -> im.setMaxStackSize(n));
-                    it.setItemMeta(im);
-                    Battle.cosmetic(() -> it.setAmount(n));
-                    inv.setItem(at + k, it);
-                    h.takes.put(at + k, new String[]{line[0], line[k]});
-                    continue;
-                }
-                ItemStack it = Items.piece(new Character.Worn(line[k], slot, pool.worn() > 0 ? pool.average() : 100, fit));
+                ItemStack it = Items.make(Items.storeId(pool.type, pool.tier, pool.rarity, line[k]), 1);
                 ItemMeta im = it.getItemMeta();
                 List<Component> lore = new ArrayList<>(im.lore() == null ? List.of() : im.lore());
-                lore.add(0, Component.text(pool.worn() > 0 ? "left click: a worn one at " + Math.round(pool.average()) + " % (" + pool.worn() + " worn)"
-                        : "left click: an undamaged one (no worn ones)", NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
-                lore.add(1, Component.text(pool.fresh > 0 ? "right click: an undamaged one at 100 % (" + pool.fresh + ")" : "right click: no undamaged ones",
-                        pool.fresh > 0 ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+                lore.add(0, Component.text("left click: one · shift + left click: up to 16 (" + pool.count + " in the store)", NamedTextColor.GREEN)
+                        .decoration(TextDecoration.ITALIC, false));
                 im.lore(lore);
                 int n = Math.max(1, Math.min(99, pool.count));
                 Battle.cosmetic(() -> im.setMaxStackSize(n));
@@ -188,38 +170,24 @@ final class Storage implements Listener {
         return it;
     }
 
-    /** A left click: a worn one (an undamaged one if the row has no worn ones). */
-    String click(Player p, Holder h, int slot) { return click(p, h, slot, false); }
+    /** A click: one item. */
+    String click(Player p, Holder h, int slot) { return click(p, h, slot, false, false); }
 
-    String click(Player p, Holder h, int slot, boolean undamaged) { return click(p, h, slot, undamaged, false); }
-
-    /** A click on the store's screen: take the item under it (a right click: an undamaged one), or turn the page. Returns what the player is told (or null). */
-    String click(Player p, Holder h, int slot, boolean undamaged, boolean shift) {
+    /** A click on the store's screen: take the item under it (shift: up to 16), or turn the page. Returns what the player is told (or null). */
+    String click(Player p, Holder h, int slot, boolean right, boolean shift) {
         if (slot == h.prev) { open(p, h.type, h.page - 1); return null; }
         if (slot == h.next) { open(p, h.type, h.page + 1); return null; }
         String[] t = h.takes.get(slot);
         if (t == null) return null;
-        if (Base.slotOf(h.type) == null) {   // a thing (part 7)
-            Base.Pool pool = pl.base.pools.get(t[0]);
-            if (pool == null) { fill(h, p); return "! none left in the store"; }
-            int want = shift ? 16 : 1, got = 0;
-            while (got < want && pl.base.takeThing(t[0], t[1])) got++;
-            if (got == 0) { fill(h, p); return "! none left in the store"; }
-            Items.giveStack(p, Items.make(Items.storeId(pool.type, pool.tier, pool.rarity, t[1]), got));
-            Sfx.to(p, "store.take");
-            fill(h, p);
-            return "You take " + got + " × " + t[1] + ".";
-        }
-        String fit = pl.character(p).fit();
         Base.Pool pool = pl.base.pools.get(t[0]);
-        if (undamaged && pool != null && pool.count > 0 && pool.fresh == 0) return "! no undamaged ones in this row: a left click takes a worn one";
-        Character.Worn w = undamaged ? pl.base.take(t[0], t[1], fit, true) : pl.base.take(t[0], t[1], fit);
-        if (w == null) { fill(h, p); return "! none left in the store"; }
-        Items.giveStack(p, Items.piece(w));
+        if (pool == null) { fill(h, p); return "! none left in the store"; }
+        int want = shift ? 16 : 1, got = 0;
+        while (got < want && pl.base.takeThing(t[0], t[1])) got++;
+        if (got == 0) { fill(h, p); return "! none left in the store"; }
+        Items.giveStack(p, Items.make(Items.storeId(pool.type, pool.tier, pool.rarity, t[1]), got));
         Sfx.to(p, "store.take");
         fill(h, p);
-        return "You take " + (w.condition() >= Base.UNDAMAGED ? "an undamaged " : "the ") + w.set() + " (" + w.slot().toLowerCase(Locale.ROOT) + ") at "
-                + Math.round(w.condition()) + " %" + (Character.STANDARD.equals(w.fitName()) ? "." : ", made for a " + w.fitName() + " body.");
+        return "You take " + got + " × " + t[1] + ".";
     }
 
     @EventHandler
@@ -240,27 +208,63 @@ final class Storage implements Listener {
     @EventHandler
     public void onClose(InventoryCloseEvent e) {
         if (!Base.MESS.equals(what(e.getInventory()))) return;
-        int n = sortMess(e.getInventory(), pl.base);
-        if (n > 0 && e.getPlayer() instanceof Player p) Sfx.to(p, "store.sort");
-        if (n > 0 && e.getPlayer() instanceof Player p) Menus.say(p, n + (n == 1 ? " item" : " items") + " sorted from the Mess Chest into the store.");
+        Set<String> parts = new TreeSet<>();
+        int n = sortMess(e.getInventory(), pl.base, parts);
+        if (n <= 0 || !(e.getPlayer() instanceof Player p)) return;
+        Sfx.to(p, "store.sort");
+        Menus.say(p, n + (n == 1 ? " item" : " items") + " sorted from the Mess Chest into the store.");
+        if (pl.character(p).hasPerk("Reverse Engineer")) {
+            List<String> learnt = reverseEngineer(pl.production, parts);
+            if (!learnt.isEmpty()) { pl.production.save(); Menus.say(p, "Reverse Engineer: the base now knows " + String.join(", ", learnt) + "."); }
+        }
     }
 
-    /** The store's items out of a Mess Chest into their rows (each unlocked); anything else stays in it. Returns how many. */
-    static int sortMess(Inventory inv, Base base) {
+    /**
+     * Reverse Engineer (02c: *"taking a working item apart gives you its schematic"*): the researched recipes that make the parts an
+     * item came apart into, at their tier, become known [mine: in round 4's parts, the schematic = how to make its parts]. Returns their names.
+     */
+    static List<String> reverseEngineer(Production pr, Set<String> parts) {
+        List<String> l = new ArrayList<>();
+        for (Production.Recipe r : Production.RECIPES.values()) {
+            if (r.atStart() || pr.known.contains(r.id)) continue;
+            for (Production.Ttr m : r.makes)
+                if (parts.contains(m.type + "|" + m.tier)) { pr.known.add(r.id); l.add(r.name); break; }
+        }
+        return l;
+    }
+
+    static int sortMess(Inventory inv, Base base) { return sortMess(inv, base, new TreeSet<>()); }
+
+    /**
+     * The store's items out of a Mess Chest: things into their rows (each unlocked); an assembled item or an armour piece comes apart
+     * into its parts, the damaged share lost (round 4), and an item of 0.42.0's old types into its parts too; anything else stays in
+     * it. {@code parts} collects the {@code type|tier} of the parts that came back from items (Reverse Engineer). Returns how many items.
+     */
+    static int sortMess(Inventory inv, Base base, Set<String> parts) {
         int n = 0;
         for (int i = 0; i < inv.getSize(); i++) {
             ItemStack it = inv.getItem(i);
-            String[] th = it == null ? null : Items.ttrOf(Items.id(it));
-            if (th != null && base.putThing(th[0], Integer.parseInt(th[1]), Integer.parseInt(th[2]), th[3], Math.max(1, it.getAmount()))) {
-                n += Math.max(1, it.getAmount());   // a thing, a chem or a gear item the catalogue knows (part 7)
+            if (it == null) continue;
+            int k = Math.max(1, it.getAmount());
+            String id = Items.id(it);
+            String[] th = Items.ttrOf(id);
+            if (th != null && base.putThing(th[0], Integer.parseInt(th[1]), Integer.parseInt(th[2]), th[3], k)) {
+                n += k;   // a thing, a chem or a gear item the catalogue knows (part 7)
                 inv.setItem(i, null);
                 continue;
             }
-            Character.Worn w = Items.worn(it);
-            if (w == null) continue;
-            if (!base.put(w)) continue;   // a piece the store does not know stays in the chest
-            int k = Math.max(1, it.getAmount());
-            for (int j = 1; j < k; j++) base.put(w);
+            if (th != null && base.legacy(th[0], Integer.parseInt(th[1]), Integer.parseInt(th[2]), k, 1) >= 0) {
+                n += k;   // a thing of 0.42.0's old types (a pistol, pistol ammo...): its parts
+                inv.setItem(i, null);
+                continue;
+            }
+            Production.Design d = Items.made(id);
+            Character.Worn w = d == null ? Items.worn(it) : null;
+            if (w != null) d = Production.piece(w.set(), w.slot());
+            if (d == null) continue;   // nothing the store knows: it stays in the chest
+            if (w != null) for (int j = 0; j < k; j++) base.disassemble(w);
+            else base.disassemble(d, k, 100);
+            for (Production.Part p : d.parts) parts.add(p.type + "|" + p.tier);
             inv.setItem(i, null);
             n += k;
         }

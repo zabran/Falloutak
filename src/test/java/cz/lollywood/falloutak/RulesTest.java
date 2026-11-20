@@ -90,7 +90,8 @@ class RulesTest {
     @Test
     void ourPerksAndTheirGates() {
         assertEquals(111, Data.PERKS.size());                                        // 02c §2-§3
-        assertTrue(Data.PERKS.get("Cook").parked());
+        assertTrue(Data.PERKS.get("Lab Rat").parked());                              // research: part 8
+        assertFalse(Data.PERKS.get("Cook").parked());                                // production: offered since part 7's round 4
         assertTrue(Data.PERKS.get("Nemesis").bound());
         Character c = Character.sample("x");
         double[] v = c.skills(true);
@@ -119,7 +120,7 @@ class RulesTest {
         assertTrue(c.takePerk(Data.PERKS.get("Thief"), "").startsWith("!"));         // none due
         c.level = 9;
         assertTrue(c.takePerk(Data.PERKS.get("Action Boy"), "").startsWith("!"));    // taken already
-        assertTrue(c.takePerk(Data.PERKS.get("Cook"), "").startsWith("!"));          // parked
+        assertTrue(c.takePerk(Data.PERKS.get("Lab Rat"), "").startsWith("!"));       // parked
         long xp = c.xp;
         assertTrue(c.takePerk(Data.PERKS.get("Here and Now"), "").contains("taken")); // the XP to the next level
         assertTrue(c.xp >= Rules.xpForLevel(10) && c.xp > xp);

@@ -57,12 +57,12 @@
      "count": 1
     },
     {
-     "type": "Parts",
+     "type": "Machinery",
      "tier": 1,
      "count": 1
     },
     {
-     "type": "Stone and glass",
+     "type": "Electronics",
      "tier": 1,
      "count": 1
     }
@@ -481,6 +481,36 @@
     }
    ],
    "inputs": []
+  },
+  {
+   "id": "break-up-rubble",
+   "name": "Break up rubble",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 5,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Stone and glass",
+     "tier": 1,
+     "count": 3
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "broken bricks, concrete, glass from the junk"
   },
   {
    "id": "fire-bricks",
@@ -1044,147 +1074,6 @@
    ],
    "research": "Retort kiln",
    "better": "half again as much charcoal"
-  },
-  {
-   "id": "draw-wire-and-cut-nails",
-   "name": "Draw wire and cut nails",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "make-mechanical-parts",
-   "name": "Make mechanical parts",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Gear and tools",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": true,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "strip-appliances",
-   "name": "Strip appliances",
-   "building": "Workbench",
-   "tier": 2,
-   "skill": "Engineering",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1
-    },
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "lathe-jigs",
-   "name": "Lathe jigs",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 4,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Gear and tools",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": true,
-     "extra": false
-    }
-   ],
-   "research": "Lathe jigs",
-   "better": "a third more parts from the metal, a lower skill"
   },
   {
    "id": "hunt-and-trap",
@@ -2225,16 +2114,16 @@
    ],
    "inputs": [
     {
-     "type": "Parts",
+     "type": "Machinery",
      "tier": 2,
-     "count": 2,
+     "count": 1,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     },
     {
-     "type": "Metal",
+     "type": "Electronics",
      "tier": 2,
      "count": 1,
      "rarity": 0,
@@ -2443,18 +2332,27 @@
    ],
    "inputs": [
     {
-     "type": "Metal",
+     "type": "Hard armour parts",
      "tier": 2,
-     "count": 3,
+     "count": 1,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     },
     {
-     "type": "Textile",
+     "type": "Soft armour parts",
      "tier": 2,
-     "count": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 1,
+     "count": 1,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
@@ -2663,7 +2561,7 @@
      "extra": false
     },
     {
-     "type": "Parts",
+     "type": "Electronics",
      "tier": 2,
      "count": 1,
      "rarity": 0,
@@ -2869,624 +2767,36 @@
    ],
    "inputs": [
     {
-     "type": "Traps",
+     "type": "Machinery",
      "tier": 1,
      "count": 1,
      "rarity": 0,
-     "sets_rarity": false,
-     "tool": true,
+     "sets_rarity": true,
+     "tool": false,
      "extra": false
     }
    ]
   },
   {
-   "id": "knives-i-from-scrap",
-   "name": "Knives I from scrap",
+   "id": "sew-soft-armour-parts",
+   "name": "Sew soft armour parts",
    "building": "Workbench",
    "tier": 1,
    "skill": "Crafting",
-   "min": 15,
+   "min": 20,
    "hours": 2,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Knives",
+     "type": "Soft armour parts",
      "tier": 1,
      "count": 1
     }
    ],
    "inputs": [
     {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "knives-i-of-stone-and-bone",
-   "name": "Knives I of stone and bone",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 15,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Knives",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Stone and glass",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "forge-knives-ii",
-   "name": "Forge knives II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Knives",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rework-knives-i-into-ii",
-   "name": "Rework knives I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Knives",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Knives",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "two crude ones reforged"
-  },
-  {
-   "id": "grind-knives-ii",
-   "name": "Grind knives II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 2,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Knives",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Stock removal",
-   "better": "ground from the bar on the workshop's grinder: no fuel, half the hours, a lower skill"
-  },
-  {
-   "id": "swords-i-from-scrap",
-   "name": "Swords I from scrap",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Swords",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "forge-swords-ii",
-   "name": "Forge swords II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 6,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Swords",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rework-swords-i-into-ii",
-   "name": "Rework swords I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Swords",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Swords",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "two crude ones reforged"
-  },
-  {
-   "id": "grind-swords-ii",
-   "name": "Grind swords II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 3,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Swords",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Stock removal",
-   "better": "ground from the bar on the workshop's grinder: no fuel, half the hours, a lower skill"
-  },
-  {
-   "id": "axes-i-from-scrap",
-   "name": "Axes I from scrap",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Axes",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "axes-i-of-stone-and-bone",
-   "name": "Axes I of stone and bone",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 15,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Axes",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Stone and glass",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "forge-axes-ii",
-   "name": "Forge axes II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 6,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Axes",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rework-axes-i-into-ii",
-   "name": "Rework axes I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Axes",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Axes",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "two crude ones reforged"
-  },
-  {
-   "id": "grind-axes-ii",
-   "name": "Grind axes II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 3,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Axes",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Stock removal",
-   "better": "ground from the bar on the workshop's grinder: no fuel, half the hours, a lower skill"
-  },
-  {
-   "id": "hammers-i-from-scrap",
-   "name": "Hammers I from scrap",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Hammers",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "hammers-i-of-stone-and-bone",
-   "name": "Hammers I of stone and bone",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 10,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Hammers",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Stone and glass",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
+     "type": "Textile",
      "tier": 1,
      "count": 2,
      "rarity": 0,
@@ -3497,336 +2807,8 @@
    ]
   },
   {
-   "id": "forge-hammers-ii",
-   "name": "Forge hammers II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 8,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Hammers",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rework-hammers-i-into-ii",
-   "name": "Rework hammers I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 5,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Hammers",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Hammers",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "two crude ones reforged"
-  },
-  {
-   "id": "grind-hammers-ii",
-   "name": "Grind hammers II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 4,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Hammers",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Stock removal",
-   "better": "ground from the bar on the workshop's grinder: no fuel, half the hours, a lower skill"
-  },
-  {
-   "id": "spears-i-from-scrap",
-   "name": "Spears I from scrap",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Spears",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "spears-i-of-stone-and-bone",
-   "name": "Spears I of stone and bone",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 10,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Spears",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Stone and glass",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "forge-spears-ii",
-   "name": "Forge spears II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Spears",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rework-spears-i-into-ii",
-   "name": "Rework spears I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Spears",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Spears",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "two crude ones reforged"
-  },
-  {
-   "id": "grind-spears-ii",
-   "name": "Grind spears II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 2,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Spears",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Stock removal",
-   "better": "ground from the bar on the workshop's grinder: no fuel, half the hours, a lower skill"
-  },
-  {
-   "id": "wrapped-knuckles",
-   "name": "Wrapped knuckles",
+   "id": "soft-armour-parts-from-junk",
+   "name": "Soft armour parts from junk",
    "building": "Workbench",
    "tier": 1,
    "skill": "Crafting",
@@ -3836,25 +2818,46 @@
    "known": "start",
    "makes": [
     {
-     "type": "Unarmed weapons",
+     "type": "Soft armour parts",
      "tier": 1,
      "count": 1
     }
    ],
    "inputs": [
     {
-     "type": "Textile",
+     "type": "Salvage",
      "tier": 1,
-     "count": 1,
+     "count": 2,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
-    },
+    }
+   ],
+   "note": "tyres, carpets, sofa padding"
+  },
+  {
+   "id": "stitch-leather-panels",
+   "name": "Stitch leather panels",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 40,
+   "hours": 4,
+   "days": 0,
+   "known": "start",
+   "makes": [
     {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
+     "type": "Soft armour parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Textile",
+     "tier": 2,
+     "count": 2,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
@@ -3863,1022 +2866,148 @@
    ]
   },
   {
-   "id": "cast-brass-knuckles",
-   "name": "Cast brass knuckles",
+   "id": "boil-and-layer-soft-parts-i-into-ii",
+   "name": "Boil and layer soft parts I into II",
    "building": "Workshop",
    "tier": 2,
    "skill": "Crafting",
-   "min": 30,
+   "min": 35,
    "hours": 3,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Unarmed weapons",
+     "type": "Soft armour parts",
      "tier": 2,
      "count": 1
     }
    ],
    "inputs": [
     {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
+     "type": "Soft armour parts",
+     "tier": 1,
+     "count": 2,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     },
     {
-     "type": "Textile",
-     "tier": 2,
+     "type": "Chemicals",
+     "tier": 1,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     }
-   ]
+   ],
+   "note": "two crude ones waxed and layered into one"
   },
   {
-   "id": "spiked-glove",
-   "name": "Spiked glove",
-   "building": "Workbench",
+   "id": "cut-panels-on-patterns",
+   "name": "Cut panels on patterns",
+   "building": "Workshop",
    "tier": 2,
    "skill": "Crafting",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Unarmed weapons",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Textile",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Spiked gloves",
-   "better": "no casting: leather and nails at a workbench"
-  },
-  {
-   "id": "stun-stick",
-   "name": "Stun stick",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Engineering",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Techno weapons",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "shock-baton",
-   "name": "Shock baton",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Engineering",
-   "min": 45,
-   "hours": 8,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Techno weapons",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "ripper-from-a-saw",
-   "name": "Ripper from a saw",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Engineering",
-   "min": 40,
+   "min": 35,
    "hours": 4,
    "days": 0,
    "known": "research",
    "makes": [
     {
-     "type": "Techno weapons",
+     "type": "Soft armour parts",
      "tier": 2,
-     "count": 1
+     "count": 2
     }
    ],
    "inputs": [
     {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Motor salvage",
-   "better": "a found power saw's motor: half the work"
-  },
-  {
-   "id": "pipe-pistols-i",
-   "name": "Pipe pistols I",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 5,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Pistols",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "pistols-ii",
-   "name": "Pistols II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 10,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Pistols",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rework-pistols-i-into-ii",
-   "name": "Rework pistols I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 5,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Pistols",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Pistols",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "two pipe guns into one sound one"
-  },
-  {
-   "id": "pistols-ii-on-jigs",
-   "name": "Pistols II on jigs",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 5,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Pistols",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Gun jigs",
-   "better": "half the hours, one part less, a lower skill"
-  },
-  {
-   "id": "pipe-rifles-i",
-   "name": "Pipe rifles I",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 7,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rifles",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rifles-ii",
-   "name": "Rifles II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 14,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rifles",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
+     "type": "Textile",
      "tier": 2,
      "count": 3,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
     }
-   ]
+   ],
+   "research": "Armour patterns",
+   "better": "a third less leather a part, a lower skill"
   },
   {
-   "id": "rework-rifles-i-into-ii",
-   "name": "Rework rifles I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 7,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rifles",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Rifles",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "two pipe guns into one sound one"
-  },
-  {
-   "id": "rifles-ii-on-jigs",
-   "name": "Rifles II on jigs",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 7,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Rifles",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Gun jigs",
-   "better": "half the hours, one part less, a lower skill"
-  },
-  {
-   "id": "pipe-shotguns-i",
-   "name": "Pipe shotguns I",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 6,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Shotguns",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "shotguns-ii",
-   "name": "Shotguns II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 12,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Shotguns",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rework-shotguns-i-into-ii",
-   "name": "Rework shotguns I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 6,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Shotguns",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Shotguns",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "two pipe guns into one sound one"
-  },
-  {
-   "id": "shotguns-ii-on-jigs",
-   "name": "Shotguns II on jigs",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 6,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Shotguns",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Gun jigs",
-   "better": "half the hours, one part less, a lower skill"
-  },
-  {
-   "id": "junk-launcher",
-   "name": "Junk launcher",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 8,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Heavy guns",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Gear and tools",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "nail-thrower",
-   "name": "Nail thrower",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Engineering",
-   "min": 50,
-   "hours": 16,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Heavy guns",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 4,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "spark-gun",
-   "name": "Spark gun",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Engineering",
-   "min": 30,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Energy weapons",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "arc-caster",
-   "name": "Arc caster",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Engineering",
-   "min": 50,
-   "hours": 10,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Energy weapons",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "arc-caster-from-salvage",
-   "name": "Arc caster from salvage",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Engineering",
-   "min": 45,
-   "hours": 5,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Energy weapons",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Transformer salvage",
-   "better": "a found transformer: half the work"
-  },
-  {
-   "id": "self-bow",
-   "name": "Self bow",
+   "id": "hammer-plates",
+   "name": "Hammer plates",
    "building": "Workbench",
    "tier": 1,
    "skill": "Crafting",
    "min": 20,
-   "hours": 4,
+   "hours": 2,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Bows",
+     "type": "Hard armour parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "cold-hammered scrap"
+  },
+  {
+   "id": "cut-plates-from-wrecks",
+   "name": "Cut plates from wrecks",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 15,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Hard armour parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "road signs, car doors"
+  },
+  {
+   "id": "bone-and-wood-slats",
+   "name": "Bone and wood slats",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 15,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Hard armour parts",
      "tier": 1,
      "count": 1
     }
@@ -4887,6 +3016,35 @@
     {
      "type": "Wood",
      "tier": 1,
+     "count": 3,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "forge-plates",
+   "name": "Forge plates",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 45,
+   "hours": 4,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
      "count": 2,
      "rarity": 0,
      "sets_rarity": true,
@@ -4894,8 +3052,8 @@
      "extra": false
     },
     {
-     "type": "Textile",
-     "tier": 1,
+     "type": "Fuel",
+     "tier": 2,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
@@ -4905,26 +3063,26 @@
    ]
   },
   {
-   "id": "recurve-bow-or-crossbow",
-   "name": "Recurve bow or crossbow",
+   "id": "rework-plates-i-into-ii",
+   "name": "Rework plates I into II",
    "building": "Workshop",
    "tier": 2,
    "skill": "Crafting",
-   "min": 35,
-   "hours": 8,
+   "min": 40,
+   "hours": 3,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Bows",
+     "type": "Hard armour parts",
      "tier": 2,
      "count": 1
     }
    ],
    "inputs": [
     {
-     "type": "Wood",
-     "tier": 2,
+     "type": "Hard armour parts",
+     "tier": 1,
      "count": 2,
      "rarity": 0,
      "sets_rarity": true,
@@ -4932,14 +3090,75 @@
      "extra": false
     },
     {
-     "type": "Textile",
+     "type": "Fuel",
      "tier": 2,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
+    }
+   ],
+   "note": "two crude ones reforged into one"
+  },
+  {
+   "id": "plate-press",
+   "name": "Plate press",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 40,
+   "hours": 4,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 3,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
     },
+    {
+     "type": "Fuel",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Plate press",
+   "better": "a quarter less metal and half the fuel a plate, a lower skill"
+  },
+  {
+   "id": "cold-hammer-weapon-parts",
+   "name": "Cold-hammer weapon parts",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 15,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
     {
      "type": "Metal",
      "tier": 1,
@@ -4952,18 +3171,243 @@
    ]
   },
   {
-   "id": "laminated-bow",
-   "name": "Laminated bow",
+   "id": "knap-stone-heads",
+   "name": "Knap stone heads",
    "building": "Workbench",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 15,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Stone and glass",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "flint, bone, glass"
+  },
+  {
+   "id": "cut-blades-from-saws-and-mowers",
+   "name": "Cut blades from saws and mowers",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 15,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "forge-weapon-parts",
+   "name": "Forge weapon parts",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 35,
+   "hours": 3,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Fuel",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "rework-weapon-parts-i-into-ii",
+   "name": "Rework weapon parts I into II",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 40,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Fuel",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "two crude ones reforged into one"
+  },
+  {
+   "id": "grind-weapon-parts",
+   "name": "Grind weapon parts",
+   "building": "Workshop",
    "tier": 2,
    "skill": "Crafting",
    "min": 30,
-   "hours": 5,
+   "hours": 2,
    "days": 0,
    "known": "research",
    "makes": [
     {
-     "type": "Bows",
+     "type": "Hard weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Stock removal",
+   "better": "ground from the bar on the workshop's grinder: no fuel, fewer hours, a lower skill"
+  },
+  {
+   "id": "whittle-hafts-and-shafts",
+   "name": "Whittle hafts and shafts",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 10,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Wood",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "cut-plastic-pipe",
+   "name": "Cut plastic pipe",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 10,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "shape-stocks-and-staves",
+   "name": "Shape stocks and staves",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 30,
+   "hours": 3,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Light weapon parts",
      "tier": 2,
      "count": 1
     }
@@ -4972,6 +3416,35 @@
     {
      "type": "Wood",
      "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "season-and-oil-hafts-i-into-ii",
+   "name": "Season and oil hafts I into II",
+   "building": "Workbench",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 30,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Light weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
      "count": 2,
      "rarity": 0,
      "sets_rarity": true,
@@ -4979,11 +3452,40 @@
      "extra": false
     },
     {
-     "type": "Textile",
+     "type": "Chemicals",
      "tier": 1,
      "count": 1,
      "rarity": 0,
-     "sets_rarity": false,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "laminate-stocks",
+   "name": "Laminate stocks",
+   "building": "Workbench",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 25,
+   "hours": 3,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Light weapon parts",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Wood",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
      "tool": false,
      "extra": false
     },
@@ -4998,28 +3500,227 @@
     }
    ],
    "research": "Hide glue",
-   "better": "a workbench's work, cheaper string"
+   "better": "two parts from one plank, a workbench's work"
   },
   {
-   "id": "javelins",
-   "name": "Javelins",
+   "id": "pipe-gun-parts",
+   "name": "Pipe gun parts",
    "building": "Workbench",
    "tier": 1,
-   "skill": "Survival",
-   "min": 10,
+   "skill": "Crafting",
+   "min": 30,
+   "hours": 3,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Firearm parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "patch-up-a-found-gun-wreck",
+   "name": "Patch up a found gun wreck",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 25,
+   "hours": 3,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Firearm parts",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "a broken pre-war gun: it fires, badly"
+  },
+  {
+   "id": "machine-gun-parts",
+   "name": "Machine gun parts",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 50,
+   "hours": 5,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Firearm parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "rework-gun-parts-i-into-ii",
+   "name": "Rework gun parts I into II",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 50,
+   "hours": 3,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Firearm parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Firearm parts",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "two pipe guns' parts into one sound one"
+  },
+  {
+   "id": "gun-parts-on-jigs",
+   "name": "Gun parts on jigs",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 40,
+   "hours": 3,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Firearm parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Gun jigs",
+   "better": "simple machinery instead of gears, fewer hours, a lower skill"
+  },
+  {
+   "id": "strip-wiring-from-junk",
+   "name": "Strip wiring from junk",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Engineering",
+   "min": 15,
    "hours": 1,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Throwing weapons",
+     "type": "Electronics",
      "tier": 1,
-     "count": 3
+     "count": 1
+    },
+    {
+     "type": "Metal",
+     "tier": 1,
+     "count": 1
     }
    ],
    "inputs": [
     {
-     "type": "Wood",
+     "type": "Salvage",
      "tier": 1,
      "count": 2,
      "rarity": 0,
@@ -5030,19 +3731,19 @@
    ]
   },
   {
-   "id": "throwing-knives",
-   "name": "Throwing knives",
-   "building": "Workshop",
-   "tier": 2,
+   "id": "draw-copper-wire",
+   "name": "Draw copper wire",
+   "building": "Workbench",
+   "tier": 1,
    "skill": "Crafting",
-   "min": 30,
-   "hours": 3,
+   "min": 20,
+   "hours": 2,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Throwing weapons",
-     "tier": 2,
+     "type": "Electronics",
+     "tier": 1,
      "count": 2
     }
    ],
@@ -5055,10 +3756,35 @@
      "sets_rarity": true,
      "tool": false,
      "extra": false
+    }
+   ]
+  },
+  {
+   "id": "strip-appliances",
+   "name": "Strip appliances",
+   "building": "Workbench",
+   "tier": 2,
+   "skill": "Engineering",
+   "min": 25,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 1
     },
     {
-     "type": "Wood",
+     "type": "Machinery",
      "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 2,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
@@ -5068,32 +3794,92 @@
    ]
   },
   {
-   "id": "firework-tube",
-   "name": "Firework tube",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 20,
-   "hours": 2,
+   "id": "wind-coils-and-relays",
+   "name": "Wind coils and relays",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Engineering",
+   "min": 40,
+   "hours": 4,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Rocket launchers",
-     "tier": 1,
+     "type": "Electronics",
+     "tier": 2,
      "count": 1
     }
    ],
    "inputs": [
     {
-     "type": "Wood",
-     "tier": 2,
+     "type": "Electronics",
+     "tier": 1,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     },
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "coil-winder",
+   "name": "Coil winder",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Engineering",
+   "min": 30,
+   "hours": 3,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Coil winder",
+   "better": "from the copper alone, a lower skill"
+  },
+  {
+   "id": "draw-wire-and-cut-nails",
+   "name": "Draw wire and cut nails",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 15,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Machinery",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "inputs": [
     {
      "type": "Metal",
      "tier": 1,
@@ -5106,20 +3892,118 @@
    ]
   },
   {
-   "id": "pipe-launcher",
-   "name": "Pipe launcher",
-   "building": "Workshop",
-   "tier": 2,
+   "id": "pull-mechanisms-from-junk",
+   "name": "Pull mechanisms from junk",
+   "building": "Workbench",
+   "tier": 1,
    "skill": "Crafting",
-   "min": 40,
-   "hours": 8,
+   "min": 10,
+   "hours": 1,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Rocket launchers",
+     "type": "Machinery",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "springs, screws, hinges"
+  },
+  {
+   "id": "make-mechanical-parts",
+   "name": "Make mechanical parts",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 40,
+   "hours": 4,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Machinery",
      "tier": 2,
      "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Gear and tools",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": true,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "strip-a-found-engine",
+   "name": "Strip a found engine",
+   "building": "Workbench",
+   "tier": 2,
+   "skill": "Engineering",
+   "min": 30,
+   "hours": 3,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 3,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "a car's or a generator's"
+  },
+  {
+   "id": "lathe-jigs",
+   "name": "Lathe jigs",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 35,
+   "hours": 4,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 2
     }
    ],
    "inputs": [
@@ -5133,84 +4017,39 @@
      "extra": false
     },
     {
-     "type": "Parts",
+     "type": "Gear and tools",
      "tier": 2,
      "count": 1,
      "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
+     "sets_rarity": false,
+     "tool": true,
      "extra": false
     }
-   ]
+   ],
+   "research": "Lathe jigs",
+   "better": "a third more parts from the metal, a lower skill"
   },
   {
-   "id": "fire-bottles",
-   "name": "Fire bottles",
+   "id": "remanufacture-loads",
+   "name": "Remanufacture loads",
    "building": "Workbench",
    "tier": 1,
-   "skill": "Chemistry",
-   "min": 15,
-   "hours": 1,
+   "skill": "Crafting",
+   "min": 30,
+   "hours": 2,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Grenades",
+     "type": "Ammo",
      "tier": 1,
-     "count": 2
+     "count": 10
     }
    ],
    "inputs": [
     {
-     "type": "Stone and glass",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
+     "type": "Metal",
      "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "smoke-pots",
-   "name": "Smoke pots",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Chemistry",
-   "min": 20,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Grenades",
-     "tier": 1,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Stone and glass",
-     "tier": 2,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
@@ -5219,16 +4058,7 @@
     },
     {
      "type": "Chemicals",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 1,
+     "tier": 2,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
@@ -5238,20 +4068,67 @@
    ]
   },
   {
-   "id": "pipe-grenades",
-   "name": "Pipe grenades",
+   "id": "paper-shells-with-gravel",
+   "name": "Paper shells with gravel",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 25,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 8
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Textile",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "reload-ammo",
+   "name": "Reload ammo",
    "building": "Workshop",
    "tier": 2,
-   "skill": "Chemistry",
-   "min": 40,
+   "skill": "Crafting",
+   "min": 45,
    "hours": 3,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Grenades",
+     "type": "Ammo",
      "tier": 2,
-     "count": 2
+     "count": 20
     }
    ],
    "inputs": [
@@ -5274,7 +4151,7 @@
      "extra": false
     },
     {
-     "type": "Parts",
+     "type": "Machinery",
      "tier": 1,
      "count": 1,
      "rarity": 0,
@@ -5283,6 +4160,125 @@
      "extra": false
     }
    ]
+  },
+  {
+   "id": "cut-nails-and-bolts",
+   "name": "Cut nails and bolts",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 25,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 10
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "a nail thrower's: two nails a load"
+  },
+  {
+   "id": "reload-on-a-press",
+   "name": "Reload on a press",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 40,
+   "hours": 3,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 40
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Reloading press",
+   "better": "twice the loads in the same hours"
+  },
+  {
+   "id": "cast-bullets",
+   "name": "Cast bullets",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 25,
+   "hours": 2,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 15
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Bullet moulds",
+   "better": "half again as many loads"
   },
   {
    "id": "fire-pot",
@@ -5305,6 +4301,44 @@
     {
      "type": "Metal",
      "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ]
+  },
+  {
+   "id": "clay-fire-pot",
+   "name": "Clay fire pot",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Chemistry",
+   "min": 25,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Explosives",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Stone and glass",
+     "tier": 2,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
@@ -5359,7 +4393,7 @@
      "extra": false
     },
     {
-     "type": "Parts",
+     "type": "Machinery",
      "tier": 1,
      "count": 1,
      "rarity": 0,
@@ -5370,821 +4404,25 @@
    ]
   },
   {
-   "id": "snares-and-spike-pits",
-   "name": "Snares and spike pits",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 20,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Traps",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "bear-trap",
-   "name": "Bear trap",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Traps",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "tripwire-bell",
-   "name": "Tripwire bell",
-   "building": "Workbench",
-   "tier": 2,
-   "skill": "Survival",
-   "min": 30,
-   "hours": 1,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Traps",
-     "tier": 2,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Alarm lines",
-   "better": "no metalwork: cord and a bell"
-  },
-  {
-   "id": "remanufacture-pistol-ammo",
-   "name": "Remanufacture pistol ammo",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Pistol ammo",
-     "tier": 1,
-     "count": 10
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "reload-pistol-ammo",
-   "name": "Reload pistol ammo",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Pistol ammo",
-     "tier": 2,
-     "count": 20
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "reload-pistol-ammo-on-a-press",
-   "name": "Reload pistol ammo on a press",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 3,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Pistol ammo",
-     "tier": 2,
-     "count": 40
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Reloading press",
-   "better": "twice the rounds in the same hours"
-  },
-  {
-   "id": "remanufacture-rifle-ammo",
-   "name": "Remanufacture rifle ammo",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rifle ammo",
-     "tier": 1,
-     "count": 8
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "reload-rifle-ammo",
-   "name": "Reload rifle ammo",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rifle ammo",
-     "tier": 2,
-     "count": 15
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "reload-rifle-ammo-on-a-press",
-   "name": "Reload rifle ammo on a press",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 3,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Rifle ammo",
-     "tier": 2,
-     "count": 30
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Reloading press",
-   "better": "twice the rounds in the same hours"
-  },
-  {
-   "id": "remanufacture-shotgun-shells",
-   "name": "Remanufacture shotgun shells",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Shotgun shells",
-     "tier": 1,
-     "count": 8
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "reload-shotgun-shells",
-   "name": "Reload shotgun shells",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Shotgun shells",
-     "tier": 2,
-     "count": 15
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "reload-shotgun-shells-on-a-press",
-   "name": "Reload shotgun shells on a press",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 40,
-   "hours": 3,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Shotgun shells",
-     "tier": 2,
-     "count": 30
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Reloading press",
-   "better": "twice the rounds in the same hours"
-  },
-  {
-   "id": "sort-junk-for-the-launcher",
-   "name": "Sort junk for the launcher",
-   "building": "Base",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 5,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Heavy ammo",
-     "tier": 1,
-     "count": 10
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "cut-nails-and-bolts",
-   "name": "Cut nails and bolts",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Heavy ammo",
-     "tier": 2,
-     "count": 20
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "stone-headed-arrows",
-   "name": "Stone-headed arrows",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 15,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Arrows",
-     "tier": 1,
-     "count": 5
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Stone and glass",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "metal-headed-arrows-and-bolts",
-   "name": "Metal-headed arrows and bolts",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Arrows",
-     "tier": 2,
-     "count": 10
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "firework-rockets",
-   "name": "Firework rockets",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Chemistry",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rockets",
-     "tier": 1,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Stone and glass",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "pipe-rockets",
-   "name": "Pipe rockets",
+   "id": "charges-in-found-cans",
+   "name": "Charges in found cans",
    "building": "Workshop",
    "tier": 2,
    "skill": "Chemistry",
-   "min": 45,
-   "hours": 4,
+   "min": 40,
+   "hours": 3,
    "days": 0,
    "known": "start",
    "makes": [
     {
-     "type": "Rockets",
+     "type": "Explosives",
      "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "sew-head-armour-i",
-   "name": "Sew head armour I",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Head armour",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "patch-head-armour-i-from-junk",
-   "name": "Patch head armour I from junk",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Head armour",
-     "tier": 1,
      "count": 1
     }
    ],
    "inputs": [
     {
      "type": "Salvage",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "raider style: anything that covers"
-  },
-  {
-   "id": "make-head-armour-ii",
-   "name": "Make head armour II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 6,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Head armour",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
      "tier": 2,
      "count": 1,
      "rarity": 0,
@@ -6193,9 +4431,9 @@
      "extra": false
     },
     {
-     "type": "Textile",
+     "type": "Chemicals",
      "tier": 2,
-     "count": 1,
+     "count": 3,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
@@ -6204,446 +4442,44 @@
    ]
   },
   {
-   "id": "make-head-armour-ii-on-patterns",
-   "name": "Make head armour II on patterns",
+   "id": "packed-charges",
+   "name": "Packed charges",
    "building": "Workshop",
    "tier": 2,
-   "skill": "Crafting",
+   "skill": "Chemistry",
    "min": 45,
-   "hours": 3,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Head armour",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Armour patterns",
-   "better": "half the hours"
-  },
-  {
-   "id": "sew-body-armour-i",
-   "name": "Sew body armour I",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 10,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Body armour",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 5,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "patch-body-armour-i-from-junk",
-   "name": "Patch body armour I from junk",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
    "hours": 5,
    "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Body armour",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 1,
-     "count": 6,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "raider style: anything that covers"
-  },
-  {
-   "id": "make-body-armour-ii",
-   "name": "Make body armour II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 30,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Body armour",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 5,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 2,
-     "count": 5,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "make-body-armour-ii-on-patterns",
-   "name": "Make body armour II on patterns",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 15,
-   "days": 0,
    "known": "research",
    "makes": [
     {
-     "type": "Body armour",
+     "type": "Explosives",
      "tier": 2,
-     "count": 1
+     "count": 2
     }
    ],
    "inputs": [
     {
      "type": "Metal",
      "tier": 2,
-     "count": 5,
+     "count": 1,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     },
     {
-     "type": "Textile",
+     "type": "Chemicals",
      "tier": 2,
      "count": 5,
      "rarity": 0,
      "sets_rarity": false,
      "tool": false,
      "extra": false
-    }
-   ],
-   "research": "Armour patterns",
-   "better": "half the hours"
-  },
-  {
-   "id": "sew-leg-armour-i",
-   "name": "Sew leg armour I",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 6,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Leg armour",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "patch-leg-armour-i-from-junk",
-   "name": "Patch leg armour I from junk",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Leg armour",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 1,
-     "count": 4,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "raider style: anything that covers"
-  },
-  {
-   "id": "make-leg-armour-ii",
-   "name": "Make leg armour II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 15,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Leg armour",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
     },
     {
-     "type": "Textile",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "make-leg-armour-ii-on-patterns",
-   "name": "Make leg armour II on patterns",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 8,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Leg armour",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Armour patterns",
-   "better": "half the hours"
-  },
-  {
-   "id": "sew-footwear-i",
-   "name": "Sew footwear I",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Footwear",
+     "type": "Machinery",
      "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "patch-footwear-i-from-junk",
-   "name": "Patch footwear I from junk",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Footwear",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 1,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "raider style: anything that covers"
-  },
-  {
-   "id": "make-footwear-ii",
-   "name": "Make footwear II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 50,
-   "hours": 6,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Footwear",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "make-footwear-ii-on-patterns",
-   "name": "Make footwear II on patterns",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 3,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Footwear",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 2,
      "count": 1,
      "rarity": 0,
      "sets_rarity": false,
@@ -6651,8 +4487,8 @@
      "extra": false
     }
    ],
-   "research": "Armour patterns",
-   "better": "half the hours"
+   "research": "Charge packing",
+   "better": "two charges for less than twice the powder"
   },
   {
    "id": "build-a-workbench",
@@ -6821,7 +4657,7 @@
      "extra": false
     },
     {
-     "type": "Parts",
+     "type": "Machinery",
      "tier": 2,
      "count": 2,
      "rarity": 0,
@@ -6866,16 +4702,16 @@
      "extra": false
     },
     {
-     "type": "Parts",
+     "type": "Machinery",
      "tier": 2,
-     "count": 6,
+     "count": 4,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     },
     {
-     "type": "Power",
+     "type": "Electronics",
      "tier": 2,
      "count": 2,
      "rarity": 0,
@@ -6933,1123 +4769,6 @@
     "kind": "Workbench",
     "tier": 2
    }
-  },
-  {
-   "id": "patch-up-a-found-pistol-wreck",
-   "name": "Patch up a found pistol wreck",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Pistols",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a broken pre-war gun: it fires, badly"
-  },
-  {
-   "id": "patch-up-a-found-rifle-wreck",
-   "name": "Patch up a found rifle wreck",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rifles",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a broken pre-war gun: it fires, badly"
-  },
-  {
-   "id": "patch-up-a-found-shotgun-wreck",
-   "name": "Patch up a found shotgun wreck",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 3,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Shotguns",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a broken pre-war gun: it fires, badly"
-  },
-  {
-   "id": "mower-blade-sword",
-   "name": "Mower-blade sword",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Swords",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "bone-spikes",
-   "name": "Bone spikes",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 10,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Unarmed weapons",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "bone counts as Wood I"
-  },
-  {
-   "id": "cattle-prod",
-   "name": "Cattle prod",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Engineering",
-   "min": 20,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Techno weapons",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "air-compressor-launcher",
-   "name": "Air-compressor launcher",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 30,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Heavy guns",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "nail-gun-conversion",
-   "name": "Nail gun conversion",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Engineering",
-   "min": 40,
-   "hours": 6,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Heavy guns",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 3,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Tool conversion",
-   "better": "a found pneumatic tool: less than half the work"
-  },
-  {
-   "id": "camera-flash-spark-gun",
-   "name": "Camera-flash spark gun",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Engineering",
-   "min": 25,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Energy weapons",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Power",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "pipe-bow",
-   "name": "Pipe bow",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Bows",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "plastic drainpipe"
-  },
-  {
-   "id": "throwing-stones-and-bolas",
-   "name": "Throwing stones and bolas",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 10,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Throwing weapons",
-     "tier": 1,
-     "count": 3
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Stone and glass",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "ground-throwing-axes",
-   "name": "Ground throwing axes",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Throwing weapons",
-     "tier": 2,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Stock removal",
-   "better": "no forging, the grinder"
-  },
-  {
-   "id": "drainpipe-tube",
-   "name": "Drainpipe tube",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 15,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rocket launchers",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "welded-launcher",
-   "name": "Welded launcher",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 35,
-   "hours": 4,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Rocket launchers",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Welding",
-   "better": "a third less metal, half the hours"
-  },
-  {
-   "id": "can-grenades",
-   "name": "Can grenades",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Chemistry",
-   "min": 35,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Grenades",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "moulded-grenades",
-   "name": "Moulded grenades",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Chemistry",
-   "min": 35,
-   "hours": 4,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Grenades",
-     "tier": 2,
-     "count": 4
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Grenade moulds",
-   "better": "twice the grenades from the same powder"
-  },
-  {
-   "id": "clay-fire-pot",
-   "name": "Clay fire pot",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Chemistry",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Explosives",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Stone and glass",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "packed-charges",
-   "name": "Packed charges",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Chemistry",
-   "min": 45,
-   "hours": 5,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Explosives",
-     "tier": 2,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 5,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Charge packing",
-   "better": "two charges for less than twice the powder"
-  },
-  {
-   "id": "wire-snare",
-   "name": "Wire snare",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 15,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Traps",
-     "tier": 1,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Parts",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "paper-shells-with-gravel",
-   "name": "Paper shells with gravel",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Shotgun shells",
-     "tier": 1,
-     "count": 8
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Textile",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Stone and glass",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "cast-bullets-pistol-ammo",
-   "name": "Cast bullets (pistol ammo)",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Pistol ammo",
-     "tier": 1,
-     "count": 15
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Bullet moulds",
-   "better": "half again as many rounds"
-  },
-  {
-   "id": "cast-bullets-rifle-ammo",
-   "name": "Cast bullets (rifle ammo)",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Rifle ammo",
-     "tier": 1,
-     "count": 15
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Bullet moulds",
-   "better": "half again as many rounds"
-  },
-  {
-   "id": "gravel-and-bolts",
-   "name": "Gravel and bolts",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Crafting",
-   "min": 5,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Heavy ammo",
-     "tier": 1,
-     "count": 10
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Stone and glass",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "bolt-header",
-   "name": "Bolt header",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 2,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Heavy ammo",
-     "tier": 2,
-     "count": 40
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Bolt header",
-   "better": "twice the nails from the metal"
-  },
-  {
-   "id": "fire-hardened-arrows",
-   "name": "Fire-hardened arrows",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 10,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Arrows",
-     "tier": 1,
-     "count": 3
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Wood",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "no heads: worse, cheaper"
-  },
-  {
-   "id": "arrowhead-mould",
-   "name": "Arrowhead mould",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 25,
-   "hours": 3,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Arrows",
-     "tier": 2,
-     "count": 20
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Wood",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Arrowhead moulds",
-   "better": "twice the arrows"
-  },
-  {
-   "id": "rockets-from-found-fireworks",
-   "name": "Rockets from found fireworks",
-   "building": "Workbench",
-   "tier": 1,
-   "skill": "Chemistry",
-   "min": 15,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Rockets",
-     "tier": 1,
-     "count": 3
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Salvage",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ]
-  },
-  {
-   "id": "rocket-body-mould",
-   "name": "Rocket body mould",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Chemistry",
-   "min": 40,
-   "hours": 5,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Rockets",
-     "tier": 2,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Parts",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Rocket moulds",
-   "better": "two rockets for a little more powder"
   },
   {
    "id": "collect-seepage",
@@ -8158,7 +4877,7 @@
      "extra": false
     },
     {
-     "type": "Parts",
+     "type": "Electronics",
      "tier": 2,
      "count": 1,
      "rarity": 0,
@@ -8318,162 +5037,6 @@
     }
    ],
    "note": "also a vitamin C day (04b)"
-  },
-  {
-   "id": "plate-head-armour-i-into-ii",
-   "name": "Plate head armour I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Head armour",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Head armour",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a Tier I piece plated (Metal Armor's way)"
-  },
-  {
-   "id": "plate-body-armour-i-into-ii",
-   "name": "Plate body armour I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 20,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Body armour",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Body armour",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 5,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a Tier I piece plated (Metal Armor's way)"
-  },
-  {
-   "id": "plate-leg-armour-i-into-ii",
-   "name": "Plate leg armour I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 10,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Leg armour",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Leg armour",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 3,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a Tier I piece plated (Metal Armor's way)"
-  },
-  {
-   "id": "plate-footwear-i-into-ii",
-   "name": "Plate footwear I into II",
-   "building": "Workshop",
-   "tier": 2,
-   "skill": "Crafting",
-   "min": 45,
-   "hours": 4,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Footwear",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Footwear",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a Tier I piece plated (Metal Armor's way)"
   }
  ]
 }

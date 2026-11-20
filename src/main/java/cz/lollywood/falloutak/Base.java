@@ -9,21 +9,22 @@ import java.util.*;
 
 /**
  * The base's store of generic items (05c §7), kept in Minecraft chests (Marek 11-19, verbatim: *"The store if possible, I would like to
- * use MC chests, with a in MC chest-based storage system (one chest per type, rows by tiers and rarities). And physical Mess Chest that
+ * use MC chests, with a in MC chest-based storage system (one chest per type, rows by tiers and rarities. And physical Mess Chest that
  * players can return items into."*). The data side, pure Java (the tests run it); the chests themselves: {@link Storage}.
  * <ul>
- * <li>A ROW of the store = a type, a tier and a rarity (TTR): how many items, how many of them are UNDAMAGED, and the worn ones'
- * condition summed (Marek 11-19, verbatim: *"maybe use average condition, but with special category for undamaged? Players would like
- * to use these for the most dangerous action and while repairing all of them is too expensive, repairing some makes sense"*). A worn
- * item taken out gets the worn ones' average, an undamaged one 100 %; an item put back adds its own (at 100 % to the undamaged), so no
- * condition is made or lost, and a piece repaired to full and put back is undamaged again (`05c` §7).</li>
+ * <li>A ROW of the store = a type, a tier and a rarity (TTR): how many; a tool's row also how many are undamaged and the worn ones'
+ * condition summed (Marek 11-19: *"maybe use average condition, but with special category for undamaged?"*).</li>
+ * <li><b>PARTS, and the items ASSEMBLED from them when going out</b> (round 4, Marek 11-20, verbatim: *"I think the armor slots could
+ * be simplified to just armor parts, with each slot made of several armor parts (could be another recipe, but an instant one). It also
+ * simplifies repair."* · *"creating just the parts and the item assembled out of them when going out would work better"*): the store
+ * holds the parts (`data/designs.json` says what each item takes); {@link #assemble} takes them out as the item, instantly; back
+ * through the Mess Chest an item comes apart into its parts, the damaged share lost (the repair, {@link #disassemble}) [mine].</li>
  * <li>UNLOCKED items (Marek 11-19: *"we should keep track of which items are "unlocked" (can be made in base, or were already brought
- * there). Only unlocked items are shown and selectable."*): everything of Tier I-II at rarity 1 (it can be made), every piece that came
+ * there). Only unlocked items are shown and selectable."*): everything of Tier I-II at rarity 1 (it can be made), every item that came
  * in through the Mess Chest, and what the GM unlocks.</li>
  * <li>ONE store for the whole base, shared by every group (Marek 11-19).</li>
- * <li>A piece taken out is made for the taker's body (the base's crafters fit it while he prepares) [mine]; free for now (Marek 11-19:
- * *"maybe it does not matter and we should allow it for the sake of simplification"*), the refit's hours belong to the base's work
- * once part 6/7 count it.</li>
+ * <li>An armour piece assembled is made for the taker's body (the base's crafters fit it while he prepares) [mine]; free for now
+ * (Marek 11-19: *"maybe it does not matter and we should allow it for the sake of simplification"*).</li>
  * </ul>
  */
 final class Base {
@@ -51,7 +52,7 @@ final class Base {
         String text() { return x + " " + y + " " + z; }
     }
 
-    /** One item of the old store (0.25.0): read once, added to its row. */
+    /** One item of the old store (0.25.0): read once, into parts. */
     static final class OldUnit {
         String type = "";
         int tier = 1, rarity = 1;
@@ -66,24 +67,17 @@ final class Base {
         List<OldUnit> units;
     }
 
-    /** The armour's types are the four slots (05c §7 [mine]). */
-    static final Map<String, String> ARMOUR_TYPE = new LinkedHashMap<>();
-    static {
-        ARMOUR_TYPE.put("Head", "Head armour");
-        ARMOUR_TYPE.put("Chest", "Body armour");
-        ARMOUR_TYPE.put("Legs", "Leg armour");
-        ARMOUR_TYPE.put("Feet", "Footwear");
-    }
-
     /** The Mess Chest's name among the chests. */
     static final String MESS = "Mess Chest";
 
     final Map<String, Pool> pools = new LinkedHashMap<>();
-    /** Unlocked beyond the start: a piece ({@code set|slot}, brought in) or a whole set (its name, the GM's). */
+    /** Unlocked beyond the start: an armour piece ({@code set|slot}, brought in), a set (its name, the GM's), an item ({@code category|name}), a row (its key). */
     final Set<String> unlocked = new TreeSet<>();
     /** The chests: a type (or {@link #MESS}) → its blocks (a double chest has two). */
     final Map<String, List<Spot>> chests = new LinkedHashMap<>();
     private final Path file;
+    /** While the file is read: nothing is written back until it is whole (an old type converted to parts saves once, at the end). */
+    private boolean loading;
 
     /** A store kept in {@code <dataFolder>/base.json}; null = in memory only (tests). */
     Base(Path dataFolder) {
@@ -93,21 +87,23 @@ final class Base {
 
     static String key(String type, int tier, int rarity) { return type + ", Tier " + Rules.roman(tier) + ", rarity " + rarity; }
 
-    static String slotOf(String type) {
-        for (Map.Entry<String, String> e : ARMOUR_TYPE.entrySet()) if (e.getValue().equals(type)) return e.getKey();
-        return null;
-    }
-
     static String pieceId(String set, String slot) { return set + "|" + slot; }
 
     // ------------------------------------------------------------------ unlocked
-    /** Can the base hand this piece out: made from the start (Tier I-II, rarity 1), brought in, or unlocked by the GM. */
+    /** Can the base assemble this armour piece: made from the start (Tier I-II, rarity 1), brought in, or unlocked by the GM. */
     boolean unlocked(Data.Armour a, String slot) {
         return a != null && a.pieces().contains(slot)
                 && (Character.knownAtStart(a) || unlocked.contains(a.name()) || unlocked.contains(pieceId(a.name(), slot)));
     }
 
-    /** The GM unlocks a whole set, or locks it again (pieces brought in stay unlocked). Returns whether it is unlocked now. */
+    /** Can the base assemble this item: Tier I-II at rarity 1 from the start, brought in, or unlocked by the GM. */
+    boolean unlocked(Production.Design d) {
+        if (d == null) return false;
+        if (d.armour()) return unlocked(Data.ARMOUR.get(d.set), d.slot);
+        return madeAtStart(d.tier, d.rarity) || unlocked.contains(d.key());
+    }
+
+    /** The GM unlocks a whole set or an item (its key), or locks it again (what was brought in stays). Returns whether it is unlocked now. */
     boolean toggleSet(String set) {
         boolean on = !unlocked.remove(set);
         if (on) unlocked.add(set);
@@ -116,16 +112,6 @@ final class Base {
     }
 
     // ------------------------------------------------------------------ the rows
-    /** A piece into the store (through the Mess Chest): its row grows, the piece is unlocked. False if it is no armour the store knows. */
-    boolean put(Character.Worn w) {
-        Data.Armour a = w == null ? null : Data.ARMOUR.get(w.set());
-        if (a == null || !ARMOUR_TYPE.containsKey(w.slot())) return false;
-        add(ARMOUR_TYPE.get(w.slot()), a.tier(), a.rarity(), Math.max(0, Math.min(100, w.condition())));
-        unlocked.add(pieceId(a.name(), w.slot()));
-        save();
-        return true;
-    }
-
     /** One item into its row: undamaged ones counted apart, a worn one's condition into the sum. */
     private Pool add(String type, int tier, int rarity, double condition) {
         Pool p = pools.computeIfAbsent(key(type, tier, rarity), k -> { Pool q = new Pool(); q.type = type; q.tier = tier; q.rarity = rarity; return q; });
@@ -141,7 +127,7 @@ final class Base {
     /** The rows of one type's chest with something in them, by tier then rarity: each with its unlocked items (the data's order). */
     List<Row> rows(String type) {
         List<Row> l = new ArrayList<>();
-        if (slotOf(type) == null && !Production.TYPES.containsKey(type)) return l;
+        if (!Production.TYPES.containsKey(type)) return l;
         List<Pool> ps = new ArrayList<>();
         for (Pool p : pools.values()) if (p.type.equals(type) && p.count > 0) ps.add(p);
         ps.sort(Comparator.comparingInt((Pool p) -> p.tier).thenComparingInt(p -> p.rarity));
@@ -150,13 +136,7 @@ final class Base {
     }
 
     List<String> choices(Pool p) {
-        String slot = slotOf(p.type);
         List<String> l = new ArrayList<>();
-        if (slot != null) {
-            for (Data.Armour a : Data.ARMOUR.values())
-                if (a.tier() == p.tier && a.rarity() == p.rarity && unlocked(a, slot)) l.add(a.name());
-            return l;
-        }
         Production.ItemType t = Production.TYPES.get(p.type);
         if (t != null) for (Production.Named n : t.items)
             if (n.tier == p.tier && n.rarity == p.rarity && unlocked(t.name, n)) l.add(n.name);
@@ -168,7 +148,7 @@ final class Base {
     /** Tier I-II at rarity 1: the base makes it from the start (the gate, 05c §7). */
     static boolean madeAtStart(int tier, int rarity) { return tier <= 2 && rarity == 1; }
 
-    /** A named item (not armour) can be handed out: made from the start, its row made or brought in, or unlocked by the GM. */
+    /** A named thing can be handed out: made from the start, its row made or brought in, or unlocked by the GM. */
     boolean unlocked(String type, Production.Named n) {
         return madeAtStart(n.tier, n.rarity) || unlocked.contains(n.name) || unlocked.contains(key(type, n.tier, n.rarity));
     }
@@ -211,9 +191,7 @@ final class Base {
     /** n units made in the base: undamaged, into their row; the row is unlocked (made in the base, 05c §7). */
     void addUnits(String type, int tier, int rarity, int n) {
         for (int i = 0; i < n; i++) add(type, tier, rarity, 100);
-        unlocked.add(key(type, tier, rarity));
-        if (slotOf(type) != null) for (Data.Armour a : Data.ARMOUR.values())
-            if (a.tier() == tier && a.rarity() == rarity && a.pieces().contains(slotOf(type))) unlocked.add(pieceId(a.name(), slotOf(type)));
+        if (n > 0) unlocked.add(key(type, tier, rarity));
         save();
     }
 
@@ -228,7 +206,7 @@ final class Base {
         save();
     }
 
-    /** A thing (not armour) into its row through the Mess Chest: undamaged, unlocked. False if the type is unknown. */
+    /** A thing into its row through the Mess Chest: undamaged, unlocked. False if the type is unknown. */
     boolean putThing(String type, int tier, int rarity, String name, int n) {
         if (!Production.TYPES.containsKey(type) || n <= 0) return false;
         for (int i = 0; i < n; i++) add(type, tier, rarity, 100);
@@ -237,7 +215,7 @@ final class Base {
         return true;
     }
 
-    /** One named thing out of a row (a click on its chest): a worn one first (things have no condition yet). False if none. */
+    /** One named thing out of a row (a click on its chest): a worn one first. False if none. */
     boolean takeThing(String key, String name) {
         Pool p = pools.get(key);
         if (p == null || p.count <= 0 || !choices(p).contains(name)) return false;
@@ -248,25 +226,66 @@ final class Base {
         return true;
     }
 
-    /** A worn one if the row has any, else an undamaged one (the chest's left click). */
-    Character.Worn take(String key, String set, String bodyFit) {
-        Pool p = pools.get(key);
-        return take(key, set, bodyFit, p != null && p.worn() == 0);
+    // ------------------------------------------------------------------ the assembly (round 4)
+    /** How many batches of this item the store's parts make now (0 if it is not unlocked). */
+    int canAssemble(Production.Design d) {
+        if (!unlocked(d) || d.parts.isEmpty()) return 0;
+        int n = Integer.MAX_VALUE;
+        for (Production.Part p : d.parts) n = Math.min(n, count(p.type, p.tier, d.rarity) / Math.max(1, p.count));
+        return n;
+    }
+
+    /** What is missing for one batch ("" = nothing). */
+    String missing(Production.Design d) {
+        StringJoiner j = new StringJoiner(", ");
+        for (Production.Part p : d.parts) {
+            int have = count(p.type, p.tier, d.rarity);
+            if (have < p.count) j.add((p.count - have) + " " + p.type + " " + Rules.roman(p.tier) + (d.rarity > 1 ? " R" + d.rarity : ""));
+        }
+        return j.toString();
+    }
+
+    /** Takes the parts of {@code batches} batches out of the store (instant, round 4). False (nothing taken) if it cannot. */
+    boolean assemble(Production.Design d, int batches) {
+        if (batches <= 0 || canAssemble(d) < batches) return false;
+        for (Production.Part p : d.parts) takeUnits(p.type, p.tier, d.rarity, p.count * batches);
+        save();
+        return true;
     }
 
     /**
-     * One item out of a row as the unlocked set chosen, made for the taker's body: an undamaged one at 100 %, or a worn one at the worn
-     * ones' average. Null if the row has none of that kind or the set is not one of its choices.
+     * Items back through the Mess Chest come apart into their parts (round 4: *"It also simplifies repair."*): whole batches only, each
+     * kind of part × the condition, rounded [mine]; the item is unlocked (brought in). Returns how many parts came back.
      */
-    Character.Worn take(String key, String set, String bodyFit, boolean undamaged) {
-        Pool p = pools.get(key);
-        if (p == null || (undamaged ? p.fresh : p.worn()) <= 0 || !choices(p).contains(set)) return null;
-        double c;
-        if (undamaged) { c = 100; p.fresh--; }
-        else { c = p.average(); p.condition = p.worn() == 1 ? 0 : Math.max(0, p.condition - c); }
-        p.count--;
+    int disassemble(Production.Design d, int items, double condition) {
+        if (d == null) return 0;
+        int batches = items / Math.max(1, d.makes), back = 0;
+        double share = Math.max(0, Math.min(100, condition)) / 100;
+        for (Production.Part p : d.parts) {
+            int k = (int) Math.floor(p.count * batches * share + 0.5);
+            if (k > 0) { addUnits(p.type, p.tier, d.rarity, k); back += k; }
+        }
+        unlocked.add(d.armour() ? pieceId(d.set, d.slot) : d.key());
         save();
-        return new Character.Worn(set, slotOf(p.type), c, bodyFit == null ? Character.STANDARD : bodyFit);
+        return back;
+    }
+
+    /** An armour piece back through the Mess Chest: its set's parts × its condition. -1 if it is no piece the data knows. */
+    int disassemble(Character.Worn w) {
+        Production.Design d = w == null ? null : Production.piece(w.set(), w.slot());
+        return d == null ? -1 : disassemble(d, 1, w.condition());
+    }
+
+    /** An item of an old type (0.42.0's 46) → its parts at its tier and rarity × the condition share. -1 if the type is unknown there too. */
+    int legacy(String type, int tier, int rarity, int units, double share) {
+        Production.Legacy l = Production.LEGACY.get(type);
+        if (l == null) return -1;
+        int batches = units / Math.max(1, l.per), back = 0;
+        for (Production.Part p : l.parts) {
+            int k = (int) Math.floor(p.count * batches * Math.max(0, Math.min(1, share)) + 0.5);
+            if (k > 0) { addUnits(p.type, tier, rarity, k); back += k; }
+        }
+        return back;
     }
 
     // ------------------------------------------------------------------ the chests
@@ -292,34 +311,39 @@ final class Base {
         save();
     }
 
-    /** Every type a chest can hold: the armour's four, then part 7's catalogue (`data/itemtypes.json`). */
-    static List<String> types() {
-        List<String> l = new ArrayList<>(ARMOUR_TYPE.values());
-        for (String t : Production.TYPES.keySet()) if (!l.contains(t)) l.add(t);
-        return l;
-    }
+    /** Every type a chest can hold: part 7's catalogue (`data/itemtypes.json`; the parts first since round 4). */
+    static List<String> types() { return new ArrayList<>(Production.TYPES.keySet()); }
 
     // ------------------------------------------------------------------ the file
     private void load() {
         if (file == null || !Files.isRegularFile(file)) return;
+        loading = true;
+        boolean converted = false;
         try {
             Saved s = Store.GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Saved.class);
             if (s == null) return;
-            if (s.pools != null) for (Pool p : s.pools) if (p != null && (slotOf(p.type) != null || Production.TYPES.containsKey(p.type))) {
-                // 0.26.0 summed every item: a row that was all at full condition is all undamaged now
-                if (p.fresh == 0 && p.count > 0 && p.condition / p.count >= UNDAMAGED) { p.fresh = p.count; p.condition = 0; }
-                pools.put(p.key(), p);
-            }
             if (s.unlocked != null) unlocked.addAll(s.unlocked);
-            if (s.chests != null) s.chests.forEach((k, v) -> { if (v != null && !v.isEmpty()) chests.put(k, new ArrayList<>(v)); });
-            if (s.units != null) for (OldUnit u : s.units) if (u != null && slotOf(u.type) != null) add(u.type, u.tier, u.rarity, u.condition);
+            if (s.pools != null) for (Pool p : s.pools) {
+                if (p == null || p.count <= 0) continue;
+                if (Production.TYPES.containsKey(p.type)) {
+                    // 0.26.0 summed every item: a row that was all at full condition is all undamaged now
+                    if (p.fresh == 0 && p.condition / p.count >= UNDAMAGED) { p.fresh = p.count; p.condition = 0; }
+                    pools.merge(p.key(), p, (a, b) -> { a.count += b.count; a.fresh += b.fresh; a.condition += b.condition; return a; });
+                } else converted |= legacy(p.type, p.tier, p.rarity, p.count, (p.fresh * 100.0 + p.condition) / p.count / 100) >= 0;   // 0.42.0's types → parts
+            }
+            if (s.chests != null) s.chests.forEach((k, v) -> {
+                if (v != null && !v.isEmpty() && (k.equals(MESS) || Production.TYPES.containsKey(k))) chests.put(k, new ArrayList<>(v));
+            });
+            if (s.units != null) for (OldUnit u : s.units) if (u != null) converted |= legacy(u.type, u.tier, u.rarity, 1, u.condition / 100) >= 0;
         } catch (IOException | RuntimeException e) {
             try { Files.move(file, file.resolveSibling("base.bad-" + System.currentTimeMillis() + ".json")); } catch (IOException ignored) { }
         }
+        loading = false;
+        if (converted) save();
     }
 
     void save() {
-        if (file == null) return;
+        if (file == null || loading) return;
         Saved s = new Saved();
         s.pools = new ArrayList<>(pools.values());
         s.unlocked = new ArrayList<>(unlocked);

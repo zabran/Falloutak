@@ -44,6 +44,41 @@ class WorksTest extends MockGame {
     }
 
     @Test
+    void aPlayerAssemblesWhatHeTakesOut() {
+        // round 4 (Marek 11-20): "creating just the parts and the item assembled out of them when going out"
+        PlayerMock p = player();
+        plugin.character(p).applyTemplate("Orc");
+        plugin.base.addUnits("Soft armour parts", 2, 1, 2);
+        plugin.base.addUnits("Hard armour parts", 2, 1, 7);
+        plugin.base.addUnits("Ammo", 1, 1, 30);
+        Menus.actions(p);
+        click("Production");
+        Ui.Page pg = click("Assemble items to take out");
+        assertTrue(pg.labels().contains("Body armour · 2 ready"), pg.labels().toString());
+        pg = click("Body armour · 2 ready");
+        assertTrue(pg.labels().contains("✔ Metal Armor (II) · 1 ready"), pg.labels().toString());
+        assertTrue(pg.labels().contains("Leather Armor (I R2) · locked"), pg.labels().toString());
+        click("✔ Metal Armor (II) · 1 ready");
+        assertTrue(said(p).contains("Assembled: 1 × Metal Armor (chest), made for a large body."), said(p));
+        Character.Worn got = null;
+        for (ItemStack it : p.getInventory().getStorageContents()) if (Items.worn(it) != null) got = Items.worn(it);
+        assertEquals(new Character.Worn("Metal Armor", "Chest", 100, "large"), got);
+        assertEquals(0, plugin.base.count("Hard armour parts", 2, 1));
+        // rounds: a form for how many, a load a pistol round
+        Menus.actions(p);
+        click("Production");
+        click("Assemble items to take out");
+        click("Pistol rounds · 1 ready");
+        click("✔ Remanufactured pistol rounds (I) · 30 ready");
+        clickAndClose("Assemble", "n", 12f);
+        assertEquals(18, plugin.base.count("Ammo", 1, 1));
+        int rounds = 0;
+        for (ItemStack it : p.getInventory().getStorageContents())
+            if (it != null && Items.madeId(Production.design("Pistol rounds", "Remanufactured pistol rounds")).equals(Items.id(it))) rounds += it.getAmount();
+        assertEquals(12, rounds);
+    }
+
+    @Test
     void theStoreHandsOutThings() {
         PlayerMock p = player();
         plugin.base.addUnits("Metal", 2, 1, 20);

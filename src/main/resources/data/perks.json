@@ -724,7 +724,7 @@
     }
    ],
    "effect": "taking items apart gives +50 % materials",
-   "parked": true,
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -762,7 +762,7 @@
     }
    ],
    "effect": "a batch of the same item takes half the time a piece (part 7)",
-   "parked": true,
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -781,7 +781,7 @@
     }
    ],
    "effect": "what you make comes out one rarity higher (part 7)",
-   "parked": true,
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -838,7 +838,7 @@
     }
    ],
    "effect": "taking a working item apart gives you its schematic (part 7)",
-   "parked": true,
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -876,7 +876,7 @@
     }
    ],
    "effect": "chems you make come out double (part 7)",
-   "parked": true,
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -952,7 +952,7 @@
     }
    ],
    "effect": "fields you or your faction tend yield ×1.5 (part 7)",
-   "parked": true,
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -1085,7 +1085,7 @@
     }
    ],
    "effect": "your faction's upkeep −20 % (part 6)",
-   "parked": true,
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -1373,7 +1373,7 @@
     }
    ],
    "effect": "your faction's production +25 % while you supervise (parts 6-7)",
-   "parked": true,
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}

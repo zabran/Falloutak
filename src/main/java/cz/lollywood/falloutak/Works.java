@@ -5,13 +5,15 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static cz.lollywood.falloutak.Menus.*;
 
 /**
  * The production pages (part 7, `07-PRODUCTION.md`): the base's buildings, their jobs and crews, for every player (Marek 11-20: *"In
- * base, players are kings and own everything."*); building, removing and unlocking recipes for the GM.
+ * base, players are kings and own everything."*); the assembly of what is taken out (round 4); building, removing and unlocking recipes
+ * for the GM.
  */
 final class Works {
     private Works() {}
@@ -43,6 +45,7 @@ final class Works {
             b.add(btn(x.name + (x.job == null ? "" : " · " + Production.RECIPES.get(x.job.recipe).name) + (x.job != null && !x.job.waiting.isEmpty() ? " · waits" : ""),
                     x.label() + ": " + pr.status(x), y -> building(y, x.id)));
         if (pr.buildings.isEmpty()) lines.add(line("No buildings yet" + (gm(p) ? ": add the shelter's seven rooms below." : ": the GM adds the shelter's rooms."), NamedTextColor.RED));
+        b.add(btn("Assemble items to take out", "weapons, armour, rounds, grenades and traps out of the store's parts: instant (round 4)", Works::assemble));
         b.add(btn("Work anywhere in the base", "building projects and hand work that need no room", x -> site(x, "Base")));
         b.add(btn("Gathering outside", "wood, stone, water, herbs, hunting (0 XP until the local map, part 9)", x -> site(x, "Outside")));
         b.add(btn("All known recipes", pr.known.size() + " known beyond the start", Works::recipes));
@@ -155,6 +158,81 @@ final class Works {
         for (Production.Recipe r : Production.RECIPES.values()) if (pr().known(r)) ids.add(r.id);
         pick(p, "Known recipes", ids.size() + " known (Tier I-II of every type from the start; research, part 8, opens more).", ids,
                 r -> Production.RECIPES.get(r).name, r -> recipeTip(Production.RECIPES.get(r)), (y, r) -> recipes(y), Works::main);
+    }
+
+    // ------------------------------------------------------------------ the assembly (round 4)
+    /**
+     * What is assembled from the store's parts when going out (Marek 11-20, verbatim: *"I think creating just the parts and the item
+     * assembled out of them when going out would work better."*): the categories, then their items; instant [mine].
+     */
+    static void assemble(Player p) {
+        List<String> cats = new ArrayList<>();
+        for (Production.Category c : Production.CATEGORIES) cats.add(c.name);
+        pick(p, "Assemble to take out", "Instant: the parts come out of the store as the item. Back through the Mess Chest it comes apart into "
+                        + "its parts again, the damaged share lost (that is the repair).", cats,
+                c -> c + " · " + ready(c) + " ready", Works::about, Works::category, Works::main);
+    }
+
+    /** How many of a category's items the store's parts make now. */
+    static int ready(String cat) {
+        int n = 0;
+        for (Production.Design d : Production.DESIGNS.values()) if (d.category.equals(cat) && pl.base.canAssemble(d) > 0) n++;
+        return n;
+    }
+
+    static String about(String cat) {
+        for (Production.Category c : Production.CATEGORIES)
+            if (c.name.equals(cat)) return c.group + (c.skill.isEmpty() ? "" : " · used with " + c.skill) + (c.note.isEmpty() ? "" : " · " + c.note);
+        return cat;
+    }
+
+    static void category(Player p, String cat) {
+        List<Production.Design> ds = new ArrayList<>();
+        for (Production.Design d : Production.DESIGNS.values()) if (d.category.equals(cat)) ds.add(d);
+        ds.sort(Comparator.comparing((Production.Design d) -> !pl.base.unlocked(d)).thenComparingInt(d -> d.tier).thenComparingInt(d -> d.rarity));
+        List<String> keys = new ArrayList<>();
+        for (Production.Design d : ds) keys.add(d.key());
+        pick(p, cat, "Unlocked first; the number = how many the store's parts make now. Hover for the parts.", keys,
+                k -> label(Production.DESIGNS.get(k)), k -> tip(Production.DESIGNS.get(k)), Works::assembleForm, y -> assemble(y));
+    }
+
+    static String label(Production.Design d) {
+        if (!pl.base.unlocked(d)) return d.label() + " · locked";
+        int can = pl.base.canAssemble(d);
+        return (can > 0 ? "✔ " : "") + d.label() + " · " + can * d.makes + " ready";
+    }
+
+    static String tip(Production.Design d) {
+        String miss = pl.base.missing(d);
+        return "takes " + Production.partsText(d) + (d.armour() ? " (made for your body)" : "")
+                + (!pl.base.unlocked(d) ? " · LOCKED: Tier I-II at rarity 1 from the start, else brought in through the Mess Chest or the GM's"
+                : miss.isEmpty() ? "" : " · missing for one: " + miss);
+    }
+
+    /** One item, or a form for how many when the parts make more (armour: one a click). */
+    static void assembleForm(Player p, String key) {
+        Production.Design d = Production.DESIGNS.get(key);
+        if (d == null) { assemble(p); return; }
+        if (!pl.base.unlocked(d)) { say(p, "! " + d.name + " is locked: bring one in through the Mess Chest, or the GM unlocks it"); category(p, d.category); return; }
+        int can = pl.base.canAssemble(d);
+        if (can == 0) { say(p, "! not enough parts in the store: " + pl.base.missing(d)); category(p, d.category); return; }
+        if (can == 1 || d.armour()) { say(p, give(p, d, 1)); category(p, d.category); return; }
+        int max = Math.min(64, can);
+        ask(p, d.name, "Each " + (d.makes > 1 ? "batch of " + d.makes : "one") + " takes " + Production.partsText(d) + "; the store's parts make " + can + ".",
+                List.of(Ui.In.numberRange("n", Component.text(d.makes > 1 ? "Batches (" + d.makes + " each)" : "How many"), 1, max).step(1f).initial(1f).width(300).build()),
+                form("Assemble", "out of the store's parts, into your inventory", (v, y) -> { say(y, give(y, d, Math.round(v.getFloat("n")))); category(y, d.category); }),
+                y -> category(y, d.category));
+    }
+
+    /** n batches out of the store's parts into the player's inventory (armour made for his body). Returns what he is told. */
+    static String give(Player p, Production.Design d, int n) {
+        if (!pl.base.assemble(d, n)) return "! not enough parts in the store: " + pl.base.missing(d);
+        String fit = pl.character(p).fit();
+        if (d.armour()) for (int i = 0; i < n; i++) Items.giveStack(p, Items.piece(new Character.Worn(d.set, d.slot, 100, fit)));
+        else Items.giveStack(p, Items.make(Items.madeId(d), n * d.makes));
+        Sfx.to(p, "store.take");
+        return "Assembled: " + n * d.makes + " × " + d.name + (d.armour() ? " (" + d.slot.toLowerCase(java.util.Locale.ROOT) + ")"
+                + (Character.STANDARD.equals(fit) ? "" : ", made for a " + fit + " body") : "") + ".";
     }
 
     // ------------------------------------------------------------------ the GM

@@ -193,7 +193,7 @@ public final class Character {
      */
     public String takePerk(Data.Perk p, String bound) {
         if (perksDue() <= 0) return "! no perk to pick now (one every " + templatePerkRate + " levels)";
-        if (p.parked()) return "! " + p.name() + " waits for parts 7-8";
+        if (p.parked()) return "! " + p.name() + " waits for part 8 (research)";
         if (hasPerk(p.name())) return "! " + p.name() + " is taken already";
         if (!Rules.gateMet(skills(true), p)) return "! the gate is not met: " + p.gate();
         String b = bound == null ? "" : bound.trim();

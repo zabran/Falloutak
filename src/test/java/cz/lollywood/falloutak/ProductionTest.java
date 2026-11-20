@@ -47,7 +47,7 @@ class ProductionTest {
     // ------------------------------------------------------------------ the catalogue
     @Test
     void theGateEveryTierIAndIIOfEveryTypeHasSeveralWaysOneKnownAtTheStart() {
-        assertEquals(46, Production.TYPES.size());
+        assertEquals(26, Production.TYPES.size());                                     // round 4: parts, not finished items
         for (Production.ItemType t : Production.TYPES.values()) {
             if (t.found_only) continue;
             for (int tier = 1; tier <= 2; tier++) {
@@ -89,7 +89,7 @@ class ProductionTest {
         Production.Building ws = pr.buildings.stream().filter(b -> b.kind.equals("Workshop")).findFirst().orElseThrow();
         assertEquals(2, ws.tier);
         assertTrue(Production.fits(ws, recipe("recast-scrap")));
-        assertTrue(Production.fits(ws, recipe("knives-i-from-scrap")));               // a Workshop does a Workbench's work
+        assertTrue(Production.fits(ws, recipe("cold-hammer-weapon-parts")));         // a Workshop does a Workbench's work
         assertFalse(Production.fits(ws, recipe("potatoes-under-lamps")));
     }
 
@@ -171,12 +171,12 @@ class ProductionTest {
         Production.Recipe charge = recipe("charge-cells");
         assertTrue(charge.inputs.stream().anyMatch(i -> i.extra));
         base.addUnits("Power", 2, 1, 4);
-        base.addUnits("Parts", 2, 1, 1);
+        base.addUnits("Electronics", 2, 1, 1);
         Crew c3 = new Crew(worker("Z", "Engineering", 20));
         pr.start(ws, charge, 1, 1, c3);
         pr.advance(1, 3, base, c3, 0);
         assertEquals(1.5, ws.job.work, 0.01);
-        assertEquals(0, base.count("Parts", 2, 0));                                    // the extra used up
+        assertEquals(0, base.count("Electronics", 2, 0));                              // the extra used up
     }
 
     @Test
@@ -362,6 +362,75 @@ class ProductionTest {
         b.wear("Gear and tools", 2, 60);
         b.wear("Gear and tools", 2, 60);                                               // worn out: gone
         assertEquals(0, b.count("Gear and tools", 2, 0));
-        assertTrue(Base.types().size() >= 46);
+        assertEquals(26, Base.types().size());                                         // round 4: parts, not finished items
+    }
+
+    // ------------------------------------------------------------------ round 4 (Marek 11-20)
+    @Test
+    void everyAssembledItemTakesKnownParts() {
+        assertEquals(167, Production.DESIGNS.size());
+        for (Production.Design d : Production.DESIGNS.values()) {
+            assertFalse(d.parts.isEmpty(), d.key());
+            for (Production.Part p : d.parts) assertTrue(Production.TYPES.containsKey(p.type), d.key() + ": " + p.type);
+        }
+        for (Production.Category c : Production.CATEGORIES)
+            assertTrue(Production.DESIGNS.values().stream().anyMatch(d -> d.category.equals(c.name) && d.tier <= 2 && d.rarity == 1), c.name);
+        assertNotNull(Production.piece("Power Armor", "Feet"));
+        assertTrue(Production.LEGACY.containsKey("Pistol ammo"));
+    }
+
+    @Test
+    void aBuildingWorksLessAsItsConditionFalls() {
+        // "could be good at the start, since it will get worse as condition worsens."
+        Production pr = new Production();
+        Production.Building r = pr.build("Reactor", 4, "Reactor");
+        assertEquals(1, Production.efficiency(r), 1e-9);
+        r.condition = 75;
+        assertEquals(1, Production.efficiency(r), 1e-9);
+        r.condition = 37.5;
+        assertEquals(0.75, Production.efficiency(r), 1e-9);
+        assertEquals(150, pr.powerCap(), 1e-9);
+        r.condition = 0;
+        assertEquals(0, pr.powerCap(), 1e-9);
+        // the crew's work too: a workshop at 37.5 %, a worker at twice the minimum: 2 h of work an hour x 0.75
+        r.condition = 100;
+        Production.Building ws = pr.build("Workshop", 2, "W");
+        ws.condition = 37.5;
+        Base base = new Base(null);
+        base.addUnits("Metal", 1, 1, 3);
+        base.addUnits("Fuel", 2, 1, 2);
+        Crew crew = new Crew(worker("H", "Crafting", 60));
+        pr.advance(1, 0, base, crew, 0);
+        ws.upkeepDone = 99;                                                            // the week's upkeep done: the hour is the job's
+        pr.start(ws, recipe("recast-scrap"), 1, 1, crew);
+        pr.advance(1, 1, base, crew, 0);
+        assertEquals(1.5, ws.job.work, 1e-9);
+        assertTrue(pr.status(ws).contains("condition 38 % (works at 75 %)"), pr.status(ws));
+    }
+
+    @Test
+    void theProductionPerksAreOfferedAndRun() {
+        // round 4: "Production perks - yes, add them as part of this update."
+        for (String p : List.of("Salvager", "Assembly Line", "Master Craftsman", "Reverse Engineer", "Cook", "Good Harvest", "Quartermaster", "Foreman"))
+            assertFalse(Data.PERKS.get(p).parked(), p);
+        for (String p : List.of("Data Miner", "Prototype", "Lab Rat", "Eureka")) assertTrue(Data.PERKS.get(p).parked(), p);   // part 8
+        // Quartermaster: the faction's upkeep -20 % (02c) [the base's buildings: mine]
+        Production pr = new Production();
+        Production.Building ws = pr.build("Workshop", 2, "W");
+        pr.advance(1, 0, new Base(null), new Crew(worker("Q", "Economy", 100, "Quartermaster")), 0);
+        assertEquals(3.2, pr.upkeep(ws), 1e-9);
+        pr.advance(1, 1, new Base(null), new Crew(), 0);
+        assertEquals(4, pr.upkeep(ws), 1e-9);
+        // Salvager: +50 % from found junk taken apart; the half carried to the next run
+        assertTrue(Production.salvage(recipe("take-apart-junk")));
+        assertFalse(Production.salvage(recipe("recast-scrap")));
+        Production.Building wb = pr.build("Workbench", 2, "B");
+        Base base = new Base(null);
+        base.addUnits("Salvage", 1, 1, 6);
+        Crew crew = new Crew(worker("S", "Crafting", 50, "Salvager"));
+        pr.start(wb, recipe("take-apart-junk"), 2, 1, crew);
+        pr.advance(10, 2, base, crew, 0);
+        assertNull(wb.job);
+        assertEquals(3, base.count("Metal", 1, 1));                                   // 1.5 + 1.5
     }
 }

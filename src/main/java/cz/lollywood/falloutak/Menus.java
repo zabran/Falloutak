@@ -644,15 +644,18 @@ final class Menus {
     static void unlockMenu(Player g) {
         List<String> l = new ArrayList<>();
         for (Data.Armour a : Data.ARMOUR.values()) if (!Character.knownAtStart(a)) l.add(a.name());
-        pick(g, "Unlocked items", "Unlocked from the start: every item of Tier I-II at rarity 1 (the base can make it). A piece brought in through "
-                        + "the Mess Chest unlocks itself. A click unlocks a whole set, or locks it again.", l,
-                n -> n + " (" + Rules.roman(Data.ARMOUR.get(n).tier()) + "/" + Data.ARMOUR.get(n).rarity() + ")" + unlockedText(n),
-                n -> Items.pieceText(n, Data.ARMOUR.get(n).pieces().get(0), 100),
+        for (Production.Design d : Production.DESIGNS.values()) if (!d.armour() && !Base.madeAtStart(d.tier, d.rarity)) l.add(d.key());   // round 4
+        pick(g, "Unlocked items", "Unlocked from the start: every item of Tier I-II at rarity 1 (the base can make it). An item brought in through "
+                        + "the Mess Chest unlocks itself. A click unlocks a whole set or an item for the assembly, or locks it again.", l,
+                n -> n.contains("|") ? Production.DESIGNS.get(n).label() + " · " + Production.DESIGNS.get(n).category + unlockedText(n)
+                        : n + " (" + Rules.roman(Data.ARMOUR.get(n).tier()) + "/" + Data.ARMOUR.get(n).rarity() + ")" + unlockedText(n),
+                n -> n.contains("|") ? "assembled from " + Production.partsText(Production.DESIGNS.get(n)) : Items.pieceText(n, Data.ARMOUR.get(n).pieces().get(0), 100),
                 (x, n) -> { pl.base.toggleSet(n); unlockMenu(x); }, Menus::gmBase);
     }
 
     static String unlockedText(String set) {
         if (pl.base.unlocked.contains(set)) return " · unlocked";
+        if (Data.ARMOUR.get(set) == null) return "";   // an assembled item's key (round 4)
         List<String> in = new ArrayList<>();
         for (String s : Data.ARMOUR.get(set).pieces()) if (pl.base.unlocked.contains(Base.pieceId(set, s))) in.add(s.toLowerCase(Locale.ROOT));
         return in.isEmpty() ? "" : " · brought in: " + String.join(", ", in);

@@ -422,6 +422,7 @@ class Part3Test {
         assertFalse(Data.TRAITS.containsKey("Brittle Bones"));
         assertFalse(Data.TRAITS.containsKey("Medical Marvel"));
         assertEquals("parked", Data.TRAITS.get("Tinkerer").status());
+        assertEquals("in", Data.TRAITS.get("Perfectionist").status());                // production: offered since part 7's round 4
         assertEquals("cos", Data.TRAITS.get("Fast Shot").status());
         Character d = of("Human", 5, 5, 5, 5, 5, 6, 9);
         assertTrue(Forms.offeredTraits(d).stream().noneMatch(t -> t.name().equals("Fast Shot") || t.name().equals("Tinkerer")));

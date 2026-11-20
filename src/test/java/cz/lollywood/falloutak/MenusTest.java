@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * so try to testing everything you can test outside with unit tests."*). Each test follows one path a player takes.
  */
 class MenusTest extends MockGame {
-    static final String BODY_II = "Body armour, Tier II, rarity 1";
 
     @Test
     void theActionsAndTheSheet() {

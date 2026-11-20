@@ -55,6 +55,7 @@ final class Items {
             };
             case "supplies" -> Material.PAPER;
             case "thing" -> thingMaterial(k[1]);
+            case "made" -> madeMaterial(k[1]);
             default -> Material.CLOCK;   // the Pip-Boy
         };
         ItemStack it = new ItemStack(m, Math.max(1, count));
@@ -88,7 +89,7 @@ final class Items {
             case "armour" -> k[1].replaceAll("\\|.*", "") + " (" + k[1].replaceAll(".*\\|", "").toLowerCase(Locale.ROOT) + ")";
             case "gear" -> k[1];
             case "supplies" -> "Surgical supplies (" + switch (k[1]) { case "tier3" -> "Tier III"; case "tier4" -> "Tier IV"; default -> "improvised"; } + ")";
-            case "thing" -> k[1].replaceAll(".*\\|", "");
+            case "thing", "made" -> k[1].replaceAll(".*\\|", "");
             default -> "Pip-Boy";
         };
     }
@@ -122,6 +123,28 @@ final class Items {
         return thingId(type, tier, rarity, name);
     }
 
+    // ------------------------------------------------------------------ round 4's assembled items: made:<category>|<tier>|<rarity>|<name>
+    static String madeId(Production.Design d) { return "made:" + d.category + "|" + d.tier + "|" + d.rarity + "|" + d.name; }
+
+    /** An assembled item's design, or null (the data no longer has it). */
+    static Production.Design made(String id) {
+        if (id == null || !id.startsWith("made:")) return null;
+        String[] k = id.substring(5).split("\\|", 4);
+        return k.length == 4 ? Production.design(k[0], k[3]) : null;
+    }
+
+    private static Material madeMaterial(String body) {
+        String cat = body.replaceAll("\\|.*", "");
+        for (Production.Category c : Production.CATEGORIES) if (c.name.equals(cat)) return switch (c.group) {
+            case "Rounds" -> cat.equals("Arrows") ? Material.ARROW : cat.equals("Rockets") ? Material.FIREWORK_ROCKET : Material.IRON_NUGGET;
+            case "Melee weapons" -> Material.IRON_SWORD;
+            case "Ranged weapons" -> cat.equals("Bows") ? Material.BOW : Material.CROSSBOW;
+            case "Grenades and traps" -> cat.equals("Traps") ? Material.TRIPWIRE_HOOK : Material.FIRE_CHARGE;
+            default -> Material.PAPER;
+        };
+        return Material.PAPER;
+    }
+
     private static Material thingMaterial(String body) {
         String type = body.replaceAll("\\|.*", "");
         Production.ItemType t = Production.TYPES.get(type);
@@ -133,7 +156,15 @@ final class Items {
             case "Stone and glass" -> Material.BRICK;
             case "Chemicals" -> Material.SUGAR;
             case "Fuel" -> Material.CHARCOAL;
-            case "Parts" -> Material.TRIPWIRE_HOOK;
+            case "Machinery" -> Material.TRIPWIRE_HOOK;
+            case "Electronics" -> Material.REDSTONE_TORCH;
+            case "Soft armour parts" -> Material.RABBIT_HIDE;
+            case "Hard armour parts" -> Material.IRON_INGOT;
+            case "Hard weapon parts" -> Material.IRON_NUGGET;
+            case "Light weapon parts" -> Material.STICK;
+            case "Firearm parts" -> Material.LEVER;
+            case "Ammo" -> Material.GUNPOWDER;
+            case "Explosives" -> Material.FIRE_CHARGE;
             case "Salvage" -> Material.FLINT;
             case "Food" -> Material.BAKED_POTATO;
             case "Water" -> Material.POTION;
@@ -193,6 +224,12 @@ final class Items {
                 default -> "a revival: the chance × 1.0 (kept)";
             };
             case "supplies" -> "an operation: × " + Rules.SUPPLIES.getOrDefault(k[1], 0.6) + " (used up)";
+            case "made" -> {
+                Production.Design d = made(id);
+                yield d == null ? "" : d.category + " · Tier " + Rules.roman(d.tier) + ", rarity " + d.rarity + (d.skill.isEmpty() ? "" : " · " + d.skill)
+                        + "\nassembled in the base from " + Production.partsText(d)
+                        + "\nback through the Mess Chest it comes apart into its parts" + (d.makes > 1 ? " (" + d.makes + " a batch)" : "");
+            }
             case "thing" -> {
                 String[] t = thing(id);
                 Production.ItemType ty = t == null ? null : Production.TYPES.get(t[0]);
