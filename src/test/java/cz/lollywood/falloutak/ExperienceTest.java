@@ -67,6 +67,30 @@ class ExperienceTest extends MockGame {
     }
 
     @Test
+    void handsOnLearnerGrowsUpToThreeSkillsASession() {
+        // round 6 (Marek 11-20): "but dying should remove it, so it shuld be a bit lower on average, for PCs. It would be really OP for
+        // members. Also, I would make it up to 3 (meaning it can be less)."
+        Character c = Character.sample("Learner");
+        assertTrue(Forms.offeredTraits(c).stream().anyMatch(t -> t.name().equals("Hands-On Learner")));
+        assertEquals("", c.handsOn("Guns", "s1"));                                    // without the trait: nothing
+        int rate = c.skillRate();
+        c.traits.add(new Character.Feat("Hands-On Learner", "trait", ""));
+        Forms.applyTraits(c);
+        assertEquals(rate - 3, c.skillRate());                                         // −3 skill points a level
+        int g = Rules.skillIndex("Guns");
+        double g0 = c.skills(true)[g];
+        double gain = (c.tags.contains("Guns") ? 2.0 : 1.0) / Rules.pricePerPercent(g0);
+        assertTrue(c.handsOn("Guns", "s1").startsWith("Hands-On Learner: Guns +"));
+        assertEquals(g0 + gain, c.skills(true)[g], 1e-9);
+        assertEquals("Hands-On Learner: Guns already grew this session", c.handsOn("Guns", "s1"));
+        assertTrue(c.handsOn("Medicine", "s1").endsWith("(2 of 3 this session)"));
+        assertTrue(c.handsOn("Sneak", "s1").endsWith("(3 of 3 this session)"));
+        assertEquals("Hands-On Learner: 3 skills already grew this session", c.handsOn("Survival", "s1"));
+        assertTrue(c.handsOn("Survival", "s2").endsWith("(1 of 3 this session)"));      // the next session
+        assertEquals(g0 + gain, c.skills(true)[g], 1e-9);
+    }
+
+    @Test
     void checksDiscoveryAndResearch() throws Exception {
         PlayerMock gm = player();
         PlayerMock p = member();

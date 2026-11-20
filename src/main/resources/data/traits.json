@@ -290,11 +290,13 @@
    "name": "Hands-On Learner",
    "from": "",
    "group": "Research and production",
-   "bonus": "a skill you use successfully when it matters gains +1 skill point (Marek; once a skill a session)",
+   "bonus": "a skill you use successfully when it matters gains +1 skill point (Marek; up to 3 skills a session, each once, the GM names them; a PC's own: dying loses it, a group cannot take it)",
    "drawback": "−3 skill points a level",
-   "status": "parked",
+   "status": "in",
    "mods": {},
-   "other": {}
+   "other": {
+    "skill_points_level": -3
+   }
   },
   {
    "name": "Morphine Doctor",

@@ -29,8 +29,9 @@ import java.util.*;
  * perks and traits cheat it (Master Craftsman, Perfectionist).</li>
  * <li>Power and water: daily amounts, counted only on the days a building works; the kitchen and the automatic rooms every day
  * (round 1: *"Workshop does not need to work 24/7 ... But you do need kitchen as daily amount all the time."*).</li>
- * <li>Upkeep: a weekly project, 2 h × the tier [EXAMPLE]; missed, the condition falls; at 0 the building stops [mine]; the players
- * manage the crews (round 4: *"Upkeep and crews - this is for players to manage."*).</li>
+ * <li>Upkeep: a weekly project, fewer hours the higher the tier; a missed week costs its wear, by the tier, for the hours it ran and
+ * stood idle ({@link Wear}, round 6: *"bigger tier, the less maintanance and the longer it lasts abandoned"*); at 0 the building
+ * stops [mine]; the players manage the crews (round 4: *"Upkeep and crews - this is for players to manage."*).</li>
  * <li>A building works and makes less as its condition falls (round 4: *"it will get worse as condition worsens"*): {@link #efficiency}.</li>
  * <li>Round 4 (Marek 11-20): the base makes PARTS, the items are ASSEMBLED from them when going out ({@code data/designs.json};
  * *"creating just the parts and the item assembled out of them when going out would work better"*): {@link Base#assemble}.</li>
@@ -107,6 +108,24 @@ final class Production {
     static final Map<String, Recipe> REPAIRS = new LinkedHashMap<>();
     /** Upkeep's tool (round 5): a Gear and tools of at least the building's tier. */
     static String UPKEEP_TOOL = "Gear and tools";
+    /**
+     * A building's wear by its tier (round 6, Marek 11-20, verbatim: *"The buildings must have condition lost in some absolute number -
+     * bigger tier, the less maintanance and the longer it lasts abandoned."* · *"players must not be forced out before first year"* ·
+     * *"the reactor is made to last for decades without daily fixes"*) [the numbers EXAMPLE, mine]: the upkeep hours a week, the weeks
+     * running round the clock from 100 % to 0 with no upkeep, the weeks standing idle (abandoned) from 100 % to 0, Tier I-IV.
+     */
+    static final class Wear {
+        double[] upkeep_hours = {4, 3, 2, 1}, run_weeks = {26, 104, 260, 1300}, idle_weeks = {260, 780, 2080, 5200};
+        /** A worn or broken room's repair by its crew, % an hour, with the tool of its tier. */
+        double repair_per_hour = 2;
+    }
+    static Wear WEAR = new Wear();
+
+    /** % of condition an hour of running (or of standing idle) costs a building of this tier when its upkeep is missed. */
+    static double wearPerHour(int tier, boolean running) {
+        int i = Math.max(1, Math.min(4, tier)) - 1;
+        return 100.0 / ((running ? WEAR.run_weeks[i] : WEAR.idle_weeks[i]) * 168);
+    }
     /** Jury Rigging's materials (02c: *"repairs any item with any item of its tier"*) [mine: the materials' group]. */
     static final List<String> MATERIALS = List.of("Metal", "Wood", "Textile", "Stone and glass", "Chemicals", "Fuel", "Salvage");
     /** A Workshop does a Workbench's work of its tier [mine]. */
@@ -123,6 +142,7 @@ final class Production {
         JsonObject o = whole("buildings");
         if (o != null && o.has("shelter")) for (JsonElement e : o.getAsJsonArray("shelter")) SHELTER.add(g.fromJson(e, Room.class));
         if (o != null && o.has("upkeep_tool")) UPKEEP_TOOL = o.get("upkeep_tool").getAsString();
+        if (o != null && o.has("wear")) WEAR = g.fromJson(o.get("wear"), Wear.class);
         o = whole("designs");
         if (o != null && o.has("categories")) for (JsonElement e : o.getAsJsonArray("categories")) CATEGORIES.add(g.fromJson(e, Category.class));
         if (o != null && o.has("legacy")) for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("legacy").entrySet())
@@ -229,6 +249,8 @@ final class Production {
         String id = "", kind = "", name = "";
         int tier = 1;
         double condition = 100, upkeepDone;
+        /** The hours it worked this week (an automatic room every hour it stands, a job room the hours its crew worked the job). */
+        double ranHours;
         long upkeepWeek = -1, chargedDay = -1;
         /** The workers (their ids), at most the kind's slots. */
         List<String> crew = new ArrayList<>();
@@ -243,7 +265,8 @@ final class Production {
 
         String label() { return name + " (" + kind + ", Tier " + Rules.roman(tier) + ")"; }
 
-        double upkeepNeed() { return SITES.contains(kind) || "Dormitories".equals(kind) ? 0 : 2.0 * tier; }   // a week [EXAMPLE]
+        /** The upkeep hours a week, fewer the higher the tier (round 6) [EXAMPLE]. */
+        double upkeepNeed() { return SITES.contains(kind) || "Dormitories".equals(kind) ? 0 : WEAR.upkeep_hours[Math.max(1, Math.min(4, tier)) - 1]; }
 
         int slots() { Kind k = kind(); return k == null ? 1 : k.slots; }
     }
@@ -446,6 +469,17 @@ final class Production {
         return null;
     }
 
+    /**
+     * An event hits a building (the GM's: a burst pipe, a fire, a quake; round 6, Marek 11-20: *"The prologue should be full of events"*)
+     * [mine]: its condition falls by that many % points. Returns what happened.
+     */
+    String damage(Building b, double points) {
+        double before = b.condition;
+        b.condition = Math.max(0, b.condition - Math.max(0, points));
+        return b.name + ": condition " + pct(before) + " → " + pct(b.condition) + " %" + (b.condition <= 0 ? ": IT STOPS, its crew must repair it with "
+                + UPKEEP_TOOL + " of Tier " + Rules.roman(b.tier) + " or better" : efficiency(b) < 1 ? " (works at " + Math.round(100 * efficiency(b)) + " %)" : "");
+    }
+
     /** A building's upkeep this week: its hours, −20 % with a Quartermaster in the base (02c) [the base's upkeep: mine]. */
     double upkeep(Building b) { return b.upkeepNeed() * (quartermaster ? 0.8 : 1); }
 
@@ -547,6 +581,7 @@ final class Production {
         quartermaster = false;
         for (Worker w : wf.all()) { byId.put(w.id(), w); if (w.perk("Quartermaster")) quartermaster = true; }
         double t = worldHours, end = worldHours + hours;
+        Map<Building, double[]> missed = new LinkedHashMap<>();   // the condition before, the weeks missed (one line each at the end)
         while (t < end - 1e-9) {
             double dt = Math.min(1, end - t);
             long d = (long) Math.floor(t / 24);
@@ -555,19 +590,41 @@ final class Production {
             for (Building b : new ArrayList<>(buildings)) {
                 if (b.upkeepWeek != week) {
                     if (b.upkeepWeek >= 0 && upkeep(b) > 0 && b.upkeepDone < upkeep(b) - 1e-9) {
-                        double before = b.condition;
-                        b.condition = Math.max(0, b.condition - 25 * (1 - b.upkeepDone / upkeep(b)));   // [EXAMPLE]
-                        out.add(b.name + ": upkeep missed (" + Math.round(b.upkeepDone) + " of " + Math.round(upkeep(b)) + " h), condition "
-                                + Math.round(before) + " → " + Math.round(b.condition) + " %" + (b.condition <= 0 ? ": IT STOPS" : ""));
+                        double[] m = missed.computeIfAbsent(b, x -> new double[]{x.condition, 0});
+                        b.condition = Math.max(0, b.condition - weekWear(b));
+                        m[1]++;
                     }
                     b.upkeepWeek = week;
                     b.upkeepDone = 0;
+                    b.ranHours = 0;
                 }
                 hour(b, t, dt, base, wf, byId, out);
             }
             t += dt;
         }
+        for (Map.Entry<Building, double[]> e : missed.entrySet()) {
+            Building b = e.getKey();
+            double before = e.getValue()[0];
+            int weeks = (int) e.getValue()[1];
+            out.add(b.name + ": upkeep missed " + (weeks == 1 ? "a week" : weeks + " weeks") + ", condition " + pct(before) + " → "
+                    + pct(b.condition) + " %" + (b.condition <= 0 ? ": IT STOPS" : before >= 75 && b.condition < 75 ? ": it works less from now" : ""));
+        }
         return out;
+    }
+
+    /**
+     * What a missed week costs (round 6) [EXAMPLE]: its hours of running at the running rate and the rest idle at the idle rate, by the
+     * tier, times the share of the week's upkeep not done.
+     */
+    double weekWear(Building b) {
+        double ran = Math.min(168, b.ranHours), share = upkeep(b) <= 0 ? 0 : 1 - Math.min(1, b.upkeepDone / upkeep(b));
+        return (ran * wearPerHour(b.tier, true) + (168 - ran) * wearPerHour(b.tier, false)) * share;
+    }
+
+    /** A condition for the GM: whole above 10 %, else one decimal (a T IV room loses 0.08 a week). */
+    static String pct(double c) {
+        double r = Math.round(c * 10) / 10.0;
+        return r == Math.rint(r) || c >= 99.95 ? String.valueOf(Math.round(c)) : String.valueOf(r);
     }
 
     private void newDay(long d, int people, Base base, List<String> out) {
@@ -598,6 +655,7 @@ final class Production {
 
     private void hour(Building b, double t, double dt, Base base, Workforce wf, Map<String, Worker> byId, List<String> out) {
         b.crew.removeIf(id -> !byId.containsKey(id));   // gone, dead, or no longer working
+        if (b.kind() != null && b.kind().automatic && b.condition > 0) b.ranHours += dt;   // it runs round the clock
         Recipe r = b.job == null ? null : recipe(b.job.recipe);
         if (b.job != null && r == null) { b.job = null; return; }
         List<Worker> crew = new ArrayList<>();
@@ -615,7 +673,7 @@ final class Production {
                 continue;
             }
             if (r == null || b.condition <= 0) {
-                if (tool > 0 && b.condition < 100) { b.condition = Math.min(100, b.condition + 2 * dt); base.wear(UPKEEP_TOOL, tool, dt); }   // [EXAMPLE]
+                if (tool > 0 && b.condition < 100) { b.condition = Math.min(100, b.condition + WEAR.repair_per_hour * dt); base.wear(UPKEEP_TOOL, tool, dt); }   // [EXAMPLE]
                 continue;
             }
             free += dt * Math.min(4, w.skill(r.skill) / Math.max(1, r.min));
@@ -635,6 +693,7 @@ final class Production {
         if (free > 0 && b.chargedDay != day && !charge(b, base)) { b.job.waiting = "no power or water left today"; return; }
         if (crew.isEmpty() && r.hours > 0 && b.job.work < need(b, r, crew)) { b.job.waiting = "no workers"; return; }
         b.job.waiting = "";
+        if (free > 0 && (b.kind() == null || !b.kind().automatic)) b.ranHours += dt;
         b.job.work += free * efficiency(b) * (foreman ? 1.25 : 1) * (b.job.extra ? 1.5 : 1);
         if (b.job.work >= need(b, r, crew) - 1e-9 && t + dt - b.job.startedAt >= r.days * 24 - 1e-9) finish(b, r, base, wf, crew, out);
     }
@@ -856,9 +915,9 @@ final class Production {
         sb.append(r == null ? "no job" : r.name + (b.job.runs == 0 ? " (until stopped" : " (" + b.job.done + " of " + b.job.runs) + ", this run "
                 + Math.round(100 * Math.min(1, b.job.work / Math.max(0.01, r.hours))) + " %)");
         sb.append(" · crew ").append(b.crew.size()).append(b.site ? "" : "/" + b.slots());
-        if (upkeep(b) > 0) sb.append(" · upkeep ").append(Math.round(b.upkeepDone)).append("/").append(Math.round(upkeep(b))).append(" h this week")
+        if (upkeep(b) > 0) sb.append(" · upkeep ").append(SheetGui.f(b.upkeepDone)).append("/").append(SheetGui.f(upkeep(b))).append(" h this week")
                 .append(b.noTool ? " (WAITS: it needs " + UPKEEP_TOOL + " of Tier " + Rules.roman(b.tier) + " or better)" : "");
-        if (b.condition < 100) sb.append(" · condition ").append(Math.round(b.condition)).append(" %")
+        if (b.condition < 100) sb.append(" · condition ").append(pct(b.condition)).append(" %")
                 .append(efficiency(b) < 1 ? " (works at " + Math.round(100 * efficiency(b)) + " %)" : "");
         if (b.job != null && !b.job.waiting.isEmpty()) sb.append(" · WAITS: ").append(b.job.waiting);
         return sb.toString();

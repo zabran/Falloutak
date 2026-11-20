@@ -37,11 +37,26 @@ class WorksTest extends MockGame {
         long xp0 = c.xp;
         Menus.gm(gm);
         click("Pass time (everyone)");
-        clickAndClose("Pass", "h", 8f, "m", 0f);                                         // 4 h upkeep, then 2 h of work
+        clickAndClose("Pass", "h", 8f, "m", 0f);                                         // 3 h upkeep, then 2 h of work
         s = said(gm);
         assertTrue(s.contains("Maintenance workshop: Recast scrap done → 1 Metal II R1 (1 of 1)"), s);
         assertEquals(1, plugin.base.count("Metal", 2, 1));
         assertEquals(xp0 + 8, c.xp);                                                    // his downtime work: 1 XP an hour
+    }
+
+    @Test
+    void theGmsEventDamagesABuilding() {
+        // round 6 (Marek 11-20): "The prologue should be full of events" [the button mine]
+        PlayerMock gm = player();
+        Production.Building r = plugin.production.build("Kitchen", 3, "Kitchen");
+        Menus.actions(gm);
+        click("Production");
+        Ui.Page pg = click("Kitchen");
+        assertFalse(pg.labels().contains("Stop the job"), pg.labels().toString());   // no job: nothing to stop
+        click("GM: an event damages it");
+        click("Damage", "d", 40f);
+        assertEquals(60, r.condition, 1e-9);
+        assertTrue(said(gm).contains("Kitchen: condition 100 → 60 % (works at 90 %)"), said(gm));
     }
 
     @Test

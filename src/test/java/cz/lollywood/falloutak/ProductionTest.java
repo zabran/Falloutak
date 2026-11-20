@@ -113,13 +113,13 @@ class ProductionTest {
         String m = pr.start(ws, recipe("recast-scrap"), 2, 1, crew);
         assertTrue(m.contains("Honza"), m);
         assertEquals("production", crew.activity.get("person:Honza"));
-        // the week's upkeep comes first: 2 h x Tier II = 4 h; then 4 h of recipe at x2 = 2 h a run
-        pr.advance(5, 0, base, crew, 0);
+        // the week's upkeep comes first: Tier II = 3 h (round 6); then 4 h of recipe at x2 = 2 h a run
+        pr.advance(4, 0, base, crew, 0);
         assertEquals(0, base.count("Metal", 2, 0));
         assertEquals(3, base.count("Metal", 1, 0));                                    // the first run's inputs are in
-        pr.advance(1, 5, base, crew, 0);
+        pr.advance(1, 4, base, crew, 0);
         assertEquals(1, base.count("Metal", 2, 1));
-        pr.advance(2, 6, base, crew, 0);
+        pr.advance(2, 5, base, crew, 0);
         assertEquals(2, base.count("Metal", 2, 1));
         assertNull(ws.job);                                                            // two runs: done
         assertTrue(ws.crew.isEmpty());
@@ -127,7 +127,7 @@ class ProductionTest {
         assertEquals(0, base.count("Metal", 1, 0));
         assertEquals(0, base.count("Fuel", 2, 0));
         assertTrue(base.unlocked.contains(Base.key("Metal", 2, 1)));                  // made in the base: unlocked
-        assertEquals(96, base.pools.get(Base.key("Gear and tools", 2, 1)).average(), 1e-9);   // 4 h of upkeep: 1 % an hour
+        assertEquals(97, base.pools.get(Base.key("Gear and tools", 2, 1)).average(), 1e-9);   // 3 h of upkeep: the TOOL 1 % an hour
     }
 
     @Test
@@ -269,27 +269,64 @@ class ProductionTest {
     }
 
     @Test
-    void aMissedWeekOfUpkeepWearsTheBuildingDownAndItsCrewRepairsIt() {
+    void aMissedWeekOfUpkeepWearsTheBuildingByItsTierAndItsCrewRepairsIt() {
+        // round 6 (Marek 11-20): "The buildings must have condition lost in some absolute number - bigger tier, the less maintanance
+        // and the longer it lasts abandoned." · "players must not be forced out before first year" [the numbers EXAMPLE]
         Production pr = new Production();
         pr.shelter();
         Base base = new Base(null);
         List<String> out = pr.advance(170, 0, base, new Crew(), 0);
-        Production.Building reactor = pr.buildings.get(0);
-        assertEquals(75, reactor.condition, 1e-9);                                     // a week with nobody: −25 [EXAMPLE]
-        assertTrue(out.stream().anyMatch(s -> s.startsWith("Reactor: upkeep missed")), out.toString());
+        Production.Building reactor = pr.buildings.get(0), filtration = pr.buildings.get(1);
+        Production.Building ws = pr.buildings.stream().filter(b -> b.kind.equals("Workshop")).findFirst().orElseThrow();
+        Production.Building dorm = pr.buildings.stream().filter(b -> b.kind.equals("Dormitories")).findFirst().orElseThrow();
+        assertEquals(100 - 100.0 / 1300, reactor.condition, 1e-9);                     // a week running, T IV: 0 in 25 years
+        assertEquals(100 - 100.0 / 260, filtration.condition, 1e-9);                   // T III: 0 in 5 years
+        assertEquals(100 - 100.0 / 780, ws.condition, 1e-9);                           // T II idle (no job): 0 in 15 years abandoned
+        assertTrue(out.contains("Reactor: upkeep missed a week, condition 100 → 99.9 %"), out.toString());
+        // the first year with no tools: everything still works fully
+        out = pr.advance(52 * 168, 170, base, new Crew(), 0);
+        assertEquals(100 - 53 * 100.0 / 260, filtration.condition, 1e-9);              // 79.6 %
+        assertEquals(1, Production.efficiency(filtration), 1e-9);
+        assertEquals(100 - 53 * 100.0 / 1300, reactor.condition, 1e-9);
+        assertEquals(100, dorm.condition, 1e-9);                                       // no upkeep, no wear
+        assertTrue(out.contains("Water filtration: upkeep missed 52 weeks, condition 99.6 → 79.6 %"), out.toString());
+        // ... and down below 75 % it says so
+        out = pr.advance(3 * 168, 170 + 52 * 168, base, new Crew(), 0);
+        assertTrue(out.contains("Water filtration: upkeep missed 3 weeks, condition 79.6 → 78.5 %"), out.toString());
+        out = pr.advance(10 * 168, 170 + 55 * 168, base, new Crew(), 0);
+        assertTrue(out.contains("Water filtration: upkeep missed 10 weeks, condition 78.5 → 74.6 %: it works less from now"), out.toString());
+        // the GM's event (round 6: "The prologue should be full of events") [mine]
+        double r0 = reactor.condition;
+        assertEquals("Reactor: condition " + Production.pct(r0) + " → " + Production.pct(r0 - 30) + " % (works at 93 %)", pr.damage(reactor, 30));
         Crew crew = new Crew(worker("Tech", "Engineering", 40));
         pr.pick(reactor, crew);                                                        // an automatic room's crew: its upkeep
         assertEquals(List.of("person:Tech"), reactor.crew);
         // round 5: "upkeep needs tools of the same tier": without a Tier IV tool nothing moves
+        double t = 170 + 65 * 168;                                                     // week 65 starts at 65 * 168
         base.addUnits("Gear and tools", 3, 1, 1);                                      // Tier III: not enough for the reactor
-        pr.advance(5, 170, base, crew, 0);
-        assertEquals(75, reactor.condition, 1e-9);
+        pr.advance(5, t, base, crew, 0);
+        assertEquals(r0 - 30, reactor.condition, 1e-9);
         assertTrue(pr.status(reactor).contains("WAITS: it needs Gear and tools of Tier IV or better"), pr.status(reactor));
         base.addUnits("Gear and tools", 4, 1, 1);
-        pr.advance(8 + 10, 175, base, crew, 0);                                        // 8 h upkeep (Tier IV), then repairs +2 an hour
-        assertEquals(95, reactor.condition, 1e-9);
-        assertEquals(82, base.pools.get(Base.key("Gear and tools", 4, 1)).average(), 1e-9);   // 18 h of work: 18 %
+        pr.advance(1 + 10, t + 5, base, crew, 0);                                      // 1 h upkeep (Tier IV), then repairs +2 an hour
+        assertEquals(r0 - 30 + 20, reactor.condition, 1e-9);
+        assertEquals(89, base.pools.get(Base.key("Gear and tools", 4, 1)).average(), 1e-9);   // 11 h of work: the TOOL 11 %
         assertEquals(1, base.pools.get(Base.key("Gear and tools", 3, 1)).fresh);      // the Tier III one untouched
+    }
+
+    @Test
+    void aJobRoomWearsOnlyTheHoursItWorks() {
+        // round 6: a missed week = its running hours at the running rate, the rest idle [EXAMPLE]
+        Production pr = new Production();
+        Production.Building ws = pr.build("Workshop", 2, "W");
+        ws.upkeepWeek = 0;
+        ws.ranHours = 40;
+        assertEquals(40 * 100.0 / (104 * 168) + 128 * 100.0 / (780 * 168), pr.weekWear(ws), 1e-9);
+        ws.upkeepDone = 1.5;                                                           // half of the 3 h done: half the wear
+        assertEquals((40 * 100.0 / (104 * 168) + 128 * 100.0 / (780 * 168)) / 2, pr.weekWear(ws), 1e-9);
+        assertEquals(3, ws.upkeepNeed(), 1e-9);
+        assertEquals(4, pr.build("Workbench", 1, "B").upkeepNeed(), 1e-9);            // the lower the tier, the more upkeep
+        assertEquals(1, pr.build("Workshop", 4, "W4").upkeepNeed(), 1e-9);
     }
 
     @Test
@@ -535,7 +572,7 @@ class ProductionTest {
         pr.start(ws, recipe("recast-scrap"), 1, 1, crew);
         pr.advance(1, 1, base, crew, 0);
         assertEquals(1.5, ws.job.work, 1e-9);
-        assertTrue(pr.status(ws).contains("condition 38 % (works at 75 %)"), pr.status(ws));
+        assertTrue(pr.status(ws).contains("condition 37.5 % (works at 75 %)"), pr.status(ws));
     }
 
     @Test
@@ -549,9 +586,9 @@ class ProductionTest {
         Production pr = new Production();
         Production.Building ws = pr.build("Workshop", 2, "W");
         pr.advance(1, 0, new Base(null), new Crew(worker("Q", "Economy", 100, "Quartermaster")), 0);
-        assertEquals(3.2, pr.upkeep(ws), 1e-9);
+        assertEquals(2.4, pr.upkeep(ws), 1e-9);
         pr.advance(1, 1, new Base(null), new Crew(), 0);
-        assertEquals(4, pr.upkeep(ws), 1e-9);
+        assertEquals(3, pr.upkeep(ws), 1e-9);
         // Salvager: +50 % from found junk taken apart; the half carried to the next run
         assertTrue(Production.salvage(recipe("take-apart-junk")));
         assertFalse(Production.salvage(recipe("recast-scrap")));

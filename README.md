@@ -3,6 +3,20 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.45.0 (2026-11-21): part 7 round 6: the buildings wear by their tier, Hands-On Learner, the GM's events.**
+- **The buildings wear in absolute numbers by their tier** (Marek: *"bigger tier, the less maintanance and the longer it lasts
+  abandoned"* · *"players must not be forced out before first year"*) [the numbers EXAMPLE]: upkeep 4 / 3 / 2 / 1 h a week for Tier
+  I-IV; a missed week costs its running hours and its idle hours at the tier's rates: running round the clock with no upkeep a Tier I
+  room reaches 0 in 26 weeks, II in 2 years, III in 5 years (full for the first 15 months), IV in 25 years; standing idle (abandoned)
+  5 / 15 / 40 / 100 years. A job room wears only the hours it works. The GM gets one line a building for a long pass of time.
+  Only the TOOL wears 1 % an hour of the upkeep, never the building.
+- **The GM's events** (*"The prologue should be full of events"*): a building's page → *GM: an event damages it* (its condition falls).
+- **Hands-On Learner offered** (*"I would make it up to 3 (meaning it can be less)"*): the GM's *Award XP → A passed check* names the
+  skill; a PC with the trait gains +1 skill point in it, up to 3 skills a session (the evening's date), each once; −3 skill points a
+  level. A PC's own: dying loses it, a group cannot take it.
+- **Reverse Engineer** at Engineering 150 (*"Yes, that sounds usable."*): an inspiration for part 8's research, still parked until then.
+- Fixed: a building with no job that cannot repair parts showed *Stop the job*.
+
 **Version 0.44.1 (2026-11-20):** a recipe that makes Water is not capped by the room's daily water (its own water input is the product).
 
 **Version 0.44.0 (2026-11-20): part 7 round 5: the parts keep their condition, water by tier, tools for upkeep, the recipes ranked.**

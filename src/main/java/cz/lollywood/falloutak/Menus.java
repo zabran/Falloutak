@@ -905,17 +905,26 @@ final class Menus {
         List<String> names = new ArrayList<>();
         for (Player o : Bukkit.getOnlinePlayers()) names.add(o.getName());
         if (names.isEmpty()) { say(g, "! nobody online"); return; }
-        ask(g, "A passed check", "XP = the difficulty (the penalty in % points: a −40 % lock = 40), at least " + Rules.CHECK_XP_MIN + ", Doctor doubled.",
+        List<String> skills = new ArrayList<>(List.of("—"));
+        for (Rules.Skill s : Rules.SKILLS) skills.add(s.name());
+        ask(g, "A passed check", "XP = the difficulty (the penalty in % points: a −40 % lock = 40), at least " + Rules.CHECK_XP_MIN + ", Doctor doubled. "
+                        + "The skill: Hands-On Learner's +1 point when it mattered (up to " + Character.HANDS_ON_MAX + " skills a session).",
                 List.of(choice("who", "Who", names), Ui.In.numberRange("d", Component.text("Difficulty (%)"), 0, 100).step(5f).initial(20f).width(300).build(),
-                        Ui.In.bool("doc", Component.text("Doctor (doubled)")).initial(false).build()),
+                        Ui.In.bool("doc", Component.text("Doctor (doubled)")).initial(false).build(), choice("skill", "The skill (when it mattered)", skills)),
                 form("Award", "the check's XP", (v, x) -> {
                     Player who = Bukkit.getPlayerExact(v.getText("who"));
                     if (who == null) { say(x, "! " + v.getText("who") + " is not online"); return; }
                     boolean doc = Boolean.TRUE.equals(v.getBoolean("doc"));
-                    say(x, pl.roster.award(who, Rules.checkXp(v.getFloat("d"), doc), doc ? "Doctor" : "a check"));
+                    String r = pl.roster.award(who, Rules.checkXp(v.getFloat("d"), doc), doc ? "Doctor" : "a check");
+                    String ho = pl.character(who).handsOn(v.getText("skill"), handsOnSession());
+                    if (!ho.isEmpty()) { who.sendMessage(Component.text(ho, NamedTextColor.GREEN)); pl.save(who.getUniqueId()); r += " · " + ho; }
+                    say(x, r);
                     xpMenu(x);
                 }), Menus::xpMenu);
     }
+
+    /** The session Hands-On Learner counts in: the evening's date (a session after midnight still counts as that evening) [mine]. */
+    static String handsOnSession() { return java.time.LocalDateTime.now().minusHours(6).toLocalDate().toString(); }
 
     static void xpDiscover(Player g) {
         List<Ui.In> in = teamInputs();

@@ -71,10 +71,11 @@ final class Works {
             lines.add(line(" · " + (wk == null ? w : wk.label() + (r == null ? "" : ", " + r.skill + " " + Math.round(wk.skill(r.skill)))), NamedTextColor.GRAY));
         }
         List<Ui.Btn> b = new ArrayList<>();
-        if (x.job == null) b.add(btn("Start a job", "the recipes this building can run, the best first", y -> recipePick(y, x.id)));
-        if (x.job == null && Production.fits(x, Production.repairRecipe("Hard armour parts", 1)))
-            b.add(btn("Repair worn parts", "a row of worn parts in the store: the repair kit's points by the crew's skill (round 5)", y -> repairPick(y, x.id)));
-        else b.add(btn("Stop the job", "the run's inputs go back to the store; the crew is free again", y -> { say(y, pr.stop(x, pl.workforce(), pl.base)); pr.save(); main(y); }));
+        if (x.job == null) {
+            b.add(btn("Start a job", "the recipes this building can run, the best first", y -> recipePick(y, x.id)));
+            if (Production.fits(x, Production.repairRecipe("Hard armour parts", 1)))
+                b.add(btn("Repair worn parts", "a row of worn parts in the store: the repair kit's points by the crew's skill (round 5)", y -> repairPick(y, x.id)));
+        } else b.add(btn("Stop the job", "the run's inputs go back to the store; the crew is free again", y -> { say(y, pr.stop(x, pl.workforce(), pl.base)); pr.save(); main(y); }));
         b.add(btn("Pick the crew again", "the best free workers fill the free slots (the automatic pick)", y -> {
             List<String> got = pr.pick(x, pl.workforce());
             say(y, got.isEmpty() ? "Nobody free fits." : "Joined: " + String.join(", ", got));
@@ -82,8 +83,20 @@ final class Works {
         }));
         b.add(btn("Add a worker", "choose one of the free workers (the players may change the pick)", y -> addWorker(y, x.id)));
         if (!x.crew.isEmpty()) b.add(btn("Remove a worker", "back to idling", y -> removeWorker(y, x.id)));
+        if (gm(p) && !x.site) b.add(btn("GM: an event damages it", "a burst pipe, a fire, a quake: its condition falls (round 6: the prologue's events)", y -> gmDamage(y, x.id)));
         if (gm(p) && !x.site) b.add(btn("GM: remove the building", "gone, its job stopped", y -> { pr.remove(x, pl.workforce(), pl.base); pr.save(); main(y); }));
         menu(p, x.name, lines, b, Works::main);
+    }
+
+    /** The GM's event on a building: its condition falls by the points chosen (round 6) [mine]. */
+    static void gmDamage(Player p, String id) {
+        Production.Building x = pr().building(id);
+        if (x == null) { main(p); return; }
+        ask(p, "An event damages " + x.name, "Now " + Production.pct(x.condition) + " %. Below 75 % it works less, at 0 it stops until its crew repairs it with "
+                        + Production.UPKEEP_TOOL + " of Tier " + Rules.roman(x.tier) + " or better.",
+                List.of(Ui.In.numberRange("d", Component.text("Condition lost (% points)"), 0, 100).step(5f).initial(20f).width(300).build()),
+                form("Damage", "the condition falls", (v, y) -> { say(y, pr().damage(x, v.getFloat("d"))); pr().save(); building(y, x.id); }),
+                y -> building(y, x.id));
     }
 
     static void recipePick(Player p, String id) {

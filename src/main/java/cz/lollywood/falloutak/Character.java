@@ -58,6 +58,9 @@ public final class Character {
     public final int[] base = {5, 6, 6, 5, 7, 7, 4};
     public final List<Effect> effects = new ArrayList<>();
     public final List<Feat> traits = new ArrayList<>();
+    /** Hands-On Learner (round 6): the session its skills were counted in, and those skills (up to {@link #HANDS_ON_MAX}). */
+    public String handsOnSession = "";
+    public final List<String> handsOnSkills = new ArrayList<>();
     public final List<Feat> perks = new ArrayList<>();
     public final Set<String> tags = new LinkedHashSet<>();
     public final double[] points = new double[Rules.SKILLS.size()];
@@ -1189,6 +1192,31 @@ public final class Character {
      * level's skill points ({@link #skillRate}, read from the permanent values) are added to spend; a perk level is named (the
      * template's rate). Returns what happened ("" if nothing).
      */
+    /** Hands-On Learner's skills a session (round 6, Marek 11-20: *"I would make it up to 3 (meaning it can be less)"*). */
+    public static final int HANDS_ON_MAX = 3;
+
+    /**
+     * Hands-On Learner (02c; round 6, Marek 11-20, verbatim: *"but dying should remove it, so it shuld be a bit lower on average, for
+     * PCs. It would be really OP for members. Also, I would make it up to 3 (meaning it can be less)."*): a skill used successfully when
+     * it mattered gains +1 skill point, priced as any point (1 a % to 100, 2 to 200, 4 above; a tagged skill twice), at most
+     * {@value #HANDS_ON_MAX} skills a session, each once. A PC's own trait: the gains are his and die with him (a new character from his
+     * group starts without them); a group cannot take it. {@code session} names the session (the plugin's: the evening's date).
+     * Returns what happened ("" without the trait).
+     */
+    public String handsOn(String skill, String session) {
+        if (traits.stream().noneMatch(f -> f.name().equals("Hands-On Learner"))) return "";
+        int i = Rules.skillIndex(skill);
+        if (i < 0) return "";
+        if (!session.equals(handsOnSession)) { handsOnSession = session; handsOnSkills.clear(); }
+        if (handsOnSkills.contains(skill)) return "Hands-On Learner: " + skill + " already grew this session";
+        if (handsOnSkills.size() >= HANDS_ON_MAX) return "Hands-On Learner: " + HANDS_ON_MAX + " skills already grew this session";
+        double gain = (tags.contains(skill) ? 2.0 : 1.0) / Rules.pricePerPercent(skills(true)[i]);
+        points[i] += gain;
+        handsOnSkills.add(skill);
+        return "Hands-On Learner: " + skill + " +" + SheetGui.f(Math.round(gain * 100) / 100.0) + " % (" + handsOnSkills.size() + " of " + HANDS_ON_MAX
+                + " this session)";
+    }
+
     public String gainXp(long n) {
         if (n <= 0 || dead) return "";
         xp += n;

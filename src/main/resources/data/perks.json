@@ -825,25 +825,6 @@
    "other": {}
   },
   {
-   "name": "Reverse Engineer",
-   "kind": "skill",
-   "gate": "Engineering 100",
-   "alts": [
-    {
-     "skills": [
-      "Engineering"
-     ],
-     "any": "",
-     "value": 100
-    }
-   ],
-   "effect": "taking a working item apart gives you its schematic (part 7)",
-   "parked": true,
-   "bound": false,
-   "mods": {},
-   "other": {}
-  },
-  {
    "name": "Prototype",
    "kind": "skill",
    "gate": "Engineering 150",
@@ -857,6 +838,25 @@
     }
    ],
    "effect": "your prototypes pass their first test (part 8)",
+   "parked": true,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
+   "name": "Reverse Engineer",
+   "kind": "skill",
+   "gate": "Engineering 150",
+   "alts": [
+    {
+     "skills": [
+      "Engineering"
+     ],
+     "any": "",
+     "value": 150
+    }
+   ],
+   "effect": "taking a working item apart gives the inspiration for researching better ways to its parts; the experiments and the prototype still needed (part 8)",
    "parked": true,
    "bound": false,
    "mods": {},
