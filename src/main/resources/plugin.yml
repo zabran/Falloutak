@@ -16,8 +16,8 @@ commands:
     description: The base's population. /pop [list|add <name> <group> [species]|set <name> <field> <value>|remove <name>]
     usage: /pop [list|add|set|remove]
   group:
-    description: The players' groups (part 6). /group [list|add <name>|xp <name> <amount>|leader <player>|spend <group>|unlock|grant|join]
-    usage: /group [list|add|xp|leader|spend|unlock|grant|join]
+    description: The players' groups (part 6). /group [list|add <name>|xp <name> <amount>|spend <group>|unlock|grant|join]
+    usage: /group [list|add|xp|spend|unlock|grant|join]
     aliases: [faction]
   xp:
     description: XP awards (part 6, the GM). /xp give|quest <team> <n> · kill <team> <HP...> · check <player> <difficulty> [doctor] · discover <team> · research <team> <tier> <rarity>

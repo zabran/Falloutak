@@ -15,8 +15,9 @@ import java.util.*;
  * /npc, /pop and /group: the data store's step 2 (the workbook's NPC, Population and Factions tabs). Anyone may look; changing
  * needs {@code falloutak.gm} (operators). An NPC statblock is a character sheet saved under its name; {@code /npc edit} puts it in
  * place of your own sheet, so every /sheet page and form works on it, and {@code /npc done} gives yours back. Part 6 (RULED
- * 11-20): the PCs' XP and the members' work fill a group's pool, its whole levels give its statblock skill points, and the faction
- * leader (or the GM) spends them ({@code /group spend}).
+ * 11-20): the PCs' XP and the members' work fill a group's pool, its whole levels give its statblock skill points, and any player
+ * spends them (Marek 11-20: *"any player, it does not really matter who does faction management"*; Actions → Groups, or
+ * {@code /group spend}). A dead PC's player goes on as a member of his group; teaching adds XP.
  */
 final class Roster implements CommandExecutor {
     private final FalloutakPlugin pl;
@@ -177,11 +178,8 @@ final class Roster implements CommandExecutor {
         sb.unspentSkillPoints += pts;
         g.statLevel = whole;
         putStatblock(g.name, sb);
-        String r = g.name + " is level " + whole + ": +" + pts + " skill points" + (perks.isEmpty() ? "" : " and a perk (level "
-                + perks.get(perks.size() - 1) + ")") + " for the leader (/group spend " + g.name + ")";
-        Player lead = pop.leader.isEmpty() ? null : org.bukkit.Bukkit.getPlayerExact(pop.leader);
-        if (lead != null) say(lead, r + ".", NamedTextColor.GOLD);
-        return r;
+        return g.name + " is level " + whole + ": +" + pts + " skill points to spend" + (perks.isEmpty() ? "" : " and a perk due (level "
+                + perks.get(perks.size() - 1) + ")") + " (Actions → Groups)";
     }
 
     /** A group's statblock: the one someone is editing (/npc edit) if so, else the saved one. */
@@ -300,9 +298,76 @@ final class Roster implements CommandExecutor {
         if (!missing.isEmpty()) say(s, "Not online: " + String.join(", ", missing), NamedTextColor.RED);
     }
 
-    /** May this one spend a group's points: the faction leader or the GM (06 §2.2: *"faction leader (expected Spoke) manages that."*). */
-    boolean leads(CommandSender s) {
-        return s.hasPermission("falloutak.gm") || (!pop.leader.isEmpty() && s.getName().equalsIgnoreCase(pop.leader));
+    /**
+     * A dead PC's player goes on as a member of his group (06 §2.3, RULED; the presentation: *„Až zemřete, hrajete za jednoho z
+     * nich“*): his sheet = the group's statblock, his XP = the pool / the headcount (the level from it, no points to spend), his
+     * traits from his own row, his HP his row's; he leaves the group's count and his share leaves the pool; from then on he is a PC.
+     * The dead one is kept (fallen/). Returns the message, "!" first when refused.
+     */
+    String takeOver(Player p, String memberName) {
+        Character dead = pl.character(p);
+        if (!dead.dead) return "! only when your character is dead";
+        Population.Person m = pop.person(memberName);
+        if (m == null || !m.group.equalsIgnoreCase(dead.group)) return "! " + memberName + " is not in your group (" + dead.group + ")";
+        Population.Group g = pop.group(m.group);
+        Character sb = g == null ? null : statblock(g.name);
+        if (sb == null) return "! " + m.group + " has no statblock yet (the GM: /npc edit " + m.group + ")";
+        int n = pop.members(g.name);
+        double share = n > 0 ? g.xp / n : 0;
+        Character c = Store.fromJson(Store.toJson(sb));
+        c.name = m.name;
+        c.player = dead.player.isEmpty() ? p.getName() : dead.player;
+        c.group = g.name;
+        c.xp = Math.round(share);
+        c.level = Rules.levelFor(c.xp);
+        c.unspentSkillPoints = 0;
+        c.traits.clear();
+        for (String t : m.traits) {
+            Data.Trait d = null;
+            for (Data.Trait x : Data.TRAITS.values()) if (x.name().equalsIgnoreCase(t.trim())) d = x;
+            c.traits.add(d != null ? new Character.Feat(d.name(), "trait (" + d.from() + ")", d.bonus() + "; " + d.drawback())
+                    : new Character.Feat(t.trim(), "trait", ""));
+        }
+        if (m.hpMax > 0) c.hp = Math.max(1, Math.min(c.hpMax(), m.hp));
+        c.working = false;
+        c.sleeping = false;
+        try { pl.store.saveFallen(p.getUniqueId(), dead); } catch (Exception e) { pl.getLogger().warning("could not keep the fallen " + dead.name + ": " + e); }
+        g.xp = Math.max(0, g.xp - share);
+        pop.people.remove(m);
+        save();
+        pl.characters.put(p.getUniqueId(), c);
+        try { pl.store.save(p.getUniqueId(), c); } catch (Exception e) { pl.getLogger().warning("could not save " + c.name + ": " + e); }
+        return "You go on as " + c.name + " of " + g.name + ": level " + c.level + " (" + c.xp + " XP, the group's pool / " + n + "). "
+                + dead.name + " is kept among the fallen.";
+    }
+
+    /**
+     * Lessons (06 §2.5, RULED 11-20: teaching is XP only): a PC teaches a subject the group knows less of; each student (a class of
+     * 1 + Leadership / 10) gets 1 + Leadership / 25 XP an hour INSTEAD of his work's 1, so the pool gains the difference; at most 8
+     * lesson hours a game week a group; the teacher earns his own work's 1 XP an hour. Returns the message ("!" when refused).
+     */
+    String lessons(Player teacher, String group, String subject, int hours) {
+        Population.Group g = pop.group(group);
+        if (g == null) return "! no group " + group;
+        Character sb = statblock(g.name), t = pl.character(teacher);
+        if (sb == null) return "! " + g.name + " has no statblock yet";
+        if (Rules.SKILLS.stream().noneMatch(x -> x.name().equals(subject))) return "! no skill " + subject;
+        if (t.skill(subject) <= sb.skill(subject))
+            return "! " + t.name + " (" + subject + " " + SheetGui.f(t.skill(subject)) + " %) does not know more than " + g.name + " (" + SheetGui.f(sb.skill(subject)) + " %)";
+        long week = (long) Math.floor(t.now() / 168);
+        if (g.lessonWeek != week) { g.lessonWeek = week; g.lessonHours = 0; }
+        int h = Math.min(hours, Rules.LESSON_HOURS_A_WEEK - g.lessonHours);
+        if (h <= 0) return "! " + g.name + " has had its " + Rules.LESSON_HOURS_A_WEEK + " lesson hours this week";
+        double lead = t.skill("Leadership");
+        int students = Math.min(pop.members(g.name), Rules.classSize(lead));
+        if (students <= 0) return "! " + g.name + " has nobody to teach";
+        double gain = students * h * (Rules.lessonXp(lead) - Rules.workXp(true));
+        g.lessonHours += h;
+        String up = pool(g.name, gain);
+        String mine = award(teacher, h * Rules.workXp(true), "teaching");
+        return t.name + " taught " + subject + " to " + students + " of " + g.name + " for " + h + " h (" + SheetGui.f(Rules.lessonXp(lead))
+                + " XP a student-hour instead of 1): the pool +" + Math.round(gain) + (up.isEmpty() ? "" : "; " + up) + ". " + mine
+                + ". Lesson hours left this week: " + (Rules.LESSON_HOURS_A_WEEK - g.lessonHours) + ".";
     }
 
     // ------------------------------------------------------------------ /pop
@@ -359,8 +424,7 @@ final class Roster implements CommandExecutor {
     private void group(CommandSender s, String sub, String[] a) {
         switch (sub) {
             case "list" -> {
-                say(s, "Groups (the level = the PCs' table on the XP per member; the faction leader: " + (pop.leader.isEmpty() ? "none, /group leader <player>" : pop.leader)
-                        + "; areas found " + pop.areasFound + "):", NamedTextColor.AQUA);
+                say(s, "Groups (the level = the PCs' table on the XP per member; areas found " + pop.areasFound + "; Actions → Groups):", NamedTextColor.AQUA);
                 for (Population.Group f : pop.groups) {
                     int n = pop.members(f.name);
                     double lv = Population.level(f.xp, n);
@@ -390,16 +454,8 @@ final class Roster implements CommandExecutor {
                 say(s, f.name + ": XP " + Math.round(f.xp) + ", level " + SheetGui.f(Math.round(Population.level(f.xp, pop.members(f.name)) * 100) / 100.0)
                         + (up.isEmpty() ? "" : ". " + up), NamedTextColor.GREEN);
             }
-            case "leader" -> {   // 06 §2.4 (RULED 11-20): the faction leader runs every group
-                if (a.length < 2) { say(s, "The faction leader: " + (pop.leader.isEmpty() ? "none" : pop.leader) + " (/group leader <player>, the GM)", NamedTextColor.AQUA); return; }
-                if (!gm(s)) return;
-                pop.leader = a[1];
-                save();
-                say(s, a[1] + " leads the faction: he spends every group's points (/group spend <group>).", NamedTextColor.GREEN);
-            }
-            case "spend" -> {   // 06 §2.2 (RULED 11-20): the leader spends the statblock's points
+            case "spend" -> {   // 06 §2.2 (Marek 11-20: any player levels a group up)
                 if (!(s instanceof Player p)) { say(s, "Only a player can spend (it opens a form).", NamedTextColor.RED); return; }
-                if (!leads(s)) { say(s, "Only the faction leader (" + (pop.leader.isEmpty() ? "none set" : pop.leader) + ") or the GM spends a group's points.", NamedTextColor.RED); return; }
                 if (a.length < 2) { say(s, "/group spend <group>", NamedTextColor.GRAY); return; }
                 Population.Group f = pop.group(a[1]);
                 if (f == null) { say(s, "No group " + a[1] + ".", NamedTextColor.RED); return; }
@@ -437,7 +493,7 @@ final class Roster implements CommandExecutor {
                 if (!c.unlocked.contains(t.name())) c.unlocked.add(t.name());
                 say(s, t.name() + " unlocked for " + who.getName() + " (" + t.cosPoints() + " CoS points): /sheet create offers it.", NamedTextColor.GREEN);
             }
-            default -> say(s, "/group [list] · add <name> · xp <name> <amount> · leader <player> · spend <group> · unlock <group> <template> · grant <player> <template> · join <player> <group>", NamedTextColor.GRAY);
+            default -> say(s, "/group [list] · add <name> · xp <name> <amount> · spend <group> · unlock <group> <template> · grant <player> <template> · join <player> <group>", NamedTextColor.GRAY);
         }
     }
 }

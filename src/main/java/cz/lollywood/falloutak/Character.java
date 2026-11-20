@@ -66,6 +66,9 @@ public final class Character {
     public int hp;
     public final EnumMap<Rules.Stat, Double> survival = new EnumMap<>(Rules.Stat.class);
     public boolean sleeping = false;
+    /** Downtime work in the base (06b §5.4.7: 1 XP an hour, RULED); the hours worked wait here until the GM's clock awards them. */
+    public boolean working = false;
+    public int workedHours = 0;
     /** Bleeding = Blood lost a round (absolute, Marek 11-14); broken legs 0-2 (the stance table's 400 % / 800 %). */
     public double locationRads = 0, bleeding = 0;
     public int brokenLegs = 0;

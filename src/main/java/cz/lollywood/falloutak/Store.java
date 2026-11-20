@@ -81,6 +81,13 @@ final class Store {
         try { Files.move(f, npcDir().resolve(name + ".deleted-" + System.currentTimeMillis() + ".json")); return true; } catch (IOException e) { return false; }
     }
 
+    /** A dead PC is kept when his player goes on as someone else (fallen/<player>-<time>.json, never lost). */
+    void saveFallen(UUID u, Character c) throws IOException {
+        Path d = dir.resolveSibling("fallen");
+        Files.createDirectories(d);
+        Files.writeString(d.resolve(u + "-" + System.currentTimeMillis() + ".json"), toJson(c), StandardCharsets.UTF_8);
+    }
+
     void save(UUID u, Character c) throws IOException {
         Files.createDirectories(dir);
         Path tmp = dir.resolve(u + ".json.tmp");

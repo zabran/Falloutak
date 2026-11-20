@@ -205,7 +205,10 @@ final class Menus {
                     (c.synthetic() ? "Memory +4 an hour while time passes" : "while time passes: Sleep +4 an hour, Pain −3")
                             + (c.healingRate() < 0 ? "; Fatal Radiation Poisoning: you LOSE " + -c.healingRate() + " HP every 8 hours, resting or not"
                             : "; every 8 hours of rest without bleeding heal " + c.healingRate() + " HP (your healing rate)"),
-                    x -> { c.sleeping = !c.sleeping; c.restHours = 0; actions(x); }));
+                    x -> { c.sleeping = !c.sleeping; c.restHours = 0; if (c.sleeping) c.working = false; actions(x); }));
+            b.add(btn(c.working ? "Stop working" : "Work in the base", "downtime work: 1 XP an hour while the GM passes time (06b), "
+                    + "into your group's pool too" + (c.workedHours > 0 ? "; " + c.workedHours + " h waiting" : ""),
+                    x -> { c.working = !c.working; if (c.working) c.sleeping = false; actions(x); }));
             if (c.synthetic()) {
                 if (nearCharger(p)) b.add(btn("Recharge", "an hour at the charging point: Power +30 (the GM passes the hour)", x -> {
                     c.survival.put(Rules.Stat.FOOD, Math.min(c.max(Rules.Stat.FOOD), c.survival.get(Rules.Stat.FOOD) + 30));
@@ -229,6 +232,10 @@ final class Menus {
                     "what you can do for or to " + o.name(), x -> on(x, whoOf(o.entity()))));
         }
         if (by.isEmpty()) cannot.add("Help someone: nobody within 4 blocks");
+        if (c.dead && !c.group.isEmpty() && !pl.roster.pop.membersOf(c.group).isEmpty())
+            b.add(btn("! Go on as one of " + c.group, "your character is dead: play a member of his group (its statblock, XP = the pool / "
+                    + "the headcount, his own traits)", x -> takeOverPick(x, c)));
+        b.add(btn("Groups", "the base's people: each group's level, its points to spend (any player levels them up), lessons", Menus::groups));
         b.add(btn("My sheet", "your character sheet", x -> SheetView.open(x, c, SheetGui.Page.OVERVIEW)));
         if (p.hasPermission("falloutak.gm")) b.add(btn("GM menu", "the game master's tools", Menus::gm));
         if (!cannot.isEmpty()) {
@@ -691,6 +698,75 @@ final class Menus {
                 }), Menus::gm);
     }
 
+    // ------------------------------------------------------------------ part 6: the groups, for any player (Marek 11-20)
+    static void groups(Player p) {
+        Population pop = pl.roster.pop;
+        List<Ui.Btn> b = new ArrayList<>();
+        for (Population.Group g : pop.groups) {
+            int n = pop.members(g.name);
+            Character sb = pl.roster.statblock(g.name);
+            double lv = Population.level(g.xp, n);
+            int whole = (int) Math.floor(lv + 1e-9);
+            int pts = sb == null ? 0 : sb.unspentSkillPoints;
+            b.add(btn(g.name + " · level " + whole + (pts > 0 ? " · " + pts + " points" : ""), n + (n == 1 ? " person" : " people") + ", XP "
+                    + Math.round(g.xp) + (n > 0 ? " (" + Math.round(g.xp / n) + " a member; level " + (whole + 1) + " at " + Rules.xpForLevel(whole + 1) + ")" : "")
+                    + (sb == null ? "; no statblock yet (the GM: /npc edit " + g.name + ")" : ""), x -> group(x, g.name)));
+        }
+        b.add(btn("Lessons", "a character teaches a group: 1 + Leadership / 25 XP a student-hour instead of work's 1, 8 hours a week", Menus::lessonsForm));
+        menu(p, "Groups", List.of(line("A group's level = its pool / its people, on the characters' table. Work in the base adds 1 XP a "
+                + "member-hour when the GM passes time, and every character's XP goes into his group's pool too.", NamedTextColor.GRAY)), b, Menus::actions);
+    }
+
+    static void group(Player p, String name) {
+        Population pop = pl.roster.pop;
+        Population.Group g = pop.group(name);
+        if (g == null) { groups(p); return; }
+        Character sb = pl.roster.statblock(g.name);
+        List<Component> lines = new ArrayList<>();
+        int n = pop.members(g.name);
+        lines.add(line(n + (n == 1 ? " person" : " people") + " · XP " + Math.round(g.xp) + " · level " + SheetGui.f(Math.round(Population.level(g.xp, n) * 100) / 100.0)
+                + (sb == null ? " · no statblock yet" : " · statblock level " + g.statLevel + ", " + sb.template), NamedTextColor.WHITE));
+        for (Population.Person m : pop.membersOf(g.name))
+            lines.add(line(" " + m.name + " · " + m.activity + " (" + Population.workXp(m.activity) + " XP an hour)" + (m.traits.isEmpty() ? "" : " · " + String.join(", ", m.traits)), NamedTextColor.GRAY));
+        List<Ui.Btn> b = new ArrayList<>();
+        if (sb != null && sb.unspentSkillPoints > 0)
+            b.add(btn("Spend " + sb.unspentSkillPoints + " skill points", "the group's level-up: one statblock for all its people",
+                    x -> Forms.spend(x, pl, sb, y -> pl.roster.putStatblock(g.name, sb))));
+        menu(p, "Group " + g.name, lines, b, Menus::groups);
+    }
+
+    static void lessonsForm(Player p) {
+        List<String> names = new ArrayList<>(), groups = new ArrayList<>(), skills = new ArrayList<>();
+        for (Player o : Bukkit.getOnlinePlayers()) names.add(o.getName());
+        for (Population.Group g : pl.roster.pop.groups) groups.add(g.name);
+        for (Rules.Skill s : Rules.SKILLS) skills.add(s.name());
+        if (groups.isEmpty()) { say(p, "! no groups"); return; }
+        ask(p, "Lessons", "A character teaches a group a skill he knows better than its statblock. Each student (a class of 1 + "
+                        + "Leadership / 10) gets 1 + Leadership / 25 XP an hour instead of his work's 1; at most "
+                        + Rules.LESSON_HOURS_A_WEEK + " lesson hours a group a week; the teacher earns his work's 1 XP an hour.",
+                List.of(choice("t", "Teacher", names), choice("g", "Group", groups), choice("s", "Subject", skills),
+                        Ui.In.numberRange("h", Component.text("Hours"), 1, Rules.LESSON_HOURS_A_WEEK).step(1f).initial(Rules.LESSON_HOURS_A_WEEK).width(300).build()),
+                form("Teach", "the lessons", (v, x) -> {
+                    Player t = Bukkit.getPlayerExact(v.getText("t"));
+                    if (t == null) { say(x, "! " + v.getText("t") + " is not online"); return; }
+                    say(x, pl.roster.lessons(t, v.getText("g"), v.getText("s"), Math.round(v.getFloat("h"))));
+                    groups(x);
+                }), Menus::groups);
+    }
+
+    /** The dead PC's player picks the member he goes on as (06 §2.3). */
+    static void takeOverPick(Player p, Character dead) {
+        List<String> who = new ArrayList<>();
+        for (Population.Person m : pl.roster.pop.membersOf(dead.group)) who.add(m.name);
+        pick(p, "Go on as", "Your character is dead. Pick who of " + dead.group + " you play now: the group's statblock, his own traits, XP = the pool / the headcount.",
+                who, m -> m, m -> { Population.Person q = pl.roster.pop.person(m); return q == null ? "" : q.activity + (q.traits.isEmpty() ? "" : " · " + String.join(", ", q.traits)); },
+                (x, m) -> {
+                    String r = pl.roster.takeOver(x, m);
+                    say(x, r);
+                    if (!r.startsWith("!")) SheetView.open(x, pl.character(x), SheetGui.Page.OVERVIEW);
+                }, Menus::actions);
+    }
+
     // ------------------------------------------------------------------ part 6: the XP awards (06b §5.4, RULED 11-20)
     /** One toggle a player online: who is in the team (all ticked). */
     static List<Ui.In> teamInputs() {
@@ -842,6 +918,11 @@ final class Menus {
                     for (Who o : all ? everyone() : List.of(only)) {
                         if (o.entity() != null) pl.zones.apply(o.c(), o.entity());   // the gas zone he stands in
                         String r = Hud.pass(o.c(), min);
+                        if (o.player() != null && o.c().workedHours > 0) {   // downtime work (06b §5.4.7): 1 XP an hour
+                            int wh = o.c().workedHours;
+                            o.c().workedHours = 0;
+                            pl.roster.award(o.player(), (long) wh * Rules.workXp(true), wh + " h of work");
+                        }
                         o.tell(s.trim() + " pass: " + o.c().timeText() + ". " + Part3.timed(o.c()) + (r == null ? "" : " " + r), NamedTextColor.GRAY);
                         if (r != null) tellGm(o.name() + ": " + r);
                     }

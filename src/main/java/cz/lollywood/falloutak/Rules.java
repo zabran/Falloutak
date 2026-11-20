@@ -129,8 +129,11 @@ public final class Rules {
     public static long discoveryXp(int foundBefore) { return 100L * Math.max(0, foundBefore); }
     /** A finished schematic: 100 × tier × rarity to each researcher (06b §5.4.6: a T1 R1 100, a T3 R2 600). */
     public static long researchXp(int tier, int rarity) { return 100L * Math.max(0, tier) * Math.max(0, rarity); }
-    /** A member-hour of work: 1 XP, 2 for dangerous work outside (06 §2.1: EXAMPLE, the pace RULED *"seems OK"*); resting 0. */
-    public static int workXp(boolean working, boolean danger) { return !working ? 0 : danger ? 2 : 1; }
+    /**
+     * A member-hour of work in the base: 1 XP (06 §2.1, the pace RULED *"seems OK"*); idling, healing, sleep and sickness 0 (Marek
+     * 11-20: *"yes"*). Work outside (scavenging, patrols) belongs to the local map, which has no rules yet (Marek 11-20).
+     */
+    public static int workXp(boolean working) { return working ? 1 : 0; }
     /** A lesson hour: 1 + the teacher's Leadership / 25 XP a student (06 §2.5, RULED round 4: 0 → 1, 50 → 3, 100 → 5). */
     public static double lessonXp(double leadership) { return 1 + Math.max(0, leadership) / 25; }
     /** A class: 1 + the teacher's Leadership / 10 students (06 §2.5). */

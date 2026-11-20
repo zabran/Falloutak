@@ -86,32 +86,35 @@ class ExperienceTest extends MockGame {
     }
 
     @Test
-    void theGroupLevelsUpAndTheLeaderSpendsItsPoints() throws Exception {
+    void anyPlayerLevelsAGroupUpFromTheMenu() throws Exception {
         PlayerMock gm = player();
         PlayerMock p = member();
         Population pop = plugin.roster.pop;
         Population.Group g = pop.group("Smugler");
         int n = pop.members("Smugler");
-        Character sb0 = plugin.store.loadNpc("Smugler");
-        int rate = sb0.skillRate();
+        int rate = plugin.store.loadNpc("Smugler").skillRate();
         gm.performCommand("group xp Smugler " + (n * 957 - Math.round(g.xp)));   // exactly level 3 a member
         Character sb = plugin.store.loadNpc("Smugler");
         assertEquals(3, g.statLevel);
         assertEquals(3, sb.level);
         assertEquals(2 * rate, sb.unspentSkillPoints);
-        // not the leader yet
-        said(p);
-        p.performCommand("group spend Smugler");
-        assertTrue(said(p).contains("Only the faction leader"));
-        gm.performCommand("group leader " + p.getName());
-        assertEquals(p.getName(), pop.leader);
-        p.performCommand("group spend Smugler");
-        assertTrue(page().title().startsWith("Skill points: " + 2 * rate), page().title());
+        // a player who is not the GM (Marek 11-20: "any player, it does not really matter who does faction management")
+        assertFalse(p.isOp());
+        Menus.actions(p);
+        click("Groups");
+        click("Smugler · level 3 · " + 2 * rate + " points");
+        assertEquals("Group Smugler", page().title());
+        assertTrue(page().text().contains("Honza"), page().text());
+        Ui.Page form = click("Spend " + 2 * rate + " skill points");
+        assertTrue(form.title().startsWith("Skill points: " + 2 * rate), form.title());
         double guns = sb.skills(true)[Rules.skillIndex("Guns")];
         click("Spend", "s" + Rules.skillIndex("Guns"), 4f);
         Character after = plugin.store.loadNpc("Smugler");
         assertEquals(2 * rate - 4, after.unspentSkillPoints);
         assertTrue(after.skills(true)[Rules.skillIndex("Guns")] > guns);
+        // the command does the same for any player
+        p.performCommand("group spend Smugler");
+        assertTrue(page().title().startsWith("Skill points: " + (2 * rate - 4)), page().title());
         // a newcomer dilutes the level: no new points until it is passed again
         gm.performCommand("pop add Nováček Smugler");
         assertTrue(Population.level(g.xp, pop.members("Smugler")) < 3);
@@ -123,15 +126,81 @@ class ExperienceTest extends MockGame {
     @Test
     void passingTheWorldsTimeMakesTheMembersWork() throws Exception {
         PlayerMock gm = player();
-        member();
+        PlayerMock p = member();
         Population pop = plugin.roster.pop;
         pop.person("Honza").activity = "Farming";
-        pop.person("Faiden").activity = "Scavenging";
+        pop.person("Faiden").activity = "Scavenging";                  // outside the base: nothing yet
         double xp = pop.group("Smugler").xp;
+        Character c = plugin.character(p);
+        long cx = c.xp;
+        Menus.actions(p);
+        click("Work in the base");
+        assertTrue(c.working);
         Menus.gm(gm);
         click("Pass time (everyone)");
         clickAndClose("Pass", "h", 8f, "m", 0f);
-        assertEquals(xp + 8 + 16, pop.group("Smugler").xp, 1e-9);
-        assertTrue(said(gm).contains("Smugler +24 XP from work"));
+        assertEquals(cx + 8, c.xp);                                      // his downtime work, 1 XP an hour
+        assertEquals(0, c.workedHours);
+        assertEquals(xp + 8 + 8, pop.group("Smugler").xp, 1e-9);          // Honza's work + his 8 into the pool
+        assertTrue(said(gm).contains("Smugler +8 XP from work"));
+        Menus.actions(p);
+        click("Rest / sleep");                                            // resting stops the work
+        assertFalse(c.working);
+    }
+
+    @Test
+    void aDeadCharactersPlayerGoesOnAsAMember() throws Exception {
+        PlayerMock p = member();
+        Population pop = plugin.roster.pop;
+        Population.Group g = pop.group("Smugler");
+        g.xp = 3000;
+        int n = pop.members("Smugler");
+        Character dead = plugin.character(p);
+        dead.dead = true;
+        Menus.actions(p);
+        click("! Go on as one of Smugler");
+        click("Faiden");
+        Character c = plugin.character(p);
+        assertNotSame(dead, c);
+        assertEquals("Faiden", c.name);
+        assertEquals("Smugler", c.group);
+        assertEquals(Math.round(3000.0 / n), c.xp);
+        assertEquals(Rules.levelFor(c.xp), c.level);
+        assertEquals(0, c.unspentSkillPoints);
+        assertEquals(java.util.List.of("Genius"), c.traits.stream().map(Character.Feat::name).toList());   // his own row's trait
+        assertEquals(Math.min(c.hpMax(), 15), c.hp);                                                      // his row's HP
+        assertFalse(c.dead);
+        assertNull(pop.person("Faiden"));                                   // he left the count with his share
+        assertEquals(n - 1, pop.members("Smugler"));
+        assertEquals(3000 - 3000.0 / n, g.xp, 1e-6);
+        assertTrue(java.nio.file.Files.list(plugin.getDataFolder().toPath().resolve("fallen")).findAny().isPresent());
+        assertTrue(plugin.roster.takeOver(p, "Honza").startsWith("!"));     // only when dead
+    }
+
+    @Test
+    void lessonsAddXpUpToEightHoursAWeek() throws Exception {
+        PlayerMock p = member();
+        Population pop = plugin.roster.pop;
+        Population.Group g = pop.group("Smugler");
+        Character t = plugin.character(p);
+        t.points[Rules.skillIndex("Leadership")] += 60;
+        t.points[Rules.skillIndex("Medicine")] += 80;
+        double lead = t.skill("Leadership");
+        int students = Math.min(pop.members("Smugler"), Rules.classSize(lead));
+        double pool = g.xp;
+        long tx = t.xp;
+        Menus.actions(p);
+        click("Groups");
+        click("Lessons");
+        click("Teach", "t", p.getName(), "g", "Smugler", "s", "Medicine", "h", 5f);
+        assertEquals(pool + students * 5 * (Rules.lessonXp(lead) - 1) + 5, g.xp, 1e-6);   // + the teacher's own 5 (100 % into the pool)
+        assertEquals(tx + 5, t.xp);
+        String r = plugin.roster.lessons(p, "Smugler", "Medicine", 8);       // 3 hours left this week
+        assertTrue(r.contains("for 3 h"), r);
+        assertTrue(plugin.roster.lessons(p, "Smugler", "Medicine", 1).startsWith("!"));
+        assertTrue(plugin.roster.lessons(p, "Smugler", "Juggling", 1).startsWith("!"));   // no such skill
+        t.clock += 168;                                                       // a new week
+        assertFalse(plugin.roster.lessons(p, "Smugler", "Medicine", 1).startsWith("!"));
+        assertTrue(plugin.roster.lessons(p, "Smugler", "Sneak", 1).startsWith("!"));      // he knows no more Sneak than the group
     }
 }

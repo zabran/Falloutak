@@ -16,8 +16,8 @@ import java.util.Locale;
  * Factions tab's own note: *"výběr characteru viz character - load a save do NPC sheetu"*), so every member uses it (Marek's brief
  * for part 6: one statblock per group). Both live in {@code plugins/Falloutak/population.json}, written whole like a character.
  * Pure Java: the tests run it. **Part 6 (RULED 11-20, `06-GROUPS.md`):** a group's pool gains 1 XP a member-hour of work, 2 in
- * danger outside, and 100 % of its PCs' XP; its level = the pool / the headcount on the PCs' own table; every group is run by the
- * faction leader ({@link #leader}, expected Spoke: *"The faction leader (Spoke) can manage all of them."*), who spends its points.
+ * the base and 100 % of its PCs' XP; its level = the pool / the headcount on the PCs' own table; any player spends its points (Marek
+ * 11-20: *"any player, it does not really matter who does faction management"*).
  */
 final class Population {
     /** A person of the base: the workbook's Population columns. */
@@ -36,10 +36,10 @@ final class Population {
         List<String> unlocked = new ArrayList<>();
         /** The whole level its statblock has been given the skill points of (a diluted group earns its next level later). */
         int statLevel = 1;
+        /** Lessons (06 §2.5): the game week (game hours / 168) and the lesson hours already given in it (at most 8). */
+        long lessonWeek = -1;
+        int lessonHours;
     }
-
-    /** The faction leader (a player's name): he spends every group's points (06 §2.2, §2.4 RULED 11-20). */
-    String leader = "";
     /** The non-generic areas the players have found (06b §5.4.5: the next one gives each PC 100 × this). */
     int areasFound;
 
@@ -61,13 +61,23 @@ final class Population {
 
     /** Activities that are not work (06 §2.1: *"Idling, sleep, sickness add nothing"*). [the list mine] */
     static final java.util.Set<String> RESTING = java.util.Set.of("", "idling", "idle", "healing", "sleeping", "sleep", "sick", "resting", "rest");
-    /** Dangerous work outside, 2 XP an hour (06 §2.1: *"scavenging, patrols, the wasteland"*). [the list mine] */
-    static final java.util.Set<String> DANGER = java.util.Set.of("scavenging", "scavenge", "patrol", "patrolling", "wasteland", "expedition", "scouting", "hunting");
+    /**
+     * Work OUTSIDE the base (Marek 11-20: *"these are all outside of base and most likely on local map. We still have no rules for
+     * that at all."*): nothing from the base's clock until the local map has its rules (part 9). [the list mine]
+     */
+    static final java.util.Set<String> OUTSIDE = java.util.Set.of("scavenging", "scavenge", "patrol", "patrolling", "wasteland", "expedition", "scouting", "hunting");
 
-    /** A member-hour of this activity: 0, 1 or 2 XP. */
+    /** A member-hour of this activity in the base: 1 XP, or 0 resting or outside. */
     static int workXp(String activity) {
         String a = activity == null ? "" : activity.trim().toLowerCase(Locale.ROOT);
-        return Rules.workXp(!RESTING.contains(a), DANGER.contains(a));
+        return Rules.workXp(!RESTING.contains(a) && !OUTSIDE.contains(a));
+    }
+
+    /** The members of a group. */
+    List<Person> membersOf(String group) {
+        List<Person> l = new ArrayList<>();
+        for (Person p : people) if (p.group.equalsIgnoreCase(group)) l.add(p);
+        return l;
     }
 
     /**

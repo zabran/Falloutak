@@ -60,9 +60,8 @@ class RulesTest {
         assertEquals(900, Rules.discoveryXp(9));
         assertEquals(600, Rules.researchXp(3, 2));
         // work and teaching (06 §2.1, §2.5)
-        assertEquals(0, Rules.workXp(false, true));
-        assertEquals(1, Rules.workXp(true, false));
-        assertEquals(2, Rules.workXp(true, true));
+        assertEquals(0, Rules.workXp(false));
+        assertEquals(1, Rules.workXp(true));
         assertEquals(1, Rules.lessonXp(0), 1e-9);
         assertEquals(3, Rules.lessonXp(50), 1e-9);
         assertEquals(5, Rules.lessonXp(100), 1e-9);

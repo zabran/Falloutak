@@ -123,6 +123,7 @@ public final class Hud {
 
     static void hour(Character c) {
         c.clock += 1;
+        if (c.working && !c.sleeping && !c.dead && !c.inArrest() && !c.unconscious()) c.workedHours++;   // 06b §5.4.7
         List<String> stages0 = c.stages();
         double rads0 = c.survival.getOrDefault(Rules.Stat.RADS, 0.0);
         double[] d = new double[Rules.Stat.values().length];

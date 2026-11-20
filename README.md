@@ -3,6 +3,20 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.38.0 (2026-11-20): the groups for every player; taking over a member; lessons; downtime work.**
+- **No faction leader** (Marek: *"any player, it does not really matter who does faction management"*): *Actions → Groups* shows
+  every group (its level, people, activities) and anyone spends a group's points there (or `/group spend`); `/group leader` is gone.
+- **Work outside the base gives nothing yet** (Marek: *"these are all outside of base and most likely on local map. We still have no
+  rules for that at all."*): scavenging, patrols and expeditions add 0 from the base's clock; any other work 1 XP an hour; idling,
+  healing, sleep and sickness 0.
+- **When a character dies for good**, *Actions* offers *Go on as one of <group>*: the player picks a member, who gets the group's
+  statblock, XP = the pool / the headcount, his own row's traits and HP; he leaves the count with his share. The dead one is kept
+  in `fallen/`.
+- **Lessons** (*Groups → Lessons*): a character teaches a group a skill he knows better than its statblock; each student (a class of
+  1 + Leadership / 10) gets 1 + Leadership / 25 XP an hour instead of work's 1, at most 8 lesson hours a group a game week; the
+  teacher earns 1 XP an hour.
+- **Downtime work** (*Actions → Work in the base*): 1 XP an hour while the GM passes time, into the group's pool too.
+
 **Version 0.37.0 (2026-11-20): experience (part 6).**
 - **The XP table, for the PCs and the groups** (Marek: *"this seems a lot better, accepted"*): a level L → L+1 costs
   250 × L × √L (level 2 at 250, 5 at 4 256, 10 at 27 762, 15 at 79 995); it replaced Fallout 2's 1000 × n (n − 1) / 2. Reaching

@@ -28,15 +28,18 @@ class PopulationTest {
         assertEquals(0, Population.workXp("Idling"));
         assertEquals(0, Population.workXp("Sleeping"));
         assertEquals(1, Population.workXp("Farming"));
-        assertEquals(2, Population.workXp("Scavenging"));
+        assertEquals(0, Population.workXp("Scavenging"));     // outside: the local map's rules, none yet (Marek 11-20)
         double xp = p.group("Smugler").xp;
         p.person("Honza").activity = "Farming";
         p.person("Faiden").activity = "Patrol";
         java.util.Map<String, Double> got = p.work(8);
-        assertEquals(8 + 16, got.get("Smugler"), 1e-9);
-        assertEquals(xp + 24, p.group("Smugler").xp, 1e-9);
+        assertEquals(8, got.get("Smugler"), 1e-9);
+        assertEquals(xp + 8, p.group("Smugler").xp, 1e-9);
+        p.person("Faiden").activity = "Cooking";
+        assertEquals(16, p.work(8).get("Smugler"), 1e-9);
         p.person("Faiden").group = "nobody";                  // a group that does not exist gains nothing
         assertEquals(8, p.work(8).get("Smugler"), 1e-9);
+        assertEquals(1, p.membersOf("Smugler").size());
     }
 
     @Test
