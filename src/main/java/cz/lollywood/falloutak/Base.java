@@ -18,7 +18,13 @@ import java.util.*;
  * be simplified to just armor parts, with each slot made of several armor parts (could be another recipe, but an instant one). It also
  * simplifies repair."* · *"creating just the parts and the item assembled out of them when going out would work better"*): the store
  * holds the parts (`data/designs.json` says what each item takes); {@link #assemble} takes them out as the item, instantly; back
- * through the Mess Chest an item comes apart into its parts, the damaged share lost (the repair, {@link #disassemble}) [mine].</li>
+ * through the Mess Chest an item comes apart into ALL its parts at its condition ({@link #disassemble}).</li>
+ * <li><b>The parts keep their condition</b> (round 5, Marek 11-20, verbatim: *""loses the damaged share" - this trivialises repair.
+ * ... if you believe it is better to not use this, we could use that average condition for parts + the undamaged parts."*): a row
+ * keeps how many are undamaged and the worn ones' condition summed; an item assembled from worn parts comes out at their average, from
+ * undamaged ones undamaged; the repair = the kits, combining, the workbench's repair job ({@link #repair}).</li>
+ * <li>A store chest of an item CATEGORY (round 5: *"make sure that the "store chests" still works (by automaticaly assembling the parts
+ * into the item, if there is enough parts)"*): its items assemble from the parts on a click ({@link Storage}).</li>
  * <li>UNLOCKED items (Marek 11-19: *"we should keep track of which items are "unlocked" (can be made in base, or were already brought
  * there). Only unlocked items are shown and selectable."*): everything of Tier I-II at rarity 1 (it can be made), every item that came
  * in through the Mess Chest, and what the GM unlocks.</li>
@@ -226,7 +232,7 @@ final class Base {
         return true;
     }
 
-    // ------------------------------------------------------------------ the assembly (round 4)
+    // ------------------------------------------------------------------ the assembly (round 4; the condition: round 5)
     /** How many batches of this item the store's parts make now (0 if it is not unlocked). */
     int canAssemble(Production.Design d) {
         if (!unlocked(d) || d.parts.isEmpty()) return 0;
@@ -245,29 +251,115 @@ final class Base {
         return j.toString();
     }
 
-    /** Takes the parts of {@code batches} batches out of the store (instant, round 4). False (nothing taken) if it cannot. */
-    boolean assemble(Production.Design d, int batches) {
-        if (batches <= 0 || canAssemble(d) < batches) return false;
-        for (Production.Part p : d.parts) takeUnits(p.type, p.tier, d.rarity, p.count * batches);
+    /** How many batches of it the store's UNDAMAGED parts alone make. */
+    int canAssembleFresh(Production.Design d) {
+        if (!unlocked(d) || d.parts.isEmpty()) return 0;
+        int n = Integer.MAX_VALUE;
+        for (Production.Part p : d.parts) {
+            Pool q = pools.get(key(p.type, p.tier, d.rarity));
+            n = Math.min(n, (q == null ? 0 : q.fresh) / Math.max(1, p.count));
+        }
+        return n;
+    }
+
+    /** The condition one batch would come out at, the worn parts first ({@code fresh} = the undamaged first); -1 if it cannot. */
+    double conditionOf(Production.Design d, boolean fresh) {
+        if (canAssemble(d) < 1) return -1;
+        double sum = 0;
+        int n = 0;
+        for (Production.Part p : d.parts) {
+            Pool q = pools.get(key(p.type, p.tier, d.rarity));
+            int k = p.count, f = fresh ? Math.min(k, q.fresh) : Math.max(0, k - q.worn());
+            sum += 100.0 * f + (k - f) * q.average();
+            n += k;
+        }
+        return n == 0 ? 100 : sum / n;
+    }
+
+    /** Takes the parts of {@code batches} batches out of the store, the worn first (round 4). False (nothing taken) if it cannot. */
+    boolean assemble(Production.Design d, int batches) { return assemble(d, batches, false) >= 0; }
+
+    /**
+     * Takes the parts of {@code batches} batches out of the store (instant, round 4), the worn ones first or ({@code fresh}) the
+     * undamaged first. Returns the items' condition = the parts' average (round 5), or -1 (nothing taken) if it cannot.
+     */
+    double assemble(Production.Design d, int batches, boolean fresh) {
+        if (batches <= 0 || canAssemble(d) < batches) return -1;
+        double sum = 0;
+        int n = 0;
+        for (Production.Part p : d.parts) {
+            int k = p.count * batches;
+            sum += take(p.type, p.tier, d.rarity, k, fresh);
+            n += k;
+        }
         save();
-        return true;
+        double c = n == 0 ? 100 : sum / n;
+        return c >= UNDAMAGED ? 100 : c;
+    }
+
+    /** n parts out of one row, the worn first or the undamaged first; their conditions summed (the row must hold n). */
+    private double take(String type, int tier, int rarity, int n, boolean fresh) {
+        Pool p = pools.get(key(type, tier, rarity));
+        double sum = 0;
+        for (int i = 0; i < n && p != null && p.count > 0; i++) {
+            boolean undamaged = fresh ? p.fresh > 0 : p.worn() == 0;
+            if (undamaged) { p.fresh--; sum += 100; }
+            else { double c = p.average(); sum += c; p.condition = p.worn() == 1 ? 0 : Math.max(0, p.condition - c); }
+            p.count--;
+        }
+        return sum;
     }
 
     /**
-     * Items back through the Mess Chest come apart into their parts (round 4: *"It also simplifies repair."*): whole batches only, each
-     * kind of part × the condition, rounded [mine]; the item is unlocked (brought in). Returns how many parts came back.
+     * Items back through the Mess Chest come apart into ALL their parts, at their condition (round 5: the parts keep it, Marek's own
+     * form: *"that average condition for parts + the undamaged parts"*): whole batches only; the item is unlocked (brought in). Returns
+     * how many parts came back.
      */
     int disassemble(Production.Design d, int items, double condition) {
         if (d == null) return 0;
         int batches = items / Math.max(1, d.makes), back = 0;
-        double share = Math.max(0, Math.min(100, condition)) / 100;
+        double c = Math.max(0, Math.min(100, condition));
         for (Production.Part p : d.parts) {
-            int k = (int) Math.floor(p.count * batches * share + 0.5);
-            if (k > 0) { addUnits(p.type, p.tier, d.rarity, k); back += k; }
+            int k = p.count * batches;
+            for (int i = 0; i < k; i++) add(p.type, p.tier, d.rarity, c);
+            if (k > 0) { unlocked.add(key(p.type, p.tier, d.rarity)); back += k; }
         }
         unlocked.add(d.armour() ? pieceId(d.set, d.slot) : d.key());
         save();
         return back;
+    }
+
+    // ------------------------------------------------------------------ the repair (round 5)
+    /** How many worn parts a row holds (rarity 0 = every rarity). */
+    int worn(String type, int tier, int rarity) {
+        int n = 0;
+        for (Pool p : pools.values()) if (p.type.equals(type) && p.tier == tier && (rarity == 0 || p.rarity == rarity)) n += p.worn();
+        return n;
+    }
+
+    /** The rows with worn parts the repair job mends, by type, tier and rarity. */
+    List<Pool> wornRows() {
+        List<Pool> l = new ArrayList<>();
+        for (Pool p : pools.values()) if (p.worn() > 0 && Production.REPAIR.types.containsKey(p.type)) l.add(p);
+        l.sort(Comparator.comparing((Pool p) -> p.type).thenComparingInt(p -> p.tier).thenComparingInt(p -> p.rarity));
+        return l;
+    }
+
+    /**
+     * The repair job's run (round 5) [mine, EXAMPLE]: {@code points} of condition to each of up to {@code parts} worn parts of the row
+     * (the worn ones are at their average: a part that reaches 100 joins the undamaged, else the average rises). Returns how many parts.
+     */
+    int repair(String type, int tier, int rarity, double points, int parts) {
+        Pool p = pools.get(key(type, tier, rarity));
+        if (p == null || p.worn() == 0 || points <= 0) return 0;
+        int m = Math.min(parts, p.worn());
+        double a = p.average();
+        if (a + points >= UNDAMAGED) {
+            p.fresh += m;
+            p.condition = p.worn() == 0 ? 0 : Math.max(0, p.condition - m * a);
+        } else p.condition += m * points;
+        save();
+        return m;
     }
 
     /** An armour piece back through the Mess Chest: its set's parts × its condition. -1 if it is no piece the data knows. */
@@ -276,14 +368,16 @@ final class Base {
         return d == null ? -1 : disassemble(d, 1, w.condition());
     }
 
-    /** An item of an old type (0.42.0's 46) → its parts at its tier and rarity × the condition share. -1 if the type is unknown there too. */
+    /** An item of an old type (0.42.0's 46) → its parts at its tier and rarity, at its condition (share 0-1). -1 if the type is unknown there too. */
     int legacy(String type, int tier, int rarity, int units, double share) {
         Production.Legacy l = Production.LEGACY.get(type);
         if (l == null) return -1;
         int batches = units / Math.max(1, l.per), back = 0;
+        double c = 100 * Math.max(0, Math.min(1, share));
         for (Production.Part p : l.parts) {
-            int k = (int) Math.floor(p.count * batches * Math.max(0, Math.min(1, share)) + 0.5);
-            if (k > 0) { addUnits(p.type, tier, rarity, k); back += k; }
+            int k = p.count * batches;
+            for (int i = 0; i < k; i++) add(p.type, tier, rarity, c);
+            if (k > 0) { unlocked.add(key(p.type, tier, rarity)); back += k; }
         }
         return back;
     }
@@ -314,6 +408,15 @@ final class Base {
     /** Every type a chest can hold: part 7's catalogue (`data/itemtypes.json`; the parts first since round 4). */
     static List<String> types() { return new ArrayList<>(Production.TYPES.keySet()); }
 
+    /** The item categories a chest can be (round 5: its items assembled from the parts on a click): the weapons', rounds', armour's. */
+    static List<String> categories() {
+        List<String> l = new ArrayList<>();
+        for (Production.Category c : Production.CATEGORIES) l.add(c.name);
+        return l;
+    }
+
+    static boolean category(String what) { return categories().contains(what); }
+
     // ------------------------------------------------------------------ the file
     private void load() {
         if (file == null || !Files.isRegularFile(file)) return;
@@ -332,7 +435,7 @@ final class Base {
                 } else converted |= legacy(p.type, p.tier, p.rarity, p.count, (p.fresh * 100.0 + p.condition) / p.count / 100) >= 0;   // 0.42.0's types → parts
             }
             if (s.chests != null) s.chests.forEach((k, v) -> {
-                if (v != null && !v.isEmpty() && (k.equals(MESS) || Production.TYPES.containsKey(k))) chests.put(k, new ArrayList<>(v));
+                if (v != null && !v.isEmpty() && (k.equals(MESS) || Production.TYPES.containsKey(k) || category(k))) chests.put(k, new ArrayList<>(v));
             });
             if (s.units != null) for (OldUnit u : s.units) if (u != null) converted |= legacy(u.type, u.tier, u.rarity, 1, u.condition / 100) >= 0;
         } catch (IOException | RuntimeException e) {

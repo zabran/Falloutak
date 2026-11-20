@@ -95,25 +95,58 @@ class BaseTest {
     }
 
     @Test
-    void backThroughTheMessChestAnItemComesApartTheDamagedShareLost() {
-        // round 4: "It also simplifies repair."
+    void backThroughTheMessChestAnItemComesApartAtItsCondition() {
+        // round 5 (Marek 11-20): ""loses the damaged share" - this trivialises repair. ... we could use that average condition for
+        // parts + the undamaged parts."
         Base b = new Base(null);
         Production.Design chest = Production.piece("Metal Armor", "Chest");           // 2 soft + 7 hard, Tier II
         assertEquals(9, chest.parts.stream().mapToInt(p -> p.count).sum());
         assertEquals(9, b.disassemble(new Character.Worn("Metal Armor", "Chest", 100)));
-        assertEquals(2, b.count("Soft armour parts", 2, 1));
-        assertEquals(7, b.count("Hard armour parts", 2, 1));
-        assertEquals(5, b.disassemble(new Character.Worn("Metal Armor", "Chest", 60)));   // 2 x 0.6 = 1, 7 x 0.6 = 4
-        assertEquals(0, b.disassemble(new Character.Worn("Metal Armor", "Chest", 0)));    // broken: nothing
+        assertEquals(9, b.disassemble(new Character.Worn("Metal Armor", "Chest", 60)));   // ALL its parts, at 60 %
+        Base.Pool hard = b.pools.get(Base.key("Hard armour parts", 2, 1));
+        assertEquals(14, hard.count);
+        assertEquals(7, hard.fresh);                                                  // the undamaged apart
+        assertEquals(60, hard.average(), 1e-9);                                       // the worn at their average
         assertEquals(-1, b.disassemble(new Character.Worn("Nonsense", "Chest", 90)));    // nothing the data knows
-        // reassembled at once: undamaged again (the repair)
-        assertTrue(b.assemble(chest, 1));
+        // assembled: the worn parts first (it comes out at their average) or the undamaged
+        assertEquals(60, b.conditionOf(chest, false), 1e-9);
+        assertEquals(100, b.conditionOf(chest, true), 1e-9);
+        assertEquals(1, b.canAssembleFresh(chest));
+        assertEquals(60, b.assemble(chest, 1, false), 1e-9);
+        assertEquals(0, b.worn("Hard armour parts", 2, 1));
+        assertEquals(100, b.assemble(chest, 1, true), 1e-9);
+        assertEquals(-1, b.assemble(chest, 1, true), 1e-9);                            // none left: nothing taken
+        // a mix: 7 hard undamaged + 2 soft worn at 40 % → (7 x 100 + 2 x 40) / 9
+        b.addUnits("Hard armour parts", 2, 1, 7);
+        b.disassemble(Production.piece("Metal Armor", "Head"), 1, 40);                 // 2 hard + 1 soft at 40 %
+        b.disassemble(Production.piece("Metal Armor", "Head"), 1, 40);
+        assertEquals((4 * 40 + 3 * 100 + 2 * 40) / 9.0, b.conditionOf(chest, false), 1e-9);   // the 4 worn hard first, then 3 undamaged
+        // a broken item's parts come back at 0 %: they still count, and the repair job mends them
+        Base z = new Base(null);
+        assertEquals(9, z.disassemble(new Character.Worn("Metal Armor", "Chest", 0)));
+        assertEquals(9, z.worn("Hard armour parts", 2, 1) + z.worn("Soft armour parts", 2, 1));
         // a batch comes apart only whole: seven arrows give one batch's parts, four give nothing
         Production.Design arrows = d("Arrows", "Stone-headed arrows");
         Base c = new Base(null);
         assertEquals(2, c.disassemble(arrows, 7, 100));
         assertEquals(0, c.disassemble(arrows, 4, 100));
         assertEquals(1, c.count("Light weapon parts", 1, 1));
+    }
+
+    @Test
+    void theRepairMendsAWornRow() {
+        // round 5 [mine, EXAMPLE]: points to up to 3 worn parts; a part that reaches 100 joins the undamaged
+        Base b = new Base(null);
+        b.disassemble(Production.piece("Metal Armor", "Chest"), 1, 60);              // 7 hard at 60 %
+        assertEquals(3, b.repair("Hard armour parts", 2, 1, 30, 3));                   // 60 + 30 < 100: the average rises
+        Base.Pool hard = b.pools.get(Base.key("Hard armour parts", 2, 1));
+        assertEquals(0, hard.fresh);
+        assertEquals((7 * 60 + 90) / 7.0, hard.average(), 1e-9);
+        assertEquals(3, b.repair("Hard armour parts", 2, 1, 60, 3));                   // Mr. Fixit's 60: three to full
+        assertEquals(3, hard.fresh);
+        assertEquals(4, b.worn("Hard armour parts", 2, 1));
+        assertEquals(0, b.repair("Firearm parts", 1, 1, 30, 3));                       // nothing worn there
+        assertTrue(b.wornRows().stream().anyMatch(p -> p.type.equals("Hard armour parts")));
     }
 
     @Test
@@ -133,23 +166,26 @@ class BaseTest {
         assertNull(b.chestAt("world", 5, 4, 5));
         assertEquals(List.of("Soft armour parts", "Hard armour parts"), Base.types().subList(0, 2));
         assertEquals(26, Base.types().size());                                         // part 7's catalogue: a chest a type
+        assertTrue(Base.category("Body armour"));                                      // round 5: a chest of an item category too
+        assertEquals(27, Base.categories().size());
     }
 
     @Test
     void theFileAndTheOldStores(@TempDir Path dir) throws Exception {
-        // 0.25.0 kept every armour piece apart: read once into parts (Body armour = 3 hard + 3 soft a piece, x its condition)
+        // 0.25.0 kept every armour piece apart: read once into parts (Body armour = 3 hard + 3 soft a piece, at its condition)
         Files.writeString(dir.resolve("base.json"), "{\"units\": [{\"type\": \"Body armour\", \"tier\": 2, \"rarity\": 1, \"condition\": 80},"
                 + " {\"type\": \"Body armour\", \"tier\": 2, \"rarity\": 1, \"condition\": 40}], \"place\": {\"world\": \"world\"}}");
         Base b = new Base(dir);
-        assertEquals(3, b.count("Hard armour parts", 2, 1));                          // 3 x 0.8 = 2, 3 x 0.4 = 1
-        assertEquals(3, b.count("Soft armour parts", 2, 1));
+        assertEquals(6, b.count("Hard armour parts", 2, 1));                          // 3 at 80 %, 3 at 40 %
+        assertEquals(6, b.count("Soft armour parts", 2, 1));
+        assertEquals(60, b.pools.get(Base.key("Hard armour parts", 2, 1)).average(), 1e-9);
         b.setChest(Base.MESS, List.of(new Base.Spot("world", 0, 4, 0)));
         b.disassemble(new Character.Worn("Leather Armor", "Legs", 70));
         Base again = new Base(dir);
-        assertEquals(3, again.count("Hard armour parts", 2, 1));
+        assertEquals(6, again.count("Hard armour parts", 2, 1));
         assertEquals(Base.MESS, again.chestAt("world", 0, 4, 0));
         assertTrue(again.unlocked(Data.ARMOUR.get("Leather Armor"), "Legs"));
-        // 0.42.0's rows of the 46 types: into parts too; the current types stay; an old type's chest is dropped
+        // 0.42.0's rows of the 46 types: into parts too; the current types stay; an old type's chest that is a category now stays
         Files.writeString(dir.resolve("base.json"), "{\"pools\": [{\"type\": \"Body armour\", \"tier\": 2, \"rarity\": 1, \"count\": 2, \"condition\": 200},"
                 + " {\"type\": \"Head armour\", \"tier\": 2, \"rarity\": 1, \"count\": 2, \"condition\": 150},"
                 + " {\"type\": \"Pistols\", \"tier\": 1, \"rarity\": 1, \"count\": 3, \"fresh\": 3},"
@@ -157,12 +193,12 @@ class BaseTest {
                 + " {\"type\": \"Metal\", \"tier\": 2, \"rarity\": 1, \"count\": 4, \"condition\": 400}],"
                 + " \"chests\": {\"Body armour\": [{\"world\": \"world\", \"x\": 1, \"y\": 4, \"z\": 1}], \"Metal\": [{\"world\": \"world\", \"x\": 2, \"y\": 4, \"z\": 1}]}}");
         Base read = new Base(dir);
-        assertEquals(6 + 2, read.count("Hard armour parts", 2, 1));                   // 2 bodies at 100 %, 2 heads at 75 %: 2 x 1 x 0.75 = 2
+        assertEquals(6 + 2, read.count("Hard armour parts", 2, 1));                   // 2 bodies at 100 %, 2 heads at 75 %
         assertEquals(6, read.count("Firearm parts", 1, 1));                           // 3 pistols: 2 firearm parts + 1 light each
         assertEquals(3, read.count("Light weapon parts", 1, 1));
         assertEquals(40, read.count("Ammo", 2, 1));                                    // a rifle round = 2 loads
         assertEquals(4, read.pools.get("Metal, Tier II, rarity 1").fresh);             // 0.26.0's sum: all undamaged
-        assertNull(read.chestAt("world", 1, 4, 1));
+        assertEquals("Body armour", read.chestAt("world", 1, 4, 1));                  // round 5: the category's chest
         assertEquals("Metal", read.chestAt("world", 2, 4, 1));
         assertEquals(6 + 2, new Base(dir).count("Hard armour parts", 2, 1));          // written back once, converted
         Files.writeString(dir.resolve("base.json"), "{ not json");

@@ -613,6 +613,14 @@ final class Menus {
             lines.add(line(" " + type + ": " + s.get(0).text(), NamedTextColor.GRAY));
         }
         if (none > 0) lines.add(line(" " + none + " of the " + Base.types().size() + " types have no chest yet (part 7's catalogue).", NamedTextColor.DARK_GRAY));
+        int cats = 0;
+        for (String c : Base.categories()) {
+            List<Base.Spot> s = base.chests.get(c);
+            if (s == null) continue;
+            cats++;
+            lines.add(line(" " + c + " (assembled): " + s.get(0).text(), NamedTextColor.GRAY));
+        }
+        if (cats == 0) lines.add(line(" No item category has a chest yet: its items assemble from the parts on a click (round 5).", NamedTextColor.DARK_GRAY));
         List<Base.Spot> mess = base.chests.getOrDefault(Base.MESS, List.of());
         lines.add(line(" " + Base.MESS + ": " + (mess.isEmpty() ? "none yet" : String.join(", ", mess.stream().map(Base.Spot::text).toList())),
                 mess.isEmpty() ? NamedTextColor.DARK_GRAY : NamedTextColor.GRAY));
@@ -625,6 +633,11 @@ final class Menus {
         b.add(btn("A type's chest: the chest you look at", "pick the type (" + Base.types().size() + "): it opens as that type's store, a row for each tier and rarity",
                 x -> pick(x, "Which type's chest?", "Look at the chest while you pick.", Base.types(), t -> t,
                         t -> "opens as the store's " + t.toLowerCase(Locale.ROOT) + ": a row for each tier and rarity",
+                        (y, t) -> { say(y, setChest(y.getTargetBlockExact(6), t)); gmBase(y); }, Menus::gmBase)));
+        b.add(btn("An item category's chest: the chest you look at", "pick the category (" + Base.categories().size()
+                        + "): its unlocked items assemble from the store's parts on a click (left: the worn parts first, right: the undamaged)",
+                x -> pick(x, "Which category's chest?", "Look at the chest while you pick. Its items are assembled from the parts (round 5).", Base.categories(), t -> t,
+                        t -> "opens as the " + t.toLowerCase(Locale.ROOT) + ": the unlocked items by tier and rarity, a click assembles one",
                         (y, t) -> { say(y, setChest(y.getTargetBlockExact(6), t)); gmBase(y); }, Menus::gmBase)));
         b.add(btn("No store chest: the chest you look at", "a plain chest again (what the store holds stays)", x -> say(x, setChest(x.getTargetBlockExact(6), null))));
         b.add(btn("Unlocked items", "beyond Tier I-II at rarity 1 (made from the start) and what was brought in", Menus::unlockMenu));

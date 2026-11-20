@@ -533,6 +533,42 @@
    "per": 1
   }
  },
+ "repair": {
+  "min": 25,
+  "hours": 1,
+  "parts": 3,
+  "building": "Workbench",
+  "types": {
+   "Soft armour parts": {
+    "material": "Textile",
+    "skill": "Crafting"
+   },
+   "Hard armour parts": {
+    "material": "Metal",
+    "skill": "Crafting"
+   },
+   "Hard weapon parts": {
+    "material": "Metal",
+    "skill": "Crafting"
+   },
+   "Light weapon parts": {
+    "material": "Wood",
+    "skill": "Crafting"
+   },
+   "Firearm parts": {
+    "material": "Metal",
+    "skill": "Crafting"
+   },
+   "Electronics": {
+    "material": "Metal",
+    "skill": "Engineering"
+   },
+   "Machinery": {
+    "material": "Metal",
+    "skill": "Engineering"
+   }
+  }
+ },
  "rows": [
   {
    "category": "Knives",

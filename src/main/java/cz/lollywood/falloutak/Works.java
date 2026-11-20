@@ -4,9 +4,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static cz.lollywood.falloutak.Menus.*;
 
@@ -24,7 +24,8 @@ final class Works {
 
     static String recipeTip(Production.Recipe r) {
         StringBuilder sb = new StringBuilder();
-        sb.append("makes ").append(Production.makesText(r)).append(" from ").append(Production.inputsText(r)).append(" · ").append(r.building)
+        sb.append(r.repairs.isEmpty() ? "makes " + Production.makesText(r) : "mends worn " + r.repairs + " " + Rules.roman(r.tier))
+                .append(" from ").append(Production.inputsText(r)).append(" · ").append(r.building)
                 .append(" ").append(Rules.roman(r.tier)).append("+ · ").append(r.skill).append(" ").append(r.min).append(" · ")
                 .append(SheetGui.f(r.hours)).append(" h of work at the minimum");
         if (r.days > 0) sb.append(" · at least ").append(SheetGui.f(r.days)).append(r.days == 1 ? " day" : " days");
@@ -42,7 +43,7 @@ final class Works {
         lines.add(line("A job runs when the GM passes time for everyone: its crew works, the store gives the inputs and takes what is made.", NamedTextColor.GRAY));
         List<Ui.Btn> b = new ArrayList<>();
         for (Production.Building x : pr.buildings)
-            b.add(btn(x.name + (x.job == null ? "" : " · " + Production.RECIPES.get(x.job.recipe).name) + (x.job != null && !x.job.waiting.isEmpty() ? " · waits" : ""),
+            b.add(btn(x.name + (x.job == null ? "" : " · " + Production.recipe(x.job.recipe).name) + (x.job != null && !x.job.waiting.isEmpty() ? " · waits" : ""),
                     x.label() + ": " + pr.status(x), y -> building(y, x.id)));
         if (pr.buildings.isEmpty()) lines.add(line("No buildings yet" + (gm(p) ? ": add the shelter's seven rooms below." : ": the GM adds the shelter's rooms."), NamedTextColor.RED));
         b.add(btn("Assemble items to take out", "weapons, armour, rounds, grenades and traps out of the store's parts: instant (round 4)", Works::assemble));
@@ -66,11 +67,13 @@ final class Works {
         Production.Workforce wf = pl.workforce();
         for (String w : x.crew) {
             Production.Worker wk = pr.worker(w, wf);
-            Production.Recipe r = x.job == null ? null : Production.RECIPES.get(x.job.recipe);
+            Production.Recipe r = x.job == null ? null : Production.recipe(x.job.recipe);
             lines.add(line(" · " + (wk == null ? w : wk.label() + (r == null ? "" : ", " + r.skill + " " + Math.round(wk.skill(r.skill)))), NamedTextColor.GRAY));
         }
         List<Ui.Btn> b = new ArrayList<>();
-        if (x.job == null) b.add(btn("Start a job", "the recipes this building can run", y -> recipePick(y, x.id)));
+        if (x.job == null) b.add(btn("Start a job", "the recipes this building can run, the best first", y -> recipePick(y, x.id)));
+        if (x.job == null && Production.fits(x, Production.repairRecipe("Hard armour parts", 1)))
+            b.add(btn("Repair worn parts", "a row of worn parts in the store: the repair kit's points by the crew's skill (round 5)", y -> repairPick(y, x.id)));
         else b.add(btn("Stop the job", "the run's inputs go back to the store; the crew is free again", y -> { say(y, pr.stop(x, pl.workforce(), pl.base)); pr.save(); main(y); }));
         b.add(btn("Pick the crew again", "the best free workers fill the free slots (the automatic pick)", y -> {
             List<String> got = pr.pick(x, pl.workforce());
@@ -86,19 +89,82 @@ final class Works {
     static void recipePick(Player p, String id) {
         Production.Building x = pr().building(id);
         if (x == null) { main(p); return; }
-        List<String> ids = new ArrayList<>();
-        for (Production.Recipe r : pr().recipesFor(x)) ids.add(r.id);
-        pick(p, "Start a job: " + x.name, ids.isEmpty() ? "Nothing known fits this building." : "Hover for what it takes.", ids,
-                r -> Production.RECIPES.get(r).name + " → " + Production.makesText(Production.RECIPES.get(r)), r -> recipeTip(Production.RECIPES.get(r)),
-                (y, r) -> jobForm(y, x.id, null, r), y -> building(y, x.id));
+        List<Production.Recipe> rs = pr().recipesFor(x);
+        recipeList(p, "Start a job: " + x.name, rs.isEmpty() ? "Nothing known fits this building." : "Hover for what it takes.", rs,
+                (y, r) -> jobForm(y, x.id, null, r), y -> building(y, x.id), y -> recipePick(y, x.id));
     }
 
     static void site(Player p, String kind) {
-        List<String> ids = new ArrayList<>();
-        for (Production.Recipe r : pr().siteRecipes(kind)) ids.add(r.id);
-        pick(p, "Base".equals(kind) ? "Anywhere in the base" : "Gathering outside", "Each job gets its own site; the pick takes up to 4 workers.", ids,
-                r -> Production.RECIPES.get(r).name + " → " + Production.makesText(Production.RECIPES.get(r)), r -> recipeTip(Production.RECIPES.get(r)),
-                (y, r) -> jobForm(y, null, kind, r), Works::main);
+        recipeList(p, "Base".equals(kind) ? "Anywhere in the base" : "Gathering outside", "Each job gets its own site; the pick takes up to 4 workers.",
+                pr().siteRecipes(kind), (y, r) -> jobForm(y, null, kind, r), Works::main, y -> site(y, kind));
+    }
+
+    /** A player's recipe filter (round 5): a part of what it makes, of what it uses, and whether the fully outdated show. */
+    record Query(String makes, String uses, boolean old) {}
+
+    static final Map<UUID, Query> QUERIES = new HashMap<>();
+
+    static Query query(Player p) { return QUERIES.getOrDefault(p.getUniqueId(), new Query("", "", false)); }
+
+    /**
+     * A list of recipes (round 5, Marek 11-20, verbatim: *"please make sure that in game, it is possible to filter both by input and
+     * output and that the best recipes are shown on top, and probably hide these fully outdated."*): a filter by what it makes and by
+     * what it uses, the best first ({@link Production#rank}), the fully outdated ({@link Production#outdatedBy}) hidden unless ticked.
+     */
+    static void recipeList(Player p, String title, String text, Collection<Production.Recipe> pool, BiConsumer<Player, String> then,
+                           Consumer<Player> back, Consumer<Player> again) {
+        Query q = query(p);
+        Production pr = pr();
+        List<Production.Recipe> cur = new ArrayList<>(), old = new ArrayList<>();
+        for (Production.Recipe r : Production.rank(pool, q.makes(), q.uses())) (pr.outdatedBy(r) == null ? cur : old).add(r);
+        List<Ui.In> in = List.of(
+                Ui.In.text("m", Component.text("Makes (a part of a type, e.g. metal ii)")).initial(q.makes()).maxLength(32).build(),
+                Ui.In.text("u", Component.text("Uses (e.g. salvage)")).initial(q.uses()).maxLength(32).build(),
+                Ui.In.bool("o", Component.text("Show the fully outdated")).initial(q.old()).build());
+        List<Ui.Btn> b = new ArrayList<>();
+        b.add(form("Filter", "what it makes and what it uses; the best first", (v, x) -> {
+            QUERIES.put(x.getUniqueId(), new Query(v.getText("m"), v.getText("u"), Boolean.TRUE.equals(v.getBoolean("o"))));
+            again.accept(x);
+        }));
+        for (Production.Recipe r : cur) b.add(btn(r.name + " → " + Production.makesText(r), recipeTip(r), x -> then.accept(x, r.id)));
+        if (q.old()) for (Production.Recipe r : old) {
+            Production.Recipe by = pr.outdatedBy(r);
+            b.add(btn("(outdated) " + r.name + " → " + Production.makesText(r), recipeTip(r) + " · OUTDATED: " + by.name + " (" + by.building + " "
+                    + Rules.roman(by.tier) + ") does it with no more of anything", x -> then.accept(x, r.id)));
+        }
+        List<Component> lines = new ArrayList<>();
+        if (!text.isEmpty()) lines.add(line(text, NamedTextColor.GRAY));
+        lines.add(line("The best first: the highest tier made, then the fewest inputs and work hours a unit made.", NamedTextColor.GRAY));
+        if (!old.isEmpty() && !q.old())
+            lines.add(line(old.size() + " fully outdated hidden (a known recipe the base can run does the same with no more of anything).", NamedTextColor.DARK_GRAY));
+        if (cur.isEmpty() && (old.isEmpty() || !q.old())) lines.add(line("Nothing matches: change the filter.", NamedTextColor.RED));
+        menu(p, title, lines, in, b, back, 2);
+    }
+
+    /** The repair job (round 5): a row of worn parts this building can mend, then how many runs. */
+    static void repairPick(Player p, String id) {
+        Production.Building x = pr().building(id);
+        if (x == null) { main(p); return; }
+        List<String> keys = new ArrayList<>();
+        for (Base.Pool q : pl.base.wornRows()) {
+            Production.Recipe r = Production.repairRecipe(q.type, q.tier);
+            if (r != null && Production.fits(x, r)) keys.add(q.key());
+        }
+        pick(p, "Repair worn parts: " + x.name, keys.isEmpty() ? "No worn parts this building can mend (a Workbench or Workshop of at least the parts' tier)."
+                        : "A run: 1 unit of the material and " + SheetGui.f(Production.REPAIR.hours) + " h of work at the minimum " + Production.REPAIR.min
+                        + "; the repair kit's points by the best skill (Mr. Fixit x2) to each of up to " + Production.REPAIR.parts + " worn parts.", keys,
+                k -> { Base.Pool q = pl.base.pools.get(k); return q.type + " " + Rules.roman(q.tier) + (q.rarity > 1 ? " R" + q.rarity : "") + " · " + q.worn() + " worn at " + Math.round(q.average()) + " %"; },
+                k -> { Base.Pool q = pl.base.pools.get(k); return recipeTip(Production.repairRecipe(q.type, q.tier)); },
+                (y, k) -> {
+                    Base.Pool q = pl.base.pools.get(k);
+                    Production.Recipe r = Production.repairRecipe(q.type, q.tier);
+                    ask(y, r.name, recipeTip(r), List.of(Ui.In.numberRange("n", Component.text("Runs (0 = until none is worn)"), 0, 50).step(1f).initial(0f).width(300).build()),
+                            form("Start", "the repair starts; the pick fills the crew", (v, z) -> {
+                                say(z, pr().start(x, r, Math.round(v.getFloat("n")), q.rarity, pl.workforce()));
+                                pr().save();
+                                building(z, x.id);
+                            }), w -> repairPick(w, x.id));
+                }, y -> building(y, x.id));
     }
 
     /** How many times and at which rarity (the marked inputs'), then the job starts and the pick fills the crew. */
@@ -128,7 +194,7 @@ final class Works {
         Production pr = pr();
         Production.Building x = pr.building(id);
         if (x == null) { main(p); return; }
-        Production.Recipe r = x.job == null ? null : Production.RECIPES.get(x.job.recipe);
+        Production.Recipe r = x.job == null ? null : Production.recipe(x.job.recipe);
         Production.Workforce wf = pl.workforce();
         List<Production.Worker> c = r != null ? pr.candidates(r, wf) : pr.upkeepCandidates(x, wf);
         List<String> ids = new ArrayList<>();
@@ -154,10 +220,10 @@ final class Works {
     }
 
     static void recipes(Player p) {
-        List<String> ids = new ArrayList<>();
-        for (Production.Recipe r : Production.RECIPES.values()) if (pr().known(r)) ids.add(r.id);
-        pick(p, "Known recipes", ids.size() + " known (Tier I-II of every type from the start; research, part 8, opens more).", ids,
-                r -> Production.RECIPES.get(r).name, r -> recipeTip(Production.RECIPES.get(r)), (y, r) -> recipes(y), Works::main);
+        List<Production.Recipe> rs = new ArrayList<>();
+        for (Production.Recipe r : Production.RECIPES.values()) if (pr().known(r)) rs.add(r);
+        recipeList(p, "Known recipes", rs.size() + " known (Tier I-II of every type from the start; research, part 8, opens more).", rs,
+                (y, r) -> recipes(y), Works::main, Works::recipes);
     }
 
     // ------------------------------------------------------------------ the assembly (round 4)
@@ -168,8 +234,8 @@ final class Works {
     static void assemble(Player p) {
         List<String> cats = new ArrayList<>();
         for (Production.Category c : Production.CATEGORIES) cats.add(c.name);
-        pick(p, "Assemble to take out", "Instant: the parts come out of the store as the item. Back through the Mess Chest it comes apart into "
-                        + "its parts again, the damaged share lost (that is the repair).", cats,
+        pick(p, "Assemble to take out", "Instant: the parts come out of the store as the item, at the parts' condition. Back through the Mess "
+                        + "Chest it comes apart into all its parts again, at its condition.", cats,
                 c -> c + " · " + ready(c) + " ready", Works::about, Works::category, Works::main);
     }
 
@@ -198,41 +264,62 @@ final class Works {
 
     static String label(Production.Design d) {
         if (!pl.base.unlocked(d)) return d.label() + " · locked";
-        int can = pl.base.canAssemble(d);
-        return (can > 0 ? "✔ " : "") + d.label() + " · " + can * d.makes + " ready";
+        int can = pl.base.canAssemble(d), fresh = pl.base.canAssembleFresh(d);
+        return (can > 0 ? "✔ " : "") + d.label() + " · " + can * d.makes + " ready" + (can > fresh ? " (" + fresh * d.makes + " undamaged)" : "");
     }
 
     static String tip(Production.Design d) {
         String miss = pl.base.missing(d);
+        double worn = pl.base.conditionOf(d, false);
         return "takes " + Production.partsText(d) + (d.armour() ? " (made for your body)" : "")
+                + (worn >= 0 && worn < Base.UNDAMAGED ? " · from the worn parts first it comes out at " + Math.round(worn) + " %" : "")
                 + (!pl.base.unlocked(d) ? " · LOCKED: Tier I-II at rarity 1 from the start, else brought in through the Mess Chest or the GM's"
                 : miss.isEmpty() ? "" : " · missing for one: " + miss);
     }
 
-    /** One item, or a form for how many when the parts make more (armour: one a click). */
+    /**
+     * One item, or a form for how many when the parts make more (armour: one a click); where worn parts are among them, the worn first
+     * (the item at their average) or the undamaged (round 5: the parts keep their condition).
+     */
     static void assembleForm(Player p, String key) {
         Production.Design d = Production.DESIGNS.get(key);
         if (d == null) { assemble(p); return; }
         if (!pl.base.unlocked(d)) { say(p, "! " + d.name + " is locked: bring one in through the Mess Chest, or the GM unlocks it"); category(p, d.category); return; }
-        int can = pl.base.canAssemble(d);
+        int can = pl.base.canAssemble(d), fresh = pl.base.canAssembleFresh(d);
         if (can == 0) { say(p, "! not enough parts in the store: " + pl.base.missing(d)); category(p, d.category); return; }
-        if (can == 1 || d.armour()) { say(p, give(p, d, 1)); category(p, d.category); return; }
-        int max = Math.min(64, can);
-        ask(p, d.name, "Each " + (d.makes > 1 ? "batch of " + d.makes : "one") + " takes " + Production.partsText(d) + "; the store's parts make " + can + ".",
-                List.of(Ui.In.numberRange("n", Component.text(d.makes > 1 ? "Batches (" + d.makes + " each)" : "How many"), 1, max).step(1f).initial(1f).width(300).build()),
-                form("Assemble", "out of the store's parts, into your inventory", (v, y) -> { say(y, give(y, d, Math.round(v.getFloat("n")))); category(y, d.category); }),
-                y -> category(y, d.category));
+        double worn = pl.base.conditionOf(d, false);
+        boolean choice = worn < Base.UNDAMAGED;
+        if ((can == 1 || d.armour()) && !choice) { say(p, give(p, d, 1, false)); category(p, d.category); return; }
+        List<Ui.In> in = new ArrayList<>();
+        if (can > 1 && !d.armour())
+            in.add(Ui.In.numberRange("n", Component.text(d.makes > 1 ? "Batches (" + d.makes + " each)" : "How many"), 1, Math.min(64, can)).step(1f).initial(1f).width(300).build());
+        if (choice) in.add(Ui.In.bool("f", Component.text("The undamaged parts first (" + fresh * d.makes + " from them alone)")).initial(false).build());
+        ask(p, d.name, "Each " + (d.makes > 1 ? "batch of " + d.makes : "one") + " takes " + Production.partsText(d) + "; the store's parts make " + can + "."
+                        + (choice ? " From the worn parts first it comes out at " + Math.round(worn) + " %." : ""), in,
+                form("Assemble", "out of the store's parts, into your inventory", (v, y) -> {
+                    int n = can > 1 && !d.armour() ? Math.round(v.getFloat("n")) : 1;
+                    say(y, give(y, d, n, choice && Boolean.TRUE.equals(v.getBoolean("f"))));
+                    category(y, d.category);
+                }), y -> category(y, d.category));
     }
 
-    /** n batches out of the store's parts into the player's inventory (armour made for his body). Returns what he is told. */
-    static String give(Player p, Production.Design d, int n) {
-        if (!pl.base.assemble(d, n)) return "! not enough parts in the store: " + pl.base.missing(d);
+    /** n batches out of the store's parts, the worn first. */
+    static String give(Player p, Production.Design d, int n) { return give(p, d, n, false); }
+
+    /**
+     * n batches out of the store's parts into the player's inventory (armour made for his body), the worn parts first or
+     * ({@code fresh}) the undamaged: the items come out at the parts' average (round 5). Returns what he is told.
+     */
+    static String give(Player p, Production.Design d, int n, boolean fresh) {
+        double cond = pl.base.assemble(d, n, fresh);
+        if (cond < 0) return "! not enough parts in the store: " + pl.base.missing(d);
         String fit = pl.character(p).fit();
-        if (d.armour()) for (int i = 0; i < n; i++) Items.giveStack(p, Items.piece(new Character.Worn(d.set, d.slot, 100, fit)));
-        else Items.giveStack(p, Items.make(Items.madeId(d), n * d.makes));
+        if (d.armour()) for (int i = 0; i < n; i++) Items.giveStack(p, Items.piece(new Character.Worn(d.set, d.slot, cond, fit)));
+        else Items.giveStack(p, Items.made(d, n * d.makes, cond));
         Sfx.to(p, "store.take");
         return "Assembled: " + n * d.makes + " × " + d.name + (d.armour() ? " (" + d.slot.toLowerCase(java.util.Locale.ROOT) + ")"
-                + (Character.STANDARD.equals(fit) ? "" : ", made for a " + fit + " body") : "") + ".";
+                + (Character.STANDARD.equals(fit) ? "" : ", made for a " + fit + " body") : "")
+                + (cond < Base.UNDAMAGED ? ", at " + Math.round(cond) + " % (worn parts)" : "") + ".";
     }
 
     // ------------------------------------------------------------------ the GM

@@ -133,6 +133,26 @@ final class Items {
         return k.length == 4 ? Production.design(k[0], k[3]) : null;
     }
 
+    /** An assembled item (round 4) with its condition (round 5: from worn parts it comes out at their average; undamaged = no mark). */
+    static ItemStack made(Production.Design d, int n, double cond) {
+        ItemStack it = make(madeId(d), n);
+        if (COND == null || cond >= Base.UNDAMAGED) return it;
+        ItemMeta im = it.getItemMeta();
+        im.getPersistentDataContainer().set(COND, PersistentDataType.DOUBLE, Math.max(0, Math.min(100, cond)));
+        List<Component> lore = new ArrayList<>(im.lore() == null ? List.of() : im.lore());
+        lore.add(0, Component.text("condition " + Math.round(cond) + " % (assembled from worn parts)", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        im.lore(lore);
+        it.setItemMeta(im);
+        return it;
+    }
+
+    /** An assembled item's condition (100 without a mark). */
+    static double madeCondition(ItemStack it) {
+        if (COND == null || it == null || !it.hasItemMeta()) return 100;
+        Double c = it.getItemMeta().getPersistentDataContainer().get(COND, PersistentDataType.DOUBLE);
+        return c == null ? 100 : c;
+    }
+
     private static Material madeMaterial(String body) {
         String cat = body.replaceAll("\\|.*", "");
         for (Production.Category c : Production.CATEGORIES) if (c.name.equals(cat)) return switch (c.group) {
@@ -228,7 +248,7 @@ final class Items {
                 Production.Design d = made(id);
                 yield d == null ? "" : d.category + " · Tier " + Rules.roman(d.tier) + ", rarity " + d.rarity + (d.skill.isEmpty() ? "" : " · " + d.skill)
                         + "\nassembled in the base from " + Production.partsText(d)
-                        + "\nback through the Mess Chest it comes apart into its parts" + (d.makes > 1 ? " (" + d.makes + " a batch)" : "");
+                        + "\nback through the Mess Chest it comes apart into its parts, at its condition" + (d.makes > 1 ? " (" + d.makes + " a batch)" : "");
             }
             case "thing" -> {
                 String[] t = thing(id);

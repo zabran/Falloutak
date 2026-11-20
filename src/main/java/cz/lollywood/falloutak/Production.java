@@ -34,6 +34,12 @@ import java.util.*;
  * <li>A building works and makes less as its condition falls (round 4: *"it will get worse as condition worsens"*): {@link #efficiency}.</li>
  * <li>Round 4 (Marek 11-20): the base makes PARTS, the items are ASSEMBLED from them when going out ({@code data/designs.json};
  * *"creating just the parts and the item assembled out of them when going out would work better"*): {@link Base#assemble}.</li>
+ * <li>Round 5 (Marek 11-20): water of a lower tier from the store, the best first where it goes into the product (*"Lower-tier water -
+ * yes, agreed."*), Tier I first where it only cools (*"workshop, kiln, still, scrubbers - I would make it rule that these use T1 water
+ * first (reversed priority)."*): {@link #drawWater}; upkeep needs a tool of the building's tier (*"upkeep needs tools of the same
+ * tier"*): {@link #upkeepTool}; the repair job on worn parts ({@link #REPAIRS}); the recipes ranked best first, the fully outdated
+ * hidden (*"filter both by input and output and that the best recipes are shown on top, and probably hide these fully outdated"*):
+ * {@link #rank}, {@link #outdatedBy}.</li>
  * </ul>
  */
 final class Production {
@@ -42,6 +48,8 @@ final class Production {
     static final class Builds { String kind = ""; int tier = 1; }
     static final class Recipe {
         String id = "", name = "", building = "", skill = "", known = "start", research = "", better = "", note = "";
+        /** A repair job's part type (round 5): it makes nothing, it mends one row of worn parts. "" = an ordinary recipe. */
+        String repairs = "";
         int tier = 1, min;
         double hours, days;
         boolean harvest;
@@ -52,6 +60,8 @@ final class Production {
     }
     static final class Kind {
         String kind = "", makes = "", upkeep_skill = "Crafting", note = "";
+        /** Round 5: "product" = its water goes into what it makes (the best first, its tier caps the product), "cooling" = Tier I first. */
+        String water_use = "";
         int slots = 1;
         double power, water;
         boolean daily, automatic;
@@ -80,6 +90,9 @@ final class Production {
     static final class Category { String name = "", group = "", skill = "", note = ""; }
     /** An old type of 0.42.0 → its parts: {@code per} units give them (the store converts what it held). */
     static final class Legacy { List<Part> parts = new ArrayList<>(); int per = 1; }
+    /** The repair job (round 5, `07b` §2) [mine, EXAMPLE]: the material and the skill per part type; the minimum, the hours a run, parts a run. */
+    static final class RepairType { String material = "Metal", skill = "Crafting"; }
+    static final class RepairRule { int min = 25, parts = 3; double hours = 1; String building = "Workbench"; Map<String, RepairType> types = new LinkedHashMap<>(); }
 
     static final Map<String, Recipe> RECIPES = new LinkedHashMap<>();
     static final Map<String, Kind> KINDS = new LinkedHashMap<>();
@@ -89,6 +102,13 @@ final class Production {
     static final Map<String, Design> DESIGNS = new LinkedHashMap<>();
     static final List<Category> CATEGORIES = new ArrayList<>();
     static final Map<String, Legacy> LEGACY = new LinkedHashMap<>();
+    /** The repair job's rule, and one repair recipe per part type and tier (id {@code repair|<type>|<tier>}): not in the recipe lists. */
+    static RepairRule REPAIR = new RepairRule();
+    static final Map<String, Recipe> REPAIRS = new LinkedHashMap<>();
+    /** Upkeep's tool (round 5): a Gear and tools of at least the building's tier. */
+    static String UPKEEP_TOOL = "Gear and tools";
+    /** Jury Rigging's materials (02c: *"repairs any item with any item of its tier"*) [mine: the materials' group]. */
+    static final List<String> MATERIALS = List.of("Metal", "Wood", "Textile", "Stone and glass", "Chemicals", "Fuel", "Salvage");
     /** A Workshop does a Workbench's work of its tier [mine]. */
     static final Map<String, List<String>> SERVES = Map.of("Workshop", List.of("Workbench"));
     /** Pseudo-buildings: no room, any number of workers; a job there gets its own site (07b §3). */
@@ -102,11 +122,39 @@ final class Production {
         for (JsonElement e : rows("designs")) { Design d = g.fromJson(e, Design.class); DESIGNS.put(d.key(), d); }
         JsonObject o = whole("buildings");
         if (o != null && o.has("shelter")) for (JsonElement e : o.getAsJsonArray("shelter")) SHELTER.add(g.fromJson(e, Room.class));
+        if (o != null && o.has("upkeep_tool")) UPKEEP_TOOL = o.get("upkeep_tool").getAsString();
         o = whole("designs");
         if (o != null && o.has("categories")) for (JsonElement e : o.getAsJsonArray("categories")) CATEGORIES.add(g.fromJson(e, Category.class));
         if (o != null && o.has("legacy")) for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("legacy").entrySet())
             LEGACY.put(e.getKey(), g.fromJson(e.getValue(), Legacy.class));
+        if (o != null && o.has("repair")) REPAIR = g.fromJson(o.get("repair"), RepairRule.class);
+        for (Map.Entry<String, RepairType> e : REPAIR.types.entrySet())
+            for (int t = 1; t <= 4; t++) {
+                Recipe r = new Recipe();
+                r.id = "repair|" + e.getKey() + "|" + t;
+                r.name = "Repair worn " + e.getKey() + " " + Rules.roman(t);
+                r.building = REPAIR.building;
+                r.tier = t;
+                r.skill = e.getValue().skill;
+                r.min = REPAIR.min;
+                r.hours = REPAIR.hours;
+                r.repairs = e.getKey();
+                Ttr m = new Ttr();
+                m.type = e.getValue().material;
+                m.tier = t;
+                r.inputs.add(m);
+                r.note = "the repair kit's points by the best skill (Mr. Fixit x2) to each of up to " + REPAIR.parts + " worn parts a run; Jury Rigging: any material of the tier";
+                REPAIRS.put(r.id, r);
+            }
     }
+
+    /** A recipe by its id: the catalogue's, or a repair job's. */
+    static Recipe recipe(String id) {
+        Recipe r = RECIPES.get(id);
+        return r != null ? r : REPAIRS.get(id);
+    }
+
+    static Recipe repairRecipe(String type, int tier) { return REPAIRS.get("repair|" + type + "|" + tier); }
 
     private static JsonObject whole(String name) {
         try (InputStream in = Production.class.getResourceAsStream("/data/" + name + ".json")) {
@@ -171,6 +219,8 @@ final class Production {
         int madeRarity = 1;
         /** The parts of an output a run could not give whole (a harvest × the factor, Salvager's +50 %): kept for the next run [mine]. */
         Map<String, Double> carry = new HashMap<>();
+        /** The worst water tier this run took (round 5: a product room's product comes out no better; 5 = none taken). */
+        int water = 5;
         /** Why it does not move now ("" = it works). */
         String waiting = "";
     }
@@ -185,6 +235,9 @@ final class Production {
         Job job;
         /** A site for one job (Base, Outside): gone when the job ends. */
         boolean site;
+        /** Today's water tier (5 = none); the week's upkeep waits for a tool (round 5), as of the last hour. */
+        int waterTier = 5;
+        transient boolean noTool;
 
         Kind kind() { return KINDS.get(kind); }
 
@@ -307,7 +360,7 @@ final class Production {
     /** The automatic pick (round 1-2): the best free workers for the job's skill fill the free slots. Returns who joined. */
     List<String> pick(Building b, Workforce wf) {
         List<String> got = new ArrayList<>();
-        Recipe r = b.job == null ? null : RECIPES.get(b.job.recipe);
+        Recipe r = b.job == null ? null : recipe(b.job.recipe);
         List<Worker> c = r != null ? candidates(r, wf) : upkeepCandidates(b, wf);
         int room = (b.site ? Math.max(1, Math.min(99, c.size())) : b.slots()) - b.crew.size();
         if (b.site && r != null) room = Math.max(0, Math.min(c.size(), 4 - b.crew.size()));   // a site job: up to 4 by itself [mine]
@@ -326,7 +379,7 @@ final class Production {
     String add(Building b, Worker w, Workforce wf) {
         if (busyAt(w.id()) != null) return w.label() + " already works elsewhere";
         if (!b.site && b.crew.size() >= b.slots()) return b.name + " has no free slot (" + b.slots() + ")";
-        Recipe r = b.job == null ? null : RECIPES.get(b.job.recipe);
+        Recipe r = b.job == null ? null : recipe(b.job.recipe);
         if (r != null && w.skill(r.skill) < r.min) return w.label() + " is below the minimum: " + r.skill + " " + r.min;
         b.crew.add(w.id());
         wf.assign(w.id(), activity(b));
@@ -349,7 +402,7 @@ final class Production {
     String start(Building b, Recipe r, int runs, int rarity, Workforce wf) {
         if (!known(r)) return "! " + (r == null ? "no such recipe" : r.name + " is not known yet (" + (r.research.isEmpty() ? "found" : "research: " + r.research) + ")");
         if (!fits(b, r)) return "! " + b.label() + " cannot make " + r.name + " (a " + r.building + " of Tier " + Rules.roman(r.tier) + " or better)";
-        if (b.job != null) return "! " + b.name + " already runs " + RECIPES.get(b.job.recipe).name + ": stop it first";
+        if (b.job != null) return "! " + b.name + " already runs " + recipe(b.job.recipe).name + ": stop it first";
         if (b.condition <= 0) return "! " + b.name + " is broken: its crew must repair it first (upkeep)";
         Job j = new Job();
         j.recipe = r.id;
@@ -378,7 +431,7 @@ final class Production {
     /** The job ends: the run's inputs go back to the store (nothing was made of them yet); the crew is free again but for an automatic room's. */
     String stop(Building b, Workforce wf, Base base) {
         if (b.job == null) return "! " + b.name + " has no job";
-        Recipe r = RECIPES.get(b.job.recipe);
+        Recipe r = recipe(b.job.recipe);
         if (b.job.inputsTaken && r != null) for (Ttr t : r.inputs) if (!t.tool && (!t.extra || b.job.extra))
             base.addUnits(t.type, t.tier, t.sets_rarity ? b.job.rarity : 1, t.count);
         String done = b.name + ": " + (r == null ? "the job" : r.name) + " stopped after " + b.job.done + (b.job.done == 1 ? " run" : " runs");
@@ -395,6 +448,17 @@ final class Production {
 
     /** A building's upkeep this week: its hours, −20 % with a Quartermaster in the base (02c) [the base's upkeep: mine]. */
     double upkeep(Building b) { return b.upkeepNeed() * (quartermaster ? 0.8 : 1); }
+
+    /**
+     * The tool a building's upkeep (and a broken room's repair) needs (round 5, Marek 11-20, verbatim: *"upkeep needs tools of the same
+     * tier. So, if there is issue with water filter or reactor, players need to get outside fast."*): the lowest tier of Gear and tools
+     * in the store of at least the building's own [at least: mine]. 0 = none.
+     */
+    static int upkeepTool(Building b, Base base) {
+        if (base == null) return 0;
+        for (int t = Math.max(1, b.tier); t <= 4; t++) if (base.count(UPKEEP_TOOL, t, 0) > 0) return t;
+        return 0;
+    }
 
     /**
      * How well a building works at its condition (round 4, Marek 11-20: *"could be good at the start, since it will get worse as condition
@@ -420,16 +484,48 @@ final class Production {
         return s;
     }
 
-    /** A building's day: its power and water, once (false = not enough left today). */
-    boolean charge(Building b) {
+    /** A building's day: its power and water, once (false = not enough left today: nothing is taken). */
+    boolean charge(Building b, Base base) {
         if (b.chargedDay == day) return true;
         Kind k = b.kind();
         double p = k == null ? 0 : k.power, w = k == null ? 0 : k.water;
-        if (powerUsed + p > powerCap() + 1e-9 || waterUsed + w > waterCap() + 1e-9) return false;
+        if (powerUsed + p > powerCap() + 1e-9) return false;
+        int tier = drawWater(w, k == null ? "" : k.water_use, base);
+        if (tier == 0) return false;
         powerUsed += p;
-        waterUsed += w;
         b.chargedDay = day;
+        b.waterTier = tier;
+        if (b.job != null) b.job.water = Math.min(b.job.water, tier);
         return true;
+    }
+
+    /**
+     * A room's water for the day (round 5, Marek 11-20, verbatim: *"Lower-tier water - yes, agreed."* · *"workshop, kiln, still,
+     * scrubbers - I would make it rule that these use T1 water first (reversed priority)."*): a room whose water goes into its product
+     * takes the filtration's clean water (Tier III) first, then the store's Water the best tier first; a cooling room the store's Tier I
+     * first, then II, the filtration's, III and IV. Returns the worst tier taken (5 = none was needed), or 0 when all of it is not
+     * there (then nothing is taken).
+     */
+    int drawWater(double litres, String use, Base base) {
+        if (litres <= 1e-9) return 5;
+        double clean = Math.max(0, waterCap() - waterUsed), have = clean;
+        if (base != null) for (int t = 1; t <= 4; t++) have += base.count("Water", t, 0);
+        if (have + 1e-9 < litres) return 0;
+        int[] order = "cooling".equals(use) ? new int[]{1, 2, 0, 3, 4} : new int[]{0, 4, 3, 2, 1};   // 0 = the filtration's clean water
+        double left = litres;
+        int worst = 5;
+        for (int src : order) {
+            if (left <= 1e-9) break;
+            if (src == 0) {
+                double take = Math.min(left, clean);
+                if (take > 1e-9) { waterUsed += take; left -= take; worst = Math.min(worst, 3); }
+                continue;
+            }
+            if (base == null) continue;
+            int n = Math.min(base.count("Water", src, 0), (int) Math.ceil(left - 1e-9));
+            if (n > 0) { base.takeUnits("Water", src, 0, n); left -= n; worst = Math.min(worst, src); }
+        }
+        return worst;
     }
 
     /** Does this building draw its day whether it works or not: the automatic rooms, the kitchen, and a daily one with a job (crops, animals). */
@@ -454,7 +550,7 @@ final class Production {
         while (t < end - 1e-9) {
             double dt = Math.min(1, end - t);
             long d = (long) Math.floor(t / 24);
-            if (d != day) newDay(d, people, out);
+            if (d != day) newDay(d, people, base, out);
             long week = (long) Math.floor(t / 168);
             for (Building b : new ArrayList<>(buildings)) {
                 if (b.upkeepWeek != week) {
@@ -474,38 +570,69 @@ final class Production {
         return out;
     }
 
-    private void newDay(long d, int people, List<String> out) {
+    private void newDay(long d, int people, Base base, List<String> out) {
         day = d;
         powerUsed = 0;
-        waterUsed = Math.min(waterCap(), 2.0 * Math.max(0, people));   // the people drink first (04 §3.9: 2 l a day)
-        if (2.0 * people > waterCap() + 1e-9 && !buildings.isEmpty())
-            out.add("Water: the people need " + Math.round(2.0 * people) + " l, the base makes " + Math.round(waterCap()) + " l a day");
+        double need = 2.0 * Math.max(0, people);   // the people drink first (04 §3.9: 2 l a day)
+        waterUsed = Math.min(waterCap(), need);
+        double rest = need - waterUsed;
+        if (rest > 1e-9 && !buildings.isEmpty()) {
+            // then the store's Water, the best tier first (round 5); what they drank is the GM's for part 4's harm
+            StringJoiner drank = new StringJoiner(", ");
+            boolean harm = false;
+            for (int t = 4; t >= 1 && rest > 1e-9 && base != null; t--) {
+                int n = Math.min(base.count("Water", t, 0), (int) Math.ceil(rest - 1e-9));
+                if (n <= 0) continue;
+                base.takeUnits("Water", t, 0, n);
+                rest -= n;
+                drank.add(n + " l of Tier " + Rules.roman(t));
+                if (t <= 2) harm = true;
+            }
+            out.add("Water: the base makes " + Math.round(waterCap()) + " l a day for " + Math.round(need) + " l; the people drank "
+                    + (drank.length() == 0 ? "nothing" : drank) + " from the store" + (rest > 1e-9 ? ", " + Math.round(rest) + " l short" : "")
+                    + (harm ? " (Tier II water = one harm, Tier I both: 04 §3.9)" : ""));
+        }
         for (Building b : buildings)
-            if (everyDay(b) && !charge(b)) out.add(b.name + ": no power or water for it today");
+            if (everyDay(b) && !charge(b, base)) out.add(b.name + ": no power or water for it today");
     }
 
     private void hour(Building b, double t, double dt, Base base, Workforce wf, Map<String, Worker> byId, List<String> out) {
         b.crew.removeIf(id -> !byId.containsKey(id));   // gone, dead, or no longer working
-        Recipe r = b.job == null ? null : RECIPES.get(b.job.recipe);
+        Recipe r = b.job == null ? null : recipe(b.job.recipe);
         if (b.job != null && r == null) { b.job = null; return; }
         List<Worker> crew = new ArrayList<>();
         for (String id : b.crew) crew.add(byId.get(id));
-        // upkeep first (a week's hours), then the job; a broken room or one without a job is repaired by its crew [mine]
+        // upkeep first (a week's hours, with a tool of the tier: round 5), then the job; a broken room or one without a job is
+        // repaired by its crew [mine]; without the tool the upkeep waits and the crew works the job
         double free = 0;
         boolean foreman = false;
+        int tool = upkeep(b) > 0 || b.condition < 100 ? upkeepTool(b, base) : 0;
+        b.noTool = upkeep(b) > 0 && b.upkeepDone < upkeep(b) && tool == 0;
         for (Worker w : crew) {
-            if (b.upkeepDone < upkeep(b)) { b.upkeepDone = Math.min(upkeep(b), b.upkeepDone + dt); continue; }
-            if (r == null || b.condition <= 0) { b.condition = Math.min(100, b.condition + 2 * dt); continue; }   // [EXAMPLE]
+            if (b.upkeepDone < upkeep(b) && tool > 0) {
+                b.upkeepDone = Math.min(upkeep(b), b.upkeepDone + dt);
+                base.wear(UPKEEP_TOOL, tool, dt);   // 1 % an hour of the work, as a recipe's tool [EXAMPLE]
+                continue;
+            }
+            if (r == null || b.condition <= 0) {
+                if (tool > 0 && b.condition < 100) { b.condition = Math.min(100, b.condition + 2 * dt); base.wear(UPKEEP_TOOL, tool, dt); }   // [EXAMPLE]
+                continue;
+            }
             free += dt * Math.min(4, w.skill(r.skill) / Math.max(1, r.min));
             if (w.perk("Foreman")) foreman = true;
         }
         if (r == null) return;
-        if (b.condition <= 0) { b.job.waiting = "broken: the crew repairs it"; return; }
+        if (b.condition <= 0) { b.job.waiting = "broken: the crew repairs it" + (tool == 0 ? " (it needs " + UPKEEP_TOOL + " of Tier " + Rules.roman(b.tier) + " or better)" : ""); return; }
+        if (!r.repairs.isEmpty() && !b.job.inputsTaken && base.worn(r.repairs, r.tier, b.job.rarity) == 0) {
+            out.add(b.name + ": " + r.name + " done: no worn ones left in that row");
+            end(b, wf);
+            return;
+        }
         if (!b.job.inputsTaken) {
-            String miss = takeInputs(b, r, base, t);
+            String miss = takeInputs(b, r, base, t, crew);
             if (miss != null) { b.job.waiting = "needs " + miss; return; }
         }
-        if (free > 0 && b.chargedDay != day && !charge(b)) { b.job.waiting = "no power or water left today"; return; }
+        if (free > 0 && b.chargedDay != day && !charge(b, base)) { b.job.waiting = "no power or water left today"; return; }
         if (crew.isEmpty() && r.hours > 0 && b.job.work < need(b, r, crew)) { b.job.waiting = "no workers"; return; }
         b.job.waiting = "";
         b.job.work += free * efficiency(b) * (foreman ? 1.25 : 1) * (b.job.extra ? 1.5 : 1);
@@ -532,7 +659,23 @@ final class Production {
     }
 
     /** The run's inputs out of the store (the marked ones at the job's rarity, the rest the lowest first). Null, or what is missing. */
-    String takeInputs(Building b, Recipe r, Base base, double t) {
+    String takeInputs(Building b, Recipe r, Base base, double t) { return takeInputs(b, r, base, t, List.of()); }
+
+    String takeInputs(Building b, Recipe r, Base base, double t, List<Worker> crew) {
+        if (!r.repairs.isEmpty()) {
+            // the repair job: one unit of its material at the parts' tier; Jury Rigging any material of that tier (02c)
+            Ttr m = r.inputs.get(0);
+            String got = base.count(m.type, m.tier, 0) > 0 ? m.type : null;
+            if (got == null && crew.stream().anyMatch(w -> w.perk("Jury Rigging")))
+                for (String alt : MATERIALS) if (base.count(alt, m.tier, 0) > 0) { got = alt; break; }
+            if (got == null) return "1 " + m.type + " " + Rules.roman(m.tier);
+            base.takeUnits(got, m.tier, 0, 1);
+            b.job.madeRarity = b.job.rarity;
+            b.job.inputsTaken = true;
+            b.job.startedAt = t;
+            b.job.water = b.chargedDay == day ? b.waterTier : 5;
+            return null;
+        }
         StringJoiner miss = new StringJoiner(", ");
         for (Ttr i : r.inputs) {
             if (i.extra) continue;
@@ -553,11 +696,37 @@ final class Production {
         b.job.madeRarity = rarity == 99 ? 1 : rarity;
         b.job.inputsTaken = true;
         b.job.startedAt = t;
+        b.job.water = b.chargedDay == day ? b.waterTier : 5;
         return null;
+    }
+
+    /** The job is over: the crew free again but for an automatic room's; a site goes. */
+    private void end(Building b, Workforce wf) {
+        b.job = null;
+        if (b.kind() == null || !b.kind().automatic) release(b, wf);
+        if (b.site) buildings.remove(b);
     }
 
     private void finish(Building b, Recipe r, Base base, Workforce wf, List<Worker> crew, List<String> out) {
         Job j = b.job;
+        if (!r.repairs.isEmpty()) {
+            // the repair job (round 5) [mine, EXAMPLE]: the repair kit's points by the best skill (Mr. Fixit x2) to up to REPAIR.parts worn parts
+            double skill = 0;
+            for (Worker w : crew) skill = Math.max(skill, w.skill(r.skill));
+            double points = Combat.kitRepair(0, skill, crew.stream().anyMatch(w -> w.perk("Mr. Fixit")));
+            int n = base.repair(r.repairs, r.tier, j.rarity, points, REPAIR.parts);
+            j.done++;
+            out.add(b.name + ": " + r.name + " → " + n + (n == 1 ? " part" : " parts") + " +" + Math.round(points) + " % (" + r.skill + " " + Math.round(skill) + ")"
+                    + (j.runs > 0 ? " (" + j.done + " of " + j.runs + ")" : ""));
+            j.work = 0;
+            j.inputsTaken = false;
+            j.startedAt = -1;
+            if ((j.runs > 0 && j.done >= j.runs) || base.worn(r.repairs, r.tier, j.rarity) == 0) {
+                if (j.runs == 0 || j.done < j.runs) out.add(b.name + ": no worn " + r.repairs + " " + Rules.roman(r.tier) + " left: the repair is done");
+                end(b, wf);
+            }
+            return;
+        }
         int rarity = j.madeRarity;
         if (crew.stream().anyMatch(w -> w.perk("Master Craftsman"))) rarity++;
         if (crew.stream().anyMatch(w -> w.perk("Perfectionist"))) rarity++;
@@ -567,20 +736,25 @@ final class Production {
             Building nb = build(r.builds.kind, r.builds.tier, r.builds.kind);
             made.add("a new " + nb.label());
         }
+        // round 5: a room whose water goes into its product makes it no better than the worst water it took
+        Kind kd = b.kind();
+        int cap = kd != null && "product".equals(kd.water_use) && j.water < 5 ? j.water : 5;
         for (Ttr m : r.makes) {
             double n = m.count;
+            int tier = Math.min(m.tier, cap);
             if (r.harvest) n *= harvest / 100 * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
             if ("Chems".equals(m.type) && crew.stream().anyMatch(w -> w.perk("Cook"))) n *= 2;
             if (salvage(r) && crew.stream().anyMatch(w -> w.perk("Salvager"))) n *= 1.5;
-            String ck = m.type + "|" + m.tier;
+            String ck = m.type + "|" + tier;
             double total = n + (j.carry == null ? 0 : j.carry.getOrDefault(ck, 0.0));
             int k = (int) Math.floor(total + 1e-9);
             if (j.carry == null) j.carry = new HashMap<>();
             j.carry.put(ck, Math.max(0, total - k));
             if (k <= 0) continue;
-            base.addUnits(m.type, m.tier, rarity, k);
-            made.add(k + " " + m.type + " " + Rules.roman(m.tier) + " R" + rarity);
+            base.addUnits(m.type, tier, rarity, k);
+            made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rarity + (tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
         }
+        j.water = 5;
         for (Ttr i : r.inputs) if (i.tool) base.wear(i.type, i.tier, Math.max(1, r.hours));   // a tool: 1 % a work hour [EXAMPLE]
         j.done++;
         out.add(b.name + ": " + r.name + " done → " + (made.length() == 0 ? "nothing (the harvest failed)" : made) + (j.runs > 0 ? " (" + j.done + " of " + j.runs + ")" : ""));
@@ -588,22 +762,102 @@ final class Production {
         j.inputsTaken = false;
         j.extra = false;
         j.startedAt = -1;
-        if (j.runs > 0 && j.done >= j.runs) {
-            b.job = null;
-            if (b.kind() == null || !b.kind().automatic) release(b, wf);
-            if (b.site) buildings.remove(b);
+        if (j.runs > 0 && j.done >= j.runs) end(b, wf);
+    }
+
+    // ------------------------------------------------------------------ the recipe lists (round 5)
+    /** Can the base run this recipe now: anywhere (a site), or in one of its buildings. */
+    boolean runnable(Recipe r) {
+        if (r == null) return false;
+        if (SITES.contains(r.building)) return true;
+        for (Building b : buildings) if (!b.site && fits(b, r)) return true;
+        return false;
+    }
+
+    /**
+     * B makes A fully outdated (round 5, Marek 11-20: *"probably hide these fully outdated"*) [the test mine]: at least A's outputs, no
+     * input A does not take and none in a greater number, no more hours, days, skill (the same skill), tier, power or water, no input
+     * marked for the rarity that A does not mark; and better on at least one count.
+     */
+    static boolean dominates(Recipe b, Recipe a) {
+        if (a == null || b == null || a == b || a.harvest != b.harvest || !a.repairs.isEmpty() || !b.repairs.isEmpty()) return false;
+        if ((a.builds == null) != (b.builds == null)) return false;
+        if (a.builds != null && (!a.builds.kind.equals(b.builds.kind) || b.builds.tier < a.builds.tier)) return false;
+        if (!a.skill.equals(b.skill) || b.min > a.min || b.hours > a.hours + 1e-9 || b.days > a.days + 1e-9 || b.tier > a.tier) return false;
+        Kind ka = KINDS.get(a.building), kb = KINDS.get(b.building);
+        if (ka != null && kb != null && (kb.power > ka.power + 1e-9 || kb.water > ka.water + 1e-9)) return false;
+        int more = 0;
+        for (Ttr m : a.makes) {
+            int got = 0;
+            for (Ttr n : b.makes) if (n.type.equals(m.type) && n.tier == m.tier) got += n.count;
+            if (got < m.count) return false;
+            if (got > m.count) more++;
         }
+        int less = 0;
+        for (Ttr i : b.inputs) {
+            Ttr same = null;
+            for (Ttr j : a.inputs) if (j.type.equals(i.type) && j.tier == i.tier && j.tool == i.tool && j.extra == i.extra) same = j;
+            if (same == null || same.count < i.count || (i.sets_rarity && !same.sets_rarity)) return false;
+            if (same.count > i.count || (same.sets_rarity && !i.sets_rarity)) less++;
+        }
+        boolean fewer = b.inputs.size() < a.inputs.size();
+        return more > 0 || less > 0 || fewer || b.hours < a.hours - 1e-9 || b.days < a.days - 1e-9 || b.min < a.min || b.tier < a.tier;
+    }
+
+    /** The known recipe the base can run that makes this one fully outdated, or null. */
+    Recipe outdatedBy(Recipe a) {
+        for (Recipe b : RECIPES.values()) if (b != a && known(b) && runnable(b) && dominates(b, a)) return b;
+        return null;
+    }
+
+    /**
+     * Filtered by what they make and what they use (a part of the type's name and tier, "metal ii"), the best first (round 5: *"the best
+     * recipes are shown on top"*) [the order mine]: the highest tier made, then the fewest inputs and work hours a unit made, then the
+     * lowest skill minimum.
+     */
+    static List<Recipe> rank(Collection<Recipe> rs, String makes, String uses) {
+        String mf = makes == null ? "" : makes.trim().toLowerCase(Locale.ROOT), uf = uses == null ? "" : uses.trim().toLowerCase(Locale.ROOT);
+        List<Recipe> l = new ArrayList<>();
+        for (Recipe r : rs) {
+            boolean mk = mf.isEmpty() || matches(r.makes, mf) || (r.builds != null && ("a " + r.builds.kind).toLowerCase(Locale.ROOT).contains(mf));
+            if (mk && (uf.isEmpty() || matches(r.inputs, uf))) l.add(r);
+        }
+        l.sort(Comparator.comparingInt((Recipe r) -> -madeTier(r, mf)).thenComparingDouble(r -> perUnit(r, mf)).thenComparingInt(r -> r.min)
+                .thenComparing(r -> r.name));
+        return l;
+    }
+
+    static boolean matches(List<Ttr> l, String f) {
+        for (Ttr t : l) if ((t.type + " " + Rules.roman(t.tier)).toLowerCase(Locale.ROOT).contains(f)) return true;
+        return false;
+    }
+
+    /** The highest tier a recipe makes (of the filtered outputs). */
+    static int madeTier(Recipe r, String f) {
+        if (r.builds != null) return r.builds.tier;
+        int t = 0;
+        for (Ttr m : r.makes) if (f.isEmpty() || (m.type + " " + Rules.roman(m.tier)).toLowerCase(Locale.ROOT).contains(f)) t = Math.max(t, m.tier);
+        return t;
+    }
+
+    /** The inputs used up and the work hours, for each unit made (of the filtered outputs). */
+    static double perUnit(Recipe r, String f) {
+        double cost = r.hours, units = r.builds != null ? 1 : 0;
+        for (Ttr i : r.inputs) if (!i.tool && !i.extra) cost += i.count;
+        for (Ttr m : r.makes) if (f.isEmpty() || (m.type + " " + Rules.roman(m.tier)).toLowerCase(Locale.ROOT).contains(f)) units += m.count;
+        return units <= 0 ? Double.MAX_VALUE : cost / units;
     }
 
     // ------------------------------------------------------------------ for the menus
     /** One line about a building: its job, crew and state. */
     String status(Building b) {
         StringBuilder sb = new StringBuilder();
-        Recipe r = b.job == null ? null : RECIPES.get(b.job.recipe);
+        Recipe r = b.job == null ? null : recipe(b.job.recipe);
         sb.append(r == null ? "no job" : r.name + (b.job.runs == 0 ? " (until stopped" : " (" + b.job.done + " of " + b.job.runs) + ", this run "
                 + Math.round(100 * Math.min(1, b.job.work / Math.max(0.01, r.hours))) + " %)");
         sb.append(" · crew ").append(b.crew.size()).append(b.site ? "" : "/" + b.slots());
-        if (upkeep(b) > 0) sb.append(" · upkeep ").append(Math.round(b.upkeepDone)).append("/").append(Math.round(upkeep(b))).append(" h this week");
+        if (upkeep(b) > 0) sb.append(" · upkeep ").append(Math.round(b.upkeepDone)).append("/").append(Math.round(upkeep(b))).append(" h this week")
+                .append(b.noTool ? " (WAITS: it needs " + UPKEEP_TOOL + " of Tier " + Rules.roman(b.tier) + " or better)" : "");
         if (b.condition < 100) sb.append(" · condition ").append(Math.round(b.condition)).append(" %")
                 .append(efficiency(b) < 1 ? " (works at " + Math.round(100 * efficiency(b)) + " %)" : "");
         if (b.job != null && !b.job.waiting.isEmpty()) sb.append(" · WAITS: ").append(b.job.waiting);

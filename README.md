@@ -3,6 +3,21 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.44.0 (2026-11-20): part 7 round 5: the parts keep their condition, water by tier, tools for upkeep, the recipes ranked.**
+- **The parts keep their condition** (Marek: *"we could use that average condition for parts + the undamaged parts"*): the Mess Chest
+  takes an item apart into ALL its parts at its condition; a row keeps the undamaged apart and the worn at their average; an item
+  assembled from worn parts comes out at their average (an assembled weapon carries it too). Nothing is lost, so the repair is work again.
+- **The repair job** (*Production → a Workbench or Workshop → Repair worn parts*): a run takes 1 unit of the material of the parts'
+  tier and 1 work hour (Crafting 25, Engineering for electronics and machinery) and adds the repair kit's points by the best skill
+  (Mr. Fixit ×2) to up to 3 worn parts; Jury Rigging takes any material of the tier. [mine, EXAMPLE]
+- **A chest of an item category** (*GM → Base → An item category's chest*): its unlocked items assemble from the store's parts on a
+  click, the worn parts first on a left click, the undamaged on a right click.
+- **Water of a lower tier**: the people and the rooms whose water goes into their product take the filtration's, then the store's best
+  tier first, and the product comes out no better than the worst water; the workshop, kiln, still and scrubbers take Tier I first.
+- **Upkeep needs a Gear and tools of the building's tier** (or better) in the store, worn 1 % an hour; without one the week is missed.
+- **The recipe lists**: a filter by what a recipe makes and what it uses, the best first, the fully outdated hidden unless ticked.
+- **Reverse Engineer waits for part 8** (research): its instant schematics were too strong.
+
 **Version 0.43.0 (2026-11-20): part 7 round 4: the base makes PARTS, the items are assembled from them when going out.**
 - **26 types instead of 46** (Marek: *"I think creating just the parts and the item assembled out of them when going out would work
   better."*): soft and hard armour parts, hard (metal) and light (wood, other) weapon parts, firearm parts, electronics, machinery,

@@ -38,6 +38,13 @@ class ProductionTest {
         @Override public void assign(String id, String a) { activity.put(id, a); }
     }
 
+    /** A store with Tier I water: a workshop or a kiln cools with it on its working days (round 5: "these use T1 water first"). */
+    static Base cooled() {
+        Base b = new Base(null);
+        b.addUnits("Water", 1, 1, 200);
+        return b;
+    }
+
     static Production.Recipe recipe(String id) {
         Production.Recipe r = Production.RECIPES.get(id);
         assertNotNull(r, id);
@@ -101,6 +108,7 @@ class ProductionTest {
         Base base = new Base(null);
         base.addUnits("Metal", 1, 1, 6);
         base.addUnits("Fuel", 2, 1, 4);
+        base.addUnits("Gear and tools", 2, 1, 1);                                      // upkeep's tool of the workshop's tier (round 5)
         Crew crew = new Crew(worker("Honza", "Crafting", 60));                        // twice the minimum (30): twice as fast
         String m = pr.start(ws, recipe("recast-scrap"), 2, 1, crew);
         assertTrue(m.contains("Honza"), m);
@@ -119,6 +127,7 @@ class ProductionTest {
         assertEquals(0, base.count("Metal", 1, 0));
         assertEquals(0, base.count("Fuel", 2, 0));
         assertTrue(base.unlocked.contains(Base.key("Metal", 2, 1)));                  // made in the base: unlocked
+        assertEquals(96, base.pools.get(Base.key("Gear and tools", 2, 1)).average(), 1e-9);   // 4 h of upkeep: 1 % an hour
     }
 
     @Test
@@ -148,7 +157,7 @@ class ProductionTest {
         Production.Building ws = pr.build("Workshop", 2, "W");
         ws.upkeepWeek = 0;
         ws.upkeepDone = 99;                                                            // upkeep done for the week
-        Base base = new Base(null);
+        Base base = cooled();
         base.addUnits("Metal", 1, 1, 3);
         base.addUnits("Fuel", 2, 1, 2);
         Crew one = new Crew(worker("Master", "Crafting", 300));                        // x10 would be: capped at x4
@@ -186,7 +195,7 @@ class ProductionTest {
         Production.Building ws = pr.build("Workshop", 2, "W");
         ws.upkeepWeek = 0;
         ws.upkeepDone = 99;
-        Base base = new Base(null);
+        Base base = cooled();
         base.addUnits("Metal", 1, 2, 3);                                               // rarity 2 scrap
         base.addUnits("Fuel", 2, 1, 2);
         Crew crew = new Crew(worker("H", "Crafting", 120));
@@ -232,7 +241,7 @@ class ProductionTest {
         pr.advance(1, 0, base, new Crew(), 10);
         // the filtration 20 + the scrubbers 20 + the kitchen 15 always; nobody works in the workshop: not its 20
         assertEquals(55, pr.powerUsed, 1e-9);
-        assertEquals(20 + 40, pr.waterUsed, 1e-9);                                     // ten people's 2 l, the kitchen's 40
+        assertEquals(20 + 40 + 20, pr.waterUsed, 1e-9);                                // ten people's 2 l, the kitchen's 40, the scrubbers' 20
         Production.Building ws = pr.buildings.stream().filter(b -> b.kind.equals("Workshop")).findFirst().orElseThrow();
         base.addUnits("Metal", 1, 1, 3);
         base.addUnits("Fuel", 2, 1, 2);
@@ -271,8 +280,121 @@ class ProductionTest {
         Crew crew = new Crew(worker("Tech", "Engineering", 40));
         pr.pick(reactor, crew);                                                        // an automatic room's crew: its upkeep
         assertEquals(List.of("person:Tech"), reactor.crew);
-        pr.advance(8 + 10, 170, base, crew, 0);                                        // 8 h upkeep (Tier IV), then repairs +2 an hour
+        // round 5: "upkeep needs tools of the same tier": without a Tier IV tool nothing moves
+        base.addUnits("Gear and tools", 3, 1, 1);                                      // Tier III: not enough for the reactor
+        pr.advance(5, 170, base, crew, 0);
+        assertEquals(75, reactor.condition, 1e-9);
+        assertTrue(pr.status(reactor).contains("WAITS: it needs Gear and tools of Tier IV or better"), pr.status(reactor));
+        base.addUnits("Gear and tools", 4, 1, 1);
+        pr.advance(8 + 10, 175, base, crew, 0);                                        // 8 h upkeep (Tier IV), then repairs +2 an hour
         assertEquals(95, reactor.condition, 1e-9);
+        assertEquals(82, base.pools.get(Base.key("Gear and tools", 4, 1)).average(), 1e-9);   // 18 h of work: 18 %
+        assertEquals(1, base.pools.get(Base.key("Gear and tools", 3, 1)).fresh);      // the Tier III one untouched
+    }
+
+    @Test
+    void waterOfALowerTierComesFromTheStore() {
+        // round 5 (Marek 11-20): "Lower-tier water - yes, agreed." · "workshop, kiln, still, scrubbers - I would make it rule that these
+        // use T1 water first (reversed priority)."
+        Production pr = new Production();
+        pr.shelter();
+        Base base = new Base(null);
+        base.addUnits("Water", 1, 1, 100);
+        base.addUnits("Water", 2, 1, 100);
+        List<String> out = pr.advance(1, 0, base, new Crew(), 160);                    // 320 l for the people: 300 + 20 from the store
+        assertEquals(300, pr.waterUsed, 1e-9);
+        assertTrue(out.stream().anyMatch(s -> s.contains("the people drank 20 l of Tier II") && s.contains("one harm")), out.toString());
+        assertEquals(100 - 20, base.count("Water", 1, 0));                             // the scrubbers cool with Tier I first
+        assertEquals(100 - 20 - 40, base.count("Water", 2, 0));                        // the people and the kitchen: the best first
+        Production.Building kitchen = pr.buildings.stream().filter(b -> b.kind.equals("Kitchen")).findFirst().orElseThrow();
+        assertEquals(2, kitchen.waterTier);
+        // not enough of any: the room waits and nothing is taken
+        Production dry = new Production();
+        dry.build("Reactor", 4, "Reactor");
+        Production.Building k = dry.build("Kitchen", 3, "K");
+        Base none = new Base(null);
+        none.addUnits("Water", 1, 1, 10);
+        assertTrue(dry.advance(1, 0, none, new Crew(), 0).stream().anyMatch(s -> s.startsWith("K: no power or water")));
+        assertEquals(10, none.count("Water", 1, 0));
+        assertEquals(-1, k.chargedDay);
+    }
+
+    @Test
+    void aProductRoomsProductIsNoBetterThanItsWorstWater() {
+        // the kitchen cooks with Tier I water: its Tier II meat comes out Tier I (one harm more, 04 §3.9)
+        Production pr = new Production();
+        pr.build("Reactor", 4, "Reactor");
+        Production.Building k = pr.build("Kitchen", 3, "K");
+        Base base = new Base(null);
+        base.addUnits("Water", 1, 1, 40);
+        base.addUnits("Food", 1, 1, 2);
+        base.addUnits("Fuel", 1, 1, 1);
+        Crew crew = new Crew(worker("C", "Survival", 30));
+        pr.start(k, recipe("cook-wasteland-meat"), 1, 1, crew);
+        List<String> out = pr.advance(2, 0, base, crew, 0);
+        assertNull(k.job, out.toString());
+        assertEquals(2, base.count("Food", 1, 1));
+        assertEquals(0, base.count("Food", 2, 0));
+        assertTrue(out.stream().anyMatch(s -> s.contains("2 Food I R1 (Tier I water)")), out.toString());
+    }
+
+    @Test
+    void theRepairJobMendsWornParts() {
+        // round 5 [mine, EXAMPLE]: a run = 1 material of the tier + 1 h at the minimum 25; the kit's points (Mr. Fixit x2) to up to 3 parts
+        Production pr = new Production();
+        Production.Building wb = pr.build("Workbench", 2, "B");
+        Base base = new Base(null);
+        base.disassemble(Production.piece("Metal Armor", "Chest"), 1, 60);           // 7 hard + 2 soft at 60 %
+        base.addUnits("Metal", 2, 1, 5);
+        Production.Recipe r = Production.repairRecipe("Hard armour parts", 2);
+        assertNotNull(r);
+        assertTrue(Production.fits(wb, r));
+        assertFalse(Production.fits(wb, Production.repairRecipe("Hard armour parts", 3)));   // the building's tier caps it
+        assertNull(Production.RECIPES.get(r.id));                                       // not in the recipe lists
+        Crew crew = new Crew(worker("F", "Crafting", 100, "Mr. Fixit"));
+        String m = pr.start(wb, r, 0, 1, crew);
+        assertTrue(m.contains("until stopped"), m);
+        List<String> out = pr.advance(3, 0, base, crew, 0);                            // a run an hour at most; 60 points: 3 to full a run
+        assertNull(wb.job, out.toString());
+        assertEquals(0, base.worn("Hard armour parts", 2, 1));
+        assertEquals(7, base.pools.get(Base.key("Hard armour parts", 2, 1)).fresh);
+        assertEquals(5 - 3, base.count("Metal", 2, 1));                                 // three runs: 3 + 3 + 1
+        assertTrue(out.stream().anyMatch(s -> s.contains("the repair is done")), out.toString());
+        // Jury Rigging: any material of the tier when its own is missing
+        base.disassemble(Production.piece("Metal Armor", "Head"), 1, 50);
+        base.addUnits("Wood", 2, 1, 1);
+        base.takeUnits("Metal", 2, 0, 2);
+        Crew rig = new Crew(worker("J", "Crafting", 100, "Jury Rigging"));
+        pr.start(wb, r, 1, 1, rig);
+        pr.advance(1, 3, base, rig, 0);
+        assertEquals(0, base.count("Wood", 2, 0));
+        assertEquals(80, base.pools.get(Base.key("Hard armour parts", 2, 1)).average(), 1e-9);   // 2 at 50 % + 30 (no Mr. Fixit)
+    }
+
+    @Test
+    void theRecipesAreRankedAndTheFullyOutdatedFound() {
+        // round 5 (Marek 11-20): "filter both by input and output and that the best recipes are shown on top, and probably hide these
+        // fully outdated"
+        Production pr = new Production();
+        pr.build("Workshop", 2, "W");
+        Production.Recipe old = recipe("recast-scrap"), better = recipe("bellows-furnace");
+        assertTrue(Production.dominates(better, old));
+        assertFalse(Production.dominates(old, better));
+        assertNull(pr.outdatedBy(old));                                                // not known yet
+        pr.known.add(better.id);
+        assertNull(pr.outdatedBy(old));                                                // known, but no kiln to run it
+        pr.build("Kiln", 2, "K");
+        assertEquals(better, pr.outdatedBy(old));
+        // the best first: the highest tier made, then the fewest inputs and hours a unit made
+        List<Production.Recipe> metal = Production.rank(Production.RECIPES.values(), "metal ii", "");
+        assertFalse(metal.isEmpty());
+        for (Production.Recipe r : metal) assertTrue(Production.matches(r.makes, "metal ii"), r.name);
+        for (int i = 1; i < metal.size(); i++) {
+            Production.Recipe a = metal.get(i - 1), b = metal.get(i);
+            assertTrue(Production.madeTier(a, "metal ii") > Production.madeTier(b, "metal ii")
+                    || Production.perUnit(a, "metal ii") <= Production.perUnit(b, "metal ii") + 1e-9, a.name + " before " + b.name);
+        }
+        for (Production.Recipe r : Production.rank(Production.RECIPES.values(), "", "salvage")) assertTrue(Production.matches(r.inputs, "salvage"), r.name);
     }
 
     @Test
@@ -280,7 +402,7 @@ class ProductionTest {
         Production pr = new Production();
         pr.build("Reactor", 4, "Reactor");
         Production.Building ws = pr.build("Workshop", 2, "W");
-        Base base = new Base(null);
+        Base base = cooled();
         base.addUnits("Textile", 1, 1, 2);
         base.addUnits("Chemicals", 1, 1, 1);
         Crew crew = new Crew(worker("T", "Crafting", 100));
@@ -294,6 +416,7 @@ class ProductionTest {
         Production.Building field = pr.build("Field", 2, "Field");
         pr.harvest = 50;
         base.addUnits("Seeds", 2, 1, 1);
+        base.addUnits("Gear and tools", 2, 1, 1);                                      // 17 weeks of upkeep: without a tool the field breaks (round 5)
         Crew farmer = new Crew(worker("F", "Biology", 15));
         pr.start(field, recipe("field-potatoes"), 1, 1, farmer);
         pr.advance(121 * 24, 14 * 24, base, farmer, 0);
@@ -396,7 +519,7 @@ class ProductionTest {
         r.condition = 100;
         Production.Building ws = pr.build("Workshop", 2, "W");
         ws.condition = 37.5;
-        Base base = new Base(null);
+        Base base = cooled();
         base.addUnits("Metal", 1, 1, 3);
         base.addUnits("Fuel", 2, 1, 2);
         Crew crew = new Crew(worker("H", "Crafting", 60));
@@ -411,9 +534,10 @@ class ProductionTest {
     @Test
     void theProductionPerksAreOfferedAndRun() {
         // round 4: "Production perks - yes, add them as part of this update."
-        for (String p : List.of("Salvager", "Assembly Line", "Master Craftsman", "Reverse Engineer", "Cook", "Good Harvest", "Quartermaster", "Foreman"))
+        for (String p : List.of("Salvager", "Assembly Line", "Master Craftsman", "Cook", "Good Harvest", "Quartermaster", "Foreman"))
             assertFalse(Data.PERKS.get(p).parked(), p);
-        for (String p : List.of("Data Miner", "Prototype", "Lab Rat", "Eureka")) assertTrue(Data.PERKS.get(p).parked(), p);   // part 8
+        // part 8; Reverse Engineer back with it (round 5: "seriously strong now")
+        for (String p : List.of("Data Miner", "Prototype", "Lab Rat", "Eureka", "Reverse Engineer")) assertTrue(Data.PERKS.get(p).parked(), p);
         // Quartermaster: the faction's upkeep -20 % (02c) [the base's buildings: mine]
         Production pr = new Production();
         Production.Building ws = pr.build("Workshop", 2, "W");

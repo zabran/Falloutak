@@ -838,7 +838,7 @@
     }
    ],
    "effect": "taking a working item apart gives you its schematic (part 7)",
-   "parked": false,
+   "parked": true,
    "bound": false,
    "mods": {},
    "other": {}

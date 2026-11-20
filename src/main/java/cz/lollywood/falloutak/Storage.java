@@ -28,9 +28,12 @@ import java.util.*;
  * The base's store in Minecraft chests (Marek 11-19: *"one chest per type, rows by tiers and rarities. And physical Mess Chest that
  * players can return items into."*). A type's chest opens as a chest screen: a row for each tier and rarity in the store, its first
  * slot naming the row, then every unlocked item of it; a click takes one, shift + click up to 16. Since round 4 the chests hold PARTS
- * and materials: the items are assembled from them when going out ({@link Works#assemble}). The Mess Chest is a plain chest: whatever
+ * and materials: the items are assembled from them when going out ({@link Works#assemble}). **A chest of an item CATEGORY** (round 5,
+ * Marek 11-20: *"make sure that the "store chests" still works (by automaticaly assembling the parts into the item, if there is enough
+ * parts)"*) shows that category's unlocked items by tier and rarity, and a click ASSEMBLES one from the store's parts: a left click
+ * the worn parts first (the item at their average), a right click the undamaged ones. The Mess Chest is a plain chest: whatever
  * store items are in it when it is closed go into their rows (and are unlocked), an assembled item or an armour piece comes apart
- * into its parts, the damaged share lost (round 4: *"It also simplifies repair."*); anything else stays.
+ * into ALL its parts at its condition (round 5: the parts keep it); anything else stays.
  */
 final class Storage implements Listener {
     final FalloutakPlugin pl;
@@ -43,6 +46,8 @@ final class Storage implements Listener {
         final int page;
         /** slot → {row key, set}. */
         final Map<Integer, String[]> takes = new HashMap<>();
+        /** A category's chest (round 5): slot → the design it assembles. */
+        final Map<Integer, String> designs = new HashMap<>();
         int prev = -1, next = -1;
         Inventory inv;
 
@@ -97,9 +102,71 @@ final class Storage implements Listener {
 
     void open(Player p, String type, int page) {
         Holder h = new Holder(type, page);
-        h.inv = Bukkit.createInventory(h, ROWS * 9, Component.text(type + " · the base's store"));
-        fill(h, p);
+        h.inv = Bukkit.createInventory(h, ROWS * 9, Component.text(type + " · the base's store" + (Base.category(type) ? " (assembled)" : "")));
+        if (Base.category(type)) fillCategory(h, p);
+        else fill(h, p);
         p.openInventory(h.inv);
+    }
+
+    /**
+     * A category's chest (round 5): a row for each tier and rarity among its unlocked items, then those items, each with how many the
+     * store's parts make now (of them from undamaged parts) and the condition it comes out at.
+     */
+    void fillCategory(Holder h, Player p) {
+        Inventory inv = h.inv;
+        inv.clear();
+        h.designs.clear();
+        h.prev = h.next = -1;
+        Map<String, List<Production.Design>> rows = new TreeMap<>();
+        for (Production.Design d : Production.DESIGNS.values())
+            if (d.category.equals(h.type) && pl.base.unlocked(d)) rows.computeIfAbsent(d.tier + "|" + d.rarity, k -> new ArrayList<>()).add(d);
+        List<List<Production.Design>> lines = new ArrayList<>();
+        for (List<Production.Design> l : rows.values())
+            for (int i = 0; i < l.size(); i += PER_ROW) lines.add(l.subList(i, Math.min(l.size(), i + PER_ROW)));
+        if (lines.isEmpty()) {
+            inv.setItem(22, label(Material.BARRIER, "Nothing unlocked here yet", "Tier I-II at rarity 1 assembles from the start;",
+                    "bring one in through the Mess Chest, or the GM unlocks it"));
+            return;
+        }
+        boolean paged = lines.size() > ROWS;
+        int per = paged ? ROWS - 1 : ROWS, from = h.page * per;
+        String fit = pl.character(p).fit();
+        for (int row = 0; row < per && from + row < lines.size(); row++) {
+            List<Production.Design> line = lines.get(from + row);
+            Production.Design first = line.get(0);
+            int at = row * 9;
+            inv.setItem(at, label(Material.PAPER, "Tier " + Rules.roman(first.tier) + ", rarity " + first.rarity,
+                    "assembled from the store's parts on a click", "left: the worn parts first · right: the undamaged"));
+            for (int k = 0; k < line.size(); k++) {
+                Production.Design d = line.get(k);
+                int can = pl.base.canAssemble(d), fresh = pl.base.canAssembleFresh(d);
+                ItemStack it = d.armour() ? Items.piece(new Character.Worn(d.set, d.slot, 100, fit)) : Items.make(Items.madeId(d), 1);
+                ItemMeta im = it.getItemMeta();
+                List<Component> lore = new ArrayList<>(im.lore() == null ? List.of() : im.lore());
+                List<Component> top = new ArrayList<>();
+                if (can == 0) top.add(Component.text("not enough parts: " + pl.base.missing(d), NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+                else {
+                    double worn = pl.base.conditionOf(d, false);
+                    top.add(Component.text(can * d.makes + " ready (" + fresh * d.makes + " from undamaged parts) · takes " + Production.partsText(d), NamedTextColor.GREEN)
+                            .decoration(TextDecoration.ITALIC, false));
+                    top.add(Component.text("left click: the worn parts first (comes out at " + Math.round(worn) + " %) · right click: the undamaged"
+                            + (d.armour() ? "" : " · shift: up to 16"), NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
+                }
+                top.addAll(lore);
+                im.lore(top);
+                int n = Math.max(1, Math.min(99, can * d.makes));
+                Battle.cosmetic(() -> im.setMaxStackSize(n));
+                it.setItemMeta(im);
+                Battle.cosmetic(() -> it.setAmount(n));
+                inv.setItem(at + 1 + k, it);
+                h.designs.put(at + 1 + k, d.key());
+            }
+        }
+        if (paged) {
+            int pages = (lines.size() + per - 1) / per;
+            if (h.page > 0) { h.prev = 45; inv.setItem(45, label(Material.ARROW, "Previous page", "page " + h.page + " of " + pages)); }
+            if (h.page < pages - 1) { h.next = 53; inv.setItem(53, label(Material.ARROW, "Next page", "page " + (h.page + 2) + " of " + pages)); }
+        }
     }
 
     /** The rows of the screen: a label, then up to 8 items; a long row goes on in the next one; pages past six rows. */
@@ -177,6 +244,17 @@ final class Storage implements Listener {
     String click(Player p, Holder h, int slot, boolean right, boolean shift) {
         if (slot == h.prev) { open(p, h.type, h.page - 1); return null; }
         if (slot == h.next) { open(p, h.type, h.page + 1); return null; }
+        String dk = h.designs.get(slot);
+        if (dk != null) {
+            // round 5: the category's chest assembles it from the parts (left: the worn first, right: the undamaged)
+            Production.Design d = Production.DESIGNS.get(dk);
+            int can = d == null ? 0 : pl.base.canAssemble(d);
+            if (can == 0) { fillCategory(h, p); return d == null ? null : "! not enough parts in the store: " + pl.base.missing(d); }
+            int n = d.armour() ? 1 : Math.min(can, shift ? Math.max(1, 16 / Math.max(1, d.makes)) : 1);
+            String r = Works.give(p, d, n, right);
+            fillCategory(h, p);
+            return r;
+        }
         String[] t = h.takes.get(slot);
         if (t == null) return null;
         Base.Pool pool = pl.base.pools.get(t[0]);
@@ -213,32 +291,16 @@ final class Storage implements Listener {
         if (n <= 0 || !(e.getPlayer() instanceof Player p)) return;
         Sfx.to(p, "store.sort");
         Menus.say(p, n + (n == 1 ? " item" : " items") + " sorted from the Mess Chest into the store.");
-        if (pl.character(p).hasPerk("Reverse Engineer")) {
-            List<String> learnt = reverseEngineer(pl.production, parts);
-            if (!learnt.isEmpty()) { pl.production.save(); Menus.say(p, "Reverse Engineer: the base now knows " + String.join(", ", learnt) + "."); }
-        }
-    }
-
-    /**
-     * Reverse Engineer (02c: *"taking a working item apart gives you its schematic"*): the researched recipes that make the parts an
-     * item came apart into, at their tier, become known [mine: in round 4's parts, the schematic = how to make its parts]. Returns their names.
-     */
-    static List<String> reverseEngineer(Production pr, Set<String> parts) {
-        List<String> l = new ArrayList<>();
-        for (Production.Recipe r : Production.RECIPES.values()) {
-            if (r.atStart() || pr.known.contains(r.id)) continue;
-            for (Production.Ttr m : r.makes)
-                if (parts.contains(m.type + "|" + m.tier)) { pr.known.add(r.id); l.add(r.name); break; }
-        }
-        return l;
+        // Reverse Engineer waits for part 8 (round 5, Marek 11-20: "this is seriously strong now ... once it is gained, it skyrockets
+        // research"): its instant schematics are gone; the parts it came apart into are kept for research's inspiration
     }
 
     static int sortMess(Inventory inv, Base base) { return sortMess(inv, base, new TreeSet<>()); }
 
     /**
      * The store's items out of a Mess Chest: things into their rows (each unlocked); an assembled item or an armour piece comes apart
-     * into its parts, the damaged share lost (round 4), and an item of 0.42.0's old types into its parts too; anything else stays in
-     * it. {@code parts} collects the {@code type|tier} of the parts that came back from items (Reverse Engineer). Returns how many items.
+     * into ALL its parts at its condition (round 5), and an item of 0.42.0's old types into its parts too; anything else stays in it.
+     * {@code parts} collects the {@code type|tier} of the parts that came back from items (part 8's inspiration). Returns how many items.
      */
     static int sortMess(Inventory inv, Base base, Set<String> parts) {
         int n = 0;
@@ -263,7 +325,7 @@ final class Storage implements Listener {
             if (w != null) d = Production.piece(w.set(), w.slot());
             if (d == null) continue;   // nothing the store knows: it stays in the chest
             if (w != null) for (int j = 0; j < k; j++) base.disassemble(w);
-            else base.disassemble(d, k, 100);
+            else base.disassemble(d, k, Items.madeCondition(it));
             for (Production.Part p : d.parts) parts.add(p.type + "|" + p.tier);
             inv.setItem(i, null);
             n += k;

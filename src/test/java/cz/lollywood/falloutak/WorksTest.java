@@ -18,6 +18,7 @@ class WorksTest extends MockGame {
         c.working = true;                                                               // Work in the base: he is a worker
         plugin.base.addUnits("Metal", 1, 1, 3);
         plugin.base.addUnits("Fuel", 2, 1, 2);
+        plugin.base.addUnits("Gear and tools", 2, 1, 1);                               // upkeep's tool (round 5)
         Menus.actions(gm);
         Ui.Page pg = click("Production");
         assertTrue(pg.text().contains("No buildings yet"), pg.text());
@@ -41,6 +42,38 @@ class WorksTest extends MockGame {
         assertTrue(s.contains("Maintenance workshop: Recast scrap done → 1 Metal II R1 (1 of 1)"), s);
         assertEquals(1, plugin.base.count("Metal", 2, 1));
         assertEquals(xp0 + 8, c.xp);                                                    // his downtime work: 1 XP an hour
+    }
+
+    @Test
+    void theRecipesFilterByWhatTheyMakeAndUseTheOutdatedHidden() {
+        // round 5 (Marek 11-20): "please make sure that in game, it is possible to filter both by input and output and that the best
+        // recipes are shown on top, and probably hide these fully outdated."
+        PlayerMock gm = player();
+        plugin.production.build("Workshop", 2, "W");
+        plugin.production.build("Kiln", 2, "K");
+        plugin.production.known.add("bellows-furnace");
+        Menus.actions(gm);
+        click("Production");
+        click("All known recipes");
+        Ui.Page pg = click("Filter", "m", "metal ii", "u", "", "o", false);
+        assertTrue(pg.labels().contains("Bellows furnace → 1 Metal II"), pg.labels().toString());
+        assertFalse(pg.labels().contains("Recast scrap → 1 Metal II"), pg.labels().toString());   // fully outdated: hidden
+        assertTrue(pg.text().contains("fully outdated hidden"), pg.text());
+        pg = click("Filter", "m", "metal ii", "u", "", "o", true);
+        assertTrue(pg.labels().contains("(outdated) Recast scrap → 1 Metal II"), pg.labels().toString());
+        pg = click("Filter", "m", "", "u", "salvage", "o", false);
+        assertTrue(pg.labels().stream().anyMatch(l -> l.startsWith("Take apart junk")), pg.labels().toString());
+        assertFalse(pg.labels().contains("Bellows furnace → 1 Metal II"), pg.labels().toString());   // it uses no salvage
+        // the repair job (round 5): a row of worn parts, then the runs
+        plugin.base.disassemble(Production.piece("Metal Armor", "Chest"), 1, 60);
+        Menus.actions(gm);
+        click("Production");
+        click("W");
+        click("Repair worn parts");
+        click("Hard armour parts II · 7 worn at 60 %");
+        pg = click("Start", "n", 0f);
+        assertTrue(said(gm).contains("Repair worn Hard armour parts II until stopped"), said(gm));
+        assertTrue(pg.text().contains("Repair worn Hard armour parts II"), pg.text());
     }
 
     @Test
