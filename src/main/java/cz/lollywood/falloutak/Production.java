@@ -741,7 +741,7 @@ final class Production {
         int cap = kd != null && "product".equals(kd.water_use) && j.water < 5 ? j.water : 5;
         for (Ttr m : r.makes) {
             double n = m.count;
-            int tier = Math.min(m.tier, cap);
+            int tier = "Water".equals(m.type) ? m.tier : Math.min(m.tier, cap);   // water made is its own input's, not the room's [mine]
             if (r.harvest) n *= harvest / 100 * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
             if ("Chems".equals(m.type) && crew.stream().anyMatch(w -> w.perk("Cook"))) n *= 2;
             if (salvage(r) && crew.stream().anyMatch(w -> w.perk("Salvager"))) n *= 1.5;

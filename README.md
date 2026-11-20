@@ -3,6 +3,8 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.44.1 (2026-11-20):** a recipe that makes Water is not capped by the room's daily water (its own water input is the product).
+
 **Version 0.44.0 (2026-11-20): part 7 round 5: the parts keep their condition, water by tier, tools for upkeep, the recipes ranked.**
 - **The parts keep their condition** (Marek: *"we could use that average condition for parts + the undamaged parts"*): the Mess Chest
   takes an item apart into ALL its parts at its condition; a row keeps the undamaged apart and the worn at their average; an item

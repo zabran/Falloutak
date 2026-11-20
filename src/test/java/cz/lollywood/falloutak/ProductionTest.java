@@ -336,6 +336,13 @@ class ProductionTest {
         assertEquals(2, base.count("Food", 1, 1));
         assertEquals(0, base.count("Food", 2, 0));
         assertTrue(out.stream().anyMatch(s -> s.contains("2 Food I R1 (Tier I water)")), out.toString());
+        // a recipe that makes water is not capped: its own water input is the product [mine]
+        base.addUnits("Water", 2, 1, 40 + 3);                                         // the kitchen's day takes its 40 l of the best first
+        base.addUnits("Fuel", 1, 1, 1);
+        pr.start(k, recipe("boil-filtered-water"), 1, 1, crew);
+        pr.advance(2, 24, base, crew, 0);
+        assertNull(k.job);
+        assertEquals(3, base.count("Water", 3, 1));
     }
 
     @Test
