@@ -82,7 +82,7 @@ final class Base {
     final Set<String> unlocked = new TreeSet<>();
     /** The chests: a type (or {@link #MESS}) → its blocks (a double chest has two). */
     final Map<String, List<Spot>> chests = new LinkedHashMap<>();
-    /** Items worn out in the base's work, by type (part 8 round 4: an achievement counts them). */
+    /** Items worn out in the base's work, by type (part 8 round 4: a eureka counts them). */
     final Map<String, Integer> wornOut = new LinkedHashMap<>();
     private final Path file;
     /** While the file is read: nothing is written back until it is whole (an old type converted to parts saves once, at the end). */

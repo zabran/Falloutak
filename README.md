@@ -3,6 +3,17 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.54.0 (2026-11-21): part 8 round 6 - the eurekas, basic research one tier above, the grow room researched.**
+- **The cards' achievements are EUREKAS now** (Marek: *"rename them into eurakas, so that they do not clash with normal
+  achievements."*): on the Labs pages, the GM's button and the messages; the achievements across games stay achievements. A save of
+  0.53.0 loads as it was (the old keys are read).
+- **Basic research one tier above the laboratory** (*"up to 1 tier bellow. So that you cannot rush it without building T3 lab."*): a
+  Laboratory II runs the basic cards up to Tier III, the Tier IV ones (Workshop IV, Microelectronics, Servos and turbines, Laboratory
+  IV) need a Laboratory III.
+- **The grow room researched** (*"Should building one, and raising it to Tier III, be researched too? - yes."*): the cards Grow room
+  (build one, Tier II) and Grow room III (raise it). A card a card needs counts as met when its building already stands, so the start
+  package's grow room opens Chicory without the card (Mushrooms on straw once a Laboratory III stands too). 38 cards, 151 recipes.
+
 **Version 0.53.0 (2026-11-21): part 8 round 5 - basic research, the buildings researched, Electronics and Machinery III-IV.**
 - **Basic research two tiers above the laboratory** (Marek: *"Labs can research basic (just the basic) researches of 2 tier above to
   allow the research to get there."*): a basic card (the first way to a type's tier or a building's tier the start does not give)

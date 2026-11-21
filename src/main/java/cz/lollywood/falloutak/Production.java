@@ -776,7 +776,7 @@ final class Production {
             out.add(b.name + ": upkeep missed " + (weeks == 1 ? "a week" : weeks + " weeks") + ", condition " + pct(before) + " → "
                     + pct(b.condition) + " %" + (b.condition <= 0 ? ": IT STOPS" : before >= 75 && b.condition < 75 ? ": it works less from now" : ""));
         }
-        Research.check(this, base, out);   // part 8 round 4: the achievements that ask about the base's state
+        Research.check(this, base, out);   // part 8 round 4: the eurekas that ask about the base's state
         return out;
     }
 
@@ -1057,7 +1057,7 @@ final class Production {
             j.carry.put(ck, Math.max(0, total - k));
             if (k <= 0) continue;
             base.addUnits(m.type, tier, rarity, k);
-            Research.made(this, m.type, tier, k, out);   // part 8: the achievements count what is made
+            Research.made(this, m.type, tier, k, out);   // part 8: the eurekas count what is made
             made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rarity + (tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
         }
         j.water = 5;

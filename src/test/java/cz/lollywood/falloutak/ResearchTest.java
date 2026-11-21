@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Part 8, research (`08-RESEARCH.md` §3, RULED rounds 1-4): the cards, the shares, theory, experiments, the prototype (built by the way's
- * own crew led by a researcher, round 4) and its test, the achievements pre-prepared in Civ6's way (round 4), the tree (round 4).
+ * own crew led by a researcher, round 4) and its test, the eurekas pre-prepared in Civ6's way (round 4, named so in round 6), the tree (round 4).
  */
 class ResearchTest {
     /** A workforce that also remembers the XP it was given. */
@@ -57,7 +57,7 @@ class ResearchTest {
 
     @Test
     void theCardsAreTheCataloguesResearchedWays() {
-        assertEquals(36, Research.CARDS.size());                                            // round 5: the buildings and Electronics/Machinery III-IV
+        assertEquals(38, Research.CARDS.size());                                            // round 6: the grow room's two cards
         assertEquals(2, Research.CARDS.values().stream().filter(c -> c.parked).count());     // gene research PARKED (Marek 11-13)
         int[] gate = {0, 25, 50, 100, 150};
         for (Research.Card c : Research.CARDS.values()) {
@@ -91,10 +91,10 @@ class ResearchTest {
         Research.Card c = card("reflux-still");
         Production.Building lab = pr.buildings.get(1);
         assertEquals(0, Research.progress(pr, c), 1e-9);
-        // the GM's find and achievement (RULED round 1: a find up to 50 %, the achievement 20 %)
+        // the GM's find and eureka (RULED round 1: a find up to 50 %, the eureka 20 %)
         assertTrue(Research.find(pr, c, 30, false, crew).endsWith("→ 30 %"));
-        assertTrue(Research.achievement(pr, c).endsWith("→ 50 %"));
-        assertTrue(Research.achievement(pr, c).startsWith("!"));                           // once
+        assertTrue(Research.eureka(pr, c).endsWith("→ 50 %"));
+        assertTrue(Research.eureka(pr, c).startsWith("!"));                           // once
         // two experiments in the laboratory: the apparatus used up, no roll, 10 % each (round 1: "I would not roll here.")
         store.addUnits("Electronics", 2, 1, 4);
         store.addUnits("Machinery", 2, 1, 4);
@@ -149,7 +149,7 @@ class ResearchTest {
         pr.build("Reactor", 4, "Reactor");
         Production.Building kiln = pr.build("Kiln", 2, "Kiln");
         Research.Project p = Research.project(pr, c);
-        p.find = 50; p.achievement = 20; p.experiments = 20; p.inspiration = 10;
+        p.find = 50; p.eureka = 20; p.experiments = 20; p.inspiration = 10;
         p.researchers.add(sci.id());
         Production.Recipe proto = Research.jobFor(c, "prototype");
         assertEquals("Crafting", proto.skill);
@@ -192,7 +192,7 @@ class ResearchTest {
         Crew crew = new Crew(chem);
         Research.Card c = card("reflux-still");
         Research.Project p = Research.project(pr, c);
-        p.find = 50; p.achievement = 20; p.experiments = 20; p.inspiration = 10;           // 100 % without theory (no floor, round 2)
+        p.find = 50; p.eureka = 20; p.experiments = 20; p.inspiration = 10;           // 100 % without theory (no floor, round 2)
         assertEquals(0, Research.theoryLeft(pr, c), 1e-9);
         Production.Building still = pr.build("Still", 2, "Still");
         store.addUnits("Food", 1, 1, 6);
@@ -241,16 +241,16 @@ class ResearchTest {
         Production.Worker genius = ProductionTest.worker("Gen", "Chemistry", 60, "Absent-Minded Genius", "Eureka");
         Crew g = new Crew(genius);
         Research.project(pr2, c).researchers.add(genius.id());
-        assertEquals("Reflux still: Eureka! the inspiration +30 % → 30 %", Research.eureka(pr2, c, g));
-        assertTrue(Research.eureka(pr2, c, g).startsWith("!"));
-        assertTrue(Research.eureka(new Production(), c, g).startsWith("! nobody"));
+        assertEquals("Reflux still: Eureka! the inspiration +30 % → 30 %", Research.atWill(pr2, c, g));
+        assertTrue(Research.atWill(pr2, c, g).startsWith("!"));
+        assertTrue(Research.atWill(new Production(), c, g).startsWith("! nobody"));
         // Reverse Engineer (round 1): the working item taken apart = the find 50 % and a free inspiration
         Production pr3 = new Production();
         assertEquals("Reflux still: a find +50 %, and the inspiration +10 % (Reverse Engineer) → 60 %", Research.find(pr3, c, 0, true, new Crew()));
         // Prototype (round 3): at 90 %
         Production pr4 = new Production();
         Research.Project p = Research.project(pr4, c);
-        p.find = 50; p.achievement = 20; p.experiments = 20;
+        p.find = 50; p.eureka = 20; p.experiments = 20;
         assertFalse(Research.ready(pr4, c, new Crew()));
         Production.Worker proto = ProductionTest.worker("Pro", "Chemistry", 60, "Prototype");
         p.researchers.add(proto.id());
@@ -258,15 +258,15 @@ class ResearchTest {
     }
 
     @Test
-    void theAchievementsArePrePreparedLikeCiv6sEurekas() {
+    void theEurekasArePrePreparedLikeCiv6s() {
         // round 4 (Marek 11-21: "I think these could pre-prepared. Like in Civ6." · "The "use recipe XX times" kind should be rarer")
         int gm = 0, sameWay = 0;
         for (Research.Card c : Research.CARDS.values()) {
             if (c.parked) continue;
-            assertNotNull(c.achievement, c.name);
-            assertFalse(c.achievement.text.isEmpty(), c.name);
-            if (!c.achievement.counted()) gm++;
-            if (c.achievement.model.contains("a way used N times")) sameWay++;
+            assertNotNull(c.eureka, c.name);
+            assertFalse(c.eureka.text.isEmpty(), c.name);
+            if (!c.eureka.counted()) gm++;
+            if (c.eureka.model.contains("a way used N times")) sameWay++;
         }
         assertEquals(8, gm);
         assertEquals(3, sameWay);                                                           // the rare kind
@@ -279,19 +279,19 @@ class ResearchTest {
         // building: a kiln, pens, a field; "*" three buildings beyond the shelter's rooms; two workshops
         pr.build("Kiln", 2, "Kiln");
         Research.check(pr, store, out);
-        assertEquals(List.of("Research: Bellows furnace: its achievement met (Build a kiln) +20 %"), out);
+        assertEquals(List.of("Research: Bellows furnace: its eureka met (Build a kiln) +20 %"), out);
         assertEquals(20, Research.progress(pr, card("bellows-furnace")), 1e-9);
-        assertEquals("The achievement (counted): Three buildings built beyond the shelter's rooms, 1 of 3",
-                Research.achievementLine(pr, card("down-draught-kiln"), store));
+        assertEquals("The eureka (counted): Three buildings built beyond the shelter's rooms, 1 of 3",
+                Research.eurekaLine(pr, card("down-draught-kiln"), store));
         pr.build("Pens", 2, "Pens");
         pr.build("Field", 2, "Field");
         pr.build("Workshop", 2, "Second workshop");
         out.clear();
         Research.check(pr, store, out);
-        assertTrue(out.contains("Research: Lime tanning: its achievement met (Build pens (the animals' hides)) +20 %"), out.toString());
-        assertTrue(out.contains("Research: Saw pit: its achievement met (Prepare a field (its clearing gives the logs)) +20 %"), out.toString());
-        assertTrue(out.contains("Research: Down-draught kiln: its achievement met (Three buildings built beyond the shelter's rooms) +20 %"), out.toString());
-        assertTrue(out.contains("Research: Lathe jigs: its achievement met (Have two workshops) +20 %"), out.toString());
+        assertTrue(out.contains("Research: Lime tanning: its eureka met (Build pens (the animals' hides)) +20 %"), out.toString());
+        assertTrue(out.contains("Research: Saw pit: its eureka met (Prepare a field (its clearing gives the logs)) +20 %"), out.toString());
+        assertTrue(out.contains("Research: Down-draught kiln: its eureka met (Three buildings built beyond the shelter's rooms) +20 %"), out.toString());
+        assertTrue(out.contains("Research: Lathe jigs: its eureka met (Have two workshops) +20 %"), out.toString());
         // stored: 6 Power II in the store at once (Tier III counts too)
         store.addUnits("Power", 2, 1, 5);
         out.clear();
@@ -299,47 +299,54 @@ class ResearchTest {
         assertTrue(out.isEmpty(), out.toString());
         store.addUnits("Power", 3, 1, 1);
         Research.check(pr, store, out);
-        assertEquals(List.of("Research: Edison cell: its achievement met (6 rebuilt lead batteries (Power II) in the store at once) +20 %"), out);
+        assertEquals(List.of("Research: Edison cell: its eureka met (6 rebuilt lead batteries (Power II) in the store at once) +20 %"), out);
         // condition: the water filtration below 75 %
         out.clear();
         for (Production.Building b : pr.buildings) if ("Water filtration".equals(b.kind)) b.condition = 74;
         Research.check(pr, store, out);
-        assertEquals(List.of("Research: Solar still: its achievement met (The water filtration falls below 75 % (it gives less water)) +20 %"), out);
+        assertEquals(List.of("Research: Solar still: its eureka met (The water filtration falls below 75 % (it gives less water)) +20 %"), out);
         // worn: three tools worn out in the base's work
         out.clear();
         store.addUnits("Gear and tools", 1, 1, 3);
         for (int i = 0; i < 3; i++) store.wear("Gear and tools", 1, 100);
         assertEquals(3, store.wornOut("Gear and tools"));
         Research.check(pr, store, out);
-        assertEquals(List.of("Research: Hardening and tempering: its achievement met (Three tools worn out in the base's work) +20 %"), out);
+        assertEquals(List.of("Research: Hardening and tempering: its eureka met (Three tools worn out in the base's work) +20 %"), out);
         // cards: five research cards done
         out.clear();
         for (String id : List.of("saw-pit", "lime-tanning", "retort-kiln", "bullet-moulds", "stock-removal")) Research.project(pr, card(id)).status = "done";
         Research.check(pr, store, out);
-        assertEquals(List.of("Research: Laboratory III: its achievement met (Five research cards done) +20 %"), out);
+        assertEquals(List.of("Research: Laboratory III: its eureka met (Five research cards done) +20 %"), out);
         // assembled: five firearms for going out; soft armour counts its own
         out.clear();
         Research.assembled(pr, Production.design("Pistols", "Pipe pistol"), 4, out);
         Research.assembled(pr, Production.design("Body armour", "Leather Jacket"), 2, out);
         assertTrue(out.isEmpty(), out.toString());
         Research.assembled(pr, Production.design("Pistols", "Pipe pistol"), 1, out);
-        assertEquals(List.of("Research: Gun jigs: its achievement met (Five firearms assembled for going out) +20 %"), out);
-        assertEquals(2, pr.research.get("armour-patterns").achieved);
+        assertEquals(List.of("Research: Gun jigs: its eureka met (Five firearms assembled for going out) +20 %"), out);
+        assertEquals(2, pr.research.get("armour-patterns").eurekaCount);
         // made, of ANOTHER type ("most should work with different type"): 5 Seeds II saved; half to a running project of a line
         Research.project(pr, card("rad-scrubbing")).status = "theory";                       // food
         out.clear();
         Research.made(pr, "Seeds", 2, 5, out);
-        assertEquals(List.of("Research: Chicory: its achievement met (5 Seeds II saved from the base's crops) +20 %"), out);
+        assertEquals(List.of("Research: Chicory: its eureka met (5 Seeds II saved from the base's crops) +20 %"), out);
         assertEquals(10, Research.progress(pr, card("rad-scrubbing")), 1e-9);
+        // round 6's cards: 10 Seeds II in the store → Grow room; a grow room built → Grow room III
+        out.clear();
+        store.addUnits("Seeds", 2, 1, 10);
+        pr.build("Grow room", 2, "Grow room");
+        Research.check(pr, store, out);
+        assertTrue(out.contains("Research: Grow room: its eureka met (10 Seeds II in the store at once (more seed than the fields take)) +20 %"), out.toString());
+        assertTrue(out.contains("Research: Grow room III: its eureka met (Build a grow room (or have the start package's)) +20 %"), out.toString());
         // recipe: a way used N times (the rare kind): 10 appliances stripped
         out.clear();
         for (int i = 0; i < 9; i++) Research.ran(pr, "strip-appliances", out);
         assertTrue(out.isEmpty());
         Research.ran(pr, "strip-appliances", out);
-        assertEquals(List.of("Research: Coil winder: its achievement met (Strip 10 appliances of their wiring and coils (the old way)) +20 %"), out);
+        assertEquals(List.of("Research: Coil winder: its eureka met (Strip 10 appliances of their wiring and coils (the old way)) +20 %"), out);
         // gm: a deed in the world, never counted
-        assertEquals("The achievement (the GM credits it): Find a bed of bog iron ore or a rusty spring (the local map)",
-                Research.achievementLine(pr, card("iron-from-ore"), store));
+        assertEquals("The eureka (the GM credits it): Find a bed of bog iron ore or a rusty spring (the local map)",
+                Research.eurekaLine(pr, card("iron-from-ore"), store));
     }
 
     @Test
@@ -354,9 +361,9 @@ class ResearchTest {
         ProductionTest.Crew cw = new ProductionTest.Crew(cook);
         pr.start(k, ProductionTest.recipe("butcher"), 2, 1, cw);
         pr.advance(4, 0, b, cw, 1, 0);
-        assertEquals(2, pr.research.get("hide-glue").achieved);                            // 2 of the 5 animals butchered or skinned
-        assertEquals("The achievement (counted): Five animals butchered or skinned (the hides, hooves and bones), 2 of 5",
-                Research.achievementLine(pr, card("hide-glue"), b));
+        assertEquals(2, pr.research.get("hide-glue").eurekaCount);                            // 2 of the 5 animals butchered or skinned
+        assertEquals("The eureka (counted): Five animals butchered or skinned (the hides, hooves and bones), 2 of 5",
+                Research.eurekaLine(pr, card("hide-glue"), b));
     }
 
     @Test
@@ -365,26 +372,43 @@ class ResearchTest {
         Research.Card iron = card("iron-from-ore"), lab3 = card("laboratory-iii"), lab4 = card("laboratory-iv"), edison = card("edison-cell");
         Research.Card kiln3 = card("kiln-iii"), ws3 = card("workshop-iii"), ws4 = card("workshop-iv");
         // round 5 ("Labs can research basic (just the basic) researches of 2 tier above"): the first way to a TTR or a building's tier
-        for (Research.Card c : List.of(iron, lab3, lab4, edison, kiln3, ws3, ws4, card("circuit-boards"), card("precision-parts"),
-                card("microelectronics"), card("servos-and-turbines"))) {
+        // round 6 ("up to 1 tier bellow. So that you cannot rush it without building T3 lab."): ONE tier below
+        for (Research.Card c : List.of(iron, lab3, edison, kiln3, ws3, card("circuit-boards"), card("precision-parts"), card("grow-room-iii"))) {
             assertTrue(c.basic, c.name);
-            assertEquals(2, c.lab, c.name);                                                  // a Laboratory II, up to two tiers below
+            assertEquals(3, c.tier, c.name);
+            assertEquals(2, c.lab, c.name);                                                  // a Tier III basic card in a Laboratory II
+        }
+        for (Research.Card c : List.of(lab4, ws4, card("microelectronics"), card("servos-and-turbines"))) {
+            assertTrue(c.basic, c.name);
+            assertEquals(4, c.tier, c.name);
+            assertEquals(3, c.lab, c.name);                                                  // a Tier IV one in a Laboratory III
+            assertEquals("laboratory-iii", c.needs.get(0), c.name);
         }
         Production.Building lab2 = new Production().build("Laboratory", 2, "Lab");
-        assertTrue(Production.fits(lab2, Research.jobFor(iron, "theory")));                 // a Tier III basic card in a Laboratory II
-        assertTrue(Production.fits(lab2, Research.jobFor(card("microelectronics"), "experiment")));   // and a Tier IV one
+        assertTrue(Production.fits(lab2, Research.jobFor(iron, "theory")));
+        assertFalse(Production.fits(lab2, Research.jobFor(card("microelectronics"), "experiment")));
+        assertTrue(Production.fits(new Production().build("Laboratory", 3, "Lab"), Research.jobFor(card("microelectronics"), "experiment")));
         assertFalse(Production.fits(lab2, Research.jobFor(card("rad-scrubbing"), "theory")));
         for (String id : List.of("rad-scrubbing", "mushrooms-on-straw", "solar-still")) {   // better ways to what the start makes
             assertFalse(card(id).basic, id);
             assertEquals(3, card(id).lab, id);
-            assertEquals(List.of("laboratory-iii"), card(id).needs, id);
+            assertEquals("laboratory-iii", card(id).needs.get(0), id);
         }
+        // round 6 ("Should building one, and raising it to Tier III, be researched too? - yes."): the grow room's two cards
+        Research.Card grow = card("grow-room"), grow3 = card("grow-room-iii");
+        assertEquals(2, grow.tier);
+        assertTrue(grow.basic);
+        assertTrue(grow.needs.isEmpty());
+        assertEquals(List.of("grow-room"), grow3.needs);
+        assertEquals(List.of("grow-room-iii"), card("chicory").needs);
+        assertEquals(List.of("laboratory-iii", "grow-room-iii"), card("mushrooms-on-straw").needs);
+        assertTrue(card("chicory").notes.stream().noneMatch(n -> n.contains("flowerpots")), card("chicory").notes.toString());
         // round 5 ("buildings should be researched as well"): the way's building raised by research comes first
         assertEquals(List.of("bellows-furnace", "kiln-iii"), iron.needs);
         assertEquals(List.of("iron-from-ore", "workshop-iii"), edison.needs);
         assertEquals(List.of("iron-from-ore"), lab3.needs);                                  // no steel to find any more
         assertEquals(List.of("laboratory-iii", "iron-from-ore", "edison-cell"), lab4.needs);
-        assertEquals(List.of("workshop-iii", "iron-from-ore", "precision-parts", "circuit-boards", "edison-cell"), ws4.needs);
+        assertEquals(List.of("laboratory-iii", "workshop-iii", "iron-from-ore", "precision-parts", "circuit-boards", "edison-cell"), ws4.needs);
         assertTrue(kiln3.needs.isEmpty());
         assertTrue(iron.notes.stream().noneMatch(n -> n.contains("no way builds")), iron.notes.toString());
         // round 5 ("there should be research for that"): Electronics and Machinery III-IV made by research
@@ -404,5 +428,30 @@ class ResearchTest {
         assertTrue(Research.open(pr, iron));
         assertTrue(Research.opens(lab3).containsAll(List.of(card("rad-scrubbing"), card("mushrooms-on-straw"), card("solar-still"), lab4)));
         assertEquals(List.of(edison, card("precision-parts"), lab3, lab4, ws3, ws4), Research.opens(iron));
+        // the start package's grow room (Tier III) stands: Chicory opens without the card [mine]; Mushrooms on straw also needs a Lab III
+        Production pkg = new Production();
+        assertFalse(Research.open(pkg, card("chicory")));
+        pkg.build("Grow room", 2, "Grow room");
+        assertFalse(Research.open(pkg, card("chicory")));                                   // a Tier II one is not enough
+        pkg.build("Grow room", 3, "Flowerpots");
+        assertTrue(Research.open(pkg, card("chicory")));
+        assertFalse(Research.open(pkg, card("mushrooms-on-straw")));
+        pkg.build("Laboratory", 3, "Lab");
+        assertTrue(Research.open(pkg, card("mushrooms-on-straw")));
+    }
+
+    @Test
+    void oldSavesKeepTheirAchievementsAsEurekas() {
+        // round 6 ("rename them into eurakas, so that they do not clash with normal achievements"): a 0.53.0 save still loads
+        Production pr = Store.GSON.fromJson("{\"research\":{\"reflux-still\":{\"status\":\"theory\",\"achievement\":20.0,\"achieved\":2,"
+                + "\"eureka\":true}}}", Production.class);
+        Research.Project p = pr.research.get("reflux-still");
+        assertEquals(20, p.eureka, 1e-9);
+        assertEquals(2, p.eurekaCount);
+        assertTrue(p.atWill);                                                               // the perk Eureka's inspiration at will
+        String json = Store.GSON.toJson(p).replace(" ", "");
+        assertTrue(json.contains("\"eurekaShare\":20.0") && json.contains("\"eurekaCount\":2") && json.contains("\"atWill\":true"), json);
+        assertEquals(20, Research.RULES.eureka, 1e-9);
+        assertEquals(20, Research.progress(pr, card("reflux-still")), 1e-9);
     }
 }

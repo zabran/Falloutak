@@ -11,7 +11,7 @@ import static cz.lollywood.falloutak.Menus.*;
 /**
  * The research pages (part 8, `08-RESEARCH.md` §3.8): the cards (open, in theory, ready for the prototype, done) with their progress by
  * source, theory and experiments started in a laboratory, the prototype in its way's own building, Eureka; for the GM the finds, the
- * achievements and the inspirations he credits, and the failed rarity-1 prototypes he rules. Any player (*"In base, players are kings"*).
+ * eurekas and the inspirations he credits, and the failed rarity-1 prototypes he rules. Any player (*"In base, players are kings"*).
  */
 final class Labs {
     private Labs() {}
@@ -37,7 +37,7 @@ final class Labs {
     }
 
     // ------------------------------------------------------------------ the list
-    /** The achievements that ask about the base's state, checked when a research page opens (round 4). */
+    /** The eurekas that ask about the base's state, checked when a research page opens (round 4). */
     static void check(Player p) {
         List<String> out = new ArrayList<>();
         Research.check(pr(), pl.base, out);
@@ -54,7 +54,7 @@ final class Labs {
             if ("Laboratory".equals(b.kind)) labs.add(b.name + " (Tier " + Rules.roman(b.tier) + (b.job == null ? ", free" : ", " + Production.recipe(b.job.recipe).name) + ")");
         lines.add(line(labs.length() == 0 ? "No laboratory yet: Work anywhere in the base → Build a laboratory (Tier II)." : "Laboratories: " + labs,
                 labs.length() == 0 ? NamedTextColor.RED : NamedTextColor.WHITE));
-        lines.add(line("A card's points: a find up to 50 %, its achievement 20 % (a deed near the invention, like Civ6's Eurekas), an "
+        lines.add(line("A card's points: a find up to 50 %, its eureka 20 % (a deed near the invention, as Civ6's Eurekas), an "
                 + "inspiration 10 %, two experiments 10 % each, related research up to 25 %, theory for the rest; then the prototype, built "
                 + "by the way's own crew led by a researcher, and its test. A card that needs others opens when they are done.", NamedTextColor.GRAY));
         List<Ui.Btn> b = new ArrayList<>();
@@ -75,7 +75,7 @@ final class Labs {
         List<Component> lines = new ArrayList<>();
         lines.add(line(c.name + ": " + gives(c) + " (" + c.better + ")", NamedTextColor.WHITE));
         lines.add(line("Tier " + Rules.roman(c.tier) + ", rarity " + c.rarity + " · " + c.points + " points · " + c.science + " " + c.gate
-                + " · a laboratory of Tier " + Rules.roman(c.lab) + " or better" + (c.basic && c.lab < c.tier ? " (a basic card: up to two tiers above the laboratory)" : "")
+                + " · a laboratory of Tier " + Rules.roman(c.lab) + " or better" + (c.basic && c.lab < c.tier ? " (a basic card: one tier above the laboratory)" : "")
                 + " · lines: " + String.join(", ", c.lines), NamedTextColor.GRAY));
         if (!c.needs.isEmpty()) lines.add(line("Needs first: " + Research.needsText(c) + (Research.open(pr, c) ? " (done)" : ""), Research.open(pr, c) ? NamedTextColor.GRAY : NamedTextColor.RED));
         List<Research.Card> opens = Research.opens(c);
@@ -90,7 +90,7 @@ final class Labs {
             double left = Research.theoryLeft(pr, c);
             lines.add(line(left <= 0 ? "Theory: done." : "Theory left: " + Math.round(left) + " points (a researcher at the gate " + Math.round(left)
                     + " hours, at four times it " + Math.round(left / Research.RULES.theory_max) + "; up to " + Research.RULES.researchers + " at once)", NamedTextColor.GRAY));
-            lines.add(line(Research.achievementLine(pr, c, pl.base), NamedTextColor.GRAY));
+            lines.add(line(Research.eurekaLine(pr, c, pl.base), NamedTextColor.GRAY));
             lines.add(line("Experiments: " + (pj == null ? 0 : pj.experimentsDone) + " of " + Research.maxExperiments(pj, wf, null) + ", each "
                     + c.experiment.electronics + " Electronics + " + c.experiment.machinery + " Machinery of Tier " + Rules.roman(c.tier) + ", "
                     + SheetGui.f(Research.jobFor(c, "experiment").hours) + " h in a laboratory (no roll)", NamedTextColor.GRAY));
@@ -113,13 +113,13 @@ final class Labs {
             if (Research.ready(pr, c, wf) && running(c, "prototype") == null)
                 b.add(btn("Build the prototype", "in a " + proto.building + " of Tier " + Rules.roman(proto.tier) + ": a crew of " + proto.skill + " " + proto.min
                         + " led by a researcher (" + c.science + " " + c.gate + "), then the test", x -> pickProto(x, c)));
-            if (pj != null && !pj.eureka && pj.inspiration <= 0 && Research.perk(pj, Research.researchers(pj, wf), "Eureka"))
-                b.add(btn("Eureka: the inspiration now", "once a project, worth 10 % more (round 3)", x -> { say(x, Research.eureka(pr, c, wf)); pr.save(); card(x, c.id); }));
+            if (pj != null && !pj.atWill && pj.inspiration <= 0 && Research.perk(pj, Research.researchers(pj, wf), "Eureka"))
+                b.add(btn("Eureka: the inspiration now", "once a project, worth 10 % more (round 3)", x -> { say(x, Research.atWill(pr, c, wf)); pr.save(); card(x, c.id); }));
         }
         if (gm(p) && !Research.done(pr, c)) {
             b.add(btn("GM: a find", "a working item, its manual, a schematic, a pre-war lab's records (30 %), a related thing (10 %); Reverse Engineer 50 % and the inspiration", x -> gmFind(x, c)));
-            b.add(btn("GM: the achievement", (c.achievement == null ? "its condition met" : c.achievement.text) + " (+" + Math.round(Research.RULES.achievement)
-                    + " %)" + (c.achievement != null && c.achievement.counted() ? "; the plugin counts it too" : ""), x -> { say(x, Research.achievement(pr, c)); pr.save(); card(x, c.id); }));
+            b.add(btn("GM: the eureka", (c.eureka == null ? "its condition met" : c.eureka.text) + " (+" + Math.round(Research.RULES.eureka)
+                    + " %)" + (c.eureka != null && c.eureka.counted() ? "; the plugin counts it too" : ""), x -> { say(x, Research.eureka(pr, c)); pr.save(); card(x, c.id); }));
             b.add(btn("GM: an inspiration", "an event he links, a link the player argues, a find used for it (+10 %, Absent-Minded Genius 20 %)", x -> { say(x, Research.inspiration(pr, c, wf)); pr.save(); card(x, c.id); }));
             b.add(btn("GM: the base knows it now", "the way unlocked without the rest (a found schematic)", x -> {
                 Research.project(pr, c).status = "done";

@@ -19,10 +19,10 @@ import java.util.*;
  * <ul>
  * <li>A CARD a researched way: P = 100 × T² × R points, the gate (the science at 25 / 50 / 100 / 150 by the tier).</li>
  * <li>The SHARES of P: a find up to 50 % (the GM's; Reverse Engineer's working item taken apart 50 % and a free inspiration), the
- * card's achievement 20 % (PRE-PREPARED as Civ6's Eurekas, round 4: a deed near the invention, counted here, or the GM's for a deed
- * in the world; {@link Ach}), an inspiration 10 % (the GM's, or the lead's
+ * card's EUREKA 20 % (PRE-PREPARED as Civ6's Eurekas, round 4, named so in round 6: a deed near the invention, counted here, or the
+ * GM's for a deed in the world; {@link Eureka}), an inspiration 10 % (the GM's, or the lead's
  * weekly roll of Intelligence × 3 %), experiments 2 × 10 % (no roll, expensive: Electronics and Machinery of the tier), related
- * research up to 25 % (5 % a finished card of a shared line; a find, an achievement or an experiment counts at half for the line's
+ * research up to 25 % (5 % a finished card of a shared line; a find, a eureka or an experiment counts at half for the line's
  * running projects). <b>No theory floor</b> (round 2: *"it should be possible to completely cut away the theory by getting only the
  * interactive parts"*).</li>
  * <li>THEORY for the rest: each researcher the science ÷ the gate points an hour (at most 4), up to 3, in a laboratory of the card's
@@ -44,7 +44,8 @@ final class Research {
 
     // ------------------------------------------------------------------ the data
     /**
-     * A card's achievement, pre-prepared (round 4, Marek 11-21, verbatim: *"I think these could pre-prepared. Like in Civ6."* ·
+     * A card's EUREKA, pre-prepared (round 6, Marek 11-21, verbatim: *"research achievements - also, just in case, rename them into
+     * eurakas, so that they do not clash with normal achievements."*; round 4, verbatim: *"I think these could pre-prepared. Like in Civ6."* ·
      * *"The "use recipe XX times" kind should be rarer one in this case."* · *"most should work with different type."*). Kinds:
      * {@code made} (units of the type and tier made in the base), {@code recipe} (runs of any of the ways), {@code assembled} (items
      * assembled for going out from parts of the type), {@code building} (that many of the kind at the tier or better; "*" any built
@@ -52,7 +53,7 @@ final class Research {
      * below the %), {@code worn} (items of the type worn out in the base's work), {@code cards} (research cards done), {@code gm}
      * (a deed in the world: the GM credits it).
      */
-    static final class Ach {
+    static final class Eureka {
         String kind = "made", type = "", building = "", part = "", text = "", model = "";
         int count = 1, tier = 1;
         double value;
@@ -70,18 +71,19 @@ final class Research {
         List<String> recipes = new ArrayList<>(), lines = new ArrayList<>(), needs = new ArrayList<>();
         /** What the tree found (round 4): what must be found, a building no way builds yet. */
         List<String> notes = new ArrayList<>();
-        Ach achievement;
+        @com.google.gson.annotations.SerializedName(value = "eureka", alternate = {"achievement"}) Eureka eureka;
         Apparatus experiment = new Apparatus();
         boolean parked;
-        /** Round 5 (Marek 11-21): the first way to a TTR or a building's tier: a laboratory two tiers below may research it. */
+        /** Round 5 (Marek 11-21): the first way to a TTR or a building's tier; round 6: a laboratory ONE tier below may research it. */
         boolean basic;
 
         Production.Recipe target() { return recipes.isEmpty() ? null : Production.RECIPES.get(recipes.get(0)); }
     }
 
     static final class Rules {
-        double find = 50, achievement = 20, inspiration = 10, experiment = 10, related_each = 5, related = 25, theory_max = 4,
+        double find = 50, inspiration = 10, experiment = 10, related_each = 5, related = 25, theory_max = 4,
                 test = 50, test_step = 10, weekly_int = 3;
+        @com.google.gson.annotations.SerializedName(value = "eureka", alternate = {"achievement"}) double eureka = 20;
         int experiments = 2, researchers = 3;
     }
 
@@ -89,14 +91,17 @@ final class Research {
     static final class Project {
         /** "" = not started, "theory", "done". */
         String status = "";
-        /** The shares in % of P: a find, the achievement, the inspiration, the experiments' sum, the related half shares. */
-        double find, achievement, inspiration, experiments, related;
+        /** The shares in % of P: a find, the inspiration, the experiments' sum, the related half shares; the eureka (saved as
+         * "achievement" before 0.54.0). */
+        double find, inspiration, experiments, related;
+        @com.google.gson.annotations.SerializedName(value = "eurekaShare", alternate = {"achievement"}) double eureka;
         /** Theory points done; this week's theory hours (the weekly roll). */
         double theory, weekHours;
         int experimentsDone, failures;
-        /** The achievement's count so far (units made, runs, items assembled). */
-        int achieved;
-        boolean eureka;
+        /** The eureka's count so far (units made, runs, items assembled; saved as "achieved" before 0.54.0). */
+        @com.google.gson.annotations.SerializedName(value = "eurekaCount", alternate = {"achieved"}) int eurekaCount;
+        /** The perk Eureka's inspiration at will was used (saved as "eureka" before 0.54.0). */
+        @com.google.gson.annotations.SerializedName(value = "atWill", alternate = {"eureka"}) boolean atWill;
         /** Who worked on it (worker ids): the XP on the passed test. */
         List<String> researchers = new ArrayList<>();
     }
@@ -184,10 +189,19 @@ final class Research {
 
     static boolean done(Production pr, Card c) { Project p = pr.research.get(c.id); return p != null && "done".equals(p.status); }
 
-    /** The cards it needs are done. */
+    /** The cards it needs are done; a card that raises a building also counts when that building already stands at its tier (the
+     * start package's grow room, the GM's build button: round 6 [mine]). */
     static boolean open(Production pr, Card c) {
-        for (String n : c.needs) { Card d = CARDS.get(n); if (d != null && !done(pr, d)) return false; }
+        for (String n : c.needs) { Card d = CARDS.get(n); if (d != null && !done(pr, d) && !standing(pr, d)) return false; }
         return true;
+    }
+
+    /** The building this card's way raises stands in the base already, at that tier or better. */
+    static boolean standing(Production pr, Card d) {
+        Production.Recipe t = d.target();
+        if (t == null || t.builds == null) return false;
+        for (Production.Building b : pr.buildings) if (!b.site && b.kind.equals(t.builds.kind) && b.tier >= t.builds.tier) return true;
+        return false;
     }
 
     /** Does anyone of these people (the project's researchers, a run's crew) have this perk or trait. */
@@ -218,7 +232,7 @@ final class Research {
     /** The shares but theory, in % of P. */
     static double shares(Production pr, Card c, Project p) {
         if (p == null) return related(pr, c, null);
-        return Math.min(RULES.find, p.find) + Math.min(RULES.achievement, p.achievement) + p.inspiration + p.experiments + related(pr, c, p);
+        return Math.min(RULES.find, p.find) + Math.min(RULES.eureka, p.eureka) + p.inspiration + p.experiments + related(pr, c, p);
     }
 
     /** The progress in % (shares + theory), at most 100. */
@@ -261,7 +275,7 @@ final class Research {
         }
     }
 
-    // ------------------------------------------------------------------ the GM's credits and Eureka
+    // ------------------------------------------------------------------ the GM's credits and the perk Eureka
     /** A find (the GM names the share, at most 50 %; Reverse Engineer's working item taken apart: 50 % and a free inspiration). */
     static String find(Production pr, Card c, double share, boolean reverse, Production.Workforce wf) {
         Project p = project(pr, c);
@@ -274,21 +288,21 @@ final class Research {
         return s + " → " + Math.round(progress(pr, c)) + " %";
     }
 
-    static String achievement(Production pr, Card c) {
+    static String eureka(Production pr, Card c) {
         Project p = project(pr, c);
-        if (p.achievement >= RULES.achievement) return "! " + c.name + " has its achievement already";
-        p.achievement = RULES.achievement;
-        spread(pr, c, RULES.achievement);
-        return c.name + ": its achievement +" + Math.round(RULES.achievement) + " % → " + Math.round(progress(pr, c)) + " %";
+        if (p.eureka >= RULES.eureka) return "! " + c.name + " has its eureka already";
+        p.eureka = RULES.eureka;
+        spread(pr, c, RULES.eureka);
+        return c.name + ": its eureka +" + Math.round(RULES.eureka) + " % → " + Math.round(progress(pr, c)) + " %";
     }
 
-    /** The cards whose achievement of this kind is still open (not done, not parked, not met). */
+    /** The cards whose eureka of this kind is still open (not done, not parked, not met). */
     private static List<Card> waiting(Production pr, String kind) {
         List<Card> l = new ArrayList<>();
         for (Card c : CARDS.values()) {
-            if (c.parked || c.achievement == null || done(pr, c) || !kind.equals(c.achievement.kind)) continue;
+            if (c.parked || c.eureka == null || done(pr, c) || !kind.equals(c.eureka.kind)) continue;
             Project p = pr.research.get(c.id);
-            if (p != null && p.achievement >= RULES.achievement) continue;
+            if (p != null && p.eureka >= RULES.eureka) continue;
             l.add(c);
         }
         return l;
@@ -296,22 +310,22 @@ final class Research {
 
     private static void met(Production pr, Card c, List<String> out) {
         Project p = project(pr, c);
-        p.achievement = RULES.achievement;
-        spread(pr, c, RULES.achievement);
-        out.add("Research: " + c.name + ": its achievement met (" + c.achievement.text + ") +" + Math.round(RULES.achievement) + " %");
+        p.eureka = RULES.eureka;
+        spread(pr, c, RULES.eureka);
+        out.add("Research: " + c.name + ": its eureka met (" + c.eureka.text + ") +" + Math.round(RULES.eureka) + " %");
     }
 
-    /** An event that counts: the achievement's count grows by n, met at its count. */
+    /** An event that counts: the eureka's count grows by n, met at its count. */
     private static void count(Production pr, Card c, int n, List<String> out) {
         if (n <= 0) return;
         Project p = project(pr, c);
-        p.achieved += n;
-        if (p.achieved >= c.achievement.count) met(pr, c, out);
+        p.eurekaCount += n;
+        if (p.eurekaCount >= c.eureka.count) met(pr, c, out);
     }
 
-    /** The achievement's count now: what was counted, or the state it asks about. */
-    static int achievedNow(Production pr, Card c, Base base) {
-        Ach a = c.achievement;
+    /** The eureka's count now: what was counted, or the state it asks about. */
+    static int eurekaNow(Production pr, Card c, Base base) {
+        Eureka a = c.eureka;
         if (a == null) return 0;
         Project p = pr.research.get(c.id);
         switch (a.kind) {
@@ -338,41 +352,41 @@ final class Research {
                 for (Card d : CARDS.values()) if (d != c && done(pr, d)) n++;
                 return n;
             }
-            default: return p == null ? 0 : p.achieved;
+            default: return p == null ? 0 : p.eurekaCount;
         }
     }
 
-    /** The achievement as a line: what it asks, how it is met, how far (round 4). */
-    static String achievementLine(Production pr, Card c, Base base) {
-        Ach a = c.achievement;
-        if (a == null) return "The achievement: the GM credits it";
+    /** The eureka as a line: what it asks, how it is met, how far (round 4; named so in round 6). */
+    static String eurekaLine(Production pr, Card c, Base base) {
+        Eureka a = c.eureka;
+        if (a == null) return "The eureka: the GM credits it";
         Project p = pr.research.get(c.id);
-        boolean met = p != null && p.achievement > 0;
-        if (!a.counted()) return "The achievement (the GM credits it): " + a.text + (met ? " (met)" : "");
+        boolean met = p != null && p.eureka > 0;
+        if (!a.counted()) return "The eureka (the GM credits it): " + a.text + (met ? " (met)" : "");
         int need = "condition".equals(a.kind) ? 1 : a.count;
-        return "The achievement (counted): " + a.text + (met ? " (met)" : ", " + Math.min(need, achievedNow(pr, c, base)) + " of " + need);
+        return "The eureka (counted): " + a.text + (met ? " (met)" : ", " + Math.min(need, eurekaNow(pr, c, base)) + " of " + need);
     }
 
     /** The state kinds (round 4): a building built, a store's stock, a room's condition, tools worn out, cards done. */
     static void check(Production pr, Base base, List<String> out) {
         for (String kind : List.of("building", "stored", "condition", "worn", "cards"))
             for (Card c : waiting(pr, kind)) {
-                int need = "condition".equals(kind) ? 1 : c.achievement.count;
-                if (achievedNow(pr, c, base) >= need) met(pr, c, out);
+                int need = "condition".equals(kind) ? 1 : c.eureka.count;
+                if (eurekaNow(pr, c, base) >= need) met(pr, c, out);
             }
     }
 
     /** A run of a way is done (the recipe kind: a way used N times, round 4's rare kind). */
     static void ran(Production pr, String recipeId, List<String> out) {
-        for (Card c : waiting(pr, "recipe")) if (c.achievement.recipes.contains(recipeId)) count(pr, c, 1, out);
+        for (Card c : waiting(pr, "recipe")) if (c.eureka.recipes.contains(recipeId)) count(pr, c, 1, out);
     }
 
-    /** Items assembled for going out (the assembled kind): those whose parts include the achievement's part type. */
+    /** Items assembled for going out (the assembled kind): those whose parts include the eureka's part type. */
     static void assembled(Production pr, Production.Design d, int items, List<String> out) {
         if (d == null || items <= 0) return;
         for (Card c : waiting(pr, "assembled")) {
             boolean uses = false;
-            for (Production.Part p : d.parts) if (p.type.equals(c.achievement.part)) uses = true;
+            for (Production.Part p : d.parts) if (p.type.equals(c.eureka.part)) uses = true;
             if (uses) count(pr, c, items, out);
         }
     }
@@ -404,23 +418,23 @@ final class Research {
         return c.name + ": an inspiration +" + Math.round(p.inspiration) + " % → " + Math.round(progress(pr, c)) + " %";
     }
 
-    /** Eureka (round 3): once a project, the inspiration at will, worth 10 % more. */
-    static String eureka(Production pr, Card c, Production.Workforce wf) {
+    /** The perk Eureka (round 3): once a project, the inspiration at will, worth 10 % more. */
+    static String atWill(Production pr, Card c, Production.Workforce wf) {
         Project p = project(pr, c);
         List<Production.Worker> rs = researchers(p, wf);
         if (!perk(p, rs, "Eureka")) return "! nobody who works on " + c.name + " has Eureka";
-        if (p.eureka) return "! Eureka was used on " + c.name + " already";
+        if (p.atWill) return "! Eureka was used on " + c.name + " already";
         if (p.inspiration > 0) return "! " + c.name + " has its inspiration already";
-        p.eureka = true;
+        p.atWill = true;
         p.inspiration = inspirationWorth(rs) + RULES.inspiration;
         return c.name + ": Eureka! the inspiration +" + Math.round(p.inspiration) + " % → " + Math.round(progress(pr, c)) + " %";
     }
 
     // ------------------------------------------------------------------ the clock (Production calls these)
-    /** Units made in the base: they count for the achievements of the made kind that name them. */
+    /** Units made in the base: they count for the eurekas of the made kind that name them. */
     static void made(Production pr, String type, int tier, int n, List<String> out) {
         if (n <= 0) return;
-        for (Card c : waiting(pr, "made")) if (c.achievement.type.equals(type) && c.achievement.tier == tier) count(pr, c, n, out);
+        for (Card c : waiting(pr, "made")) if (c.eureka.type.equals(type) && c.eureka.tier == tier) count(pr, c, n, out);
     }
 
     /** An hour of theory: the points (the crew's science ÷ the gate, at most 4 each, already summed by the caller × the room's efficiency). */
@@ -558,8 +572,8 @@ final class Research {
         StringJoiner j = new StringJoiner(" · ");
         if (p != null) {
             if (p.find > 0) j.add("find " + Math.round(Math.min(RULES.find, p.find)) + " %");
-            if (p.achievement > 0) j.add("achievement " + Math.round(p.achievement) + " %");
-            if (p.inspiration > 0) j.add("inspiration " + Math.round(p.inspiration) + " %" + (p.eureka ? " (Eureka)" : ""));
+            if (p.eureka > 0) j.add("eureka " + Math.round(p.eureka) + " %");
+            if (p.inspiration > 0) j.add("inspiration " + Math.round(p.inspiration) + " %" + (p.atWill ? " (at will: the perk Eureka)" : ""));
             if (p.experimentsDone > 0) j.add(p.experimentsDone + (p.experimentsDone == 1 ? " experiment " : " experiments ") + Math.round(p.experiments) + " %");
             if (p.theory > 0) j.add("theory " + Math.round(100 * p.theory / Math.max(1, c.points)) + " %");
         }

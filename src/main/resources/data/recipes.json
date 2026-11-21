@@ -5116,6 +5116,118 @@
    }
   },
   {
+   "id": "build-a-grow-room",
+   "name": "Build a grow room",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Engineering",
+   "min": 40,
+   "hours": 40,
+   "days": 0,
+   "known": "research",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Wood",
+     "tier": 2,
+     "count": 6,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Grow room",
+   "better": "a grow room of Tier II: racks, lamps and water lines indoors",
+   "builds": {
+    "kind": "Grow room",
+    "tier": 2
+   }
+  },
+  {
+   "id": "raise-a-grow-room-to-iii",
+   "name": "Raise a grow room to III",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Engineering",
+   "min": 60,
+   "hours": 60,
+   "days": 0,
+   "known": "research",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 6,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Grow room III",
+   "better": "a grow room of Tier III: potatoes, mushrooms and chicory under lamps",
+   "builds": {
+    "kind": "Grow room",
+    "tier": 3
+   }
+  },
+  {
    "id": "raise-a-kiln-to-iii",
    "name": "Raise a kiln to III",
    "building": "Base",

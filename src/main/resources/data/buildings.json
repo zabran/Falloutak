@@ -218,7 +218,7 @@
    "automatic": false,
    "produces": {},
    "upkeep_skill": "Biology",
-   "note": "T III: the start package's flowerpots; draws every day while a crop grows",
+   "note": "T II built and T III raised by research (part 8 round 6), or T III from the start package's flowerpots; draws every day while a crop grows",
    "water_use": "product",
    "water_per_person": 0,
    "condensate": 0
