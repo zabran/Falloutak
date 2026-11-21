@@ -3,6 +3,14 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.58.0 (2026-11-21): part 9 round 2 - the GM jumps between the maps.**
+- **`/maps`** (GMs; also *GM menu → Maps*): the server folder's worlds; **`/maps go <world> [all]`** loads a world on its first
+  visit and moves the GM (or every player online) to its spawn, on the top block there; **`/maps back`** returns each to where he
+  stood (after a restart: the main world's spawn); **`/maps load <world>`** also from the console. For part 9's 1:1 local maps
+  (Marek: *"I think it would be better to have it all in MC and just jump to different map when needed."* · *"Interiors - yes, lets try
+  Arnis."*): the test server has **Jihlava from OpenStreetMap by Arnis 3.4.0**, a 3 x 3 km box round City Park at one block a metre
+  with interiors, as `jihlava` (day D) and `jihlava_ruin` (Arnis's post-apocalyptic mode); void outside the box.
+
 **Version 0.57.0 (2026-11-21): part 8 round 9 - the last-minute hauls (the prologue).**
 - **Each player grabs ONE haul for the base on day D** (Marek: *"Are the hauls' contents and numbers in the table right? - yes, now
   it seems fine."* · *"Should I build the hauls into the plugin now - yes, it will be part of prologue."*): *Actions → The last-minute

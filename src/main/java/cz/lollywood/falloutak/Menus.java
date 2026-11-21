@@ -702,6 +702,7 @@ final class Menus {
         b.add(btn("Base", "the store's chests (one a type, the Mess Chest) and the unlocked items (05c §7)", Menus::gmBase));
         b.add(btn("Award XP", "kills, checks, a found area, research, a quest (part 6): into the PCs and their groups' pools", Menus::xpMenu));
         b.add(btn("The last-minute hauls (" + pl.production.hauls.size() + ")", "the prologue: who grabbed what; a pick taken back while all of it is still there", Hauls::gmPage));
+        b.add(btn("Maps", "jump to another world (the 1:1 local maps, part 9) and back", Maps::page));
         menu(g, "GM menu", List.of(line("Game time moves only here (and by a fight's rounds). NPC statblocks: /npc.", NamedTextColor.GRAY)), b, null);
     }
 

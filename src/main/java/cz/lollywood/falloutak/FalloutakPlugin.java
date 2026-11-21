@@ -95,6 +95,8 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         if (sndCmd != null) sndCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? soundsCommand(p, a) : "Players only."); return true; });
         var creCmd = getCommand("creature");
         if (creCmd != null) creCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? Creatures.command(p, a) : "Players only."); return true; });
+        var mapsCmd = getCommand("maps");
+        if (mapsCmd != null) mapsCmd.setExecutor((s, c, l, a) -> { s.sendMessage(Maps.command(s, a)); return true; });
         var packCmd = getCommand("pack");
         if (packCmd != null) packCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? packCommand(p, a) : "Players only."); return true; });
         saveDefaultConfig();

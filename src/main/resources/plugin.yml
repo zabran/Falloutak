@@ -34,6 +34,9 @@ commands:
   creature:
     description: The game's creatures (GMs). /creature spawn radmie|trhac | play <animation> | remove
     usage: /creature spawn radmie|trhac | play <animation> | remove
+  maps:
+    description: The maps (part 9, GMs). /maps · go <world> [all] · back
+    usage: /maps [go <world> [all]|back]
   pack:
     description: The Pip-Boy pictures in the sheet (the Falloutak pack). /pack [on|off|auto]
     usage: /pack [on|off|auto]
