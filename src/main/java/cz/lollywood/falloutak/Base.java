@@ -70,6 +70,7 @@ final class Base {
         List<Pool> pools = new ArrayList<>();
         List<String> unlocked = new ArrayList<>();
         Map<String, List<Spot>> chests = new LinkedHashMap<>();
+        Map<String, Integer> wornOut = new LinkedHashMap<>();
         List<OldUnit> units;
     }
 
@@ -81,6 +82,8 @@ final class Base {
     final Set<String> unlocked = new TreeSet<>();
     /** The chests: a type (or {@link #MESS}) → its blocks (a double chest has two). */
     final Map<String, List<Spot>> chests = new LinkedHashMap<>();
+    /** Items worn out in the base's work, by type (part 8 round 4: an achievement counts them). */
+    final Map<String, Integer> wornOut = new LinkedHashMap<>();
     private final Path file;
     /** While the file is read: nothing is written back until it is whole (an old type converted to parts saves once, at the end). */
     private boolean loading;
@@ -208,9 +211,11 @@ final class Base {
         if (p == null) return;
         if (p.worn() == 0) { p.fresh--; p.condition += 100; }   // an undamaged one becomes the worn one
         p.condition -= points;
-        if (p.condition <= 0) { p.count--; p.condition = 0; }   // worn out: gone
+        if (p.condition <= 0) { p.count--; p.condition = 0; wornOut.merge(type, 1, Integer::sum); }   // worn out: gone
         save();
     }
+
+    int wornOut(String type) { return wornOut.getOrDefault(type, 0); }
 
     /** A thing into its row through the Mess Chest: undamaged, unlocked. False if the type is unknown. */
     boolean putThing(String type, int tier, int rarity, String name, int n) {
@@ -426,6 +431,7 @@ final class Base {
             Saved s = Store.GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Saved.class);
             if (s == null) return;
             if (s.unlocked != null) unlocked.addAll(s.unlocked);
+            if (s.wornOut != null) wornOut.putAll(s.wornOut);
             if (s.pools != null) for (Pool p : s.pools) {
                 if (p == null || p.count <= 0) continue;
                 if (Production.TYPES.containsKey(p.type)) {
@@ -451,6 +457,7 @@ final class Base {
         s.pools = new ArrayList<>(pools.values());
         s.unlocked = new ArrayList<>(unlocked);
         s.chests = chests;
+        s.wornOut = wornOut;
         try {
             Files.createDirectories(file.getParent());
             Path tmp = file.resolveSibling("base.json.tmp");

@@ -6,7 +6,10 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Part 8, research (`08-RESEARCH.md` §3, RULED rounds 1-3): the cards, the shares, theory, experiments, the prototype and its test. */
+/**
+ * Part 8, research (`08-RESEARCH.md` §3, RULED rounds 1-4): the cards, the shares, theory, experiments, the prototype (built by the way's
+ * own crew led by a researcher, round 4) and its test, the achievements pre-prepared in Civ6's way (round 4), the tree (round 4).
+ */
 class ResearchTest {
     /** A workforce that also remembers the XP it was given. */
     static final class Crew implements Production.Workforce {
@@ -35,6 +38,18 @@ class ResearchTest {
         return pr;
     }
 
+    /** A worker with two skills set exactly. */
+    static Production.Worker two(String name, String s1, double v1, String s2, double v2) {
+        Production.Worker w = ProductionTest.worker(name, s1, v1);
+        Character c = w.sheet();
+        int j = Rules.skillIndex(s2);
+        c.points[j] = 0;
+        c.points[j] = v2 - c.skill(s2);
+        assertEquals(v2, c.skill(s2), 1e-9);
+        assertEquals(v1, c.skill(s1), 1e-9);
+        return w;
+    }
+
     /** A seed whose first d100 is above (or at most) this. */
     static long seedFor(int atLeast, int atMost) {
         for (long s = 1; ; s++) { int r = 1 + new Random(s).nextInt(100); if (r >= atLeast && r <= atMost) return s; }
@@ -51,6 +66,9 @@ class ResearchTest {
             for (String r : c.recipes) assertEquals(c.name, Production.RECIPES.get(r).research, c.name);
             assertNotNull(Research.jobFor(c, "theory"), c.name);
             assertEquals(c.tier, Research.jobFor(c, "experiment").inputs.get(0).tier, c.name);   // round 2: the apparatus of the tier
+            Production.Recipe t = c.target(), proto = Research.jobFor(c, "prototype");
+            assertEquals(t.skill, proto.skill, c.name);                                      // round 4: the way's own crew builds it
+            assertEquals(t.min, proto.min, 1e-9, c.name);
         }
         Research.Card still = card("reflux-still");
         assertEquals(400, still.points);
@@ -60,7 +78,6 @@ class ResearchTest {
         assertEquals("Still", proto.building);
         assertEquals(8, proto.hours, 1e-9);                                                // twice the way's 4 hours
         assertEquals(2, card("laboratory-iii").lab);                                       // a laboratory's next tier runs in the one below
-        assertEquals(List.of("laboratory-iii"), card("laboratory-iv").needs);
         assertTrue(Production.KINDS.containsKey("Laboratory"));
         assertEquals("start", Production.RECIPES.get("build-a-laboratory").known);
     }
@@ -102,11 +119,12 @@ class ResearchTest {
         assertEquals(80, pr.research.get(c.id).theory, 1e-9);
         assertNull(lab.job);
         assertTrue(Research.ready(pr, c, crew));
-        // the prototype in a still, twice the hours, then the test: Prototype's first test passes
+        // the prototype in a still, twice the hours, then the test: Prototype's first test passes; Chem leads it and works it (Chemistry 30)
         Production.Building still = pr.build("Still", 2, "Still");
         store.addUnits("Food", 1, 1, 3);
         store.addUnits("Fuel", 1, 1, 1);
-        assertFalse(pr.start(still, Research.jobFor(c, "prototype"), 1, 1, crew).startsWith("!"));
+        String m = pr.start(still, Research.jobFor(c, "prototype"), 1, 1, crew);
+        assertTrue(m.contains("led by Chem"), m);
         out = pr.advance(12, 92, store, crew, 1, 0);
         assertTrue(out.stream().anyMatch(s -> s.startsWith("Still: Prototype: Reflux still: its first test passes (Prototype): PASSED. The base knows Reflux still now")), out.toString());
         assertTrue(pr.known.contains("reflux-still"));
@@ -116,6 +134,54 @@ class ResearchTest {
         // related research (round 2): a finished card of the line gives 5 % to the others of it
         assertEquals(5, Research.progress(pr, card("solar-still")), 1e-9);                  // water, distilling
         assertEquals(0, Research.progress(pr, card("saw-pit")), 1e-9);
+    }
+
+    @Test
+    void thePrototypeIsBuiltByTheWaysOwnCrewLedByAResearcher() {
+        // round 4 (Marek 11-21: "it should be build together with the crew. That makes the most sense.")
+        Research.Card c = card("bellows-furnace");                                         // Engineering 50; the way: a Kiln II, Crafting 30, 3 h
+        Production.Worker sci = two("Sci", "Engineering", 60, "Crafting", 10);              // can lead, cannot build it
+        Production.Worker smith = two("Smith", "Crafting", 60, "Engineering", 10);          // can build it, cannot lead
+        Base store = ProductionTest.cooled();
+        store.addUnits("Metal", 1, 1, 2);
+        store.addUnits("Fuel", 2, 1, 1);
+        Production pr = new Production();
+        pr.build("Reactor", 4, "Reactor");
+        Production.Building kiln = pr.build("Kiln", 2, "Kiln");
+        Research.Project p = Research.project(pr, c);
+        p.find = 50; p.achievement = 20; p.experiments = 20; p.inspiration = 10;
+        p.researchers.add(sci.id());
+        Production.Recipe proto = Research.jobFor(c, "prototype");
+        assertEquals("Crafting", proto.skill);
+        // nobody to lead it: it does not start
+        assertEquals("! nobody free has Engineering 50 to lead the prototype (a researcher)", pr.start(kiln, proto, 1, 1, new Crew(smith)));
+        assertNull(kiln.job);
+        // the researcher alone leads it, but nobody can build it: it waits for a crew
+        Production pr2 = new Production();
+        pr2.build("Reactor", 4, "Reactor");
+        Production.Building k2 = pr2.build("Kiln", 2, "Kiln");
+        Research.project(pr2, c).find = 100;
+        String m2 = pr2.start(k2, proto, 1, 1, new Crew(sci));
+        assertTrue(m2.contains("led by Sci") && m2.contains("! nobody free has Crafting 30"), m2);
+        Base s2 = ProductionTest.cooled();
+        s2.addUnits("Metal", 1, 1, 2);
+        s2.addUnits("Fuel", 2, 1, 1);
+        pr2.advance(2, 0, s2, new Crew(sci), 1, 0);
+        assertEquals("no crew at Crafting 30", k2.job.waiting);
+        // both: the researcher leads (no slot), the smith builds; the test is the lead's: 50 + (60 − 50) = 60 %
+        Crew both = new Crew(sci, smith);
+        String m = pr.start(kiln, proto, 1, 1, both);
+        assertEquals("Kiln: Prototype: Bellows furnace × 1; led by Sci; the pick: Smith", m);
+        assertEquals(List.of(smith.id()), kiln.crew);
+        assertEquals(sci.id(), kiln.job.lead);
+        assertEquals(kiln.id, pr.busyAt(sci.id()));
+        pr.seed(seedFor(1, 60));
+        List<String> out = pr.advance(4, 0, store, both, 1, 0);                             // 6 h of work at 2 an hour: 3 h
+        assertTrue(out.stream().anyMatch(s -> s.contains("of 60 %: PASSED. The base knows Bellows furnace now")), out.toString());
+        assertEquals(200L, both.xp.get(sci.id()));                                          // the researcher's 100 x T x R
+        assertNull(both.xp.get(smith.id()));                                                // the crew: its work's XP, not research's
+        assertNull(pr.busyAt(sci.id()));
+        assertNull(kiln.job);
     }
 
     @Test
@@ -192,30 +258,127 @@ class ResearchTest {
     }
 
     @Test
-    void theAchievementCountsWhatTheBaseMakesAndASharedLineGetsHalf() {
+    void theAchievementsArePrePreparedLikeCiv6sEurekas() {
+        // round 4 (Marek 11-21: "I think these could pre-prepared. Like in Civ6." · "The "use recipe XX times" kind should be rarer")
+        int gm = 0, sameWay = 0;
+        for (Research.Card c : Research.CARDS.values()) {
+            if (c.parked) continue;
+            assertNotNull(c.achievement, c.name);
+            assertFalse(c.achievement.text.isEmpty(), c.name);
+            if (!c.achievement.counted()) gm++;
+            if (c.achievement.model.contains("a way used N times")) sameWay++;
+        }
+        assertEquals(8, gm);
+        assertEquals(3, sameWay);                                                           // the rare kind
         Production pr = new Production();
-        Research.Card still = card("reflux-still"), solar = card("solar-still");
-        Research.project(pr, solar).status = "theory";                                     // running, of the distilling line
+        pr.shelter();
+        Base store = new Base(null);
         List<String> out = new ArrayList<>();
-        Research.made(pr, "Chemicals", 2, 12, out);
+        Research.check(pr, store, out);
+        assertEquals(List.of(), out);                                                       // the shelter's rooms count for nothing
+        // building: a kiln, pens, a field; "*" three buildings beyond the shelter's rooms; two workshops
+        pr.build("Kiln", 2, "Kiln");
+        Research.check(pr, store, out);
+        assertEquals(List.of("Research: Bellows furnace: its achievement met (Build a kiln) +20 %"), out);
+        assertEquals(20, Research.progress(pr, card("bellows-furnace")), 1e-9);
+        assertEquals("The achievement (counted): Three buildings built beyond the shelter's rooms, 1 of 3",
+                Research.achievementLine(pr, card("down-draught-kiln"), store));
+        pr.build("Pens", 2, "Pens");
+        pr.build("Field", 2, "Field");
+        pr.build("Workshop", 2, "Second workshop");
+        out.clear();
+        Research.check(pr, store, out);
+        assertTrue(out.contains("Research: Lime tanning: its achievement met (Build pens (the animals' hides)) +20 %"), out.toString());
+        assertTrue(out.contains("Research: Saw pit: its achievement met (Prepare a field (its clearing gives the logs)) +20 %"), out.toString());
+        assertTrue(out.contains("Research: Down-draught kiln: its achievement met (Three buildings built beyond the shelter's rooms) +20 %"), out.toString());
+        assertTrue(out.contains("Research: Lathe jigs: its achievement met (Have two workshops) +20 %"), out.toString());
+        // stored: 6 Power II in the store at once (Tier III counts too)
+        store.addUnits("Power", 2, 1, 5);
+        out.clear();
+        Research.check(pr, store, out);
+        assertTrue(out.isEmpty(), out.toString());
+        store.addUnits("Power", 3, 1, 1);
+        Research.check(pr, store, out);
+        assertEquals(List.of("Research: Edison cell: its achievement met (6 rebuilt lead batteries (Power II) in the store at once) +20 %"), out);
+        // condition: the water filtration below 75 %
+        out.clear();
+        for (Production.Building b : pr.buildings) if ("Water filtration".equals(b.kind)) b.condition = 74;
+        Research.check(pr, store, out);
+        assertEquals(List.of("Research: Solar still: its achievement met (The water filtration falls below 75 % (it gives less water)) +20 %"), out);
+        // worn: three tools worn out in the base's work
+        out.clear();
+        store.addUnits("Gear and tools", 1, 1, 3);
+        for (int i = 0; i < 3; i++) store.wear("Gear and tools", 1, 100);
+        assertEquals(3, store.wornOut("Gear and tools"));
+        Research.check(pr, store, out);
+        assertEquals(List.of("Research: Hardening and tempering: its achievement met (Three tools worn out in the base's work) +20 %"), out);
+        // cards: five research cards done
+        out.clear();
+        for (String id : List.of("saw-pit", "lime-tanning", "retort-kiln", "bullet-moulds", "stock-removal")) Research.project(pr, card(id)).status = "done";
+        Research.check(pr, store, out);
+        assertEquals(List.of("Research: Laboratory III: its achievement met (Five research cards done) +20 %"), out);
+        // assembled: five firearms for going out; soft armour counts its own
+        out.clear();
+        Research.assembled(pr, Production.design("Pistols", "Pipe pistol"), 4, out);
+        Research.assembled(pr, Production.design("Body armour", "Leather Jacket"), 2, out);
+        assertTrue(out.isEmpty(), out.toString());
+        Research.assembled(pr, Production.design("Pistols", "Pipe pistol"), 1, out);
+        assertEquals(List.of("Research: Gun jigs: its achievement met (Five firearms assembled for going out) +20 %"), out);
+        assertEquals(2, pr.research.get("armour-patterns").achieved);
+        // made, of ANOTHER type ("most should work with different type"): 5 Seeds II saved; half to a running project of a line
+        Research.project(pr, card("rad-scrubbing")).status = "theory";                       // food
+        out.clear();
+        Research.made(pr, "Seeds", 2, 5, out);
+        assertEquals(List.of("Research: Chicory: its achievement met (5 Seeds II saved from the base's crops) +20 %"), out);
+        assertEquals(10, Research.progress(pr, card("rad-scrubbing")), 1e-9);
+        // recipe: a way used N times (the rare kind): 10 appliances stripped
+        out.clear();
+        for (int i = 0; i < 9; i++) Research.ran(pr, "strip-appliances", out);
         assertTrue(out.isEmpty());
-        assertEquals(12, pr.research.get(still.id).achieved);
-        Research.made(pr, "Chemicals", 2, 8, out);                                         // 20 Chemicals II made: met
-        assertEquals(List.of("Research: Reflux still: its achievement met (20 Chemicals II made in the base (the old way teaches)) +20 %"), out);
-        assertEquals(20, Research.progress(pr, still), 1e-9);
-        assertEquals(10, Research.progress(pr, solar), 1e-9);                              // half of it to the running related project
-        // a run of the old way counts too
-        Production p2 = new Production();
-        p2.build("Reactor", 4, "Reactor");
-        Production.Building w = p2.build("Workshop", 2, "W");
+        Research.ran(pr, "strip-appliances", out);
+        assertEquals(List.of("Research: Coil winder: its achievement met (Strip 10 appliances of their wiring and coils (the old way)) +20 %"), out);
+        // gm: a deed in the world, never counted
+        assertEquals("The achievement (the GM credits it): Find a bed of bog iron ore or a rusty spring (the local map)",
+                Research.achievementLine(pr, card("iron-from-ore"), store));
+    }
+
+    @Test
+    void aWayRunInTheBaseCountsForTheRecipeKind() {
+        Production pr = new Production();
+        pr.build("Reactor", 4, "Reactor");
+        Production.Building k = pr.build("Kitchen", 1, "Kitchen");
         Base b = new Base(null);
-        b.addUnits("Metal", 1, 1, 3);
-        b.addUnits("Fuel", 2, 1, 2);
-        b.addUnits("Water", 1, 1, 50);
-        Production.Worker smith = ProductionTest.worker("Smith", "Crafting", 60);
-        ProductionTest.Crew cw = new ProductionTest.Crew(smith);
-        p2.start(w, ProductionTest.recipe("recast-scrap"), 1, 1, cw);
-        p2.advance(8, 0, b, cw, 1, 0);
-        assertEquals(1, p2.research.get("bellows-furnace").achieved);                      // 1 Metal II of the 20
+        b.addUnits("Livestock", 1, 1, 2);
+        b.addUnits("Water", 3, 1, 50);
+        Production.Worker cook = ProductionTest.worker("Cook", "Survival", 40);
+        ProductionTest.Crew cw = new ProductionTest.Crew(cook);
+        pr.start(k, ProductionTest.recipe("butcher"), 2, 1, cw);
+        pr.advance(4, 0, b, cw, 1, 0);
+        assertEquals(2, pr.research.get("hide-glue").achieved);                            // 2 of the 5 animals butchered or skinned
+        assertEquals("The achievement (counted): Five animals butchered or skinned (the hides, hooves and bones), 2 of 5",
+                Research.achievementLine(pr, card("hide-glue"), b));
+    }
+
+    @Test
+    void theTreeOpensTheTierThreeCardsAfterTheLaboratory() {
+        // round 4 (Marek 11-21: "yes, it should have a bit tree like structure due to that.")
+        Research.Card iron = card("iron-from-ore"), lab3 = card("laboratory-iii"), lab4 = card("laboratory-iv"), edison = card("edison-cell");
+        assertEquals(List.of("laboratory-iii", "bellows-furnace"), iron.needs);
+        assertEquals(List.of("laboratory-iii", "iron-from-ore"), edison.needs);
+        assertEquals(List.of("laboratory-iii", "iron-from-ore", "edison-cell"), lab4.needs);
+        assertTrue(lab3.needs.isEmpty());
+        assertTrue(lab3.notes.stream().anyMatch(n -> n.startsWith("6 Metal III: found, since Iron from ore itself needs Laboratory III")), lab3.notes.toString());
+        assertTrue(iron.notes.stream().anyMatch(n -> n.startsWith("a Kiln of Tier III: no way builds one yet")), iron.notes.toString());
+        assertTrue(edison.notes.stream().anyMatch(n -> n.startsWith("a Workshop of Tier III: no way builds one yet")), edison.notes.toString());
+        Production pr = new Production();
+        for (Research.Card c : Research.CARDS.values())
+            if (!c.parked) assertEquals(c.tier <= 2 || c == lab3, Research.open(pr, c), c.name);   // the Tier I-II cards open from the start
+        assertEquals("needs Laboratory III, Bellows furnace", Research.state(pr, iron, new Crew()));
+        Research.project(pr, lab3).status = "done";
+        assertFalse(Research.open(pr, iron));
+        Research.project(pr, card("bellows-furnace")).status = "done";
+        assertTrue(Research.open(pr, iron));
+        assertTrue(Research.opens(lab3).containsAll(List.of(iron, card("rad-scrubbing"), card("mushrooms-on-straw"), card("solar-still"), edison, lab4)));
+        assertEquals(List.of(edison, lab4), Research.opens(iron));
     }
 }

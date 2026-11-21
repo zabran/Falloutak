@@ -3,6 +3,18 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.52.0 (2026-11-21): part 8 round 4 - the achievements, the prototype's crew, the tree.**
+- **The achievements PRE-PREPARED in Civ6's way** (Marek: *"I think these could pre-prepared. Like in Civ6."*): each card's is a deed
+  near the invention, most on another type or deed than what the card makes, a way used N times only on three cards. The plugin counts
+  19 of them (a building built, units made, a way's runs, items assembled for going out, the store's stock, a room's condition, tools
+  worn out, cards done; checked as time passes and when a research page opens), the GM credits the other 8 (a deed in the world).
+- **The prototype is built by the way's own crew, led by a researcher** (*"it should be build together with the crew. That makes the
+  most sense."*): the best free researcher of the project leads it (no slot; he works too if he has the way's skill), the way's own
+  crew fills the slots; the test is the lead's science; the research XP his, the crew's the work's.
+- **The tree** (*"yes, it should have a bit tree like structure due to that."*): a Tier III-IV card needs the laboratory card of its
+  tier first, and an input only research makes needs its card (Edison cell after Iron from ore, Laboratory IV after both); a card's
+  page shows what it needs, what it opens and what must be found.
+
 **Version 0.51.0 (2026-11-21): part 8, research.**
 - **The research cards** (`data/research.json`, generated with the catalogue: one card a researched way, 29, the two gene ones
   PARKED): P = 100 × T² × R points, the gate (the science at 25 / 50 / 100 / 150 by the tier), the lines, the achievement (N of a type

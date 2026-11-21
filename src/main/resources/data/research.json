@@ -20,7 +20,7 @@
    "4": 150
   }
  },
- "source_rules": "08-RESEARCH.md §3 (RULED rounds 1-3); the cards [mine, EXAMPLE]",
+ "source_rules": "08-RESEARCH.md §3 (RULED rounds 1-4); the cards, their achievements and numbers [mine, EXAMPLE]",
  "rows": [
   {
    "id": "bellows-furnace",
@@ -39,11 +39,15 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 20,
-    "type": "Metal",
+    "kind": "building",
+    "building": "Kiln",
     "tier": 2,
-    "text": "20 Metal II made in the base (the old way teaches)"
+    "count": 1,
+    "text": "Build a kiln",
+    "model": "Build a Quarry → Masonry",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 3
@@ -67,14 +71,20 @@
     "metalworking"
    ],
    "needs": [
+    "laboratory-iii",
     "bellows-furnace"
    ],
    "achievement": {
-    "count": 40,
-    "type": "Metal",
-    "tier": 2,
-    "text": "40 Metal II made in the base (the old way teaches)"
+    "kind": "gm",
+    "text": "Find a bed of bog iron ore or a rusty spring (the local map)",
+    "model": "Build an Iron Mine → Iron Working",
+    "auto": false
    },
+   "notes": [
+    "a Kiln of Tier III: no way builds one yet (only the GM's build button)",
+    "the experiments' Electronics III: found only",
+    "the experiments' Machinery III: found only"
+   ],
    "experiment": {
     "electronics": 1,
     "machinery": 4
@@ -99,11 +109,15 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 60,
-    "type": "Wood",
-    "tier": 1,
-    "text": "60 Wood I made in the base (the old way teaches)"
+    "kind": "building",
+    "building": "Field",
+    "tier": 2,
+    "count": 1,
+    "text": "Prepare a field (its clearing gives the logs)",
+    "model": "Build a Lumber Mill → Mass Production",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 2
@@ -128,11 +142,15 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 30,
-    "type": "Textile",
-    "tier": 1,
-    "text": "30 Textile I made in the base (the old way teaches)"
+    "kind": "building",
+    "building": "Pens",
+    "tier": 2,
+    "count": 1,
+    "text": "Build pens (the animals' hides)",
+    "model": "Build a Pasture → Horseback Riding",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 1
@@ -157,11 +175,15 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 30,
-    "type": "Stone and glass",
-    "tier": 2,
-    "text": "30 Stone and glass II made in the base (the old way teaches)"
+    "kind": "building",
+    "building": "*",
+    "tier": 1,
+    "count": 3,
+    "text": "Three buildings built beyond the shelter's rooms",
+    "model": "Build 3 Different Specialty Districts → Mathematics",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 3
@@ -186,11 +208,15 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 20,
-    "type": "Chemicals",
+    "kind": "building",
+    "building": "Still",
     "tier": 2,
-    "text": "20 Chemicals II made in the base (the old way teaches)"
+    "count": 1,
+    "text": "Build a still",
+    "model": "Build an Armory → Gunpowder",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 2,
     "machinery": 2
@@ -216,11 +242,17 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 30,
-    "type": "Fuel",
-    "tier": 2,
-    "text": "30 Fuel II made in the base (the old way teaches)"
+    "kind": "recipe",
+    "recipes": [
+     "burn-charcoal",
+     "charcoal-clamp"
+    ],
+    "count": 10,
+    "text": "Burn charcoal the old way 10 times (in the kiln or a clamp)",
+    "model": "— (a way used N times: the rare kind)",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 2
@@ -243,13 +275,23 @@
    "lines": [
     "food"
    ],
-   "needs": [],
+   "needs": [
+    "laboratory-iii"
+   ],
    "achievement": {
-    "count": 100,
-    "type": "Food",
-    "tier": 2,
-    "text": "100 Food II made in the base (the old way teaches)"
+    "kind": "recipe",
+    "recipes": [
+     "field-potatoes"
+    ],
+    "count": 1,
+    "text": "Bring in a field's first harvest (the autumn's soil: Food II)",
+    "model": "Farm a resource → Irrigation",
+    "auto": true
    },
+   "notes": [
+    "the experiments' Electronics III: found only",
+    "the experiments' Machinery III: found only"
+   ],
    "experiment": {
     "electronics": 2,
     "machinery": 1
@@ -272,13 +314,20 @@
    "lines": [
     "food"
    ],
-   "needs": [],
+   "needs": [
+    "laboratory-iii"
+   ],
    "achievement": {
-    "count": 50,
-    "type": "Food",
-    "tier": 3,
-    "text": "50 Food III made in the base (the old way teaches)"
+    "kind": "gm",
+    "text": "Find mushrooms growing wild in a cellar, a cave or a mine (the local map)",
+    "model": "Find a Natural Wonder → Astrology",
+    "auto": false
    },
+   "notes": [
+    "a Grow room of Tier III: the start package's flowerpots (the GM's build button)",
+    "the experiments' Electronics III: found only",
+    "the experiments' Machinery III: found only"
+   ],
    "experiment": {
     "electronics": 2,
     "machinery": 1
@@ -302,13 +351,21 @@
     "water",
     "distilling"
    ],
-   "needs": [],
+   "needs": [
+    "laboratory-iii"
+   ],
    "achievement": {
-    "count": 300,
-    "type": "Water",
-    "tier": 2,
-    "text": "300 Water II made in the base (the old way teaches)"
+    "kind": "condition",
+    "building": "Water filtration",
+    "value": 75,
+    "text": "The water filtration falls below 75 % (it gives less water)",
+    "model": "Be the target of a Declaration of War → Defensive Tactics",
+    "auto": true
    },
+   "notes": [
+    "the experiments' Electronics III: found only",
+    "the experiments' Machinery III: found only"
+   ],
    "experiment": {
     "electronics": 1,
     "machinery": 2
@@ -333,11 +390,12 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 30,
-    "type": "Medicine",
-    "tier": 1,
-    "text": "30 Medicine I made in the base (the old way teaches)"
+    "kind": "gm",
+    "text": "Meet a herbalist or a wise woman (a farm town's, a camp's) who shows the healing herbs",
+    "model": "Meet another civilization → Writing",
+    "auto": false
    },
+   "notes": [],
    "experiment": {
     "electronics": 2,
     "machinery": 1
@@ -363,11 +421,17 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 10,
-    "type": "Chems",
+    "kind": "made",
+    "type": "Seeds",
     "tier": 2,
-    "text": "10 Chems II made in the base (the old way teaches)"
+    "count": 5,
+    "text": "5 Seeds II saved from the base's crops",
+    "model": "Build 6 Farms → Feudalism",
+    "auto": true
    },
+   "notes": [
+    "a Grow room of Tier III: the start package's flowerpots (the GM's build button)"
+   ],
    "experiment": {
     "electronics": 1,
     "machinery": 1
@@ -393,11 +457,14 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 10,
+    "kind": "worn",
     "type": "Gear and tools",
-    "tier": 2,
-    "text": "10 Gear and tools II made in the base (the old way teaches)"
+    "count": 3,
+    "text": "Three tools worn out in the base's work",
+    "model": "Build 3 Mines → Apprenticeship",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 3
@@ -421,13 +488,24 @@
     "power",
     "electronics"
    ],
-   "needs": [],
+   "needs": [
+    "laboratory-iii",
+    "iron-from-ore"
+   ],
    "achievement": {
-    "count": 20,
+    "kind": "stored",
     "type": "Power",
     "tier": 2,
-    "text": "20 Power II made in the base (the old way teaches)"
+    "count": 6,
+    "text": "6 rebuilt lead batteries (Power II) in the store at once",
+    "model": "Own 3 Privateers → Electricity",
+    "auto": true
    },
+   "notes": [
+    "a Workshop of Tier III: no way builds one yet (only the GM's build button)",
+    "the experiments' Electronics III: found only",
+    "the experiments' Machinery III: found only"
+   ],
    "experiment": {
     "electronics": 4,
     "machinery": 2
@@ -453,11 +531,14 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 20,
-    "type": "Soft armour parts",
-    "tier": 2,
-    "text": "20 Soft armour parts II made in the base (the old way teaches)"
+    "kind": "assembled",
+    "part": "Soft armour parts",
+    "count": 5,
+    "text": "Five pieces of soft armour assembled for going out",
+    "model": "Own 3 Archers → Machinery",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 2
@@ -483,11 +564,12 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 20,
-    "type": "Hard armour parts",
-    "tier": 2,
-    "text": "20 Hard armour parts II made in the base (the old way teaches)"
+    "kind": "gm",
+    "text": "An armour plate stops a hit in a fight that would have put its wearer down",
+    "model": "Kill a unit with a Spearman → Military Tactics",
+    "auto": false
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 4
@@ -513,11 +595,12 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 10,
-    "type": "Hard weapon parts",
-    "tier": 2,
-    "text": "10 Hard weapon parts II made in the base (the old way teaches)"
+    "kind": "gm",
+    "text": "Three raiders or beasts beaten hand to hand",
+    "model": "Kill 3 Barbarians → Bronze Working",
+    "auto": false
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 3
@@ -543,11 +626,17 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 10,
-    "type": "Light weapon parts",
-    "tier": 2,
-    "text": "10 Light weapon parts II made in the base (the old way teaches)"
+    "kind": "recipe",
+    "recipes": [
+     "butcher",
+     "skin-game"
+    ],
+    "count": 5,
+    "text": "Five animals butchered or skinned (the hides, hooves and bones)",
+    "model": "Mine a resource → Wheel",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 1
@@ -572,11 +661,14 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 10,
-    "type": "Firearm parts",
-    "tier": 2,
-    "text": "10 Firearm parts II made in the base (the old way teaches)"
+    "kind": "assembled",
+    "part": "Firearm parts",
+    "count": 5,
+    "text": "Five firearms assembled for going out",
+    "model": "Own 3 Line Infantries → Replaceable Parts",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 4
@@ -601,11 +693,16 @@
    ],
    "needs": [],
    "achievement": {
+    "kind": "recipe",
+    "recipes": [
+     "strip-appliances"
+    ],
     "count": 10,
-    "type": "Electronics",
-    "tier": 2,
-    "text": "10 Electronics II made in the base (the old way teaches)"
+    "text": "Strip 10 appliances of their wiring and coils (the old way)",
+    "model": "— (a way used N times: the rare kind)",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 4,
     "machinery": 2
@@ -631,11 +728,15 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 10,
-    "type": "Machinery",
+    "kind": "building",
+    "building": "Workshop",
     "tier": 2,
-    "text": "10 Machinery II made in the base (the old way teaches)"
+    "count": 2,
+    "text": "Have two workshops",
+    "model": "Build 3 Workshops → Industrialization",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 4
@@ -661,11 +762,15 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 200,
+    "kind": "made",
     "type": "Ammo",
     "tier": 2,
-    "text": "200 Ammo II made in the base (the old way teaches)"
+    "count": 200,
+    "text": "200 Ammo II reloaded by hand (the old way)",
+    "model": "— (a way used N times: the rare kind)",
+    "auto": true
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 3
@@ -690,11 +795,12 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 100,
-    "type": "Ammo",
-    "tier": 1,
-    "text": "100 Ammo I made in the base (the old way teaches)"
+    "kind": "gm",
+    "text": "The base's first gunfight (its people shoot in a fight)",
+    "model": "Kill a unit with a Slinger → Archery",
+    "auto": false
    },
+   "notes": [],
    "experiment": {
     "electronics": 1,
     "machinery": 2
@@ -719,11 +825,12 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 10,
-    "type": "Explosives",
-    "tier": 2,
-    "text": "10 Explosives II made in the base (the old way teaches)"
+    "kind": "gm",
+    "text": "Blow open a rockfall, a wall or a sealed door with a charge (the local map)",
+    "model": "Extract an Artifact → Combustion",
+    "auto": false
    },
+   "notes": [],
    "experiment": {
     "electronics": 2,
     "machinery": 2
@@ -747,7 +854,18 @@
     "laboratory"
    ],
    "needs": [],
-   "achievement": null,
+   "achievement": {
+    "kind": "cards",
+    "count": 5,
+    "text": "Five research cards done",
+    "model": "Earn 3 Great People → The Enlightenment",
+    "auto": true
+   },
+   "notes": [
+    "6 Metal III: found, since Iron from ore itself needs Laboratory III",
+    "the experiments' Electronics III: found only",
+    "the experiments' Machinery III: found only"
+   ],
    "experiment": {
     "electronics": 2,
     "machinery": 2
@@ -771,9 +889,21 @@
     "laboratory"
    ],
    "needs": [
-    "laboratory-iii"
+    "laboratory-iii",
+    "iron-from-ore",
+    "edison-cell"
    ],
-   "achievement": null,
+   "achievement": {
+    "kind": "cards",
+    "count": 12,
+    "text": "Twelve research cards done",
+    "model": "Have a government with 8 policy slots → Computers",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics IV: found only",
+    "the experiments' Machinery IV: found only"
+   ],
    "experiment": {
     "electronics": 3,
     "machinery": 3
@@ -799,11 +929,12 @@
    ],
    "needs": [],
    "achievement": {
-    "count": 2,
-    "type": "Implants",
-    "tier": 2,
-    "text": "2 Implants II made in the base (the old way teaches)"
+    "kind": "gm",
+    "text": "An implant fitted into or taken out of someone in the base's infirmary",
+    "model": "—",
+    "auto": false
    },
+   "notes": [],
    "experiment": {
     "electronics": 4,
     "machinery": 1
@@ -828,6 +959,9 @@
    ],
    "needs": [],
    "achievement": null,
+   "notes": [
+    "1 Medicine IV: found only (no way makes it)"
+   ],
    "experiment": {
     "electronics": 2,
     "machinery": 1
@@ -852,6 +986,7 @@
    ],
    "needs": [],
    "achievement": null,
+   "notes": [],
    "experiment": {
     "electronics": 2,
     "machinery": 1

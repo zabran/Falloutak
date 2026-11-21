@@ -37,7 +37,15 @@ final class Labs {
     }
 
     // ------------------------------------------------------------------ the list
+    /** The achievements that ask about the base's state, checked when a research page opens (round 4). */
+    static void check(Player p) {
+        List<String> out = new ArrayList<>();
+        Research.check(pr(), pl.base, out);
+        if (!out.isEmpty()) { pr().save(); out.forEach(m -> say(p, m)); }
+    }
+
     static void main(Player p) {
+        check(p);
         Production pr = pr();
         Production.Workforce wf = pl.workforce();
         List<Component> lines = new ArrayList<>();
@@ -46,8 +54,9 @@ final class Labs {
             if ("Laboratory".equals(b.kind)) labs.add(b.name + " (Tier " + Rules.roman(b.tier) + (b.job == null ? ", free" : ", " + Production.recipe(b.job.recipe).name) + ")");
         lines.add(line(labs.length() == 0 ? "No laboratory yet: Work anywhere in the base → Build a laboratory (Tier II)." : "Laboratories: " + labs,
                 labs.length() == 0 ? NamedTextColor.RED : NamedTextColor.WHITE));
-        lines.add(line("A card's points: a find up to 50 %, its achievement 20 %, an inspiration 10 %, two experiments 10 % each, related "
-                + "research up to 25 %, theory for the rest; then the prototype and its test.", NamedTextColor.GRAY));
+        lines.add(line("A card's points: a find up to 50 %, its achievement 20 % (a deed near the invention, like Civ6's Eurekas), an "
+                + "inspiration 10 %, two experiments 10 % each, related research up to 25 %, theory for the rest; then the prototype, built "
+                + "by the way's own crew led by a researcher, and its test. A card that needs others opens when they are done.", NamedTextColor.GRAY));
         List<Ui.Btn> b = new ArrayList<>();
         for (Research.Card c : cards()) b.add(btn(label(c, wf), gives(c) + " · " + Research.breakdown(pr, c), x -> card(x, c.id)));
         if (gm(p) && !pr.pending.isEmpty()) b.add(btn("GM: rule a failed prototype (" + pr.pending.size() + ")", "rarity 1: what it comes out as (round 2)", Labs::pending));
@@ -59,6 +68,7 @@ final class Labs {
         Production pr = pr();
         Research.Card c = Research.CARDS.get(id);
         if (c == null) { main(p); return; }
+        check(p);
         Production.Workforce wf = pl.workforce();
         Research.Project pj = pr.research.get(c.id);
         Production.Recipe t = c.target(), proto = Research.jobFor(c, "prototype");
@@ -67,18 +77,25 @@ final class Labs {
         lines.add(line("Tier " + Rules.roman(c.tier) + ", rarity " + c.rarity + " · " + c.points + " points · " + c.science + " " + c.gate
                 + " · a laboratory of Tier " + Rules.roman(c.lab) + " or better · lines: " + String.join(", ", c.lines), NamedTextColor.GRAY));
         if (!c.needs.isEmpty()) lines.add(line("Needs first: " + Research.needsText(c) + (Research.open(pr, c) ? " (done)" : ""), Research.open(pr, c) ? NamedTextColor.GRAY : NamedTextColor.RED));
+        List<Research.Card> opens = Research.opens(c);
+        if (!opens.isEmpty()) {
+            StringJoiner o = new StringJoiner(", ");
+            for (Research.Card d : opens) o.add(d.name);
+            lines.add(line("Opens the way to: " + o, NamedTextColor.GRAY));
+        }
+        for (String n : c.notes) lines.add(line("Note: " + n, NamedTextColor.GOLD));
         lines.add(line("Progress " + Math.round(Research.progress(pr, c)) + " %: " + Research.breakdown(pr, c), NamedTextColor.YELLOW));
         if (!Research.done(pr, c)) {
             double left = Research.theoryLeft(pr, c);
             lines.add(line(left <= 0 ? "Theory: done." : "Theory left: " + Math.round(left) + " points (a researcher at the gate " + Math.round(left)
                     + " hours, at four times it " + Math.round(left / Research.RULES.theory_max) + "; up to " + Research.RULES.researchers + " at once)", NamedTextColor.GRAY));
-            lines.add(line("The achievement: " + (c.achievement == null ? "the GM credits it" : c.achievement.text + ", " + Math.min(c.achievement.count, pj == null ? 0 : pj.achieved)
-                    + " of " + c.achievement.count) + (pj != null && pj.achievement > 0 ? " (met)" : ""), NamedTextColor.GRAY));
+            lines.add(line(Research.achievementLine(pr, c, pl.base), NamedTextColor.GRAY));
             lines.add(line("Experiments: " + (pj == null ? 0 : pj.experimentsDone) + " of " + Research.maxExperiments(pj, wf, null) + ", each "
                     + c.experiment.electronics + " Electronics + " + c.experiment.machinery + " Machinery of Tier " + Rules.roman(c.tier) + ", "
                     + SheetGui.f(Research.jobFor(c, "experiment").hours) + " h in a laboratory (no roll)", NamedTextColor.GRAY));
             if (t != null) lines.add(line("The prototype: at 100 % (90 % with Prototype), in a " + t.building + " of Tier " + Rules.roman(t.tier) + ", "
-                    + SheetGui.f(proto.hours) + " h from " + Production.inputsText(t) + "; the test 50 % + (" + c.science + " − " + c.gate + "), +10 % a failure"
+                    + SheetGui.f(proto.hours) + " h from " + Production.inputsText(t) + ", by a crew of " + t.skill + " " + t.min + " led by a researcher ("
+                    + c.science + " " + c.gate + ", no slot); the test 50 % + (the lead's " + c.science + " − " + c.gate + "), +10 % a failure"
                     + (pj != null && pj.failures > 0 ? " (failed " + pj.failures + ")" : ""), NamedTextColor.GRAY));
         }
         if (pj != null && !pj.researchers.isEmpty()) {
@@ -93,13 +110,15 @@ final class Labs {
             if ((pj == null ? 0 : pj.experimentsDone) + count(c, "experiment") < Research.maxExperiments(pj, wf, null))
                 b.add(btn("An experiment", c.experiment.electronics + " Electronics + " + c.experiment.machinery + " Machinery " + Rules.roman(c.tier) + " used up (Lab Rat: half)", x -> pickLab(x, c, "experiment")));
             if (Research.ready(pr, c, wf) && running(c, "prototype") == null)
-                b.add(btn("Build the prototype", "in a " + proto.building + " of Tier " + Rules.roman(proto.tier) + ", then the test", x -> pickProto(x, c)));
+                b.add(btn("Build the prototype", "in a " + proto.building + " of Tier " + Rules.roman(proto.tier) + ": a crew of " + proto.skill + " " + proto.min
+                        + " led by a researcher (" + c.science + " " + c.gate + "), then the test", x -> pickProto(x, c)));
             if (pj != null && !pj.eureka && pj.inspiration <= 0 && Research.perk(pj, Research.researchers(pj, wf), "Eureka"))
                 b.add(btn("Eureka: the inspiration now", "once a project, worth 10 % more (round 3)", x -> { say(x, Research.eureka(pr, c, wf)); pr.save(); card(x, c.id); }));
         }
         if (gm(p) && !Research.done(pr, c)) {
             b.add(btn("GM: a find", "a working item, its manual, a schematic, a pre-war lab's records (30 %), a related thing (10 %); Reverse Engineer 50 % and the inspiration", x -> gmFind(x, c)));
-            b.add(btn("GM: the achievement", "its condition met in the world (+" + Math.round(Research.RULES.achievement) + " %)", x -> { say(x, Research.achievement(pr, c)); pr.save(); card(x, c.id); }));
+            b.add(btn("GM: the achievement", (c.achievement == null ? "its condition met" : c.achievement.text) + " (+" + Math.round(Research.RULES.achievement)
+                    + " %)" + (c.achievement != null && c.achievement.counted() ? "; the plugin counts it too" : ""), x -> { say(x, Research.achievement(pr, c)); pr.save(); card(x, c.id); }));
             b.add(btn("GM: an inspiration", "an event he links, a link the player argues, a find used for it (+10 %, Absent-Minded Genius 20 %)", x -> { say(x, Research.inspiration(pr, c, wf)); pr.save(); card(x, c.id); }));
             b.add(btn("GM: the base knows it now", "the way unlocked without the rest (a found schematic)", x -> {
                 Research.project(pr, c).status = "done";
@@ -143,7 +162,8 @@ final class Labs {
         Production.Recipe r = Research.jobFor(c, "prototype");
         if (Production.SITES.contains(r.building)) {
             Production.Building s = pr().startAt(r.building, r, 1, 1, pl.workforce());
-            say(p, s == null ? "! nobody free has " + r.skill + " " + r.min : s.name + ": " + r.name + " × 1" + (s.crew.isEmpty() ? "; ! nobody free has " + r.skill + " " + r.min : ""));
+            say(p, s == null ? "! nobody free to lead it (" + c.science + " " + c.gate + ") or to build it (" + r.skill + " " + r.min + ")"
+                    : s.name + ": " + r.name + " × 1; " + pr().status(s));
             pr().save();
             card(p, c.id);
             return;
@@ -151,7 +171,8 @@ final class Labs {
         List<String> ids = new ArrayList<>();
         for (Production.Building b : pr().buildings) if (b.job == null && b.condition > 0 && Production.fits(b, r)) ids.add(b.id);
         if (ids.isEmpty()) { say(p, "! no free " + r.building + " of Tier " + Rules.roman(r.tier) + " or better"); card(p, c.id); return; }
-        pick(p, r.name, "A free " + r.building + " of Tier " + Rules.roman(r.tier) + " or better; its crew = researchers (" + r.skill + " " + r.min + ").", ids,
+        pick(p, r.name, "A free " + r.building + " of Tier " + Rules.roman(r.tier) + " or better; the best free researcher leads it (" + c.science + " " + c.gate
+                + ", no slot), the way's own crew fills the slots (" + r.skill + " " + r.min + ").", ids,
                 id -> pr().building(id).name, id -> pr().building(id).label(), (x, id) -> {
                     say(x, pr().start(pr().building(id), r, 1, 1, pl.workforce()));
                     pr().save();

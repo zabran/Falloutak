@@ -28,12 +28,17 @@ class LabsTest extends MockGame {
         Ui.Page pg = click("Research");
         assertTrue(pg.text().contains("Laboratories: Lab (Tier II, free)"), pg.text());
         assertFalse(pg.labels().stream().anyMatch(l -> l.startsWith("Gene therapy")), pg.labels().toString());   // PARKED
-        pg = click("Reflux still · open · 0 %");
-        assertTrue(pg.text().contains("Progress 0 %: nothing yet"), pg.text());
+        // round 4: the still built meets Reflux still's pre-prepared achievement (Build a still) when the page opens
+        assertTrue(said(gm).contains("Research: Reflux still: its achievement met (Build a still) +20 %"), said(gm));
+        pg = click("Reflux still · open · 20 %");
+        assertTrue(pg.text().contains("Progress 20 %: achievement 20 %"), pg.text());
+        assertTrue(pg.text().contains("The achievement (counted): Build a still (met)"), pg.text());
+        assertTrue(pg.text().contains("by a crew of Chemistry 30 led by a researcher (Chemistry 50, no slot)"), pg.text());
         click("GM: a find");
         pg = click("Credit", "s", 50f, "re", false);
-        assertTrue(said(gm).contains("Reflux still: a find +50 % → 50 %"), said(gm));
+        assertTrue(said(gm).contains("Reflux still: a find +50 % → 70 %"), said(gm));
         click("GM: the achievement");
+        assertTrue(said(gm).contains("! Reflux still has its achievement already"), said(gm));
         click("GM: an inspiration");
         pg = page();
         assertTrue(pg.text().contains("Progress 80 %: find 50 % · achievement 20 % · inspiration 10 %"), pg.text());

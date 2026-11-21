@@ -19,14 +19,17 @@ import java.util.*;
  * <ul>
  * <li>A CARD a researched way: P = 100 × T² × R points, the gate (the science at 25 / 50 / 100 / 150 by the tier).</li>
  * <li>The SHARES of P: a find up to 50 % (the GM's; Reverse Engineer's working item taken apart 50 % and a free inspiration), the
- * card's achievement 20 % (N of a type made in the base, counted here; or the GM's), an inspiration 10 % (the GM's, or the lead's
+ * card's achievement 20 % (PRE-PREPARED as Civ6's Eurekas, round 4: a deed near the invention, counted here, or the GM's for a deed
+ * in the world; {@link Ach}), an inspiration 10 % (the GM's, or the lead's
  * weekly roll of Intelligence × 3 %), experiments 2 × 10 % (no roll, expensive: Electronics and Machinery of the tier), related
  * research up to 25 % (5 % a finished card of a shared line; a find, an achievement or an experiment counts at half for the line's
  * running projects). <b>No theory floor</b> (round 2: *"it should be possible to completely cut away the theory by getting only the
  * interactive parts"*).</li>
  * <li>THEORY for the rest: each researcher the science ÷ the gate points an hour (at most 4), up to 3, in a laboratory of the card's
  * tier ({@link Production} runs it as a job).</li>
- * <li>The PROTOTYPE at 100 % (90 % with Prototype): one run of the way in its own building, twice its hours; the TEST a d100 at
+ * <li>The PROTOTYPE at 100 % (90 % with Prototype): one run of the way in its own building, twice its hours, BUILT BY THE WAY'S OWN CREW
+ * LED BY A RESEARCHER (round 4, Marek 11-21: *"it should be build together with the crew. That makes the most sense."*: the lead takes
+ * no slot, works too if he has the way's skill, and his science is the test's); the TEST a d100 at
  * 50 % + (skill − gate), +10 % a failed test before, a 100 always fails. Passed: the way is the base's, 100 × T × R XP to each
  * researcher (06b). Failed: the prototype works, one rarity lower; at rarity 1 the GM rules it (round 2: *"I would rule each on case
  * by case basis when it happens..."*).</li>
@@ -40,7 +43,24 @@ final class Research {
     private Research() {}
 
     // ------------------------------------------------------------------ the data
-    static final class Ach { int count, tier = 1; String type = "", text = ""; }
+    /**
+     * A card's achievement, pre-prepared (round 4, Marek 11-21, verbatim: *"I think these could pre-prepared. Like in Civ6."* ·
+     * *"The "use recipe XX times" kind should be rarer one in this case."* · *"most should work with different type."*). Kinds:
+     * {@code made} (units of the type and tier made in the base), {@code recipe} (runs of any of the ways), {@code assembled} (items
+     * assembled for going out from parts of the type), {@code building} (that many of the kind at the tier or better; "*" any built
+     * beyond the shelter's rooms), {@code stored} (that many in the store at once), {@code condition} (a building of the kind at or
+     * below the %), {@code worn} (items of the type worn out in the base's work), {@code cards} (research cards done), {@code gm}
+     * (a deed in the world: the GM credits it).
+     */
+    static final class Ach {
+        String kind = "made", type = "", building = "", part = "", text = "", model = "";
+        int count = 1, tier = 1;
+        double value;
+        List<String> recipes = new ArrayList<>();
+        boolean auto = true;
+
+        boolean counted() { return !"gm".equals(kind); }
+    }
 
     static final class Apparatus { int electronics = 1, machinery = 1; }
 
@@ -48,6 +68,8 @@ final class Research {
         String id = "", name = "", science = "", better = "";
         int tier = 1, rarity = 1, points = 100, gate = 25, lab = 1;
         List<String> recipes = new ArrayList<>(), lines = new ArrayList<>(), needs = new ArrayList<>();
+        /** What the tree found (round 4): what must be found, a building no way builds yet. */
+        List<String> notes = new ArrayList<>();
         Ach achievement;
         Apparatus experiment = new Apparatus();
         boolean parked;
@@ -70,7 +92,7 @@ final class Research {
         /** Theory points done; this week's theory hours (the weekly roll). */
         double theory, weekHours;
         int experimentsDone, failures;
-        /** Units of the achievement's type counted so far. */
+        /** The achievement's count so far (units made, runs, items assembled). */
         int achieved;
         boolean eureka;
         /** Who worked on it (worker ids): the XP on the passed test. */
@@ -110,10 +132,13 @@ final class Research {
             ex.inputs.add(ttr("Machinery", c.tier, c.experiment.machinery));
             ex.note = "the apparatus is used up; no roll, it gives its share (Lab Rat: 15 % and half the apparatus)";
             Production.Recipe pt = job(c, "prototype", "Prototype: " + c.name, t.building, t.tier, Math.max(1, 2 * t.hours));
+            pt.skill = t.skill;   // round 4: the way's own crew builds it, a researcher leads (Production.Job.lead)
+            pt.min = t.min;
             pt.inputs.addAll(t.inputs);
             pt.makes.addAll(t.makes);
             pt.builds = t.builds;
-            pt.note = "twice the way's hours (Tinkerer −25 %), then the test";
+            pt.note = "twice the way's hours (Tinkerer −25 %), by a crew of " + t.skill + " " + t.min + " led by a researcher (" + c.science + " "
+                    + c.gate + "), then the test";
         }
     }
 
@@ -255,6 +280,121 @@ final class Research {
         return c.name + ": its achievement +" + Math.round(RULES.achievement) + " % → " + Math.round(progress(pr, c)) + " %";
     }
 
+    /** The cards whose achievement of this kind is still open (not done, not parked, not met). */
+    private static List<Card> waiting(Production pr, String kind) {
+        List<Card> l = new ArrayList<>();
+        for (Card c : CARDS.values()) {
+            if (c.parked || c.achievement == null || done(pr, c) || !kind.equals(c.achievement.kind)) continue;
+            Project p = pr.research.get(c.id);
+            if (p != null && p.achievement >= RULES.achievement) continue;
+            l.add(c);
+        }
+        return l;
+    }
+
+    private static void met(Production pr, Card c, List<String> out) {
+        Project p = project(pr, c);
+        p.achievement = RULES.achievement;
+        spread(pr, c, RULES.achievement);
+        out.add("Research: " + c.name + ": its achievement met (" + c.achievement.text + ") +" + Math.round(RULES.achievement) + " %");
+    }
+
+    /** An event that counts: the achievement's count grows by n, met at its count. */
+    private static void count(Production pr, Card c, int n, List<String> out) {
+        if (n <= 0) return;
+        Project p = project(pr, c);
+        p.achieved += n;
+        if (p.achieved >= c.achievement.count) met(pr, c, out);
+    }
+
+    /** The achievement's count now: what was counted, or the state it asks about. */
+    static int achievedNow(Production pr, Card c, Base base) {
+        Ach a = c.achievement;
+        if (a == null) return 0;
+        Project p = pr.research.get(c.id);
+        switch (a.kind) {
+            case "building": {
+                int n = 0;
+                for (Production.Building b : pr.buildings) {
+                    if (b.site || b.tier < a.tier) continue;
+                    if ("*".equals(a.building) ? !pr.shelterRoom(b) : a.building.equals(b.kind)) n++;
+                }
+                return n;
+            }
+            case "stored": {
+                int n = 0;
+                if (base != null) for (int t = a.tier; t <= 4; t++) n += base.count(a.type, t, 0);
+                return n;
+            }
+            case "condition": {
+                for (Production.Building b : pr.buildings) if (a.building.equals(b.kind) && b.condition <= a.value + 1e-9) return 1;
+                return 0;
+            }
+            case "worn": return base == null ? 0 : base.wornOut(a.type);
+            case "cards": {
+                int n = 0;
+                for (Card d : CARDS.values()) if (d != c && done(pr, d)) n++;
+                return n;
+            }
+            default: return p == null ? 0 : p.achieved;
+        }
+    }
+
+    /** The achievement as a line: what it asks, how it is met, how far (round 4). */
+    static String achievementLine(Production pr, Card c, Base base) {
+        Ach a = c.achievement;
+        if (a == null) return "The achievement: the GM credits it";
+        Project p = pr.research.get(c.id);
+        boolean met = p != null && p.achievement > 0;
+        if (!a.counted()) return "The achievement (the GM credits it): " + a.text + (met ? " (met)" : "");
+        int need = "condition".equals(a.kind) ? 1 : a.count;
+        return "The achievement (counted): " + a.text + (met ? " (met)" : ", " + Math.min(need, achievedNow(pr, c, base)) + " of " + need);
+    }
+
+    /** The state kinds (round 4): a building built, a store's stock, a room's condition, tools worn out, cards done. */
+    static void check(Production pr, Base base, List<String> out) {
+        for (String kind : List.of("building", "stored", "condition", "worn", "cards"))
+            for (Card c : waiting(pr, kind)) {
+                int need = "condition".equals(kind) ? 1 : c.achievement.count;
+                if (achievedNow(pr, c, base) >= need) met(pr, c, out);
+            }
+    }
+
+    /** A run of a way is done (the recipe kind: a way used N times, round 4's rare kind). */
+    static void ran(Production pr, String recipeId, List<String> out) {
+        for (Card c : waiting(pr, "recipe")) if (c.achievement.recipes.contains(recipeId)) count(pr, c, 1, out);
+    }
+
+    /** Items assembled for going out (the assembled kind): those whose parts include the achievement's part type. */
+    static void assembled(Production pr, Production.Design d, int items, List<String> out) {
+        if (d == null || items <= 0) return;
+        for (Card c : waiting(pr, "assembled")) {
+            boolean uses = false;
+            for (Production.Part p : d.parts) if (p.type.equals(c.achievement.part)) uses = true;
+            if (uses) count(pr, c, items, out);
+        }
+    }
+
+    /** The cards this one opens the way to (the tree, round 4). */
+    static List<Card> opens(Card c) {
+        List<Card> l = new ArrayList<>();
+        for (Card d : CARDS.values()) if (!d.parked && d.needs.contains(c.id)) l.add(d);
+        return l;
+    }
+
+    /** Who leads a prototype: the project's best free researcher, else the best free worker at the card's science and gate. */
+    static Production.Worker lead(Production pr, Card c, Production.Workforce wf) {
+        Project p = pr.research.get(c.id);
+        Production.Worker best = null;
+        for (int pass = 0; pass < 2 && best == null; pass++)
+            for (Production.Worker w : wf.all()) {
+                if (pr.busyAt(w.id()) != null || w.skill(c.science) < c.gate) continue;
+                if (pass == 0 && (p == null || !p.researchers.contains(w.id()))) continue;
+                if (best == null || w.skill(c.science) > best.skill(c.science)) best = w;
+            }
+        return best;
+    }
+
     static String inspiration(Production pr, Card c, Production.Workforce wf) {
         Project p = project(pr, c);
         if (p.inspiration > 0) return "! " + c.name + " has its inspiration already";
@@ -275,20 +415,10 @@ final class Research {
     }
 
     // ------------------------------------------------------------------ the clock (Production calls these)
-    /** Units made in the base: they count for the achievements that name them (the old way teaches). */
+    /** Units made in the base: they count for the achievements of the made kind that name them. */
     static void made(Production pr, String type, int tier, int n, List<String> out) {
         if (n <= 0) return;
-        for (Card c : CARDS.values()) {
-            if (c.parked || c.achievement == null || done(pr, c) || !c.achievement.type.equals(type) || c.achievement.tier != tier) continue;
-            Project p = project(pr, c);
-            if (p.achievement >= RULES.achievement) continue;
-            p.achieved += n;
-            if (p.achieved >= c.achievement.count) {
-                p.achievement = RULES.achievement;
-                spread(pr, c, RULES.achievement);
-                out.add("Research: " + c.name + ": its achievement met (" + c.achievement.text + ") +" + Math.round(RULES.achievement) + " %");
-            }
-        }
+        for (Card c : waiting(pr, "made")) if (c.achievement.type.equals(type) && c.achievement.tier == tier) count(pr, c, n, out);
     }
 
     /** An hour of theory: the points (the crew's science ÷ the gate, at most 4 each, already summed by the caller × the room's efficiency). */
@@ -348,7 +478,8 @@ final class Research {
     static void finish(Production pr, Production.Building b, Production.Recipe r, Base base, Production.Workforce wf, List<Production.Worker> crew, List<String> out) {
         Card c = cardOf(r);
         Project p = project(pr, c);
-        for (Production.Worker w : crew) if (!p.researchers.contains(w.id())) p.researchers.add(w.id());
+        if (experiment(r)) for (Production.Worker w : crew) if (!p.researchers.contains(w.id())) p.researchers.add(w.id());
+        if (prototype(r) && !b.job.lead.isEmpty() && !p.researchers.contains(b.job.lead)) p.researchers.add(b.job.lead);   // the crew: work XP
         if (experiment(r)) {
             double share = perk(p, crew, "Lab Rat") ? 1.5 * RULES.experiment : RULES.experiment;
             p.experimentsDone++;
@@ -359,7 +490,7 @@ final class Research {
             pr.end(b, wf);
             return;
         }
-        // the prototype's test (round 1: "Is the prototype test fine as described? - yes.")
+        // the prototype's test (round 1: "Is the prototype test fine as described? - yes."): the best science of its builders (the lead's)
         double skill = 0;
         for (Production.Worker w : crew) skill = Math.max(skill, w.skill(c.science));
         double chance = RULES.test + (skill - c.gate) + RULES.test_step * p.failures;

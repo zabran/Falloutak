@@ -99,6 +99,11 @@ final class Works {
             Production.Recipe r = x.job == null ? null : Production.recipe(x.job.recipe);
             lines.add(line(" · " + (wk == null ? w : wk.label() + (r == null ? "" : ", " + r.skill + " " + Math.round(wk.skill(r.skill)))), NamedTextColor.GRAY));
         }
+        if (x.job != null && !x.job.lead.isEmpty()) {   // part 8 round 4: the prototype's lead researcher (no slot)
+            Production.Worker wk = pr.worker(x.job.lead, wf);
+            Research.Card c = Research.cardOf(Production.recipe(x.job.recipe));
+            lines.add(line(" · led by " + (wk == null ? x.job.lead : wk.label()) + (wk == null || c == null ? "" : ", " + c.science + " " + Math.round(wk.skill(c.science))) + " (the researcher)", NamedTextColor.GRAY));
+        }
         List<Ui.Btn> b = new ArrayList<>();
         if (x.job == null) {
             b.add(btn("Start a job", "the recipes this building can run, the best first", y -> recipePick(y, x.id)));
@@ -360,6 +365,9 @@ final class Works {
         if (d.armour()) for (int i = 0; i < n; i++) Items.giveStack(p, Items.piece(new Character.Worn(d.set, d.slot, cond, fit)));
         else Items.giveStack(p, Items.made(d, n * d.makes, cond));
         Sfx.to(p, "store.take");
+        List<String> research = new ArrayList<>();
+        Research.assembled(pl.production, d, n * d.makes, research);   // part 8 round 4: items assembled for going out count
+        if (!research.isEmpty()) { pl.production.save(); research.forEach(m -> say(p, m)); }
         return "Assembled: " + n * d.makes + " × " + d.name + (d.armour() ? " (" + d.slot.toLowerCase(java.util.Locale.ROOT) + ")"
                 + (Character.STANDARD.equals(fit) ? "" : ", made for a " + fit + " body") : "")
                 + (cond < Base.UNDAMAGED ? ", at " + Math.round(cond) + " % (worn parts)" : "") + ".";

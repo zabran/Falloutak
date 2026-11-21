@@ -269,6 +269,11 @@ final class Production {
         int water = 5;
         /** Why it does not move now ("" = it works). */
         String waiting = "";
+        /**
+         * Part 8, round 4 (Marek 11-21: *"it should be build together with the crew. That makes the most sense."*): the researcher
+         * who leads a prototype (a worker id, no slot of the room); "" for any other job.
+         */
+        String lead = "";
     }
 
     static final class Building {
@@ -416,8 +421,14 @@ final class Production {
     // ------------------------------------------------------------------ the crew
     /** Is this worker in some building's crew? */
     String busyAt(String workerId) {
-        for (Building b : buildings) if (b.crew.contains(workerId)) return b.id;
+        for (Building b : buildings) if (b.crew.contains(workerId) || b.job != null && workerId.equals(b.job.lead)) return b.id;
         return null;
+    }
+
+    /** One of the shelter's own rooms (its name and kind), not built by the players. */
+    boolean shelterRoom(Building b) {
+        for (Room r : SHELTER) if (r.name.equals(b.name) && r.kind.equals(b.kind)) return true;
+        return false;
     }
 
     /** The free workers who can do this recipe (at least its minimum), the best first. */
@@ -488,6 +499,13 @@ final class Production {
         j.recipe = r.id;
         j.runs = Math.max(0, runs);
         j.rarity = Math.max(1, Math.min(4, rarity));
+        if (Research.prototype(r)) {   // round 4: a researcher leads, the way's own crew builds it
+            Research.Card c = Research.cardOf(r);
+            Worker lead = Research.lead(this, c, wf);
+            if (lead == null) return "! nobody free has " + c.science + " " + c.gate + " to lead the prototype (a researcher)";
+            j.lead = lead.id();
+            wf.assign(lead.id(), activity(b));
+        }
         b.job = j;
         // the crew keeps only those who can do it
         for (String id : new ArrayList<>(b.crew)) {
@@ -495,8 +513,10 @@ final class Production {
             if (w == null || w.skill(r.skill) < r.min) drop(b, id, wf);
         }
         List<String> got = pick(b, wf);
-        return b.name + ": " + r.name + (j.runs == 0 ? " until stopped" : " × " + j.runs) + (got.isEmpty() ? "" : "; the pick: " + String.join(", ", got))
-                + (b.crew.isEmpty() ? "; ! nobody free has " + r.skill + " " + r.min : "");
+        Worker lead = j.lead.isEmpty() ? null : worker(j.lead, wf);
+        return b.name + ": " + r.name + (j.runs == 0 ? " until stopped" : " × " + j.runs) + (lead == null ? "" : "; led by " + lead.label())
+                + (got.isEmpty() ? "" : "; the pick: " + String.join(", ", got))
+                + (b.crew.isEmpty() && (lead == null || lead.skill(r.skill) < r.min) ? "; ! nobody free has " + r.skill + " " + r.min : "");
     }
 
     /** A site job (Base, Outside): its own site, the job started on it. */
@@ -515,6 +535,7 @@ final class Production {
         if (b.job.inputsTaken && r != null) for (Ttr t : r.inputs) if (!t.tool && (!t.extra || b.job.extra))
             base.addUnits(t.type, t.tier, t.sets_rarity ? b.job.rarity : 1, b.job.halved ? (t.count + 1) / 2 : t.count);
         String done = b.name + ": " + (r == null ? "the job" : r.name) + " stopped after " + b.job.done + (b.job.done == 1 ? " run" : " runs");
+        if (!b.job.lead.isEmpty()) wf.assign(b.job.lead, "");
         b.job = null;
         if (b.kind() == null || !b.kind().automatic) release(b, wf);
         if (b.site) buildings.remove(b);
@@ -755,6 +776,7 @@ final class Production {
             out.add(b.name + ": upkeep missed " + (weeks == 1 ? "a week" : weeks + " weeks") + ", condition " + pct(before) + " → "
                     + pct(b.condition) + " %" + (b.condition <= 0 ? ": IT STOPS" : before >= 75 && b.condition < 75 ? ": it works less from now" : ""));
         }
+        Research.check(this, base, out);   // part 8 round 4: the achievements that ask about the base's state
         return out;
     }
 
@@ -850,6 +872,7 @@ final class Production {
         if (b.job != null && r == null) { b.job = null; return; }
         List<Worker> crew = new ArrayList<>();
         for (String id : b.crew) crew.add(byId.get(id));
+        Worker lead = b.job == null || b.job.lead == null || b.job.lead.isEmpty() ? null : byId.get(b.job.lead);   // round 4
         // upkeep first (a week's hours, with a tool of the tier: round 5), then the job; a broken room or one without a job is
         // repaired by its crew [mine]; without the tool the upkeep waits and the crew works the job
         double free = 0;
@@ -870,6 +893,13 @@ final class Production {
             if (w.perk("Foreman")) foreman = true;
         }
         if (r == null) return;
+        if (Research.prototype(r) && lead == null) { b.job.waiting = "no researcher leads it (stop it and build it again)"; return; }
+        List<Worker> hands = new ArrayList<>(crew);
+        if (lead != null) {
+            hands.add(lead);
+            if (b.condition > 0 && lead.skill(r.skill) >= r.min) free += dt * Math.min(4, lead.skill(r.skill) / Math.max(1, r.min));
+            if (lead.perk("Foreman")) foreman = true;
+        }
         if (b.condition <= 0) { b.job.waiting = "broken: the crew repairs it" + (tool == 0 ? " (it needs " + UPKEEP_TOOL + " of Tier " + Rules.roman(b.tier) + " or better)" : ""); return; }
         if (!r.repairs.isEmpty() && !b.job.inputsTaken && base.worn(r.repairs, r.tier, b.job.rarity) == 0) {
             out.add(b.name + ": " + r.name + " done: no worn ones left in that row");
@@ -881,12 +911,12 @@ final class Production {
             if (miss != null) { b.job.waiting = "needs " + miss; return; }
         }
         if (free > 0 && b.chargedDay != day && !charge(b, base)) { b.job.waiting = "no power or water left today"; return; }
-        if (crew.isEmpty() && r.hours > 0 && b.job.work < need(b, r, crew)) { b.job.waiting = "no workers"; return; }
+        if (free <= 0 && r.hours > 0 && b.job.work < need(b, r, hands)) { b.job.waiting = crew.isEmpty() && lead == null ? "no workers" : "no crew at " + r.skill + " " + r.min; return; }
         b.job.waiting = "";
         if (free > 0 && (b.kind() == null || !b.kind().automatic)) b.ranHours += dt;
         if (Research.theory(r)) { Research.theoryHour(this, b, r, crew, free * efficiency(b), dt, wf, out); return; }   // part 8
         b.job.work += free * efficiency(b) * (foreman ? 1.25 : 1) * (b.job.extra ? 1.5 : 1);
-        if (b.job.work >= need(b, r, crew) - 1e-9 && t + dt - b.job.startedAt >= r.days * 24 - 1e-9) finish(b, r, base, wf, crew, out);
+        if (b.job.work >= need(b, r, hands) - 1e-9 && t + dt - b.job.startedAt >= r.days * 24 - 1e-9) finish(b, r, base, wf, hands, out);
     }
 
     /** A recipe that takes found junk apart (Salvager, 02c: *"taking items apart gives +50 % materials"*): Salvage is its only input. */
@@ -975,6 +1005,7 @@ final class Production {
 
     /** The job is over: the crew free again but for an automatic room's; a site goes. */
     void end(Building b, Workforce wf) {
+        if (b.job != null && b.job.lead != null && !b.job.lead.isEmpty()) wf.assign(b.job.lead, "");
         b.job = null;
         if (b.kind() == null || !b.kind().automatic) release(b, wf);
         if (b.site) buildings.remove(b);
@@ -1032,6 +1063,7 @@ final class Production {
         j.water = 5;
         for (Ttr i : r.inputs) if (i.tool) base.wear(i.type, i.tier, Math.max(1, r.hours));   // a tool: 1 % a work hour [EXAMPLE]
         j.done++;
+        Research.ran(this, r.id, out);   // part 8 round 4: a way used N times
         out.add(b.name + ": " + r.name + " done → " + (made.length() == 0 ? "nothing (the harvest failed)" : made) + (j.runs > 0 ? " (" + j.done + " of " + j.runs + ")" : ""));
         j.work = 0;
         j.inputsTaken = false;
