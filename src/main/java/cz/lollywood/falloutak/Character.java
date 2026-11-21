@@ -1258,6 +1258,11 @@ public final class Character {
         if (arrestAt >= 0 && !dead && arrestCause.isEmpty() && hp >= Rules.deathFloor(attrs(false))) arrestAt = -1;
         if (arrestAt < 0) cprFrom = -1;
         refitImplants();
+        // part 8 round 7 (Marek 11-21: *"Shall I rename it, for example to Flash of Insight? - yes."*): the perk Eureka's new name
+        for (ListIterator<Feat> it = perks.listIterator(); it.hasNext(); ) {
+            Feat f = it.next();
+            if (f.name().equals("Eureka")) it.set(new Feat("Flash of Insight", f.gate(), f.text()));
+        }
         for (ListIterator<Effect> it = effects.listIterator(); it.hasNext(); ) {
             Effect e = it.next();
             if (!e.source().isEmpty() || !e.permanent() || !e.name().toLowerCase(Locale.ROOT).contains("implant")) continue;

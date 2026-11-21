@@ -35,7 +35,7 @@ import java.util.*;
  * by case basis when it happens..."*).</li>
  * <li>The perks and traits in their RULED forms (round 2, *"yes, that sounds a lot better!"*; round 3, *"yes, fine"*): Absent-Minded
  * Genius (inspirations 20 %, the weekly roll × 1.5), Tinkerer (a third experiment, prototypes −25 % time), Lab Rat (experiments 15 %
- * each, half the apparatus), Eureka (once a project the inspiration at will, worth 10 % more), Prototype (the prototype at 90 %, its
+ * each, half the apparatus), Flash of Insight (was Eureka until round 7: once a project the inspiration at will, worth 10 % more), Prototype (the prototype at 90 %, its
  * first test passes), Data Miner and Reverse Engineer (finds, the GM's).</li>
  * </ul>
  */
@@ -100,7 +100,7 @@ final class Research {
         int experimentsDone, failures;
         /** The eureka's count so far (units made, runs, items assembled; saved as "achieved" before 0.54.0). */
         @com.google.gson.annotations.SerializedName(value = "eurekaCount", alternate = {"achieved"}) int eurekaCount;
-        /** The perk Eureka's inspiration at will was used (saved as "eureka" before 0.54.0). */
+        /** The perk Flash of Insight's inspiration at will was used (saved as "eureka" before 0.54.0). */
         @com.google.gson.annotations.SerializedName(value = "atWill", alternate = {"eureka"}) boolean atWill;
         /** Who worked on it (worker ids): the XP on the passed test. */
         List<String> researchers = new ArrayList<>();
@@ -114,6 +114,8 @@ final class Research {
     }
 
     static final Map<String, Card> CARDS = new LinkedHashMap<>();
+    /** The research perk of the inspiration at will (round 7: was Eureka). */
+    static final String FLASH = "Flash of Insight";
     static Rules RULES = new Rules();
     /** The research jobs as recipes the buildings run: {@code research|<card>|theory|experiment|prototype}. */
     static final Map<String, Production.Recipe> JOBS = new LinkedHashMap<>();
@@ -190,7 +192,8 @@ final class Research {
     static boolean done(Production pr, Card c) { Project p = pr.research.get(c.id); return p != null && "done".equals(p.status); }
 
     /** The cards it needs are done; a card that raises a building also counts when that building already stands at its tier (the
-     * start package's grow room, the GM's build button: round 6 [mine]). */
+     * start package's grow room, the GM's build button: round 6 [mine]; round 7, Marek 11-21: *"Probably fine. But it should not give
+     * you the research to make it."*: the card itself stays undone and its way unknown). */
     static boolean open(Production pr, Card c) {
         for (String n : c.needs) { Card d = CARDS.get(n); if (d != null && !done(pr, d) && !standing(pr, d)) return false; }
         return true;
@@ -275,7 +278,7 @@ final class Research {
         }
     }
 
-    // ------------------------------------------------------------------ the GM's credits and the perk Eureka
+    // ------------------------------------------------------------------ the GM's credits and the perk Flash of Insight
     /** A find (the GM names the share, at most 50 %; Reverse Engineer's working item taken apart: 50 % and a free inspiration). */
     static String find(Production pr, Card c, double share, boolean reverse, Production.Workforce wf) {
         Project p = project(pr, c);
@@ -418,16 +421,17 @@ final class Research {
         return c.name + ": an inspiration +" + Math.round(p.inspiration) + " % → " + Math.round(progress(pr, c)) + " %";
     }
 
-    /** The perk Eureka (round 3): once a project, the inspiration at will, worth 10 % more. */
+    /** The perk Flash of Insight (round 3; named so in round 7, Marek 11-21: *"Shall I rename it, for example to Flash of Insight? -
+     * yes."*): once a project, the inspiration at will, worth 10 % more. */
     static String atWill(Production pr, Card c, Production.Workforce wf) {
         Project p = project(pr, c);
         List<Production.Worker> rs = researchers(p, wf);
-        if (!perk(p, rs, "Eureka")) return "! nobody who works on " + c.name + " has Eureka";
-        if (p.atWill) return "! Eureka was used on " + c.name + " already";
+        if (!perk(p, rs, FLASH)) return "! nobody who works on " + c.name + " has " + FLASH;
+        if (p.atWill) return "! " + FLASH + " was used on " + c.name + " already";
         if (p.inspiration > 0) return "! " + c.name + " has its inspiration already";
         p.atWill = true;
         p.inspiration = inspirationWorth(rs) + RULES.inspiration;
-        return c.name + ": Eureka! the inspiration +" + Math.round(p.inspiration) + " % → " + Math.round(progress(pr, c)) + " %";
+        return c.name + ": " + FLASH + ", the inspiration +" + Math.round(p.inspiration) + " % → " + Math.round(progress(pr, c)) + " %";
     }
 
     // ------------------------------------------------------------------ the clock (Production calls these)
@@ -573,7 +577,7 @@ final class Research {
         if (p != null) {
             if (p.find > 0) j.add("find " + Math.round(Math.min(RULES.find, p.find)) + " %");
             if (p.eureka > 0) j.add("eureka " + Math.round(p.eureka) + " %");
-            if (p.inspiration > 0) j.add("inspiration " + Math.round(p.inspiration) + " %" + (p.atWill ? " (at will: the perk Eureka)" : ""));
+            if (p.inspiration > 0) j.add("inspiration " + Math.round(p.inspiration) + " %" + (p.atWill ? " (at will: " + FLASH + ")" : ""));
             if (p.experimentsDone > 0) j.add(p.experimentsDone + (p.experimentsDone == 1 ? " experiment " : " experiments ") + Math.round(p.experiments) + " %");
             if (p.theory > 0) j.add("theory " + Math.round(100 * p.theory / Math.max(1, c.points)) + " %");
         }
@@ -589,6 +593,17 @@ final class Research {
         if (ready(pr, c, wf)) return "the prototype";
         Project p = pr.research.get(c.id);
         return p != null && "theory".equals(p.status) ? "in theory" : "open";
+    }
+
+    /** What it needs, each with its state: done, or its building standing (met, but not researched: round 7). */
+    static String needsLine(Production pr, Card c) {
+        StringJoiner j = new StringJoiner(", ");
+        for (String n : c.needs) {
+            Card d = CARDS.get(n);
+            if (d == null) { j.add(n); continue; }
+            j.add(d.name + (done(pr, d) ? " (done)" : standing(pr, d) ? " (its building stands: met, the research itself not done)" : ""));
+        }
+        return j.toString();
     }
 
     static String needsText(Card c) {

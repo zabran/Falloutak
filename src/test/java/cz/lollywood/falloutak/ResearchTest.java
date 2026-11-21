@@ -236,12 +236,12 @@ class ResearchTest {
         Production.Worker tink = ProductionTest.worker("Tink", "Chemistry", 60, "Tinkerer");
         assertEquals(3, Research.maxExperiments(null, new Crew(), List.of(tink)));
         assertEquals(6, Research.need(Research.jobFor(c, "prototype"), List.of(tink)), 1e-9);
-        // Absent-Minded Genius (round 2): an inspiration 20 %; Eureka (round 3): once, at will, worth 10 % more
+        // Absent-Minded Genius (round 2): an inspiration 20 %; Flash of Insight (round 3, was Eureka until round 7): once, at will, 10 % more
         Production pr2 = new Production();
-        Production.Worker genius = ProductionTest.worker("Gen", "Chemistry", 60, "Absent-Minded Genius", "Eureka");
+        Production.Worker genius = ProductionTest.worker("Gen", "Chemistry", 60, "Absent-Minded Genius", "Flash of Insight");
         Crew g = new Crew(genius);
         Research.project(pr2, c).researchers.add(genius.id());
-        assertEquals("Reflux still: Eureka! the inspiration +30 % → 30 %", Research.atWill(pr2, c, g));
+        assertEquals("Reflux still: Flash of Insight, the inspiration +30 % → 30 %", Research.atWill(pr2, c, g));
         assertTrue(Research.atWill(pr2, c, g).startsWith("!"));
         assertTrue(Research.atWill(new Production(), c, g).startsWith("! nobody"));
         // Reverse Engineer (round 1): the working item taken apart = the find 50 % and a free inspiration
@@ -428,13 +428,19 @@ class ResearchTest {
         assertTrue(Research.open(pr, iron));
         assertTrue(Research.opens(lab3).containsAll(List.of(card("rad-scrubbing"), card("mushrooms-on-straw"), card("solar-still"), lab4)));
         assertEquals(List.of(edison, card("precision-parts"), lab3, lab4, ws3, ws4), Research.opens(iron));
-        // the start package's grow room (Tier III) stands: Chicory opens without the card [mine]; Mushrooms on straw also needs a Lab III
+        // a Grow room III the GM placed stands: Chicory opens without the card [mine]; Mushrooms on straw also needs a Lab III
         Production pkg = new Production();
         assertFalse(Research.open(pkg, card("chicory")));
-        pkg.build("Grow room", 2, "Grow room");
+        pkg.build("Grow room", 2, "Flowerpots");                                            // the start package's, Tier II since round 7
         assertFalse(Research.open(pkg, card("chicory")));                                   // a Tier II one is not enough
-        pkg.build("Grow room", 3, "Flowerpots");
+        pkg.build("Grow room", 3, "Grow room");
         assertTrue(Research.open(pkg, card("chicory")));
+        // round 7 ("it should not give you the research to make it"): the card stays undone, its way unknown
+        assertFalse(Research.done(pkg, card("grow-room-iii")));
+        assertFalse(pkg.known(Production.RECIPES.get("raise-a-grow-room-to-iii")));
+        assertEquals("Grow room III (its building stands: met, the research itself not done)", Research.needsLine(pkg, card("chicory")));
+        Research.project(pkg, card("grow-room-iii")).status = "done";
+        assertEquals("Grow room III (done)", Research.needsLine(pkg, card("chicory")));
         assertFalse(Research.open(pkg, card("mushrooms-on-straw")));
         pkg.build("Laboratory", 3, "Lab");
         assertTrue(Research.open(pkg, card("mushrooms-on-straw")));
@@ -453,5 +459,11 @@ class ResearchTest {
         assertTrue(json.contains("\"eurekaShare\":20.0") && json.contains("\"eurekaCount\":2") && json.contains("\"atWill\":true"), json);
         assertEquals(20, Research.RULES.eureka, 1e-9);
         assertEquals(20, Research.progress(pr, card("reflux-still")), 1e-9);
+        // round 7 ("Shall I rename it, for example to Flash of Insight? - yes."): a sheet with the perk Eureka gets its new name
+        Character ch = AirTest.human();
+        ch.perks.add(new Character.Feat("Eureka", "any science 150", ""));
+        ch.migrate();
+        assertTrue(ch.hasPerk("Flash of Insight"));
+        assertFalse(ch.hasPerk("Eureka"));
     }
 }

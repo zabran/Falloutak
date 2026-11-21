@@ -146,8 +146,9 @@ final class Production {
     }
     /** Jury Rigging's materials (02c: *"repairs any item with any item of its tier"*) [mine: the materials' group]. */
     static final List<String> MATERIALS = List.of("Metal", "Wood", "Textile", "Stone and glass", "Chemicals", "Fuel", "Salvage");
-    /** A Workshop does a Workbench's work of its tier [mine]. */
-    static final Map<String, List<String>> SERVES = Map.of("Workshop", List.of("Workbench"));
+    /** A Workshop does a Workbench's work of its tier [mine]; a Grow room the field's ways of its tier indoors (part 8 round 7, Marek
+     * 11-21: *"Should it grow the field's Tier II ways indoors" - yes.*). */
+    static final Map<String, List<String>> SERVES = Map.of("Workshop", List.of("Workbench"), "Grow room", List.of("Field"));
     /** Pseudo-buildings: no room, any number of workers; a job there gets its own site (07b §3). */
     static final Set<String> SITES = Set.of("Base", "Outside");
 
@@ -1047,7 +1048,8 @@ final class Production {
         for (Ttr m : r.makes) {
             double n = m.count;
             int tier = "Water".equals(m.type) ? m.tier : Math.min(m.tier, cap);   // water made is its own input's, not the room's [mine]
-            if (r.harvest) n *= harvest / 100 * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
+            // indoors under lamps (a grow room, round 7) out of the nuclear autumn's harvest factor; Good Harvest still the gardener's [mine]
+            if (r.harvest) n *= ("Grow room".equals(b.kind) ? 1 : harvest / 100) * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
             if ("Chems".equals(m.type) && crew.stream().anyMatch(w -> w.perk("Cook"))) n *= 2;
             if (salvage(r) && crew.stream().anyMatch(w -> w.perk("Salvager"))) n *= 1.5;
             String ck = m.type + "|" + tier;

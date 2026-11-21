@@ -1396,7 +1396,7 @@
    "other": {}
   },
   {
-   "name": "Eureka",
+   "name": "Flash of Insight",
    "kind": "research",
    "gate": "any science 150",
    "alts": [
@@ -1406,7 +1406,7 @@
      "value": 150
     }
    ],
-   "effect": "once per research project, the inspiration at will, worth 10 % more (part 8, RULED round 3)",
+   "effect": "once per research project, the inspiration at will, worth 10 % more (part 8, RULED round 3; named Eureka until part 8's round 7, Marek 11-21: \"Shall I rename it, for example to Flash of Insight? - yes.\", since the cards' deeds are eurekas)",
    "parked": false,
    "bound": false,
    "mods": {},

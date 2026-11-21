@@ -638,6 +638,27 @@ class ProductionTest {
     }
 
     @Test
+    void aGrowRoomTwoGrowsTheFieldsWaysIndoorsOutOfTheAutumn() {
+        // part 8 round 7 (Marek 11-21: "Should it grow the field's Tier II ways indoors" - yes.): the whole harvest under lamps
+        Production pr = new Production();
+        pr.build("Reactor", 4, "Reactor");
+        pr.harvest = 50;
+        Production.Building room = pr.build("Grow room", 2, "Flowerpots");
+        Base base = new Base(null);
+        base.addUnits("Water", 3, 1, 3000);                                             // the room draws its water every day
+        base.addUnits("Seeds", 2, 1, 1);
+        base.addUnits("Gear and tools", 2, 1, 1);
+        Crew farmer = new Crew(worker("F", "Biology", 15));
+        assertTrue(Production.fits(room, recipe("field-potatoes")));
+        assertTrue(Production.fits(room, recipe("select-seed")));
+        assertFalse(Production.fits(room, recipe("potatoes-under-lamps")));                // Tier III: a Grow room III
+        pr.start(room, recipe("field-potatoes"), 1, 1, farmer);
+        pr.advance(121 * 24, 14 * 24, base, farmer, 0);
+        assertEquals(10, base.count("Food", 2, 1));                                     // no harvest factor indoors
+        assertEquals(1, base.count("Seeds", 2, 1));
+    }
+
+    @Test
     void projectsMakeBuildingsAndSitesComeAndGo() {
         Production pr = new Production();
         Base base = new Base(null);
@@ -750,7 +771,7 @@ class ProductionTest {
         for (String p : List.of("Salvager", "Assembly Line", "Master Craftsman", "Cook", "Good Harvest", "Quartermaster", "Foreman"))
             assertFalse(Data.PERKS.get(p).parked(), p);
         // part 8 in the plugin (0.51.0): the research ones offered in their RULED forms, Reverse Engineer with them
-        for (String p : List.of("Data Miner", "Prototype", "Lab Rat", "Eureka", "Reverse Engineer")) assertFalse(Data.PERKS.get(p).parked(), p);
+        for (String p : List.of("Data Miner", "Prototype", "Lab Rat", "Flash of Insight", "Reverse Engineer")) assertFalse(Data.PERKS.get(p).parked(), p);
         // Quartermaster: the faction's upkeep -20 % (02c) [the base's buildings: mine]
         Production pr = new Production();
         Production.Building ws = pr.build("Workshop", 2, "W");

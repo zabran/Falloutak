@@ -10,7 +10,7 @@ import static cz.lollywood.falloutak.Menus.*;
 
 /**
  * The research pages (part 8, `08-RESEARCH.md` §3.8): the cards (open, in theory, ready for the prototype, done) with their progress by
- * source, theory and experiments started in a laboratory, the prototype in its way's own building, Eureka; for the GM the finds, the
+ * source, theory and experiments started in a laboratory, the prototype in its way's own building, Flash of Insight; for the GM the finds, the
  * eurekas and the inspirations he credits, and the failed rarity-1 prototypes he rules. Any player (*"In base, players are kings"*).
  */
 final class Labs {
@@ -77,7 +77,7 @@ final class Labs {
         lines.add(line("Tier " + Rules.roman(c.tier) + ", rarity " + c.rarity + " · " + c.points + " points · " + c.science + " " + c.gate
                 + " · a laboratory of Tier " + Rules.roman(c.lab) + " or better" + (c.basic && c.lab < c.tier ? " (a basic card: one tier above the laboratory)" : "")
                 + " · lines: " + String.join(", ", c.lines), NamedTextColor.GRAY));
-        if (!c.needs.isEmpty()) lines.add(line("Needs first: " + Research.needsText(c) + (Research.open(pr, c) ? " (done)" : ""), Research.open(pr, c) ? NamedTextColor.GRAY : NamedTextColor.RED));
+        if (!c.needs.isEmpty()) lines.add(line("Needs first: " + Research.needsLine(pr, c), Research.open(pr, c) ? NamedTextColor.GRAY : NamedTextColor.RED));
         List<Research.Card> opens = Research.opens(c);
         if (!opens.isEmpty()) {
             StringJoiner o = new StringJoiner(", ");
@@ -113,8 +113,8 @@ final class Labs {
             if (Research.ready(pr, c, wf) && running(c, "prototype") == null)
                 b.add(btn("Build the prototype", "in a " + proto.building + " of Tier " + Rules.roman(proto.tier) + ": a crew of " + proto.skill + " " + proto.min
                         + " led by a researcher (" + c.science + " " + c.gate + "), then the test", x -> pickProto(x, c)));
-            if (pj != null && !pj.atWill && pj.inspiration <= 0 && Research.perk(pj, Research.researchers(pj, wf), "Eureka"))
-                b.add(btn("Eureka: the inspiration now", "once a project, worth 10 % more (round 3)", x -> { say(x, Research.atWill(pr, c, wf)); pr.save(); card(x, c.id); }));
+            if (pj != null && !pj.atWill && pj.inspiration <= 0 && Research.perk(pj, Research.researchers(pj, wf), Research.FLASH))
+                b.add(btn(Research.FLASH + ": the inspiration now", "once a project, worth 10 % more (round 3)", x -> { say(x, Research.atWill(pr, c, wf)); pr.save(); card(x, c.id); }));
         }
         if (gm(p) && !Research.done(pr, c)) {
             b.add(btn("GM: a find", "a working item, its manual, a schematic, a pre-war lab's records (30 %), a related thing (10 %); Reverse Engineer 50 % and the inspiration", x -> gmFind(x, c)));

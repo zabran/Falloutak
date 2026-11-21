@@ -3,6 +3,15 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.55.0 (2026-11-21): part 8 round 7 - Flash of Insight, a Grow room II grows the field's ways indoors.**
+- **The perk Eureka is Flash of Insight** (Marek: *"Shall I rename it, for example to Flash of Insight? - yes."*), since the cards'
+  deeds are eurekas; a sheet that has Eureka gets the new name when it loads.
+- **A Grow room II grows the field's Tier II ways indoors** (*"Should it grow the field's Tier II ways indoors" - yes.*): Field
+  potatoes and Select seed run in a grow room too, under lamps, with no harvest factor of the nuclear autumn (Good Harvest still
+  counts). The start package's flowerpots are a Grow room II now (the GM places it).
+- **A standing building never gives the research** (*"Probably fine. But it should not give you the research to make it."*): the
+  cards that need it open, the card itself stays undone and its way unknown; the card's page says which.
+
 **Version 0.54.0 (2026-11-21): part 8 round 6 - the eurekas, basic research one tier above, the grow room researched.**
 - **The cards' achievements are EUREKAS now** (Marek: *"rename them into eurakas, so that they do not clash with normal
   achievements."*): on the Labs pages, the GM's button and the messages; the achievements across games stay achievements. A save of
