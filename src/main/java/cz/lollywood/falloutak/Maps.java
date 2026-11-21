@@ -27,7 +27,8 @@ import static cz.lollywood.falloutak.Menus.say;
  * better to have it all in MC and just jump to different map when needed."*). For now the GM's jump between the server folder's
  * worlds: the 1:1 local maps made by Arnis from OpenStreetMap (Marek 11-21: *"Interiors - yes, lets try Arnis."*; Jihlava as on day
  * D and Jihlava ruined), each loaded when it is first visited, and back.
- * /maps · /maps go &lt;world&gt; [all] · /maps back · /maps load &lt;world&gt; (GMs; load also from the console).
+ * /maps · /maps go &lt;world&gt; [all] · /maps back · /maps load &lt;world&gt; · /maps unload &lt;world&gt; (GMs; load and unload also
+ * from the console: an unloaded world's files can be edited, replaced or deleted while the server runs).
  */
 final class Maps {
     private Maps() {}
@@ -52,7 +53,8 @@ final class Maps {
         if (!s.hasPermission("falloutak.gm")) return "! only a GM moves people between the maps";
         String arg = a.length == 0 ? "" : a[0].toLowerCase(java.util.Locale.ROOT);
         if (arg.equals("load")) return a.length < 2 ? "/maps load <world>: " + String.join(", ", worlds(container())) : load(a[1]);
-        if (!(s instanceof Player p)) return "/maps load <world> (go and back: players only)";
+        if (arg.equals("unload")) return a.length < 2 ? "/maps unload <world>: " + loaded() : unload(a[1]);
+        if (!(s instanceof Player p)) return "/maps load|unload <world> (go and back: players only)";
         return switch (arg) {
             case "go" -> {
                 if (a.length < 2) yield "/maps go <world> [all]: " + String.join(", ", worlds(container()));
@@ -82,6 +84,35 @@ final class Maps {
         return w.getName() + " loaded: spawn " + s.getBlockX() + " " + s.getBlockY() + " " + s.getBlockZ() + ", arrival at y " + a.getBlockY()
                 + " on " + w.getBlockAt(a.getBlockX(), a.getBlockY() - 1, a.getBlockZ()).getType().getKey().getKey()
                 + ", heights " + w.getMinHeight() + " to " + w.getMaxHeight();
+    }
+
+    static String loaded() {
+        List<String> n = new ArrayList<>();
+        for (World w : Bukkit.getWorlds()) n.add(w.getName());
+        return String.join(", ", n);
+    }
+
+    /**
+     * Unloads a world (saved first): whoever is in it goes back to where he stood before his jump, or to the main world's spawn.
+     * The main world (the first) never unloads.
+     */
+    static String unload(String name) {
+        World w = Bukkit.getWorld(name);
+        if (w == null) return "! \"" + name + "\" is not loaded (loaded: " + loaded() + ")";
+        World main = Bukkit.getWorlds().get(0);
+        if (w.equals(main)) return "! the main world never unloads";
+        int moved = 0;
+        for (Player q : new ArrayList<>(w.getPlayers())) {
+            Location l = from.remove(q.getUniqueId());
+            if (l == null || l.getWorld() == null || l.getWorld().equals(w)) l = arrival(main);
+            q.teleport(l);
+            moved++;
+        }
+        from.values().removeIf(l -> w.equals(l.getWorld()));
+        boolean ok;
+        try { ok = Bukkit.unloadWorld(w, true); } catch (RuntimeException e) { ok = false; }
+        if (!ok) return "! " + name + " did not unload" + (moved > 0 ? " (" + moved + " moved out)" : "");
+        return name + " unloaded" + (moved > 0 ? ", " + moved + " moved out" : "") + ": its folder can be edited or deleted now";
     }
 
     /** The world's spawn, on the top block there (a map from Arnis may spawn in a roof). */

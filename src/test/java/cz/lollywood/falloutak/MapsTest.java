@@ -61,6 +61,24 @@ class MapsTest extends MockGame {
     }
 
     @Test
+    void aWorldUnloadsWithWhoeverIsInItSentBack() {
+        World ruin = server.addSimpleWorld("jihlava_ruin");
+        PlayerMock gm = player(4.5, 6.5, true), a = player(2, 2, false);
+        Maps.command(gm, new String[]{"go", "jihlava_ruin", "all"});
+        assertEquals(ruin, a.getWorld());
+        assertTrue(Maps.command(a, new String[]{"unload", "jihlava_ruin"}).startsWith("! only a GM"));
+        assertTrue(Maps.command(server.getConsoleSender(), new String[]{"unload", world.getName()}).startsWith("! the main world never unloads"));
+        assertTrue(Maps.command(server.getConsoleSender(), new String[]{"unload", "nowhere"}).startsWith("! \"nowhere\" is not loaded"));
+        String r = Maps.command(server.getConsoleSender(), new String[]{"unload", "jihlava_ruin"});
+        assertEquals(world, gm.getWorld());                                 // both back where they stood
+        assertEquals(4.5, gm.getLocation().getX(), 1e-9);
+        assertEquals(world, a.getWorld());
+        assertEquals(2.0, a.getLocation().getX(), 1e-9);
+        assertFalse(Maps.from.containsKey(gm.getUniqueId()) || Maps.from.containsKey(a.getUniqueId()));   // the map is static: other tests' players stay
+        assertTrue(r.contains("2 moved out"), r);
+    }
+
+    @Test
     void theGmMenuHasTheMaps() {
         World jihlava = server.addSimpleWorld("jihlava");
         PlayerMock gm = player();

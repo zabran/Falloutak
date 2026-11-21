@@ -3,6 +3,11 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.59.0 (2026-11-21): part 9 round 4 - a world unloads.**
+- **`/maps unload <world>`** (GMs, also from the console): whoever is in the world goes back to where he stood before his
+  jump (or to the main world's spawn), the world is saved and unloaded, so its folder can be edited, replaced or deleted while
+  the server runs (the ruined Jihlava's floating roofs were brought down that way, offline). The main world never unloads.
+
 **Version 0.58.0 (2026-11-21): part 9 round 2 - the GM jumps between the maps.**
 - **`/maps`** (GMs; also *GM menu → Maps*): the server folder's worlds; **`/maps go <world> [all]`** loads a world on its first
   visit and moves the GM (or every player online) to its spawn, on the top block there; **`/maps back`** returns each to where he
