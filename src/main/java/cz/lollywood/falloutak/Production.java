@@ -583,10 +583,9 @@ final class Production {
     int drawWater(double litres, String use, Base base) {
         if (litres <= 1e-9) return 5;
         double clean = Math.max(0, waterCap() - waterUsed), have = clean;
-        if (base != null) { for (int t = 1; t <= 4; t++) have += base.count("Water", t, 0); have += base.count(BOILED_WATER, 2, 0); }
+        if (base != null) for (int t = 1; t <= 4; t++) have += base.count("Water", t, 0);
         if (have + 1e-9 < litres) return 0;
-        // 0 = the filtration's clean water; round 10: boiled water after the other Tier II (it is kept for the wounded's washing)
-        int[] order = "cooling".equals(use) ? new int[]{1, 2, BOILED, 0, 3, 4} : new int[]{0, 4, 3, 2, BOILED, 1};
+        int[] order = "cooling".equals(use) ? new int[]{1, 2, 0, 3, 4} : new int[]{0, 4, 3, 2, 1};   // 0 = the filtration's clean water
         double left = litres;
         int worst = 5;
         for (int src : order) {
@@ -597,46 +596,39 @@ final class Production {
                 continue;
             }
             if (base == null) continue;
-            int n = Math.min(stock(base, src), (int) Math.ceil(left - 1e-9));
-            if (n > 0) { takeStock(base, src, n); left -= n; worst = Math.min(worst, src == BOILED ? 2 : src); }
+            int n = Math.min(base.count("Water", src, 0), (int) Math.ceil(left - 1e-9));
+            if (n > 0) { base.takeUnits("Water", src, 0, n); left -= n; worst = Math.min(worst, src); }
         }
         return worst;
     }
 
     /**
-     * Boiled water (round 10, Marek 11-21: *""the store's Tier II is really two different waters" - players can choose."* · *"use
-     * the better one in each situation. Boiled for wounded and condensed for normal washing."*): its own item, Tier II with the rads
-     * kept and no germs (04b's "II (rads)"); the store's Water II is the filtered or condensed kind ("II (germs)").
+     * The washing water's sources: the day's condensate, the filtration's, the store's tiers 1-4. The store's Tier II is ONE row
+     * with two named items, *Boiled water* and *Filtered water* (round 11, Marek 11-21, verbatim: *"Once more, there is only 1 water
+     * type. There can be multiple items with the same TTR and it never does matter, because players can select the specific item they
+     * need. In this case, situation is simple: washing with condensed water is safe, washing with boiled is not due to rads. Washing
+     * wounded with condensed water is worse, so boiled is used here instead. Since it is clear which option is better, players do not
+     * need to make a choice here - it can be automated."*): the unwounded's washing takes it as filtered water (no harm on whole
+     * skin), the wounded's as boiled water (+4 rads, no germs), by itself.
      */
-    static final String BOILED_WATER = "Boiled water";
-
-    /** Water a recipe makes: the Water line or boiled water (round 10). */
-    static boolean madeWater(Ttr m) { return "Water".equals(m.type) || BOILED_WATER.equals(m.type); }
-
-    /** The store's litres of a source: the Water tiers 1-4, or {@link #BOILED}. */
-    static int stock(Base base, int src) { return src == BOILED ? base.count(BOILED_WATER, 2, 0) : base.count("Water", src, 0); }
-
-    static void takeStock(Base base, int src, int n) {
-        if (src == BOILED) base.takeUnits(BOILED_WATER, 2, 0, n); else base.takeUnits("Water", src, 0, n);
-    }
-
-    /** The washing water's sources: the day's condensate, the filtration's, the store's Water tiers 1-4 and its boiled water. */
-    static final int CONDENSATE = 5, FILTRATION = 0, BOILED = 6;
+    static final int CONDENSATE = 5, FILTRATION = 0;
 
     /**
      * The order the washing takes its water (round 9) [mine]: the unwounded the least harmful cheap water first (the day's
      * condensate, the store's Tier II, Tier I), then the clean water (the filtration's, the store's Tier III), Tier IV last; the
-     * wounded the germ-free water first (Marek 11-21: *"I think germ water is fine without wound."*). Only what the players allow.
+     * wounded the germ-free water first (Marek 11-21: *"I think germ water is fine without wound."*), the store's Tier II as boiled
+     * water before the day's condensate (round 11: *"Washing wounded with condensed water is worse, so boiled is used here
+     * instead."*). Only what the players allow.
      */
     int[] washOrder(boolean hurt) {
         List<Integer> o = new ArrayList<>();
-        if (hurt) {   // round 10: boiled water before the germs' Tier II
+        if (hurt) {
             o.add(FILTRATION); o.add(3);
             if (washTier4) o.add(4);
-            if (washTier2) { o.add(BOILED); o.add(CONDENSATE); o.add(2); }
+            if (washTier2) { o.add(2); o.add(CONDENSATE); }   // round 11: the store's Tier II as boiled water, then the germs'
             if (washTier1) o.add(1);
-        } else {   // round 10: the condensate and the filtered water before the boiled
-            if (washTier2) { o.add(CONDENSATE); o.add(2); o.add(BOILED); }
+        } else {   // the store's Tier II as filtered water
+            if (washTier2) { o.add(CONDENSATE); o.add(2); }
             if (washTier1) o.add(1);
             o.add(FILTRATION); o.add(3);
             if (washTier4) o.add(4);
@@ -664,8 +656,8 @@ final class Production {
                 condensateLeft -= take;
             } else {
                 if (base == null) continue;
-                int n = Math.min(stock(base, src), (int) Math.ceil(left - 1e-9));
-                if (n > 0) takeStock(base, src, n);
+                int n = Math.min(base.count("Water", src, 0), (int) Math.ceil(left - 1e-9));
+                if (n > 0) base.takeUnits("Water", src, 0, n);
                 take = n;
             }
             left -= take;
@@ -785,15 +777,13 @@ final class Production {
             // then the store's Water, the best tier first (round 5); what they drank is the GM's for part 4's harm
             StringJoiner drank = new StringJoiner(", ");
             boolean harm = false;
-            // round 10: the filtered Tier II before the boiled (04b: "II (germs)" a few % a day, "II (rads)" +18 rads a litre) [mine]
-            for (int src : new int[]{4, 3, 2, BOILED, 1}) {
-                if (rest <= 1e-9 || base == null) break;
-                int n = Math.min(stock(base, src), (int) Math.ceil(rest - 1e-9));
+            for (int t = 4; t >= 1 && rest > 1e-9 && base != null; t--) {
+                int n = Math.min(base.count("Water", t, 0), (int) Math.ceil(rest - 1e-9));
                 if (n <= 0) continue;
-                takeStock(base, src, n);
+                base.takeUnits("Water", t, 0, n);
                 rest -= n;
-                drank.add(n + (src == BOILED ? " l of boiled water (Tier II)" : " l of Tier " + Rules.roman(src)));
-                if (src <= 2 || src == BOILED) harm = true;
+                drank.add(n + " l of Tier " + Rules.roman(t));
+                if (t <= 2) harm = true;
             }
             out.add("Water: the base makes " + Math.round(waterCap()) + " l a day for " + Math.round(need) + " l; the people drank "
                     + (drank.length() == 0 ? "nothing" : drank) + " from the store" + (rest > 1e-9 ? ", " + Math.round(rest) + " l short" : "")
@@ -802,7 +792,7 @@ final class Production {
         // round 9: then they wash (2 l a day each): the wounded first, the players' choice of water; the harm and the shortfall told
         double wash = WASH * Math.max(0, people);
         if (wash > 1e-9 && !buildings.isEmpty()) {
-            double[] hurtUsed = new double[7], used = new double[7];
+            double[] hurtUsed = new double[6], used = new double[6];
             double hurtNeed = WASH * Math.min(wounded, people);
             double got = washFrom(hurtNeed, base, true, hurtUsed) + washFrom(wash - hurtNeed, base, false, used);
             if (got + 1e-9 < wash) out.add("Washing: " + Math.round(wash - got) + " l short today (" + Math.round(wash) + " l for " + people + " people)");
@@ -820,17 +810,17 @@ final class Production {
 
     /**
      * The harm of the water on the skin (round 9) [the numbers EXAMPLE, mine], for the GM: Tier I a tenth of drinking its rads
-     * (+4 a person for dirty water, +10 for irradiated: 04 §3.9's 18 and 48 a litre), the store's Tier II one harm (a boiled
-     * water's +4, or a filtered one's germs); a wounded person washed in water with germs gets a wound-infection roll (Tier II at
-     * the cut class 2 %, Tier I at the gunshot class 15 %).
+     * (+4 a person for dirty water, +10 for irradiated: 04 §3.9's 18 and 48 a litre); the store's Tier II none for the unwounded
+     * (taken as filtered water) and +4 for the wounded (taken as boiled water, round 11); a wounded person washed in water with germs
+     * gets a wound-infection roll (the condensate at the cut class 2 %, Tier I at the gunshot class 15 %).
      */
     static List<String> washHarm(double[] hurtUsed, double[] used) {
         List<String> out = new ArrayList<>();
-        long t1 = Math.round((hurtUsed[1] + used[1]) / WASH), boiled = Math.round((hurtUsed[BOILED] + used[BOILED]) / WASH);
-        long hurtGerm2 = Math.round((hurtUsed[2] + hurtUsed[CONDENSATE]) / WASH), hurtGerm1 = Math.round(hurtUsed[1] / WASH);
+        long t1 = Math.round((hurtUsed[1] + used[1]) / WASH), boiled = Math.round(hurtUsed[2] / WASH);
+        long hurtGerm2 = Math.round(hurtUsed[CONDENSATE] / WASH), hurtGerm1 = Math.round(hurtUsed[1] / WASH);
         if (t1 > 0) out.add("Washing: " + t1 + (t1 == 1 ? " person" : " people") + " washed in Tier I water: +4 rads each (dirty) or +10 (irradiated)");
-        if (boiled > 0) out.add("Washing: " + boiled + (boiled == 1 ? " person" : " people") + " washed in boiled water: +4 rads each, no germs");
-        if (hurtGerm2 > 0) out.add("Washing: " + hurtGerm2 + " wounded washed in filtered or condensed water: a wound-infection roll at 2 % each");
+        if (boiled > 0) out.add("Washing: " + boiled + " wounded washed in the store's Tier II water as boiled water: +4 rads each, no germs");
+        if (hurtGerm2 > 0) out.add("Washing: " + hurtGerm2 + " wounded washed in the scrubbers' condensate: a wound-infection roll at 2 % each");
         if (hurtGerm1 > 0) out.add("Washing: " + hurtGerm1 + " wounded washed in Tier I water: a wound-infection roll at 15 % each");
         return out;
     }
@@ -956,7 +946,7 @@ final class Production {
     static int topTier(Recipe r, Ttr i) {
         if (!"Water".equals(i.type)) return i.tier;
         int top = 4;
-        for (Ttr m : r.makes) if (madeWater(m)) top = Math.min(top, m.tier - 1);   // round 10: boiled water is water made too
+        for (Ttr m : r.makes) if ("Water".equals(m.type)) top = Math.min(top, m.tier - 1);
         return Math.max(i.tier, top);
     }
 
@@ -1003,7 +993,7 @@ final class Production {
         int cap = kd != null && "product".equals(kd.water_use) && j.water < 5 ? j.water : 5;
         for (Ttr m : r.makes) {
             double n = m.count;
-            int tier = madeWater(m) ? m.tier : Math.min(m.tier, cap);   // water made is its own input's, not the room's [mine]
+            int tier = "Water".equals(m.type) ? m.tier : Math.min(m.tier, cap);   // water made is its own input's, not the room's [mine]
             if (r.harvest) n *= harvest / 100 * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
             if ("Chems".equals(m.type) && crew.stream().anyMatch(w -> w.perk("Cook"))) n *= 2;
             if (salvage(r) && crew.stream().anyMatch(w -> w.perk("Salvager"))) n *= 1.5;

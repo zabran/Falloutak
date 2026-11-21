@@ -54,11 +54,10 @@ class ProductionTest {
     // ------------------------------------------------------------------ the catalogue
     @Test
     void theGateEveryTierIAndIIOfEveryTypeHasSeveralWaysOneKnownAtTheStart() {
-        assertEquals(27, Production.TYPES.size());                                     // round 4: parts, not finished items; round 10: boiled water
+        assertEquals(26, Production.TYPES.size());                                     // round 4: parts, not finished items
         for (Production.ItemType t : Production.TYPES.values()) {
             if (t.found_only) continue;
             for (int tier = 1; tier <= 2; tier++) {
-                if (!t.tiers.containsKey(Rules.roman(tier))) continue;   // a type without the tier (boiled water: Tier II only)
                 int all = 0, start = 0;
                 for (Production.Recipe r : Production.RECIPES.values())
                     for (Production.Ttr m : r.makes)
@@ -413,7 +412,7 @@ class ProductionTest {
         base.addUnits("Water", 1, 1, 50);
         base.addUnits("Water", 2, 1, 5);
         List<String> out = pr.advance(1, 0, base, new Crew(), 10, 4);
-        // the 4 wounded's 8 l from the filtration; the 6 others' 12 l: the day's condensate 10, then the store's filtered Tier II 2
+        // the 4 wounded's 8 l from the filtration; the 6 others' 12 l: the day's condensate 10, then the store's Tier II 2 (as filtered)
         assertEquals(3, base.count("Water", 2, 0));                                  // 5 − 2, and no condensate left for the store
         assertEquals(50, base.count("Water", 1, 0));                                 // Tier I not chosen
         assertTrue(out.stream().noneMatch(s -> s.startsWith("Washing")), out.toString());   // germs on whole skin: no harm, none short
@@ -425,35 +424,27 @@ class ProductionTest {
         Base b2 = new Base(null);
         small.advance(1, 0, b2, new Crew(), 10, 0);
         assertEquals(10, b2.count("Water", 2, 0));                                  // the whole condensate stored
-        // wounded with only Tier II there: told the infection roll
+        // round 11 (Marek 11-21): "Washing wounded with condensed water is worse, so boiled is used here instead." The wounded with
+        // only the store's Tier II: taken as boiled water, its rads told, no infection roll
         Production poor = new Production();
         poor.build("Reactor", 4, "Reactor");
         Base b3 = new Base(null);
         b3.addUnits("Water", 2, 1, 10);
         out = poor.advance(1, 0, b3, new Crew(), 3, 2);
-        assertTrue(out.stream().anyMatch(s -> s.contains("2 wounded washed in filtered or condensed water: a wound-infection roll at 2 % each")), out.toString());
+        assertTrue(out.stream().anyMatch(s -> s.contains("2 wounded washed in the store's Tier II water as boiled water: +4 rads each, no germs")), out.toString());
+        assertTrue(out.stream().noneMatch(s -> s.contains("wound-infection")), out.toString());
         assertTrue(out.contains("Washing: 2 l short today (6 l for 3 people)"), out.toString());
-        // round 10 (Marek 11-21): "use the better one in each situation. Boiled for wounded and condensed for normal washing."
-        Production mixed = new Production();
-        mixed.build("Reactor", 4, "Reactor");
-        Base b4 = new Base(null);
-        b4.addUnits("Water", 2, 1, 10);
-        b4.addUnits(Production.BOILED_WATER, 2, 1, 4);
-        out = mixed.advance(1, 0, b4, new Crew(), 3, 2);
-        // they drink 6 of the filtered Tier II first; the 2 wounded wash with the 4 l of boiled water, the other with 2 l filtered
-        assertEquals(0, b4.count(Production.BOILED_WATER, 2, 0));
-        assertEquals(2, b4.count("Water", 2, 0));
-        assertTrue(out.stream().anyMatch(s -> s.contains("2 people washed in boiled water: +4 rads each, no germs")), out.toString());
-        assertTrue(out.stream().noneMatch(s -> s.contains("wound-infection") || s.contains("short")), out.toString());
-        // the unwounded take the filtered water before the boiled; boiled water still serves when nothing else is left
-        Production plain = new Production();
-        plain.build("Reactor", 4, "Reactor");
-        Base b5 = new Base(null);
-        b5.addUnits("Water", 2, 1, 3);
-        b5.addUnits(Production.BOILED_WATER, 2, 1, 10);
-        plain.advance(1, 0, b5, new Crew(), 2, 0);
-        assertEquals(0, b5.count("Water", 2, 0));                                   // 3 filtered: drunk first
-        assertEquals(10 - 1 - 4, b5.count(Production.BOILED_WATER, 2, 0));            // 1 more to drink, 4 to wash
+        // the order: the wounded the clean water, then the store's Tier II (boiled), then the day's condensate (germs: a roll)
+        assertArrayEquals(new int[]{Production.FILTRATION, 3, 2, Production.CONDENSATE}, poor.washOrder(true));
+        assertArrayEquals(new int[]{Production.CONDENSATE, 2, Production.FILTRATION, 3}, poor.washOrder(false));
+        double[] hurt = new double[6], whole = new double[6];
+        hurt[Production.CONDENSATE] = 4;
+        whole[2] = 6;                                                                 // the unwounded's filtered water: nothing told
+        assertEquals(List.of("Washing: 2 wounded washed in the scrubbers' condensate: a wound-infection roll at 2 % each"),
+                Production.washHarm(hurt, whole));
+        // one row, two named items: the store's Water II is handed out as either
+        assertTrue(Production.TYPES.get("Water").items.stream().filter(n -> n.tier == 2).map(n -> n.name).toList()
+                .containsAll(List.of("Boiled water", "Filtered water")));
     }
 
     @Test
@@ -530,7 +521,7 @@ class ProductionTest {
         Production.Ttr boilW = boil.inputs.stream().filter(i -> i.type.equals("Water")).findFirst().orElseThrow();
         Production.Ttr distilW = distil.inputs.stream().filter(i -> i.type.equals("Water")).findFirst().orElseThrow();
         Production.Ttr brewW = brew.inputs.stream().filter(i -> i.type.equals("Water")).findFirst().orElseThrow();
-        assertEquals(1, Production.topTier(boil, boilW));                              // I -> boiled II: Tier I only (round 10: boiled is water made)
+        assertEquals(1, Production.topTier(boil, boilW));                              // I -> II: Tier I only
         assertEquals(2, Production.topTier(distil, distilW));                          // I -> III: Tier II will do too
         assertEquals(4, Production.topTier(brew, brewW));                              // not water made: any better water
         Production.Ttr fuel = brew.inputs.stream().filter(i -> i.type.equals("Food")).findFirst().orElseThrow();
@@ -707,7 +698,7 @@ class ProductionTest {
         b.wear("Gear and tools", 2, 60);
         b.wear("Gear and tools", 2, 60);                                               // worn out: gone
         assertEquals(0, b.count("Gear and tools", 2, 0));
-        assertEquals(27, Base.types().size());                                         // round 4: parts, not finished items
+        assertEquals(26, Base.types().size());                                         // round 4: parts, not finished items
     }
 
     // ------------------------------------------------------------------ round 4 (Marek 11-20)

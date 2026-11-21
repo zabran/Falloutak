@@ -187,7 +187,7 @@ final class Items {
             case "Explosives" -> Material.FIRE_CHARGE;
             case "Salvage" -> Material.FLINT;
             case "Food" -> Material.BAKED_POTATO;
-            case "Water", "Boiled water" -> Material.POTION;
+            case "Water" -> Material.POTION;
             case "Medicine" -> Material.PAPER;
             case "Power" -> Material.REDSTONE;
             case "Seeds" -> Material.WHEAT_SEEDS;

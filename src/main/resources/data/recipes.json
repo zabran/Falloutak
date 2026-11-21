@@ -1427,7 +1427,7 @@
    "known": "start",
    "makes": [
     {
-     "type": "Boiled water",
+     "type": "Water",
      "tier": 2,
      "count": 3
     }
@@ -1452,76 +1452,7 @@
      "extra": false
     }
    ],
-   "note": "the roll gone, the rads stay: boiled water (round 10)"
-  },
-  {
-   "id": "boil-over-a-fire",
-   "name": "Boil over a fire",
-   "building": "Base",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 5,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Boiled water",
-     "tier": 2,
-     "count": 2
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Water",
-     "tier": 1,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Fuel",
-     "tier": 1,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a pot over a fire: the roll gone, the rads stay"
-  },
-  {
-   "id": "settle-and-decant",
-   "name": "Settle and decant",
-   "building": "Base",
-   "tier": 1,
-   "skill": "Survival",
-   "min": 5,
-   "hours": 1,
-   "days": 1,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Water",
-     "tier": 2,
-     "count": 3
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Water",
-     "tier": 1,
-     "count": 4,
-     "rarity": 0,
-     "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "note": "a barrel left a day, poured off the silt: the rads mostly gone, the roll stays"
+   "note": "the roll gone, the rads stay"
   },
   {
    "id": "sand-and-charcoal-filter",

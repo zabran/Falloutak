@@ -471,7 +471,7 @@
    "use": "litres (04 §3.9, RULED)",
    "tiers": {
     "I": "dirty or irradiated water",
-    "II": "one harm: filtered or condensed (the roll stays, 04b's II (germs)); boiled water is its own type",
+    "II": "one harm: boiled (the rads stay) or filtered (the roll stays)",
     "III": "purified, boiled clean water",
     "IV": "mineral water, tea, coffee"
    },
@@ -484,13 +484,13 @@
      "id": ""
     },
     {
-     "name": "Filtered water",
+     "name": "Boiled water",
      "tier": 2,
      "rarity": 1,
      "id": ""
     },
     {
-     "name": "Condensate",
+     "name": "Filtered water",
      "tier": 2,
      "rarity": 1,
      "id": ""
@@ -498,23 +498,6 @@
     {
      "name": "Purified water",
      "tier": 3,
-     "rarity": 1,
-     "id": ""
-    }
-   ]
-  },
-  {
-   "name": "Boiled water",
-   "group": "Food and water",
-   "use": "litres: dirty water boiled, the germs gone and the rads kept (04b's II (rads)); Tier II water for drinking, the rooms and washing, kept for the wounded's washing (07 §15c)",
-   "tiers": {
-    "II": "boiled dirty water"
-   },
-   "found_only": false,
-   "items": [
-    {
-     "name": "Boiled water",
-     "tier": 2,
      "rarity": 1,
      "id": ""
     }

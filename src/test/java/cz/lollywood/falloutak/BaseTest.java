@@ -165,7 +165,7 @@ class BaseTest {
         b.forget(List.of(m));
         assertNull(b.chestAt("world", 5, 4, 5));
         assertEquals(List.of("Soft armour parts", "Hard armour parts"), Base.types().subList(0, 2));
-        assertEquals(27, Base.types().size());                                         // part 7's catalogue: a chest a type (round 10: boiled water)
+        assertEquals(26, Base.types().size());                                         // part 7's catalogue: a chest a type
         assertTrue(Base.category("Body armour"));                                      // round 5: a chest of an item category too
         assertEquals(27, Base.categories().size());
     }
