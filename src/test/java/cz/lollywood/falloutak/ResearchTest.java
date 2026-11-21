@@ -57,7 +57,7 @@ class ResearchTest {
 
     @Test
     void theCardsAreTheCataloguesResearchedWays() {
-        assertEquals(29, Research.CARDS.size());
+        assertEquals(36, Research.CARDS.size());                                            // round 5: the buildings and Electronics/Machinery III-IV
         assertEquals(2, Research.CARDS.values().stream().filter(c -> c.parked).count());     // gene research PARKED (Marek 11-13)
         int[] gate = {0, 25, 50, 100, 150};
         for (Research.Card c : Research.CARDS.values()) {
@@ -363,22 +363,46 @@ class ResearchTest {
     void theTreeOpensTheTierThreeCardsAfterTheLaboratory() {
         // round 4 (Marek 11-21: "yes, it should have a bit tree like structure due to that.")
         Research.Card iron = card("iron-from-ore"), lab3 = card("laboratory-iii"), lab4 = card("laboratory-iv"), edison = card("edison-cell");
-        assertEquals(List.of("laboratory-iii", "bellows-furnace"), iron.needs);
-        assertEquals(List.of("laboratory-iii", "iron-from-ore"), edison.needs);
+        Research.Card kiln3 = card("kiln-iii"), ws3 = card("workshop-iii"), ws4 = card("workshop-iv");
+        // round 5 ("Labs can research basic (just the basic) researches of 2 tier above"): the first way to a TTR or a building's tier
+        for (Research.Card c : List.of(iron, lab3, lab4, edison, kiln3, ws3, ws4, card("circuit-boards"), card("precision-parts"),
+                card("microelectronics"), card("servos-and-turbines"))) {
+            assertTrue(c.basic, c.name);
+            assertEquals(2, c.lab, c.name);                                                  // a Laboratory II, up to two tiers below
+        }
+        Production.Building lab2 = new Production().build("Laboratory", 2, "Lab");
+        assertTrue(Production.fits(lab2, Research.jobFor(iron, "theory")));                 // a Tier III basic card in a Laboratory II
+        assertTrue(Production.fits(lab2, Research.jobFor(card("microelectronics"), "experiment")));   // and a Tier IV one
+        assertFalse(Production.fits(lab2, Research.jobFor(card("rad-scrubbing"), "theory")));
+        for (String id : List.of("rad-scrubbing", "mushrooms-on-straw", "solar-still")) {   // better ways to what the start makes
+            assertFalse(card(id).basic, id);
+            assertEquals(3, card(id).lab, id);
+            assertEquals(List.of("laboratory-iii"), card(id).needs, id);
+        }
+        // round 5 ("buildings should be researched as well"): the way's building raised by research comes first
+        assertEquals(List.of("bellows-furnace", "kiln-iii"), iron.needs);
+        assertEquals(List.of("iron-from-ore", "workshop-iii"), edison.needs);
+        assertEquals(List.of("iron-from-ore"), lab3.needs);                                  // no steel to find any more
         assertEquals(List.of("laboratory-iii", "iron-from-ore", "edison-cell"), lab4.needs);
-        assertTrue(lab3.needs.isEmpty());
-        assertTrue(lab3.notes.stream().anyMatch(n -> n.startsWith("6 Metal III: found, since Iron from ore itself needs Laboratory III")), lab3.notes.toString());
-        assertTrue(iron.notes.stream().anyMatch(n -> n.startsWith("a Kiln of Tier III: no way builds one yet")), iron.notes.toString());
-        assertTrue(edison.notes.stream().anyMatch(n -> n.startsWith("a Workshop of Tier III: no way builds one yet")), edison.notes.toString());
+        assertEquals(List.of("workshop-iii", "iron-from-ore", "precision-parts", "circuit-boards", "edison-cell"), ws4.needs);
+        assertTrue(kiln3.needs.isEmpty());
+        assertTrue(iron.notes.stream().noneMatch(n -> n.contains("no way builds")), iron.notes.toString());
+        // round 5 ("there should be research for that"): Electronics and Machinery III-IV made by research
+        assertEquals("Electronics", card("circuit-boards").target().makes.get(0).type);
+        assertEquals(3, card("circuit-boards").target().makes.get(0).tier);
+        assertEquals("Machinery", card("servos-and-turbines").target().makes.get(0).type);
+        assertEquals(4, card("servos-and-turbines").target().makes.get(0).tier);
+        assertTrue(iron.notes.contains("the experiments' Electronics III: from Circuit boards (or found)"), iron.notes.toString());
         Production pr = new Production();
         for (Research.Card c : Research.CARDS.values())
-            if (!c.parked) assertEquals(c.tier <= 2 || c == lab3, Research.open(pr, c), c.name);   // the Tier I-II cards open from the start
-        assertEquals("needs Laboratory III, Bellows furnace", Research.state(pr, iron, new Crew()));
-        Research.project(pr, lab3).status = "done";
+            if (!c.parked) assertEquals(c.needs.isEmpty(), Research.open(pr, c), c.name);   // what needs nothing is open from the start
+        assertTrue(Research.open(pr, kiln3));
+        assertEquals("needs Bellows furnace, Kiln III", Research.state(pr, iron, new Crew()));
+        Research.project(pr, kiln3).status = "done";
         assertFalse(Research.open(pr, iron));
         Research.project(pr, card("bellows-furnace")).status = "done";
         assertTrue(Research.open(pr, iron));
-        assertTrue(Research.opens(lab3).containsAll(List.of(iron, card("rad-scrubbing"), card("mushrooms-on-straw"), card("solar-still"), edison, lab4)));
-        assertEquals(List.of(edison, lab4), Research.opens(iron));
+        assertTrue(Research.opens(lab3).containsAll(List.of(card("rad-scrubbing"), card("mushrooms-on-straw"), card("solar-still"), lab4)));
+        assertEquals(List.of(edison, card("precision-parts"), lab3, lab4, ws3, ws4), Research.opens(iron));
     }
 }

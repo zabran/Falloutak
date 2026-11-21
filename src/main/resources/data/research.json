@@ -53,7 +53,8 @@
     "machinery": 3
    },
    "better": "a third less scrap, half the fuel, a kiln instead of the workshop's power",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "iron-from-ore",
@@ -66,13 +67,13 @@
    "rarity": 1,
    "points": 900,
    "gate": 100,
-   "lab": 3,
+   "lab": 2,
    "lines": [
     "metalworking"
    ],
    "needs": [
-    "laboratory-iii",
-    "bellows-furnace"
+    "bellows-furnace",
+    "kiln-iii"
    ],
    "achievement": {
     "kind": "gm",
@@ -81,16 +82,16 @@
     "auto": false
    },
    "notes": [
-    "a Kiln of Tier III: no way builds one yet (only the GM's build button)",
-    "the experiments' Electronics III: found only",
-    "the experiments' Machinery III: found only"
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
    ],
    "experiment": {
     "electronics": 1,
     "machinery": 4
    },
    "better": "the first Tier III metal: iron from bog ore (Tier III is research, 05c §7)",
-   "parked": false
+   "parked": false,
+   "basic": true
   },
   {
    "id": "saw-pit",
@@ -123,7 +124,8 @@
     "machinery": 2
    },
    "better": "two planks from three logs without the workshop",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "lime-tanning",
@@ -156,7 +158,8 @@
     "machinery": 1
    },
    "better": "three days instead of fourteen",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "down-draught-kiln",
@@ -189,7 +192,8 @@
     "machinery": 3
    },
    "better": "half again as many bricks from the same clay and fuel",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "reflux-still",
@@ -222,7 +226,8 @@
     "machinery": 2
    },
    "better": "twice the spirit from the same mash",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "retort-kiln",
@@ -258,7 +263,8 @@
     "machinery": 2
    },
    "better": "half again as much charcoal",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "rad-scrubbing",
@@ -289,15 +295,16 @@
     "auto": true
    },
    "notes": [
-    "the experiments' Electronics III: found only",
-    "the experiments' Machinery III: found only"
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
    ],
    "experiment": {
     "electronics": 2,
     "machinery": 1
    },
    "better": "field crops made clean (Tier III) by washing and peeling",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "mushrooms-on-straw",
@@ -325,15 +332,16 @@
    },
    "notes": [
     "a Grow room of Tier III: the start package's flowerpots (the GM's build button)",
-    "the experiments' Electronics III: found only",
-    "the experiments' Machinery III: found only"
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
    ],
    "experiment": {
     "electronics": 2,
     "machinery": 1
    },
    "better": "food without lamps' power, half the time",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "solar-still",
@@ -363,15 +371,16 @@
     "auto": true
    },
    "notes": [
-    "the experiments' Electronics III: found only",
-    "the experiments' Machinery III: found only"
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
    ],
    "experiment": {
     "electronics": 1,
     "machinery": 2
    },
    "better": "clean water with no fuel",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "herbal-extracts",
@@ -401,7 +410,8 @@
     "machinery": 1
    },
    "better": "painkilling Tier II medicine from gathered herbs",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "chicory",
@@ -437,7 +447,8 @@
     "machinery": 1
    },
    "better": "ersatz coffee grown, not foraged",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "hardening-and-tempering",
@@ -470,7 +481,8 @@
     "machinery": 3
    },
    "better": "two tools from the metal of one and a half",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "edison-cell",
@@ -483,14 +495,14 @@
    "rarity": 1,
    "points": 900,
    "gate": 100,
-   "lab": 3,
+   "lab": 2,
    "lines": [
     "power",
     "electronics"
    ],
    "needs": [
-    "laboratory-iii",
-    "iron-from-ore"
+    "iron-from-ore",
+    "workshop-iii"
    ],
    "achievement": {
     "kind": "stored",
@@ -502,16 +514,16 @@
     "auto": true
    },
    "notes": [
-    "a Workshop of Tier III: no way builds one yet (only the GM's build button)",
-    "the experiments' Electronics III: found only",
-    "the experiments' Machinery III: found only"
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
    ],
    "experiment": {
     "electronics": 4,
     "machinery": 2
    },
    "better": "the first Tier III power: a cell that outlives its owner",
-   "parked": false
+   "parked": false,
+   "basic": true
   },
   {
    "id": "armour-patterns",
@@ -544,7 +556,8 @@
     "machinery": 2
    },
    "better": "a third less leather a part, a lower skill",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "plate-press",
@@ -575,7 +588,8 @@
     "machinery": 4
    },
    "better": "a quarter less metal and half the fuel a plate, a lower skill",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "stock-removal",
@@ -606,7 +620,8 @@
     "machinery": 3
    },
    "better": "ground from the bar on the workshop's grinder: no fuel, fewer hours, a lower skill",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "hide-glue",
@@ -642,7 +657,8 @@
     "machinery": 1
    },
    "better": "two parts from one plank, a workbench's work",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "gun-jigs",
@@ -674,7 +690,8 @@
     "machinery": 4
    },
    "better": "simple machinery instead of gears, fewer hours, a lower skill",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "coil-winder",
@@ -708,7 +725,8 @@
     "machinery": 2
    },
    "better": "from the copper alone, a lower skill",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "lathe-jigs",
@@ -742,7 +760,171 @@
     "machinery": 4
    },
    "better": "a third more parts from the metal, a lower skill",
-   "parked": false
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "circuit-boards",
+   "name": "Circuit boards",
+   "recipes": [
+    "etch-circuit-boards"
+   ],
+   "science": "Engineering",
+   "tier": 3,
+   "rarity": 1,
+   "points": 900,
+   "gate": 100,
+   "lab": 2,
+   "lines": [
+    "electronics"
+   ],
+   "needs": [
+    "workshop-iii"
+   ],
+   "achievement": {
+    "kind": "stored",
+    "type": "Electronics",
+    "tier": 2,
+    "count": 12,
+    "text": "12 Electronics II (relays, switches) in the store at once",
+    "model": "Own 2 Crossbowmen → Metal Casting",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics III: its own way's (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
+   ],
+   "experiment": {
+    "electronics": 4,
+    "machinery": 1
+   },
+   "better": "the first Tier III electronics: boards etched from copper sheet, tubes from glass",
+   "parked": false,
+   "basic": true
+  },
+  {
+   "id": "precision-parts",
+   "name": "Precision parts",
+   "recipes": [
+    "machine-precision-parts"
+   ],
+   "science": "Engineering",
+   "tier": 3,
+   "rarity": 1,
+   "points": 900,
+   "gate": 100,
+   "lab": 2,
+   "lines": [
+    "machinery",
+    "metalworking"
+   ],
+   "needs": [
+    "iron-from-ore",
+    "workshop-iii"
+   ],
+   "achievement": {
+    "kind": "recipe",
+    "recipes": [
+     "strip-a-found-engine"
+    ],
+    "count": 3,
+    "text": "Strip 3 found engines (a car's, a generator's)",
+    "model": "Mine a resource → Wheel",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: its own way's (or found)"
+   ],
+   "experiment": {
+    "electronics": 1,
+    "machinery": 4
+   },
+   "better": "the first Tier III machinery: steel turned and ground to fit",
+   "parked": false,
+   "basic": true
+  },
+  {
+   "id": "microelectronics",
+   "name": "Microelectronics",
+   "recipes": [
+    "rebuild-pre-war-microelectronics"
+   ],
+   "science": "Computer Science",
+   "tier": 4,
+   "rarity": 1,
+   "points": 1600,
+   "gate": 150,
+   "lab": 2,
+   "lines": [
+    "electronics",
+    "implants"
+   ],
+   "needs": [
+    "circuit-boards",
+    "workshop-iv"
+   ],
+   "achievement": {
+    "kind": "stored",
+    "type": "Salvage",
+    "tier": 4,
+    "count": 3,
+    "text": "3 Salvage IV (electronics, military hardware) in the store at once",
+    "model": "Extract an Artifact → Combustion",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics IV: its own way's (or found)",
+    "the experiments' Machinery IV: from Servos and turbines (or found)"
+   ],
+   "experiment": {
+    "electronics": 4,
+    "machinery": 2
+   },
+   "better": "Tier IV electronics: pre-war chips rebuilt onto new boards",
+   "parked": false,
+   "basic": true
+  },
+  {
+   "id": "servos-and-turbines",
+   "name": "Servos and turbines",
+   "recipes": [
+    "rebuild-servos-and-turbines"
+   ],
+   "science": "Engineering",
+   "tier": 4,
+   "rarity": 1,
+   "points": 1600,
+   "gate": 150,
+   "lab": 2,
+   "lines": [
+    "machinery",
+    "power"
+   ],
+   "needs": [
+    "precision-parts",
+    "circuit-boards",
+    "workshop-iv"
+   ],
+   "achievement": {
+    "kind": "condition",
+    "building": "Reactor",
+    "value": 75,
+    "text": "The reactor falls below 75 %",
+    "model": "Be the target of a Declaration of War → Defensive Tactics",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics IV: from Microelectronics (or found)",
+    "the experiments' Machinery IV: its own way's (or found)"
+   ],
+   "experiment": {
+    "electronics": 2,
+    "machinery": 4
+   },
+   "better": "Tier IV machinery: pre-war servos and turbines rebuilt",
+   "parked": false,
+   "basic": true
   },
   {
    "id": "reloading-press",
@@ -776,7 +958,8 @@
     "machinery": 3
    },
    "better": "twice the loads in the same hours",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "bullet-moulds",
@@ -806,7 +989,8 @@
     "machinery": 2
    },
    "better": "half again as many loads",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "charge-packing",
@@ -836,7 +1020,8 @@
     "machinery": 2
    },
    "better": "two charges for less than twice the powder",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "laboratory-iii",
@@ -853,7 +1038,9 @@
    "lines": [
     "laboratory"
    ],
-   "needs": [],
+   "needs": [
+    "iron-from-ore"
+   ],
    "achievement": {
     "kind": "cards",
     "count": 5,
@@ -862,16 +1049,16 @@
     "auto": true
    },
    "notes": [
-    "6 Metal III: found, since Iron from ore itself needs Laboratory III",
-    "the experiments' Electronics III: found only",
-    "the experiments' Machinery III: found only"
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
    ],
    "experiment": {
     "electronics": 2,
     "machinery": 2
    },
    "better": "projects of Tier III",
-   "parked": false
+   "parked": false,
+   "basic": true
   },
   {
    "id": "laboratory-iv",
@@ -884,7 +1071,7 @@
    "rarity": 1,
    "points": 1600,
    "gate": 150,
-   "lab": 3,
+   "lab": 2,
    "lines": [
     "laboratory"
    ],
@@ -901,15 +1088,138 @@
     "auto": true
    },
    "notes": [
-    "the experiments' Electronics IV: found only",
-    "the experiments' Machinery IV: found only"
+    "the experiments' Electronics IV: from Microelectronics (or found)",
+    "the experiments' Machinery IV: from Servos and turbines (or found)"
    ],
    "experiment": {
     "electronics": 3,
     "machinery": 3
    },
    "better": "projects of Tier IV",
-   "parked": false
+   "parked": false,
+   "basic": true
+  },
+  {
+   "id": "kiln-iii",
+   "name": "Kiln III",
+   "recipes": [
+    "raise-a-kiln-to-iii"
+   ],
+   "science": "Engineering",
+   "tier": 3,
+   "rarity": 1,
+   "points": 900,
+   "gate": 100,
+   "lab": 2,
+   "lines": [
+    "ceramics",
+    "metalworking"
+   ],
+   "needs": [],
+   "achievement": {
+    "kind": "building",
+    "building": "Kiln",
+    "tier": 2,
+    "count": 2,
+    "text": "Have two kilns",
+    "model": "Build 2 Shipyards → Steam Power",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
+   ],
+   "experiment": {
+    "electronics": 1,
+    "machinery": 3
+   },
+   "better": "a kiln of Tier III: the bloomery's heat",
+   "parked": false,
+   "basic": true
+  },
+  {
+   "id": "workshop-iii",
+   "name": "Workshop III",
+   "recipes": [
+    "raise-a-workshop-to-iii"
+   ],
+   "science": "Engineering",
+   "tier": 3,
+   "rarity": 1,
+   "points": 900,
+   "gate": 100,
+   "lab": 2,
+   "lines": [
+    "machinery",
+    "metalworking"
+   ],
+   "needs": [
+    "iron-from-ore"
+   ],
+   "achievement": {
+    "kind": "stored",
+    "type": "Metal",
+    "tier": 3,
+    "count": 20,
+    "text": "20 Metal III in the store at once",
+    "model": "Build a Coal Mine and an Ironclad → Steel",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
+   ],
+   "experiment": {
+    "electronics": 2,
+    "machinery": 3
+   },
+   "better": "a workshop of Tier III: steel, precision parts, cells",
+   "parked": false,
+   "basic": true
+  },
+  {
+   "id": "workshop-iv",
+   "name": "Workshop IV",
+   "recipes": [
+    "raise-a-workshop-to-iv"
+   ],
+   "science": "Engineering",
+   "tier": 4,
+   "rarity": 1,
+   "points": 1600,
+   "gate": 150,
+   "lab": 2,
+   "lines": [
+    "machinery",
+    "electronics"
+   ],
+   "needs": [
+    "workshop-iii",
+    "iron-from-ore",
+    "precision-parts",
+    "circuit-boards",
+    "edison-cell"
+   ],
+   "achievement": {
+    "kind": "stored",
+    "type": "Machinery",
+    "tier": 3,
+    "count": 10,
+    "text": "10 Machinery III in the store at once",
+    "model": "Own 3 Tanks → Composites",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics IV: from Microelectronics (or found)",
+    "the experiments' Machinery IV: from Servos and turbines (or found)"
+   ],
+   "experiment": {
+    "electronics": 3,
+    "machinery": 3
+   },
+   "better": "a workshop of Tier IV: pre-war parts rebuilt",
+   "parked": false,
+   "basic": true
   },
   {
    "id": "implant-salvage",
@@ -940,7 +1250,8 @@
     "machinery": 1
    },
    "better": "half the work, no battery",
-   "parked": false
+   "parked": false,
+   "basic": false
   },
   {
    "id": "pre-war-vectors",
@@ -967,7 +1278,8 @@
     "machinery": 1
    },
    "better": "a quarter of the hours from a pre-war kit",
-   "parked": true
+   "parked": true,
+   "basic": false
   },
   {
    "id": "gene-therapy-simplified",
@@ -992,7 +1304,8 @@
     "machinery": 1
    },
    "better": "half the reagents and hours",
-   "parked": true
+   "parked": true,
+   "basic": false
   }
  ]
 }

@@ -3,6 +3,15 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.53.0 (2026-11-21): part 8 round 5 - basic research, the buildings researched, Electronics and Machinery III-IV.**
+- **Basic research two tiers above the laboratory** (Marek: *"Labs can research basic (just the basic) researches of 2 tier above to
+  allow the research to get there."*): a basic card (the first way to a type's tier or a building's tier the start does not give)
+  runs in a Laboratory II up to Tier IV; the better ways of Tier III still need a Laboratory III.
+- **The buildings researched** (*"buildings should be researched as well"*): Kiln III, Workshop III, Workshop IV, so the Bloomery and
+  the Nickel-iron cell can run; the tree takes the building a way runs in.
+- **Electronics and Machinery III-IV** (*"there should be research for that"*): Circuit boards, Precision parts, Microelectronics,
+  Servos and turbines. 36 cards, 149 recipes.
+
 **Version 0.52.0 (2026-11-21): part 8 round 4 - the achievements, the prototype's crew, the tree.**
 - **The achievements PRE-PREPARED in Civ6's way** (Marek: *"I think these could pre-prepared. Like in Civ6."*): each card's is a deed
   near the invention, most on another type or deed than what the card makes, a way used N times only on three cards. The plugin counts

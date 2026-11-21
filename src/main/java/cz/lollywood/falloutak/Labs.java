@@ -75,7 +75,8 @@ final class Labs {
         List<Component> lines = new ArrayList<>();
         lines.add(line(c.name + ": " + gives(c) + " (" + c.better + ")", NamedTextColor.WHITE));
         lines.add(line("Tier " + Rules.roman(c.tier) + ", rarity " + c.rarity + " · " + c.points + " points · " + c.science + " " + c.gate
-                + " · a laboratory of Tier " + Rules.roman(c.lab) + " or better · lines: " + String.join(", ", c.lines), NamedTextColor.GRAY));
+                + " · a laboratory of Tier " + Rules.roman(c.lab) + " or better" + (c.basic && c.lab < c.tier ? " (a basic card: up to two tiers above the laboratory)" : "")
+                + " · lines: " + String.join(", ", c.lines), NamedTextColor.GRAY));
         if (!c.needs.isEmpty()) lines.add(line("Needs first: " + Research.needsText(c) + (Research.open(pr, c) ? " (done)" : ""), Research.open(pr, c) ? NamedTextColor.GRAY : NamedTextColor.RED));
         List<Research.Card> opens = Research.opens(c);
         if (!opens.isEmpty()) {

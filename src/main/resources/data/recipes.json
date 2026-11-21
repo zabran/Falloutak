@@ -4030,6 +4030,184 @@
    "better": "a third more parts from the metal, a lower skill"
   },
   {
+   "id": "etch-circuit-boards",
+   "name": "Etch circuit boards",
+   "building": "Workshop",
+   "tier": 3,
+   "skill": "Engineering",
+   "min": 60,
+   "hours": 6,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Electronics",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Circuit boards",
+   "better": "the first Tier III electronics: boards etched from copper sheet, tubes from glass"
+  },
+  {
+   "id": "machine-precision-parts",
+   "name": "Machine precision parts",
+   "building": "Workshop",
+   "tier": 3,
+   "skill": "Crafting",
+   "min": 60,
+   "hours": 6,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Machinery",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Gear and tools",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": true,
+     "extra": false
+    }
+   ],
+   "research": "Precision parts",
+   "better": "the first Tier III machinery: steel turned and ground to fit"
+  },
+  {
+   "id": "rebuild-pre-war-microelectronics",
+   "name": "Rebuild pre-war microelectronics",
+   "building": "Workshop",
+   "tier": 4,
+   "skill": "Engineering",
+   "min": 100,
+   "hours": 12,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 4,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Microelectronics",
+   "better": "Tier IV electronics: pre-war chips rebuilt onto new boards"
+  },
+  {
+   "id": "rebuild-servos-and-turbines",
+   "name": "Rebuild servos and turbines",
+   "building": "Workshop",
+   "tier": 4,
+   "skill": "Engineering",
+   "min": 100,
+   "hours": 12,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Salvage",
+     "tier": 4,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 3,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Servos and turbines",
+   "better": "Tier IV machinery: pre-war servos and turbines rebuilt"
+  },
+  {
    "id": "remanufacture-loads",
    "name": "Remanufacture loads",
    "building": "Workbench",
@@ -4934,6 +5112,165 @@
    "better": "projects of Tier IV",
    "builds": {
     "kind": "Laboratory",
+    "tier": 4
+   }
+  },
+  {
+   "id": "raise-a-kiln-to-iii",
+   "name": "Raise a kiln to III",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Crafting",
+   "min": 50,
+   "hours": 40,
+   "days": 0,
+   "known": "research",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Stone and glass",
+     "tier": 2,
+     "count": 20,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Kiln III",
+   "better": "a kiln of Tier III: the bloomery's heat",
+   "builds": {
+    "kind": "Kiln",
+    "tier": 3
+   }
+  },
+  {
+   "id": "raise-a-workshop-to-iii",
+   "name": "Raise a workshop to III",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Engineering",
+   "min": 80,
+   "hours": 80,
+   "days": 0,
+   "known": "research",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 3,
+     "count": 10,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 6,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Gear and tools",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Workshop III",
+   "better": "a workshop of Tier III: steel, precision parts, cells",
+   "builds": {
+    "kind": "Workshop",
+    "tier": 3
+   }
+  },
+  {
+   "id": "raise-a-workshop-to-iv",
+   "name": "Raise a workshop to IV",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Engineering",
+   "min": 150,
+   "hours": 160,
+   "days": 0,
+   "known": "research",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Metal",
+     "tier": 3,
+     "count": 12,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 3,
+     "count": 6,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 3,
+     "count": 6,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Power",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Workshop IV",
+   "better": "a workshop of Tier IV: pre-war parts rebuilt",
+   "builds": {
+    "kind": "Workshop",
     "tier": 4
    }
   },

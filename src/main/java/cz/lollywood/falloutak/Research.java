@@ -73,6 +73,8 @@ final class Research {
         Ach achievement;
         Apparatus experiment = new Apparatus();
         boolean parked;
+        /** Round 5 (Marek 11-21): the first way to a TTR or a building's tier: a laboratory two tiers below may research it. */
+        boolean basic;
 
         Production.Recipe target() { return recipes.isEmpty() ? null : Production.RECIPES.get(recipes.get(0)); }
     }
