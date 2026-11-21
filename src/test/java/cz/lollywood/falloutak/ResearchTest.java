@@ -57,7 +57,7 @@ class ResearchTest {
 
     @Test
     void theCardsAreTheCataloguesResearchedWays() {
-        assertEquals(38, Research.CARDS.size());                                            // round 6: the grow room's two cards
+        assertEquals(36, Research.CARDS.size());                                            // round 8: the grow room built from the start
         assertEquals(2, Research.CARDS.values().stream().filter(c -> c.parked).count());     // gene research PARKED (Marek 11-13)
         int[] gate = {0, 25, 50, 100, 150};
         for (Research.Card c : Research.CARDS.values()) {
@@ -331,13 +331,6 @@ class ResearchTest {
         Research.made(pr, "Seeds", 2, 5, out);
         assertEquals(List.of("Research: Chicory: its eureka met (5 Seeds II saved from the base's crops) +20 %"), out);
         assertEquals(10, Research.progress(pr, card("rad-scrubbing")), 1e-9);
-        // round 6's cards: 10 Seeds II in the store → Grow room; a grow room built → Grow room III
-        out.clear();
-        store.addUnits("Seeds", 2, 1, 10);
-        pr.build("Grow room", 2, "Grow room");
-        Research.check(pr, store, out);
-        assertTrue(out.contains("Research: Grow room: its eureka met (10 Seeds II in the store at once (more seed than the fields take)) +20 %"), out.toString());
-        assertTrue(out.contains("Research: Grow room III: its eureka met (Build a grow room (or have the start package's)) +20 %"), out.toString());
         // recipe: a way used N times (the rare kind): 10 appliances stripped
         out.clear();
         for (int i = 0; i < 9; i++) Research.ran(pr, "strip-appliances", out);
@@ -373,7 +366,7 @@ class ResearchTest {
         Research.Card kiln3 = card("kiln-iii"), ws3 = card("workshop-iii"), ws4 = card("workshop-iv");
         // round 5 ("Labs can research basic (just the basic) researches of 2 tier above"): the first way to a TTR or a building's tier
         // round 6 ("up to 1 tier bellow. So that you cannot rush it without building T3 lab."): ONE tier below
-        for (Research.Card c : List.of(iron, lab3, edison, kiln3, ws3, card("circuit-boards"), card("precision-parts"), card("grow-room-iii"))) {
+        for (Research.Card c : List.of(iron, lab3, edison, kiln3, ws3, card("circuit-boards"), card("precision-parts"))) {
             assertTrue(c.basic, c.name);
             assertEquals(3, c.tier, c.name);
             assertEquals(2, c.lab, c.name);                                                  // a Tier III basic card in a Laboratory II
@@ -394,15 +387,11 @@ class ResearchTest {
             assertEquals(3, card(id).lab, id);
             assertEquals("laboratory-iii", card(id).needs.get(0), id);
         }
-        // round 6 ("Should building one, and raising it to Tier III, be researched too? - yes."): the grow room's two cards
-        Research.Card grow = card("grow-room"), grow3 = card("grow-room-iii");
-        assertEquals(2, grow.tier);
-        assertTrue(grow.basic);
-        assertTrue(grow.needs.isEmpty());
-        assertEquals(List.of("grow-room"), grow3.needs);
-        assertEquals(List.of("grow-room-iii"), card("chicory").needs);
-        assertEquals(List.of("laboratory-iii", "grow-room-iii"), card("mushrooms-on-straw").needs);
-        assertTrue(card("chicory").notes.stream().noneMatch(n -> n.contains("flowerpots")), card("chicory").notes.toString());
+        // round 8 ("Grow room III can be build from the start, if players bring seeds and soil"): no grow room card any more
+        assertNull(Research.CARDS.get("grow-room"));
+        assertNull(Research.CARDS.get("grow-room-iii"));
+        assertTrue(card("chicory").needs.isEmpty());
+        assertEquals(List.of("laboratory-iii"), card("mushrooms-on-straw").needs);
         // round 5 ("buildings should be researched as well"): the way's building raised by research comes first
         assertEquals(List.of("bellows-furnace", "kiln-iii"), iron.needs);
         assertEquals(List.of("iron-from-ore", "workshop-iii"), edison.needs);
@@ -428,22 +417,19 @@ class ResearchTest {
         assertTrue(Research.open(pr, iron));
         assertTrue(Research.opens(lab3).containsAll(List.of(card("rad-scrubbing"), card("mushrooms-on-straw"), card("solar-still"), lab4)));
         assertEquals(List.of(edison, card("precision-parts"), lab3, lab4, ws3, ws4), Research.opens(iron));
-        // a Grow room III the GM placed stands: Chicory opens without the card [mine]; Mushrooms on straw also needs a Lab III
+        // a Laboratory III the GM placed stands: the cards that need Laboratory III open without it [mine, round 6]
         Production pkg = new Production();
-        assertFalse(Research.open(pkg, card("chicory")));
-        pkg.build("Grow room", 2, "Flowerpots");                                            // the start package's, Tier II since round 7
-        assertFalse(Research.open(pkg, card("chicory")));                                   // a Tier II one is not enough
-        pkg.build("Grow room", 3, "Grow room");
-        assertTrue(Research.open(pkg, card("chicory")));
-        // round 7 ("it should not give you the research to make it"): the card stays undone, its way unknown
-        assertFalse(Research.done(pkg, card("grow-room-iii")));
-        assertFalse(pkg.known(Production.RECIPES.get("raise-a-grow-room-to-iii")));
-        assertEquals("Grow room III (its building stands: met, the research itself not done)", Research.needsLine(pkg, card("chicory")));
-        Research.project(pkg, card("grow-room-iii")).status = "done";
-        assertEquals("Grow room III (done)", Research.needsLine(pkg, card("chicory")));
         assertFalse(Research.open(pkg, card("mushrooms-on-straw")));
-        pkg.build("Laboratory", 3, "Lab");
+        pkg.build("Laboratory", 2, "Lab");
+        assertFalse(Research.open(pkg, card("mushrooms-on-straw")));                        // a Tier II one is not enough
+        pkg.build("Laboratory", 3, "Lab III");
         assertTrue(Research.open(pkg, card("mushrooms-on-straw")));
+        // round 7 ("it should not give you the research to make it"): the card stays undone, its way unknown
+        assertFalse(Research.done(pkg, lab3));
+        assertFalse(pkg.known(Production.RECIPES.get("raise-a-laboratory-to-iii")));
+        assertEquals("Laboratory III (its building stands: met, the research itself not done)", Research.needsLine(pkg, card("solar-still")));
+        Research.project(pkg, lab3).status = "done";
+        assertEquals("Laboratory III (done)", Research.needsLine(pkg, card("solar-still")));
     }
 
     @Test

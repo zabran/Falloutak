@@ -3,6 +3,13 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.56.0 (2026-11-21): part 8 round 8 - the grow room built from the start.**
+- **A Grow room III is built from the start, no research** (Marek: *"if you have water, soil and light, it can grow. So I would say
+  that Grow room III can be build from the start, if players bring seeds and soil, it makes sense."*): *Build a grow room* (Work
+  anywhere in the base) from 20 Stone and glass I (the soil), 2 Electronics III (grow lamps) and 4 Wood II (racks); the seed goes into
+  each crop. Round 6's two grow room cards are gone (36 cards, 150 recipes); Chicory and Mushrooms on straw need no grow room card.
+  Its crops come out at its water's tier (Tier III water, Tier III food), and it grows the field's ways indoors too.
+
 **Version 0.55.0 (2026-11-21): part 8 round 7 - Flash of Insight, a Grow room II grows the field's ways indoors.**
 - **The perk Eureka is Flash of Insight** (Marek: *"Shall I rename it, for example to Flash of Insight? - yes."*), since the cards'
   deeds are eurekas; a sheet that has Eureka gets the new name when it loads.

@@ -638,20 +638,34 @@ class ProductionTest {
     }
 
     @Test
-    void aGrowRoomTwoGrowsTheFieldsWaysIndoorsOutOfTheAutumn() {
-        // part 8 round 7 (Marek 11-21: "Should it grow the field's Tier II ways indoors" - yes.): the whole harvest under lamps
+    void aGrowRoomIsBuiltFromTheStartAndGrowsTheFieldsWaysIndoors() {
+        // part 8 round 8 (Marek 11-21: "Grow room III can be build from the start, if players bring seeds and soil, it makes sense."):
+        // the soil, the grow lamps and the racks; no research
+        Production.Recipe build = recipe("build-a-grow-room");
+        assertTrue(build.atStart());
+        assertEquals("Grow room", build.builds.kind);
+        assertEquals(3, build.builds.tier);
         Production pr = new Production();
         pr.build("Reactor", 4, "Reactor");
-        pr.harvest = 50;
-        Production.Building room = pr.build("Grow room", 2, "Flowerpots");
         Base base = new Base(null);
+        base.addUnits("Stone and glass", 1, 1, 20);                                     // the soil (two flowerpots hauls)
+        base.addUnits("Electronics", 3, 1, 2);                                          // the grow lamps
+        base.addUnits("Wood", 2, 1, 4);
+        Crew gardener = new Crew(worker("G", "Biology", 80));
+        assertNotNull(pr.startAt("Base", build, 1, 1, gardener));
+        pr.advance(24, 0, base, gardener, 0);
+        Production.Building room = pr.buildings.stream().filter(b -> "Grow room".equals(b.kind)).findFirst().orElseThrow();
+        assertEquals(3, room.tier);
+        assertEquals(0, base.count("Stone and glass", 1, 1));
+        // round 7 ("Should it grow the field's Tier II ways indoors" - yes.): the whole harvest under lamps
+        pr.harvest = 50;
         base.addUnits("Water", 3, 1, 3000);                                             // the room draws its water every day
         base.addUnits("Seeds", 2, 1, 1);
-        base.addUnits("Gear and tools", 2, 1, 1);
+        base.addUnits("Gear and tools", 3, 1, 1);
         Crew farmer = new Crew(worker("F", "Biology", 15));
         assertTrue(Production.fits(room, recipe("field-potatoes")));
         assertTrue(Production.fits(room, recipe("select-seed")));
-        assertFalse(Production.fits(room, recipe("potatoes-under-lamps")));                // Tier III: a Grow room III
+        assertTrue(Production.fits(room, recipe("potatoes-under-lamps")));                 // the pre-war seed's Food III
         pr.start(room, recipe("field-potatoes"), 1, 1, farmer);
         pr.advance(121 * 24, 14 * 24, base, farmer, 0);
         assertEquals(10, base.count("Food", 2, 1));                                     // no harvest factor indoors

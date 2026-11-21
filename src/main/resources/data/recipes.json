@@ -5120,108 +5120,42 @@
    "name": "Build a grow room",
    "building": "Base",
    "tier": 1,
-   "skill": "Engineering",
-   "min": 40,
-   "hours": 40,
+   "skill": "Biology",
+   "min": 20,
+   "hours": 24,
    "days": 0,
-   "known": "research",
+   "known": "start",
    "makes": [],
    "inputs": [
+    {
+     "type": "Stone and glass",
+     "tier": 1,
+     "count": 20,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
     {
      "type": "Wood",
      "tier": 2,
-     "count": 6,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Electronics",
-     "tier": 2,
      "count": 4,
      "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Machinery",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
+     "sets_rarity": true,
      "tool": false,
      "extra": false
     }
    ],
-   "research": "Grow room",
-   "better": "a grow room of Tier II: racks, lamps and water lines indoors",
-   "builds": {
-    "kind": "Grow room",
-    "tier": 2
-   }
-  },
-  {
-   "id": "raise-a-grow-room-to-iii",
-   "name": "Raise a grow room to III",
-   "building": "Base",
-   "tier": 1,
-   "skill": "Engineering",
-   "min": 60,
-   "hours": 60,
-   "days": 0,
-   "known": "research",
-   "makes": [],
-   "inputs": [
-    {
-     "type": "Electronics",
-     "tier": 2,
-     "count": 6,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Machinery",
-     "tier": 2,
-     "count": 4,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Stone and glass",
-     "tier": 2,
-     "count": 4,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Metal",
-     "tier": 2,
-     "count": 2,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Grow room III",
-   "better": "a grow room of Tier III: potatoes, mushrooms and chicory under lamps",
+   "note": "soil, grow lamps and racks: two flowerpots hauls bring the soil and the lamps (07 §16); the seed goes into each crop",
    "builds": {
     "kind": "Grow room",
     "tier": 3

@@ -192,7 +192,7 @@ final class Research {
     static boolean done(Production pr, Card c) { Project p = pr.research.get(c.id); return p != null && "done".equals(p.status); }
 
     /** The cards it needs are done; a card that raises a building also counts when that building already stands at its tier (the
-     * start package's grow room, the GM's build button: round 6 [mine]; round 7, Marek 11-21: *"Probably fine. But it should not give
+     * GM's build button: a Laboratory III, a kiln: round 6 [mine]; round 7, Marek 11-21: *"Probably fine. But it should not give
      * you the research to make it."*: the card itself stays undone and its way unknown). */
     static boolean open(Production pr, Card c) {
         for (String n : c.needs) { Card d = CARDS.get(n); if (d != null && !done(pr, d) && !standing(pr, d)) return false; }

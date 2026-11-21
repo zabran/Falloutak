@@ -322,8 +322,7 @@
     "food"
    ],
    "needs": [
-    "laboratory-iii",
-    "grow-room-iii"
+    "laboratory-iii"
    ],
    "eureka": {
     "kind": "gm",
@@ -429,9 +428,7 @@
     "food",
     "chems"
    ],
-   "needs": [
-    "grow-room-iii"
-   ],
+   "needs": [],
    "eureka": {
     "kind": "made",
     "type": "Seeds",
@@ -1098,79 +1095,6 @@
     "machinery": 3
    },
    "better": "projects of Tier IV",
-   "parked": false,
-   "basic": true
-  },
-  {
-   "id": "grow-room",
-   "name": "Grow room",
-   "recipes": [
-    "build-a-grow-room"
-   ],
-   "science": "Biology",
-   "tier": 2,
-   "rarity": 1,
-   "points": 400,
-   "gate": 50,
-   "lab": 2,
-   "lines": [
-    "food"
-   ],
-   "needs": [],
-   "eureka": {
-    "kind": "stored",
-    "type": "Seeds",
-    "tier": 2,
-    "count": 10,
-    "text": "10 Seeds II in the store at once (more seed than the fields take)",
-    "model": "Farm a resource → Irrigation",
-    "auto": true
-   },
-   "notes": [],
-   "experiment": {
-    "electronics": 2,
-    "machinery": 1
-   },
-   "better": "a grow room of Tier II: racks, lamps and water lines indoors",
-   "parked": false,
-   "basic": true
-  },
-  {
-   "id": "grow-room-iii",
-   "name": "Grow room III",
-   "recipes": [
-    "raise-a-grow-room-to-iii"
-   ],
-   "science": "Biology",
-   "tier": 3,
-   "rarity": 1,
-   "points": 900,
-   "gate": 100,
-   "lab": 2,
-   "lines": [
-    "food"
-   ],
-   "needs": [
-    "grow-room"
-   ],
-   "eureka": {
-    "kind": "building",
-    "building": "Grow room",
-    "tier": 2,
-    "count": 1,
-    "text": "Build a grow room (or have the start package's)",
-    "model": "Build a Water Mill → Construction",
-    "auto": true
-   },
-   "notes": [
-    "the experiments' Electronics III: from Circuit boards (or found)",
-    "the experiments' Machinery III: from Precision parts (or found)"
-   ],
-   "experiment": {
-    "electronics": 2,
-    "machinery": 2
-   },
-   "better": "a grow room of Tier III: potatoes, mushrooms and chicory under lamps",
    "parked": false,
    "basic": true
   },
