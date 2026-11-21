@@ -3,6 +3,15 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.49.0 (2026-11-21): part 7 round 10: boiled water its own item.**
+- **Boiled water** (Marek: *"use the better one in each situation. Boiled for wounded and condensed for normal washing."*): a new
+  type, Tier II only, the germs gone and the rads kept (part 4's "II (rads)"); the store's Water II is now the filtered or condensed
+  kind ("II (germs)"). *Boil water* makes it, and a second way each [mine]: *Boil over a fire* (anywhere in the base) and *Settle and
+  decant* (Water II: a barrel left a day). The wounded wash with the clean water, then boiled water, then the filtered; the
+  unwounded with the condensate and the filtered first, boiled after; drinking, the product rooms and the cooling rooms take the
+  filtered Tier II before the boiled [mine], so boiled water is kept for the wounds. A recipe making boiled water takes no water as
+  good as it (the guard of round 8). 27 types, 141 recipes.
+
 **Version 0.48.0 (2026-11-21): part 7 round 9: washing chosen by the players, dirt worsens wounds.**
 - **The washing water is the players' choice** (Marek: *"players can choose"*; *Production → Washing water*): Tier II (the air
   scrubbers' condensate is Tier II), Tier I and Tier IV, the clean water (the filtration's, the store's Tier III) always. The

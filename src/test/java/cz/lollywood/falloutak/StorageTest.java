@@ -123,7 +123,7 @@ class StorageTest extends MockGame {
         PlayerMock gm = player(0.5, 0.5, true);
         Menus.gm(gm);
         Ui.Page base = click("Base");
-        assertTrue(base.text().contains("26 of the 26 types have no chest yet"), base.text());
+        assertTrue(base.text().contains("27 of the 27 types have no chest yet"), base.text());
         Block b = chest(4, 4);
         assertEquals("That chest is now the hard armour parts chest (4 4 4).", Menus.setChest(b, "Hard armour parts"));
         assertEquals("Hard armour parts", plugin.base.chestAt(world.getName(), 4, 4, 4));

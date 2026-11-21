@@ -58,9 +58,9 @@ final class Works {
     /** What the people wash with now (round 9: the players' choice). */
     static String washing(Production pr) {
         StringBuilder s = new StringBuilder("2 l a person a day: ");
-        s.append(pr.washTier2 ? "the scrubbers' condensate and Tier II first, " : "").append(pr.washTier1 ? "then Tier I, " : "")
+        s.append(pr.washTier2 ? "the scrubbers' condensate, filtered Tier II and boiled water first, " : "").append(pr.washTier1 ? "then Tier I, " : "")
                 .append("the clean water (the filtration's, Tier III)").append(pr.washTier4 ? ", Tier IV last" : "")
-                .append("; the wounded the clean water first");
+                .append("; the wounded the clean water first, then boiled water");
         String h = Production.hygiene(pr.unwashed);
         return s + (h.isEmpty() ? "" : " · the base: " + h);
     }
@@ -70,7 +70,7 @@ final class Works {
         Production pr = pr();
         Menus.ask(p, "Washing water", washing(pr) + ". Tier I puts its rads on the skin; water with germs is fine on whole skin, "
                         + "not on a wound; the clean water is always used.",
-                List.of(Ui.In.bool("t2", Component.text("Tier II and the scrubbers' condensate")).initial(pr.washTier2).build(),
+                List.of(Ui.In.bool("t2", Component.text("Tier II: the condensate, filtered and boiled water")).initial(pr.washTier2).build(),
                         Ui.In.bool("t1", Component.text("Tier I (dirty or irradiated)")).initial(pr.washTier1).build(),
                         Ui.In.bool("t4", Component.text("Tier IV (mineral water, tea)")).initial(pr.washTier4).build()),
                 Menus.form("Set", "the people wash with this", (v, x) -> {
