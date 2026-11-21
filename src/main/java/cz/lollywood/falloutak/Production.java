@@ -353,6 +353,9 @@ final class Production {
     final List<Research.Pending> pending = new ArrayList<>();
     /** The week of the last research roll (the lead's weekly inspiration). */
     long researchWeek = Long.MIN_VALUE;
+    /** The prologue's last-minute hauls (07 §16, RULED 11-21): each player's pick by his UUID, and the base's books (the XP books). */
+    final Map<String, Hauls.Pick> hauls = new LinkedHashMap<>();
+    final List<Hauls.Book> library = new ArrayList<>();
     private transient Random rng;
 
     Random rng() { if (rng == null) rng = new Random(); return rng; }

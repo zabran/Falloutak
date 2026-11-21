@@ -52,6 +52,7 @@ final class Works {
         b.add(btn("All known recipes", pr.known.size() + " known beyond the start", Works::recipes));
         b.add(btn("Research", "the research cards (part 8): theory and experiments in a laboratory, the prototype and its test", Labs::main));
         b.add(btn("Washing water", washing(pr), Works::washForm));
+        if (!pr.library.isEmpty()) b.add(btn("The base's books (" + pr.library.size() + ")", "XP books: each title read once a person, a group's members into its pool", Hauls::library));
         if (gm(p)) b.add(btn("GM: buildings and recipes", "add the shelter, build or remove a building, unlock a recipe, the harvest", Works::gmPage));
         menu(p, "Production", lines, b, Menus::actions);
     }

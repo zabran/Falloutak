@@ -61,14 +61,41 @@ class BattleTest extends MockGame {
         use(p, 8, Action.RIGHT_CLICK_AIR);                                         // the clock: end the turn
         assertTrue(s.enemyTurn || s.over);
         use(p, 0, Action.LEFT_CLICK_AIR);                                          // the raiders' turn: the player waits
+        said(p);
+        int hp0 = c.hp;
         raidersTurn(s);
+        String turn = said(p);
         if (!s.over && plugin.battle.inBattle(p)) {
             assertFalse(s.enemyTurn, "the raiders' turn ended");
             assertEquals(2, s.round);
             assertEquals(c.apMax() - Math.max(0, s.lostTurns), s.ap, 1e-9 + c.apMax());
+        } else if (!s.over) {
+            // the raiders killed him in their turn (the dice are real: it happens now and then): the demo ended by itself and gave
+            // the character back as it began. The test once sent /sheet battle here, which STARTED a new demo (the command toggles)
+            assertTrue(turn.contains("The demo ends; your character is restored as it began."), turn);
+            assertEquals(hp0, c.hp);
         }
-        p.performCommand("sheet battle");                                          // stop: the inventory comes back
+        if (plugin.battle.inBattle(p)) p.performCommand("sheet battle");          // stop: the inventory comes back
         assertFalse(plugin.battle.inBattle(p));
+    }
+
+    @Test
+    void theDemoEndsByItselfWhenTheRaidersKillThePlayer() {
+        // the other branch of aRoundOfTheDemo, played every run: one HP left and no Endurance to spare, so the raiders' first hit kills
+        PlayerMock p = facingSouth();
+        Character c = plugin.character(p);
+        p.performCommand("sheet battle");
+        Battle.State s = plugin.battle.state(p);
+        int hp0 = c.hp;
+        for (int t = 0; t < 30 && plugin.battle.inBattle(p); t++) {
+            c.hp = -c.attrs(false)[Rules.E];                                       // at the edge of clinical death
+            use(p, 8, Action.RIGHT_CLICK_AIR);
+            raidersTurn(s);
+        }
+        assertFalse(plugin.battle.inBattle(p), "the raiders hit him in 30 turns");
+        assertTrue(said(p).contains("The demo ends; your character is restored as it began."));
+        assertEquals(hp0, c.hp);
+        assertNotNull(p.getInventory());
     }
 
     @Test
@@ -81,11 +108,20 @@ class BattleTest extends MockGame {
         Battle.State s = plugin.battle.state(p);
         Set<String> heard = new HashSet<>();
         Sfx.recorder = (k, who) -> heard.add(k);
-        for (int round = 0; round < 100 && plugin.battle.inBattle(p) && !s.over; round++) {   // random hits: 40 rounds were sometimes too few
+        int deaths = 0;
+        for (int round = 0; round < 100 && !s.over; round++) {                     // random hits: 40 rounds were sometimes too few
+            if (!plugin.battle.inBattle(p)) {
+                // a raider's crit can kill him outright even at full HP (the head destroyed), and the demo ends by itself: the test
+                // is about the raiders' end, so a new demo starts (this was the test's flakiness, 11-21)
+                deaths++;
+                p.performCommand("sheet battle");
+                s = plugin.battle.state(p);
+            }
             for (int k = 0; k < 4 && s.ap > 0 && !s.enemyTurn; k++) use(p, 0, Action.LEFT_CLICK_AIR);
-            if (!plugin.battle.inBattle(p) || s.over) break;
+            if (!plugin.battle.inBattle(p) || s.over) continue;
             use(p, 8, Action.RIGHT_CLICK_AIR);
             raidersTurn(s);
+            if (!plugin.battle.inBattle(p)) continue;
             // keep him standing (the test is about the raiders' end): HP, and Pain, whose 75+ stage sets Agility −99 (the workbook's)
             c.hp = c.hpMax();
             c.bleeding = 0;
@@ -94,7 +130,7 @@ class BattleTest extends MockGame {
             s.health.clear();
             s.broken.clear();
         }
-        assertTrue(s.over || s.targets.values().stream().noneMatch(Battle::canFight), "the fight ends when no raider can fight");
+        assertTrue(s.over || s.targets.values().stream().noneMatch(Battle::canFight), "the fight ends when no raider can fight (deaths " + deaths + ")");
         // part 6: each raider beaten gives his kill XP (3.1 x 30^1.09 = 126) to the one player
         if (s.over) assertEquals(xp0 + 126L * s.targets.size(), c.xp);
         Sfx.recorder = null;

@@ -241,6 +241,8 @@ final class Menus {
             b.add(btn("! A new character from " + c.group, "your character is dead: make a new one from his group (its template and "
                     + "training, XP = the pool / the headcount; your own attributes, traits and perks; the last 2 levels' points again)", x -> takeOverPick(x, c)));
         if (c.perksDue() > 0 && !c.dead) b.add(btn("Pick a perk (" + c.perksDue() + ")", "a perk level: the perks whose gate you meet", x -> perkPick(x, c, null)));
+        if (!pl.production.hauls.containsKey(p.getUniqueId().toString()))
+            b.add(btn("The last-minute haul", "day D, the prologue: grab ONE haul for the base on the way down into the shelter (once)", Hauls::page));
         b.add(btn("Groups", "the base's people: each group's level, its points to spend (any player levels them up), lessons", Menus::groups));
         b.add(btn("Production", "the base's buildings, their jobs and crews (part 7): any player runs them", Works::main));
         b.add(btn("My sheet", "your character sheet", x -> SheetView.open(x, c, SheetGui.Page.OVERVIEW)));
@@ -699,6 +701,7 @@ final class Menus {
         b.add(btn("Time of day (everyone)", "set the hour and minute on everyone's clock (the day stays)", x -> timeOfDay(x, null)));
         b.add(btn("Base", "the store's chests (one a type, the Mess Chest) and the unlocked items (05c §7)", Menus::gmBase));
         b.add(btn("Award XP", "kills, checks, a found area, research, a quest (part 6): into the PCs and their groups' pools", Menus::xpMenu));
+        b.add(btn("The last-minute hauls (" + pl.production.hauls.size() + ")", "the prologue: who grabbed what; a pick taken back while all of it is still there", Hauls::gmPage));
         menu(g, "GM menu", List.of(line("Game time moves only here (and by a fight's rounds). NPC statblocks: /npc.", NamedTextColor.GRAY)), b, null);
     }
 

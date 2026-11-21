@@ -3,6 +3,21 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.57.0 (2026-11-21): part 8 round 9 - the last-minute hauls (the prologue).**
+- **Each player grabs ONE haul for the base on day D** (Marek: *"Are the hauls' contents and numbers in the table right? - yes, now
+  it seems fine."* · *"Should I build the hauls into the plugin now - yes, it will be part of prologue."*): *Actions → The last-minute
+  haul* (until he has picked), eight hauls as ruled (flowerpots and seeds, the pharmacy, the hardware store, the electronics store, the
+  outdoor shop, the bookshop, the builders' merchant, the car park; `data/hauls.json`, generated with the catalogue); the items go
+  into the base's store once. Two flowerpots hauls bring the soil and the lamps of *Build a grow room*.
+- **The base's books** (*Production → The base's books*, once there are any): the bookshop's XP books, a new pair of titles for each
+  player who picks it; 100 × tier × rarity XP to each reader, once a title a person, into his group's pool too; a group reads one
+  with all its members (each adds that much to the pool). Books are knowledge, not items: the shelf keeps who has read what.
+- **The GM's page** (*GM menu → The last-minute hauls*): who grabbed what; a pick taken back (the player may pick again) only while
+  every item is still in the store and every book unread.
+- **Fixed: two flaky battle tests.** The raiders' turn can kill the player (a crit can kill outright even at full HP), and the demo
+  then ends by itself; the tests sent */sheet battle* again, which starts a new demo. Both tests now handle that outcome, and a new
+  test plays it every run.
+
 **Version 0.56.0 (2026-11-21): part 8 round 8 - the grow room built from the start.**
 - **A Grow room III is built from the start, no research** (Marek: *"if you have water, soil and light, it can grow. So I would say
   that Grow room III can be build from the start, if players bring seeds and soil, it makes sense."*): *Build a grow room* (Work
