@@ -253,6 +253,7 @@ public final class Hud {
      * window runs out. Returns a note when something happened.
      */
     static String pass(Character c, double minutes) {
+        if (c.outside && minutes > 0) c.unwashedDays += minutes / 1440;   // round 9: outside, his own days since a wash
         int rounds = (int) Math.round(minutes * 10);
         Random rnd = java.util.concurrent.ThreadLocalRandom.current();
         // round by round while rounds change anything (bleeding, the air, a gas: 03b §3c), else straight to the next whole hour

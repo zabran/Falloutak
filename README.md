@@ -3,6 +3,19 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.48.0 (2026-11-21): part 7 round 9: washing chosen by the players, dirt worsens wounds.**
+- **The washing water is the players' choice** (Marek: *"players can choose"*; *Production → Washing water*): Tier II (the air
+  scrubbers' condensate is Tier II), Tier I and Tier IV, the clean water (the filtration's, the store's Tier III) always. The
+  unwounded wash with the day's condensate first (*"seems usable"*; what is left goes into the store as Water II), then the store's
+  Tier II, Tier I, the clean water, Tier IV; the wounded (HP below their maximum) take the clean water first (*"I think germ water is
+  fine without wound."*). The GM is told the harm [the numbers EXAMPLE]: Tier I on the skin +4 rads a person (dirty) or +10
+  (irradiated), the store's Tier II +4 if it was boiled, a wounded person in water with germs a wound-infection roll (2 % in Tier II,
+  15 % in Tier I).
+- **Going unwashed** (*"we should make rules for the penalities. At least it should make infections and wounds/healing worse."*)
+  [the numbers EXAMPLE]: the base counts its people's average days since a wash, (1 − the share washed) × (yesterday's + 1) a day;
+  from 3 days Dirty (wound-infection rolls × 1.5), from 7 Filthy (× 2 and the healing rate −1). A character in the base shares the
+  base's days; *Actions → Leave the base* counts his own, *Wash (2 l)* ends them. The sheet shows *Unwashed* under the healing rate.
+
 **Version 0.47.0 (2026-11-21): part 7 round 8: the realistic water, a better water standing in.**
 - **The water as the real minimums** (Marek: *"Water: switch to the realistic version - yes"* · *"400 l sounds more reasonable"*)
   [the numbers EXAMPLE]: the filtration gives 400 l of Tier III a day; the people drink 2 l and wash with 2 l a day each (washing takes

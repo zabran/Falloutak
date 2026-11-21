@@ -189,6 +189,11 @@ final class Menus {
             if (c.bleeding > 0 || (c.hp < c.hpMax() && c.inSlot("treatment:dressing") == null))
                 b.add(btn(c.bleeding > 0 ? "First aid (stop your bleeding)" : "Dress your wounds", c.bleeding > 0 ? "the bleeding stops"
                         : "Medicine 20 (a check): the healing rate +1 for the next 24 hours", x -> { say(x, firstAid(c, c, "your")); actions(x); }));
+            // round 9: outside the base a character's own days since a wash count; a wash ends them
+            b.add(btn(c.outside ? "Back in the base" : "Leave the base", c.outside ? "the base's daily washing covers you again"
+                    : "outside, your own days since a wash count (Dirty from 3, Filthy from 7)", x -> { c.outside = !c.outside; actions(x); }));
+            if (c.outside && c.unwashedDays > 0)
+                b.add(btn("Wash (2 l)", washText(), x -> { c.unwashedDays = 0; say(x, "Washed. " + washText()); actions(x); }));
             if (c.hp < c.hpMax() && carry.containsKey("gear:Stimpak"))
                 b.add(btn("Stimpak (" + carry.get("gear:Stimpak") + ")", "+10 to +20 HP at once (Fallout 2); it does not stop bleeding", x -> { say(x, stimpak(x, c, "you")); actions(x); }));
             for (Map.Entry<String, Integer> e : carry.entrySet()) {
@@ -1004,6 +1009,12 @@ final class Menus {
     }
 
     /** Sliders for the hours and minutes (Marek 11-16: *"Pass time should be slider"*), for one character or everyone. */
+    /** What a wash outside means (round 9) [the numbers EXAMPLE, mine]. */
+    static String washText() {
+        return "2 l of your own water or a stream's: Tier I on the skin +4 rads (dirty) or +10 (irradiated); with a wound, water with "
+                + "germs (Tier I, a filtered Tier II) means a wound-infection roll (2 % in Tier II, 15 % in Tier I)";
+    }
+
     static void passTime(Player g, Who only) {
         List<Ui.In> in = new ArrayList<>(List.of(
                 Ui.In.numberRange("h", Component.text("Hours"), 0, 168).step(1f).initial(only == null ? 1f : 0f).width(300).build(),
@@ -1031,7 +1042,10 @@ final class Menus {
                     double before = pl.roster.pop.worldHours;
                     if (all) for (String w : pl.roster.work(min / 60)) say(x, w + ".");   // the groups' people work (06 §2.1)
                     if (all) {   // part 7: the buildings' jobs, power and water by the day, upkeep by the week
-                        for (String w : pl.production.advance(min / 60, before, pl.base, pl.workforce(), pl.roster.pop.people.size())) say(x, w);
+                        int hurt = (int) pl.roster.pop.people.stream().filter(p -> p.hpMax > 0 && p.hp < p.hpMax).count();
+                        for (String w : pl.production.advance(min / 60, before, pl.base, pl.workforce(), pl.roster.pop.people.size(), hurt)) say(x, w);
+                        if (min >= 1440 - 1e-9 || pl.production.unwashed > 0)   // round 9: in the base, the base's lot
+                            for (Who o : everyone()) if (!o.c().outside) o.c().unwashedDays = pl.production.unwashed;
                         pl.production.save();
                         pl.roster.save();
                     }

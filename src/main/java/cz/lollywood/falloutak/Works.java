@@ -50,8 +50,36 @@ final class Works {
         b.add(btn("Work anywhere in the base", "building projects and hand work that need no room", x -> site(x, "Base")));
         b.add(btn("Gathering outside", "wood, stone, water, herbs, hunting (0 XP until the local map, part 9)", x -> site(x, "Outside")));
         b.add(btn("All known recipes", pr.known.size() + " known beyond the start", Works::recipes));
+        b.add(btn("Washing water", washing(pr), Works::washForm));
         if (gm(p)) b.add(btn("GM: buildings and recipes", "add the shelter, build or remove a building, unlock a recipe, the harvest", Works::gmPage));
         menu(p, "Production", lines, b, Menus::actions);
+    }
+
+    /** What the people wash with now (round 9: the players' choice). */
+    static String washing(Production pr) {
+        StringBuilder s = new StringBuilder("2 l a person a day: ");
+        s.append(pr.washTier2 ? "the scrubbers' condensate and Tier II first, " : "").append(pr.washTier1 ? "then Tier I, " : "")
+                .append("the clean water (the filtration's, Tier III)").append(pr.washTier4 ? ", Tier IV last" : "")
+                .append("; the wounded the clean water first");
+        String h = Production.hygiene(pr.unwashed);
+        return s + (h.isEmpty() ? "" : " · the base: " + h);
+    }
+
+    /** Any player picks the washing water (round 9, Marek 11-21: *"players can choose"*). */
+    static void washForm(Player p) {
+        Production pr = pr();
+        Menus.ask(p, "Washing water", washing(pr) + ". Tier I puts its rads on the skin; water with germs is fine on whole skin, "
+                        + "not on a wound; the clean water is always used.",
+                List.of(Ui.In.bool("t2", Component.text("Tier II and the scrubbers' condensate")).initial(pr.washTier2).build(),
+                        Ui.In.bool("t1", Component.text("Tier I (dirty or irradiated)")).initial(pr.washTier1).build(),
+                        Ui.In.bool("t4", Component.text("Tier IV (mineral water, tea)")).initial(pr.washTier4).build()),
+                Menus.form("Set", "the people wash with this", (v, x) -> {
+                    pr.washTier2 = Boolean.TRUE.equals(v.getBoolean("t2"));
+                    pr.washTier1 = Boolean.TRUE.equals(v.getBoolean("t1"));
+                    pr.washTier4 = Boolean.TRUE.equals(v.getBoolean("t4"));
+                    pr.save();
+                    main(x);
+                }), Works::main);
     }
 
     static void building(Player p, String id) {

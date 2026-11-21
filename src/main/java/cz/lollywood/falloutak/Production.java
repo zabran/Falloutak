@@ -35,7 +35,8 @@ import java.util.*;
  * <li>A building works and makes less as its condition falls (round 4: *"it will get worse as condition worsens"*): {@link #efficiency}.
  * Its repair is slower the higher its tier (round 7: *"needed far less often, but far more time demanding"*): {@link #repairPerHour}.</li>
  * <li>Round 8 (Marek 11-21): the realistic water (*"Water: switch to the realistic version - yes"*): the kitchen's water a person fed,
- * the people's washing ({@link #washWater}), the scrubbers' condensate, the filtration 400 l; a better Water stands in for a recipe's
+ * the people's washing ({@link #washFrom}; round 9: the players' choice, the condensate first, clean water for the wounded,
+ * {@link #unwashed}), the scrubbers' condensate, the filtration 400 l; a better Water stands in for a recipe's
  * water but never as good as the water it makes ({@link #topTier}).</li>
  * <li>Round 4 (Marek 11-20): the base makes PARTS, the items are ASSEMBLED from them when going out ({@code data/designs.json};
  * *"creating just the parts and the item assembled out of them when going out would work better"*): {@link Base#assemble}.</li>
@@ -321,6 +322,19 @@ final class Production {
     double powerUsed, waterUsed;
     /** The headcount of this pass of time (round 8: the kitchen's water a person fed, the washing, the condensate). */
     int people;
+    /** The wounded among them (HP below their maximum): they wash with clean water first (round 9). */
+    int wounded;
+    /**
+     * What the people may wash with (round 9, Marek 11-21: *"players can choose"* · *"that one can be selected, so choosing the
+     * scrubber water and choosing T2 is the same answer"*): Tier I, Tier II (the scrubbers' condensate is Tier II) and Tier IV; the
+     * clean water (the filtration's, the store's Tier III) always. [the defaults mine]
+     */
+    boolean washTier1 = false, washTier2 = true, washTier4 = false;
+    /**
+     * The base's people's average days since a wash (round 9, Marek 11-21: *"we should make rules for the penalities. At least it
+     * should make infections and wounds/healing worse."*): each day (1 − the share washed) × (yesterday's + 1) [mine].
+     */
+    double unwashed;
     int nextId = 1;
     /** A Quartermaster among the base's workers (02c: "your faction's upkeep −20 %"), as of the last hour run. */
     transient boolean quartermaster;
@@ -588,22 +602,75 @@ final class Production {
         return worst;
     }
 
-    /** The people's washing (round 8) [mine]: the cooling order (Tier I first), as much as there is; the litres got. */
-    double washWater(double litres, Base base) {
+    /** The washing water's sources: the day's condensate, the filtration's, the store's tiers 1-4. */
+    static final int CONDENSATE = 5, FILTRATION = 0;
+
+    /**
+     * The order the washing takes its water (round 9) [mine]: the unwounded the least harmful cheap water first (the day's
+     * condensate, the store's Tier II, Tier I), then the clean water (the filtration's, the store's Tier III), Tier IV last; the
+     * wounded the germ-free water first (Marek 11-21: *"I think germ water is fine without wound."*). Only what the players allow.
+     */
+    int[] washOrder(boolean hurt) {
+        List<Integer> o = new ArrayList<>();
+        if (hurt) {
+            o.add(FILTRATION); o.add(3);
+            if (washTier4) o.add(4);
+            if (washTier2) { o.add(CONDENSATE); o.add(2); }
+            if (washTier1) o.add(1);
+        } else {
+            if (washTier2) { o.add(CONDENSATE); o.add(2); }
+            if (washTier1) o.add(1);
+            o.add(FILTRATION); o.add(3);
+            if (washTier4) o.add(4);
+        }
+        return o.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /** The condensate of this day not yet used (it goes into the store as Water II after the washing). */
+    private transient double condensateLeft;
+
+    /**
+     * The people's washing (round 9): {@code litres} by {@link #washOrder}, as much as there is; {@code used[source]} gets the
+     * litres taken from each source. Returns the litres got.
+     */
+    double washFrom(double litres, Base base, boolean hurt, double[] used) {
         double left = litres;
-        for (int src : new int[]{1, 2, 0, 3, 4}) {
+        for (int src : washOrder(hurt)) {
             if (left <= 1e-9) break;
-            if (src == 0) {
-                double take = Math.min(left, Math.max(0, waterCap() - waterUsed));
+            double take;
+            if (src == FILTRATION) {
+                take = Math.min(left, Math.max(0, waterCap() - waterUsed));
                 waterUsed += take;
-                left -= take;
-                continue;
+            } else if (src == CONDENSATE) {
+                take = Math.min(left, condensateLeft);
+                condensateLeft -= take;
+            } else {
+                if (base == null) continue;
+                int n = Math.min(base.count("Water", src, 0), (int) Math.ceil(left - 1e-9));
+                if (n > 0) base.takeUnits("Water", src, 0, n);
+                take = n;
             }
-            if (base == null) continue;
-            int n = Math.min(base.count("Water", src, 0), (int) Math.ceil(left - 1e-9));
-            if (n > 0) { base.takeUnits("Water", src, 0, n); left -= n; }
+            left -= take;
+            if (used != null) used[src] += take;
         }
         return litres - Math.max(0, left);
+    }
+
+    /** The people's washing (round 9), everyone as unwounded: kept for the tests and the GM's checks. */
+    double washWater(double litres, Base base) { return washFrom(litres, base, false, null); }
+
+    /**
+     * Going unwashed (round 9) [the numbers EXAMPLE, mine]: from 3 days Dirty (wound-infection rolls × 1.5), from 7 days Filthy
+     * (× 2 and the healing rate −1). The roll's class stays part 4's (a cut 2 %, a gunshot 15 %, a dirty wound or a bite 40 %).
+     */
+    static double infectionFactor(double days) { return days >= 7 ? 2 : days >= 3 ? 1.5 : 1; }
+
+    static int hygieneHealing(double days) { return days >= 7 ? 1 : 0; }
+
+    static String hygiene(double days) {
+        if (days >= 7) return "Filthy (unwashed " + Math.round(days) + " days): wound-infection rolls x2, the healing rate −1";
+        if (days >= 3) return "Dirty (unwashed " + Math.round(days) + " days): wound-infection rolls x1.5";
+        return "";
     }
 
     /** Does this building draw its day whether it works or not: the automatic rooms, the kitchen, and a daily one with a job (crops, animals). */
@@ -619,8 +686,14 @@ final class Production {
      * happened, for the GM.
      */
     List<String> advance(double hours, double worldHours, Base base, Workforce wf, int people) {
+        return advance(hours, worldHours, base, wf, people, 0);
+    }
+
+    /** The same with the wounded among the headcount (round 9: they wash with clean water first). */
+    List<String> advance(double hours, double worldHours, Base base, Workforce wf, int people, int wounded) {
         List<String> out = new ArrayList<>();
         this.people = Math.max(0, people);
+        this.wounded = Math.max(0, Math.min(this.people, wounded));
         if (hours <= 0) return out;
         Map<String, Worker> byId = new HashMap<>();
         quartermaster = false;
@@ -676,13 +749,16 @@ final class Production {
         day = d;
         powerUsed = 0;
         // round 8: the scrubbers give the people's breath and sweat back as Tier II water (no rads, the roll stays) [EXAMPLE]
+        // round 9 (Marek 11-21: *"Washing takes the scrubbers' condensed water of the day first" - seems usable.*): the day's
+        // condensate serves the washing first, what is left goes into the store
+        condensateLeft = 0;
         for (Building b : buildings) {
             Kind k = b.kind();
             if (k == null || k.condensate <= 0 || b.condition <= 0 || base == null) continue;
             double l = k.condensate * Math.max(0, people) * efficiency(b) + b.condensateCarry;
             int n = (int) Math.floor(l + 1e-9);
             b.condensateCarry = Math.max(0, l - n);
-            if (n > 0) base.addUnits("Water", 2, 1, n);
+            condensateLeft += n;
         }
         double need = DRINK * Math.max(0, people);   // the people drink first (04 §3.9: 2 l a day)
         waterUsed = Math.min(waterCap(), need);
@@ -703,14 +779,40 @@ final class Production {
                     + (drank.length() == 0 ? "nothing" : drank) + " from the store" + (rest > 1e-9 ? ", " + Math.round(rest) + " l short" : "")
                     + (harm ? " (Tier II water = one harm, Tier I both: 04 §3.9)" : ""));
         }
-        // round 8: then they wash (2 l a day each), Tier I first, as much as there is; the GM is told what was short
+        // round 9: then they wash (2 l a day each): the wounded first, the players' choice of water; the harm and the shortfall told
         double wash = WASH * Math.max(0, people);
         if (wash > 1e-9 && !buildings.isEmpty()) {
-            double got = washWater(wash, base);
+            double[] hurtUsed = new double[6], used = new double[6];
+            double hurtNeed = WASH * Math.min(wounded, people);
+            double got = washFrom(hurtNeed, base, true, hurtUsed) + washFrom(wash - hurtNeed, base, false, used);
             if (got + 1e-9 < wash) out.add("Washing: " + Math.round(wash - got) + " l short today (" + Math.round(wash) + " l for " + people + " people)");
+            out.addAll(washHarm(hurtUsed, used));
+            double share = Math.min(1, got / wash);
+            unwashed = (1 - share) * (unwashed + 1);
+            String h = hygiene(unwashed);
+            if (!h.isEmpty()) out.add("The base's people: " + h + " (on average)");
         }
+        if (base != null && condensateLeft >= 1 - 1e-9) base.addUnits("Water", 2, 1, (int) Math.floor(condensateLeft + 1e-9));
+        condensateLeft = 0;
         for (Building b : buildings)
             if (everyDay(b) && !charge(b, base)) out.add(b.name + ": no power or water for it today");
+    }
+
+    /**
+     * The harm of the water on the skin (round 9) [the numbers EXAMPLE, mine], for the GM: Tier I a tenth of drinking its rads
+     * (+4 a person for dirty water, +10 for irradiated: 04 §3.9's 18 and 48 a litre), the store's Tier II one harm (a boiled
+     * water's +4, or a filtered one's germs); a wounded person washed in water with germs gets a wound-infection roll (Tier II at
+     * the cut class 2 %, Tier I at the gunshot class 15 %).
+     */
+    static List<String> washHarm(double[] hurtUsed, double[] used) {
+        List<String> out = new ArrayList<>();
+        long t1 = Math.round((hurtUsed[1] + used[1]) / WASH), t2 = Math.round((hurtUsed[2] + used[2]) / WASH);
+        long hurtGerm2 = Math.round((hurtUsed[2] + hurtUsed[CONDENSATE]) / WASH), hurtGerm1 = Math.round(hurtUsed[1] / WASH);
+        if (t1 > 0) out.add("Washing: " + t1 + (t1 == 1 ? " person" : " people") + " washed in Tier I water: +4 rads each (dirty) or +10 (irradiated)");
+        if (t2 > 0) out.add("Washing: " + t2 + (t2 == 1 ? " person" : " people") + " washed in the store's Tier II water: +4 rads each if it was boiled, none if filtered");
+        if (hurtGerm2 > 0) out.add("Washing: " + hurtGerm2 + " wounded washed in Tier II water: a wound-infection roll at 2 % each (boiled water has no germs)");
+        if (hurtGerm1 > 0) out.add("Washing: " + hurtGerm1 + " wounded washed in Tier I water: a wound-infection roll at 15 % each");
+        return out;
     }
 
     private void hour(Building b, double t, double dt, Base base, Workforce wf, Map<String, Worker> byId, List<String> out) {

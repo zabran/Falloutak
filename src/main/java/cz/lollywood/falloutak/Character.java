@@ -76,6 +76,12 @@ public final class Character {
     public transient String fromGroup, fromMember;
     /** Bleeding = Blood lost a round (absolute, Marek 11-14); broken legs 0-2 (the stance table's 400 % / 800 %). */
     public double locationRads = 0, bleeding = 0;
+    /**
+     * Days since he last washed (round 9): in the base the base's average ({@link Production#unwashed}), outside the base his own
+     * count, which a wash ends ({@code outside}: the player's own switch, Actions).
+     */
+    public double unwashedDays = 0;
+    public boolean outside = false;
     public int brokenLegs = 0;
     /** Part 3: the group (part 6), the premium templates bought for this PC himself (03b §2b). */
     @com.google.gson.annotations.SerializedName(value = "group", alternate = {"faction"}) public String group = "";
@@ -715,7 +721,7 @@ public final class Character {
     public int healingRate() {
         double[] sk = skills();
         int raw = Rules.healingRate(attrs(false), sk[Rules.skillIndex("Medicine")], sk[Rules.skillIndex("Survival")]) + tpl().healingRate()
-                + (int) Math.round(other("healing_rate") + stageOther("healing_rate"));
+                + (int) Math.round(other("healing_rate") + stageOther("healing_rate")) - Production.hygieneHealing(unwashedDays);
         return raw < 0 && stages().contains(FATAL_RADIATION) ? raw : Math.max(0, raw);
     }
 

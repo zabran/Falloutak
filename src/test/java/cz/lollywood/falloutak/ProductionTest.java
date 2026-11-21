@@ -372,15 +372,16 @@ class ProductionTest {
         base.addUnits("Water", 1, 1, 100);
         base.addUnits("Water", 2, 1, 100);
         List<String> out = pr.advance(1, 0, base, new Crew(), 100);
-        // the scrubbers' condensate +100 l of Tier II; the people drink 200 of the filtration's 400; they wash with Tier I first (100),
-        // then Tier II (100); the kitchen's 300 l: the filtration's other 200, then the store's best first (Tier II 100)
+        // the people drink 200 of the filtration's 400; round 9: they wash with the scrubbers' condensate of the day (100) and the
+        // store's Tier II (100), never Tier I unless chosen; the kitchen's 300 l: the filtration's other 200, then the store's best
+        // first (only Tier I is left: 100)
         assertEquals(400, pr.waterUsed, 1e-9);
         assertEquals(0, base.count("Water", 1, 0));
         assertEquals(0, base.count("Water", 2, 0));
         Production.Building kitchen = pr.buildings.stream().filter(b -> b.kind.equals("Kitchen")).findFirst().orElseThrow();
-        assertEquals(2, kitchen.waterTier);                                            // its food no better than Tier II water
+        assertEquals(1, kitchen.waterTier);                                            // its food no better than Tier I water
         assertTrue(out.stream().noneMatch(s -> s.contains("short") || s.contains("no power or water")), out.toString());
-        // 210 people: they drink 20 l from the store, the washing runs short, the kitchen waits
+        // 210 people: they drink 20 l from the store (Tier II), wash with the condensate 210 and Tier II 80, 130 l short; the kitchen waits
         Production big = new Production();
         big.shelter();
         Base b2 = new Base(null);
@@ -388,17 +389,91 @@ class ProductionTest {
         b2.addUnits("Water", 2, 1, 100);
         out = big.advance(1, 0, b2, new Crew(), 210);
         assertTrue(out.stream().anyMatch(s -> s.contains("the people drank 20 l of Tier II") && s.contains("one harm")), out.toString());
-        assertTrue(out.contains("Washing: 30 l short today (420 l for 210 people)"), out.toString());
+        assertTrue(out.contains("Washing: 130 l short today (420 l for 210 people)"), out.toString());
         assertTrue(out.stream().anyMatch(s -> s.startsWith("Kitchen and food store: no power or water")), out.toString());
         // not enough of any: the room waits and nothing is taken
         Production dry = new Production();
         dry.build("Reactor", 4, "Reactor");
         Production.Building k = dry.build("Kitchen", 3, "K");
         Base none = new Base(null);
-        none.addUnits("Water", 1, 1, 20);
+        none.addUnits("Water", 1, 1, 15);
         assertTrue(dry.advance(1, 0, none, new Crew(), 4).stream().anyMatch(s -> s.startsWith("K: no power or water")));
-        assertEquals(20 - 8 - 8, none.count("Water", 1, 0));                           // they drank 8 and washed with 8, the kitchen took none
+        assertEquals(15 - 8, none.count("Water", 1, 0));                              // they drank 8, never washed in Tier I, the kitchen took none
         assertEquals(-1, k.chargedDay);
+    }
+
+    @Test
+    void theWashingTakesTheCondensateFirstAndTheWoundedGetTheCleanWater() {
+        // round 9 (Marek 11-21): "Washing takes the scrubbers' condensed water of the day first" - seems usable. · "I think germ water
+        // is fine without wound." · "that one can be selected, so choosing the scrubber water and choosing T2 is the same answer"
+        Production pr = new Production();
+        pr.shelter();
+        Base base = new Base(null);
+        base.addUnits("Water", 1, 1, 50);
+        base.addUnits("Water", 2, 1, 5);
+        List<String> out = pr.advance(1, 0, base, new Crew(), 10, 4);
+        // the 4 wounded's 8 l from the filtration; the 6 others' 12 l: the day's condensate 10, then the store's Tier II 2
+        assertEquals(3, base.count("Water", 2, 0));                                  // 5 − 2, and no condensate left for the store
+        assertEquals(50, base.count("Water", 1, 0));                                 // Tier I not chosen
+        assertTrue(out.stream().anyMatch(s -> s.contains("1 person washed in the store's Tier II water")), out.toString());
+        assertTrue(out.stream().noneMatch(s -> s.contains("wounded washed") || s.contains("short")), out.toString());
+        assertEquals(0, pr.unwashed, 1e-9);
+        // with fewer people the condensate is left over and goes into the store as Water II the same day
+        Production small = new Production();
+        small.shelter();
+        small.washTier2 = false;                                                    // the players wash with clean water only
+        Base b2 = new Base(null);
+        small.advance(1, 0, b2, new Crew(), 10, 0);
+        assertEquals(10, b2.count("Water", 2, 0));                                  // the whole condensate stored
+        // wounded with only Tier II there: told the infection roll
+        Production poor = new Production();
+        poor.build("Reactor", 4, "Reactor");
+        Base b3 = new Base(null);
+        b3.addUnits("Water", 2, 1, 10);
+        out = poor.advance(1, 0, b3, new Crew(), 3, 2);
+        assertTrue(out.stream().anyMatch(s -> s.contains("2 wounded washed in Tier II water: a wound-infection roll at 2 % each")), out.toString());
+        assertTrue(out.contains("Washing: 2 l short today (6 l for 3 people)"), out.toString());
+    }
+
+    @Test
+    void tierOneOnlyWhenChosenAndGoingUnwashedMakesThePeopleDirtyThenFilthy() {
+        // round 9 (Marek 11-21): "we should make rules for the penalities. At least it should make infections and wounds/healing worse."
+        Production pr = new Production();
+        pr.build("Reactor", 4, "Reactor");
+        pr.washTier1 = true;
+        Base base = new Base(null);
+        base.addUnits("Water", 1, 1, 30);
+        List<String> out = pr.advance(1, 0, base, new Crew(), 5, 0);
+        assertEquals(10, base.count("Water", 1, 0));                                 // 10 drunk, 10 washed with
+        assertTrue(out.stream().anyMatch(s -> s.contains("5 people washed in Tier I water: +4 rads each")), out.toString());
+        // a week with no water at all: 1, 2, ... 7 days unwashed on average
+        Production dry = new Production();
+        dry.build("Reactor", 4, "Reactor");
+        List<String> week = dry.advance(24 * 3, 0, new Base(null), new Crew(), 5, 0);
+        assertEquals(3, dry.unwashed, 1e-9);
+        assertTrue(week.stream().anyMatch(s -> s.contains("Dirty (unwashed 3 days): wound-infection rolls x1.5")), week.toString());
+        week = dry.advance(24 * 4, 72, new Base(null), new Crew(), 5, 0);
+        assertEquals(7, dry.unwashed, 1e-9);
+        assertTrue(week.stream().anyMatch(s -> s.contains("Filthy (unwashed 7 days)")), week.toString());
+        // half the water every day: everyone washes every other day, about one day unwashed: no penalty
+        Production half = new Production();
+        half.build("Reactor", 4, "Reactor");
+        for (int d = 0; d < 30; d++) {
+            Base b = new Base(null);
+            b.addUnits("Water", 3, 1, 10 + 5);                                      // 10 to drink, 5 of the 10 to wash
+            half.advance(24, d * 24, b, new Crew(), 5, 0);
+        }
+        assertEquals(1, half.unwashed, 0.01);
+        assertEquals(1, Production.infectionFactor(2.9), 0);
+        assertEquals(1.5, Production.infectionFactor(3), 0);
+        assertEquals(2, Production.infectionFactor(7), 0);
+        // the healing rate −1 when filthy, never below 0
+        Character c = new Character();
+        int clean = c.healingRate();
+        c.unwashedDays = 7;
+        assertEquals(Math.max(0, clean - 1), c.healingRate());
+        c.unwashedDays = 6.9;
+        assertEquals(clean, c.healingRate());
     }
 
     @Test

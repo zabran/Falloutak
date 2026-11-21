@@ -108,8 +108,14 @@ public final class SheetView {
                         c("AP", WHITE), r(String.valueOf(c.apMax()), NamedTextColor.AQUA), NONE)
                 .row(tip("E / 3 + Medicine / 50 + Survival / 20, at least 1" + (c.tpl().healingRate() != 0 ? "\n+" + c.tpl().healingRate() + " " + c.template : "")
                                 + (c.tpl().healingRateFed() != 0 ? "\n+" + c.tpl().healingRateFed() + " when fed (a feeding in the last 24 hours)" : "")
+                                + (Production.hygieneHealing(c.unwashedDays) != 0 ? "\n−" + Production.hygieneHealing(c.unwashedDays) + " unwashed" : "")
                                 + "\nnever below 0, except in Fatal Radiation Poisoning: then HP are lost every 8 hours", null),
                         c("Healing rate", WHITE), r(String.valueOf(c.healingRate()), c.healingRate() < 0 ? NamedTextColor.RED : NamedTextColor.GREEN), NONE)
+                .row(tip("days since the last wash (round 9): in the base the base's average, outside your own; Dirty from 3 days "
+                                + "(wound-infection rolls x1.5), Filthy from 7 (x2, the healing rate −1)" + (Production.hygiene(c.unwashedDays).isEmpty() ? ""
+                                : "\n" + Production.hygiene(c.unwashedDays)), null),
+                        c("Unwashed", WHITE), r(f(c.unwashedDays), c.unwashedDays >= 7 ? NamedTextColor.RED : c.unwashedDays >= 3 ? NamedTextColor.YELLOW : WHITE),
+                        c(c.unwashedDays >= 7 ? "filthy" : c.unwashedDays >= 3 ? "dirty" : "days", HOW))
                 .row(tip("25 + 25 × S + Athletics\nthe weight = the Minecraft inventory (EXAMPLE: empty)", null),
                         c("Carry", WHITE), r("0 / " + f(Rules.carry(now, sk[0])), WHITE), c("kg", HOW))
                 .row(tip("Luck % + Sneak / 10 %", null), c("Crit chance", WHITE), r(f(Rules.critChance(now, sk[Rules.skillIndex("Sneak")])), WHITE), c("%", HOW))
