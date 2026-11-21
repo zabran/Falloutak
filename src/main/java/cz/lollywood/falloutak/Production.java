@@ -34,6 +34,9 @@ import java.util.*;
  * stops [mine]; the players manage the crews (round 4: *"Upkeep and crews - this is for players to manage."*).</li>
  * <li>A building works and makes less as its condition falls (round 4: *"it will get worse as condition worsens"*): {@link #efficiency}.
  * Its repair is slower the higher its tier (round 7: *"needed far less often, but far more time demanding"*): {@link #repairPerHour}.</li>
+ * <li>Round 8 (Marek 11-21): the realistic water (*"Water: switch to the realistic version - yes"*): the kitchen's water a person fed,
+ * the people's washing ({@link #washWater}), the scrubbers' condensate, the filtration 400 l; a better Water stands in for a recipe's
+ * water but never as good as the water it makes ({@link #topTier}).</li>
  * <li>Round 4 (Marek 11-20): the base makes PARTS, the items are ASSEMBLED from them when going out ({@code data/designs.json};
  * *"creating just the parts and the item assembled out of them when going out would work better"*): {@link Base#assemble}.</li>
  * <li>Round 5 (Marek 11-20): water of a lower tier from the store, the best first where it goes into the product (*"Lower-tier water -
@@ -66,6 +69,11 @@ final class Production {
         String water_use = "";
         int slots = 1;
         double power, water;
+        /**
+         * Round 8 (Marek 11-21: *"Water: switch to the realistic version - yes"*): litres a person a day on top of {@code water} (the
+         * kitchen's 3 a person fed), and the Tier II water a person a day the room gives (the scrubbers' condensate) [EXAMPLE].
+         */
+        double water_per_person, condensate;
         boolean daily, automatic;
         Map<String, Double> produces = new HashMap<>();
     }
@@ -109,6 +117,8 @@ final class Production {
     static final Map<String, Recipe> REPAIRS = new LinkedHashMap<>();
     /** Upkeep's tool (round 5): a Gear and tools of at least the building's tier. */
     static String UPKEEP_TOOL = "Gear and tools";
+    /** The people's own water a day each (round 8): to drink (04 §3.9) and to wash (the cooling order, Tier I first) [EXAMPLE]. */
+    static double DRINK = 2, WASH = 2;
     /**
      * A building's wear by its tier (round 6, Marek 11-20, verbatim: *"The buildings must have condition lost in some absolute number -
      * bigger tier, the less maintanance and the longer it lasts abandoned."* · *"players must not be forced out before first year"* ·
@@ -150,6 +160,11 @@ final class Production {
         if (o != null && o.has("shelter")) for (JsonElement e : o.getAsJsonArray("shelter")) SHELTER.add(g.fromJson(e, Room.class));
         if (o != null && o.has("upkeep_tool")) UPKEEP_TOOL = o.get("upkeep_tool").getAsString();
         if (o != null && o.has("wear")) WEAR = g.fromJson(o.get("wear"), Wear.class);
+        if (o != null && o.has("people_water")) {
+            JsonObject pw = o.getAsJsonObject("people_water");
+            if (pw.has("drink")) DRINK = pw.get("drink").getAsDouble();
+            if (pw.has("wash")) WASH = pw.get("wash").getAsDouble();
+        }
         o = whole("designs");
         if (o != null && o.has("categories")) for (JsonElement e : o.getAsJsonArray("categories")) CATEGORIES.add(g.fromJson(e, Category.class));
         if (o != null && o.has("legacy")) for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("legacy").entrySet())
@@ -259,6 +274,8 @@ final class Production {
         /** The hours it worked this week (an automatic room every hour it stands, a job room the hours its crew worked the job). */
         double ranHours;
         long upkeepWeek = -1, chargedDay = -1;
+        /** The condensate's fraction of a litre, carried to the next day (round 8). */
+        double condensateCarry;
         /** The workers (their ids), at most the kind's slots. */
         List<String> crew = new ArrayList<>();
         Job job;
@@ -302,6 +319,8 @@ final class Production {
     double harvest = 100;
     long day = Long.MIN_VALUE;
     double powerUsed, waterUsed;
+    /** The headcount of this pass of time (round 8: the kitchen's water a person fed, the washing, the condensate). */
+    int people;
     int nextId = 1;
     /** A Quartermaster among the base's workers (02c: "your faction's upkeep −20 %"), as of the last hour run. */
     transient boolean quartermaster;
@@ -529,7 +548,7 @@ final class Production {
     boolean charge(Building b, Base base) {
         if (b.chargedDay == day) return true;
         Kind k = b.kind();
-        double p = k == null ? 0 : k.power, w = k == null ? 0 : k.water;
+        double p = k == null ? 0 : k.power, w = k == null ? 0 : k.water + k.water_per_person * Math.max(0, people);
         if (powerUsed + p > powerCap() + 1e-9) return false;
         int tier = drawWater(w, k == null ? "" : k.water_use, base);
         if (tier == 0) return false;
@@ -569,6 +588,24 @@ final class Production {
         return worst;
     }
 
+    /** The people's washing (round 8) [mine]: the cooling order (Tier I first), as much as there is; the litres got. */
+    double washWater(double litres, Base base) {
+        double left = litres;
+        for (int src : new int[]{1, 2, 0, 3, 4}) {
+            if (left <= 1e-9) break;
+            if (src == 0) {
+                double take = Math.min(left, Math.max(0, waterCap() - waterUsed));
+                waterUsed += take;
+                left -= take;
+                continue;
+            }
+            if (base == null) continue;
+            int n = Math.min(base.count("Water", src, 0), (int) Math.ceil(left - 1e-9));
+            if (n > 0) { base.takeUnits("Water", src, 0, n); left -= n; }
+        }
+        return litres - Math.max(0, left);
+    }
+
     /** Does this building draw its day whether it works or not: the automatic rooms, the kitchen, and a daily one with a job (crops, animals). */
     static boolean everyDay(Building b) {
         Kind k = b.kind();
@@ -583,6 +620,7 @@ final class Production {
      */
     List<String> advance(double hours, double worldHours, Base base, Workforce wf, int people) {
         List<String> out = new ArrayList<>();
+        this.people = Math.max(0, people);
         if (hours <= 0) return out;
         Map<String, Worker> byId = new HashMap<>();
         quartermaster = false;
@@ -637,7 +675,16 @@ final class Production {
     private void newDay(long d, int people, Base base, List<String> out) {
         day = d;
         powerUsed = 0;
-        double need = 2.0 * Math.max(0, people);   // the people drink first (04 §3.9: 2 l a day)
+        // round 8: the scrubbers give the people's breath and sweat back as Tier II water (no rads, the roll stays) [EXAMPLE]
+        for (Building b : buildings) {
+            Kind k = b.kind();
+            if (k == null || k.condensate <= 0 || b.condition <= 0 || base == null) continue;
+            double l = k.condensate * Math.max(0, people) * efficiency(b) + b.condensateCarry;
+            int n = (int) Math.floor(l + 1e-9);
+            b.condensateCarry = Math.max(0, l - n);
+            if (n > 0) base.addUnits("Water", 2, 1, n);
+        }
+        double need = DRINK * Math.max(0, people);   // the people drink first (04 §3.9: 2 l a day)
         waterUsed = Math.min(waterCap(), need);
         double rest = need - waterUsed;
         if (rest > 1e-9 && !buildings.isEmpty()) {
@@ -655,6 +702,12 @@ final class Production {
             out.add("Water: the base makes " + Math.round(waterCap()) + " l a day for " + Math.round(need) + " l; the people drank "
                     + (drank.length() == 0 ? "nothing" : drank) + " from the store" + (rest > 1e-9 ? ", " + Math.round(rest) + " l short" : "")
                     + (harm ? " (Tier II water = one harm, Tier I both: 04 §3.9)" : ""));
+        }
+        // round 8: then they wash (2 l a day each), Tier I first, as much as there is; the GM is told what was short
+        double wash = WASH * Math.max(0, people);
+        if (wash > 1e-9 && !buildings.isEmpty()) {
+            double got = washWater(wash, base);
+            if (got + 1e-9 < wash) out.add("Washing: " + Math.round(wash - got) + " l short today (" + Math.round(wash) + " l for " + people + " people)");
         }
         for (Building b : buildings)
             if (everyDay(b) && !charge(b, base)) out.add(b.name + ": no power or water for it today");
@@ -745,7 +798,8 @@ final class Production {
         StringJoiner miss = new StringJoiner(", ");
         for (Ttr i : r.inputs) {
             if (i.extra) continue;
-            int have = i.tool ? base.count(i.type, i.tier, 0) : base.count(i.type, i.tier, i.sets_rarity ? b.job.rarity : (i.rarity > 0 ? i.rarity : 0));
+            int have = i.tool ? base.count(i.type, i.tier, 0) : 0;
+            if (!i.tool) for (int tt = i.tier; tt <= topTier(r, i); tt++) have += base.count(i.type, tt, wantRarity(b, i));
             if (have < (i.tool ? 1 : i.count)) miss.add(i.count + " " + i.type + " " + Rules.roman(i.tier) + (i.sets_rarity && b.job.rarity > 1 ? " R" + b.job.rarity : ""));
         }
         if (miss.length() > 0) return miss.toString();
@@ -756,7 +810,13 @@ final class Production {
                 b.job.extra = base.count(i.type, i.tier, 0) >= i.count && base.takeUnits(i.type, i.tier, 0, i.count) > 0;
                 continue;
             }
-            int used = base.takeUnits(i.type, i.tier, i.sets_rarity ? b.job.rarity : (i.rarity > 0 ? i.rarity : 0), i.count);
+            int used = 99, left = i.count;
+            for (int tt = i.tier; tt <= topTier(r, i) && left > 0; tt++) {   // the exact tier first, then a better Water (round 8)
+                int n = Math.min(left, base.count(i.type, tt, wantRarity(b, i)));
+                if (n <= 0) continue;
+                used = Math.min(used, base.takeUnits(i.type, tt, wantRarity(b, i), n));
+                left -= n;
+            }
             if (i.sets_rarity) rarity = Math.min(rarity, used);
         }
         b.job.madeRarity = rarity == 99 ? 1 : rarity;
@@ -765,6 +825,20 @@ final class Production {
         b.job.water = b.chargedDay == day ? b.waterTier : 5;
         return null;
     }
+
+    /**
+     * The best tier that may stand in for an input (round 8, Marek 11-21, verbatim: *"yes, fix that, but with care. Adding T III water
+     * to recipe making T II water from T I would be idiotic."*): a better Water does, the exact tier first; a recipe that makes Water
+     * takes none as good as its own product (Boil water Tier I only, Distil water Tier I or II); everything else its own tier.
+     */
+    static int topTier(Recipe r, Ttr i) {
+        if (!"Water".equals(i.type)) return i.tier;
+        int top = 4;
+        for (Ttr m : r.makes) if ("Water".equals(m.type)) top = Math.min(top, m.tier - 1);
+        return Math.max(i.tier, top);
+    }
+
+    private static int wantRarity(Building b, Ttr i) { return i.sets_rarity ? b.job.rarity : (i.rarity > 0 ? i.rarity : 0); }
 
     /** The job is over: the crew free again but for an automatic room's; a site goes. */
     private void end(Building b, Workforce wf) {

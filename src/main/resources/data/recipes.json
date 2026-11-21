@@ -4791,26 +4791,6 @@
    "note": "the shelter's lower levels"
   },
   {
-   "id": "scrubber-condensate",
-   "name": "Scrubber condensate",
-   "building": "Air scrubbers",
-   "tier": 3,
-   "skill": "Engineering",
-   "min": 15,
-   "hours": 1,
-   "days": 0,
-   "known": "start",
-   "makes": [
-    {
-     "type": "Water",
-     "tier": 2,
-     "count": 5
-    }
-   ],
-   "inputs": [],
-   "note": "the scrubbers' crew: no rads, the roll stays"
-  },
-  {
    "id": "jewellery-body-mods",
    "name": "Jewellery body mods",
    "building": "Workbench",

@@ -3,6 +3,16 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.47.0 (2026-11-21): part 7 round 8: the realistic water, a better water standing in.**
+- **The water as the real minimums** (Marek: *"Water: switch to the realistic version - yes"* · *"400 l sounds more reasonable"*)
+  [the numbers EXAMPLE]: the filtration gives 400 l of Tier III a day; the people drink 2 l and wash with 2 l a day each (washing takes
+  Tier I first, as much as there is, and the GM is told what was short); the kitchen draws 3 l a person fed every day; the air
+  scrubbers draw none and give 1 l of Tier II water a person a day (the people's breath and sweat condensed), so the recipe *Scrubber
+  condensate* is gone. For 55 people about 360 of the 400 l.
+- **A better water stands in** for a recipe's water (*"yes, fix that, but with care. Adding T III water to recipe making T II water
+  from T I would be idiotic."*): the exact tier first, then the next better, but a recipe that makes Water takes none as good as its
+  own product (*Boil water* Tier I only, *Distil water* Tier I or II). Home brew no longer waits for Tier I with clean water in the store.
+
 **Version 0.46.0 (2026-11-21): part 7 round 7: a room's repair slower the higher its tier.**
 - **Repair by the tier** (Marek: *"Yes, needed far less often, but far more time demanding."*) [the numbers EXAMPLE]: a worn or broken
   room gains 4 / 2 / 1 / 0.4 % a crew hour with the tool for Tier I-IV, so 0 → 100 % takes 25 / 50 / 100 / 250 crew hours (the

@@ -64,6 +64,10 @@
    0.4
   ]
  },
+ "people_water": {
+  "drink": 2,
+  "wash": 2
+ },
  "rows": [
   {
    "kind": "Reactor",
@@ -78,7 +82,9 @@
    },
    "upkeep_skill": "Engineering",
    "note": "the shelter's (T IV); its one slot = the upkeep crew",
-   "water_use": ""
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Water filtration",
@@ -89,37 +95,43 @@
    "daily": true,
    "automatic": true,
    "produces": {
-    "water": 300
+    "water": 400
    },
    "upkeep_skill": "Engineering",
-   "note": "the shelter's (T III)",
-   "water_use": ""
+   "note": "the shelter's (T III); 400 l (round 8: *\"400 l sounds more reasonable\"*)",
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Air scrubbers",
    "makes": "the shelter's air",
    "slots": 1,
    "power": 20,
-   "water": 20,
+   "water": 0,
    "daily": true,
    "automatic": true,
    "produces": {},
    "upkeep_skill": "Engineering",
-   "note": "the shelter's (T III); no product; wet scrubbing [the water round 5's]",
-   "water_use": "cooling"
+   "note": "the shelter's (T III); draws no water, its cooling condenses the people's breath and sweat: Tier II water (no rads, the roll stays)",
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 1
   },
   {
    "kind": "Kitchen",
    "makes": "food, water, home brew",
    "slots": 3,
    "power": 15,
-   "water": 40,
+   "water": 0,
    "daily": true,
    "automatic": false,
    "produces": {},
    "upkeep_skill": "Survival",
    "note": "the shelter's kitchen and food store (T III): draws every day (round 1)",
-   "water_use": "product"
+   "water_use": "product",
+   "water_per_person": 3,
+   "condensate": 0
   },
   {
    "kind": "Infirmary",
@@ -132,7 +144,9 @@
    "produces": {},
    "upkeep_skill": "Medicine",
    "note": "the shelter's (T III); operations: 03b §4",
-   "water_use": "product"
+   "water_use": "product",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Workshop",
@@ -145,7 +159,9 @@
    "produces": {},
    "upkeep_skill": "Crafting",
    "note": "the shelter's maintenance workshop (T II); quenching and washing [the water round 5's]",
-   "water_use": "cooling"
+   "water_use": "cooling",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Workbench",
@@ -158,7 +174,9 @@
    "produces": {},
    "upkeep_skill": "Crafting",
    "note": "T I, built anywhere; a Workshop of the tier serves too",
-   "water_use": ""
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Kiln",
@@ -171,7 +189,9 @@
    "produces": {},
    "upkeep_skill": "Crafting",
    "note": "T II, built (fuel by the recipe); quenching [the water round 5's]",
-   "water_use": "cooling"
+   "water_use": "cooling",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Still",
@@ -184,7 +204,9 @@
    "produces": {},
    "upkeep_skill": "Chemistry",
    "note": "T III, built of copper: the condenser's cooling water",
-   "water_use": "cooling"
+   "water_use": "cooling",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Grow room",
@@ -197,7 +219,9 @@
    "produces": {},
    "upkeep_skill": "Biology",
    "note": "T III: the start package's flowerpots; draws every day while a crop grows",
-   "water_use": "product"
+   "water_use": "product",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Field",
@@ -210,7 +234,9 @@
    "produces": {},
    "upkeep_skill": "Biology",
    "note": "T II, outside: prepared by a project",
-   "water_use": ""
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Pens",
@@ -223,7 +249,9 @@
    "produces": {},
    "upkeep_skill": "Biology",
    "note": "T II, built: the animals drink it",
-   "water_use": "product"
+   "water_use": "product",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Dormitories",
@@ -236,7 +264,9 @@
    "produces": {},
    "upkeep_skill": "Crafting",
    "note": "the shelter's; no production",
-   "water_use": ""
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Base",
@@ -249,7 +279,9 @@
    "produces": {},
    "upkeep_skill": "Crafting",
    "note": "no building: building projects and simple hand work [mine]",
-   "water_use": ""
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   },
   {
    "kind": "Outside",
@@ -262,7 +294,9 @@
    "produces": {},
    "upkeep_skill": "Survival",
    "note": "no building; outside work gives 0 XP until part 9 (06, round 7)",
-   "water_use": ""
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   }
  ]
 }

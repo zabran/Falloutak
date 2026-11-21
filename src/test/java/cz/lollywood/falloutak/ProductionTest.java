@@ -92,7 +92,7 @@ class ProductionTest {
         assertEquals(7, pr.shelter());
         assertEquals(0, pr.shelter());                                                 // once
         assertEquals(200, pr.powerCap(), 1e-9);
-        assertEquals(300, pr.waterCap(), 1e-9);
+        assertEquals(400, pr.waterCap(), 1e-9);                                       // round 8: "400 l sounds more reasonable"
         Production.Building ws = pr.buildings.stream().filter(b -> b.kind.equals("Workshop")).findFirst().orElseThrow();
         assertEquals(2, ws.tier);
         assertTrue(Production.fits(ws, recipe("recast-scrap")));
@@ -241,7 +241,9 @@ class ProductionTest {
         pr.advance(1, 0, base, new Crew(), 10);
         // the filtration 20 + the scrubbers 20 + the kitchen 15 always; nobody works in the workshop: not its 20
         assertEquals(55, pr.powerUsed, 1e-9);
-        assertEquals(20 + 40 + 20, pr.waterUsed, 1e-9);                                // ten people's 2 l, the kitchen's 40, the scrubbers' 20
+        // round 8: ten drink 20 l and wash 20 (the scrubbers' 10 l of condensate first), the kitchen 3 l each; the scrubbers draw none
+        assertEquals(20 + (20 - 10) + 30, pr.waterUsed, 1e-9);
+        assertEquals(0, base.count("Water", 2, 0));                                  // the condensate went to the washing
         Production.Building ws = pr.buildings.stream().filter(b -> b.kind.equals("Workshop")).findFirst().orElseThrow();
         base.addUnits("Metal", 1, 1, 3);
         base.addUnits("Fuel", 2, 1, 2);
@@ -363,26 +365,39 @@ class ProductionTest {
     void waterOfALowerTierComesFromTheStore() {
         // round 5 (Marek 11-20): "Lower-tier water - yes, agreed." · "workshop, kiln, still, scrubbers - I would make it rule that these
         // use T1 water first (reversed priority)."
+        // round 8 ("Water: switch to the realistic version - yes"): 100 people drink 200 l and wash 200 l, the kitchen 3 l each
         Production pr = new Production();
         pr.shelter();
         Base base = new Base(null);
         base.addUnits("Water", 1, 1, 100);
         base.addUnits("Water", 2, 1, 100);
-        List<String> out = pr.advance(1, 0, base, new Crew(), 160);                    // 320 l for the people: 300 + 20 from the store
-        assertEquals(300, pr.waterUsed, 1e-9);
-        assertTrue(out.stream().anyMatch(s -> s.contains("the people drank 20 l of Tier II") && s.contains("one harm")), out.toString());
-        assertEquals(100 - 20, base.count("Water", 1, 0));                             // the scrubbers cool with Tier I first
-        assertEquals(100 - 20 - 40, base.count("Water", 2, 0));                        // the people and the kitchen: the best first
+        List<String> out = pr.advance(1, 0, base, new Crew(), 100);
+        // the scrubbers' condensate +100 l of Tier II; the people drink 200 of the filtration's 400; they wash with Tier I first (100),
+        // then Tier II (100); the kitchen's 300 l: the filtration's other 200, then the store's best first (Tier II 100)
+        assertEquals(400, pr.waterUsed, 1e-9);
+        assertEquals(0, base.count("Water", 1, 0));
+        assertEquals(0, base.count("Water", 2, 0));
         Production.Building kitchen = pr.buildings.stream().filter(b -> b.kind.equals("Kitchen")).findFirst().orElseThrow();
-        assertEquals(2, kitchen.waterTier);
+        assertEquals(2, kitchen.waterTier);                                            // its food no better than Tier II water
+        assertTrue(out.stream().noneMatch(s -> s.contains("short") || s.contains("no power or water")), out.toString());
+        // 210 people: they drink 20 l from the store, the washing runs short, the kitchen waits
+        Production big = new Production();
+        big.shelter();
+        Base b2 = new Base(null);
+        b2.addUnits("Water", 1, 1, 100);
+        b2.addUnits("Water", 2, 1, 100);
+        out = big.advance(1, 0, b2, new Crew(), 210);
+        assertTrue(out.stream().anyMatch(s -> s.contains("the people drank 20 l of Tier II") && s.contains("one harm")), out.toString());
+        assertTrue(out.contains("Washing: 30 l short today (420 l for 210 people)"), out.toString());
+        assertTrue(out.stream().anyMatch(s -> s.startsWith("Kitchen and food store: no power or water")), out.toString());
         // not enough of any: the room waits and nothing is taken
         Production dry = new Production();
         dry.build("Reactor", 4, "Reactor");
         Production.Building k = dry.build("Kitchen", 3, "K");
         Base none = new Base(null);
-        none.addUnits("Water", 1, 1, 10);
-        assertTrue(dry.advance(1, 0, none, new Crew(), 0).stream().anyMatch(s -> s.startsWith("K: no power or water")));
-        assertEquals(10, none.count("Water", 1, 0));
+        none.addUnits("Water", 1, 1, 20);
+        assertTrue(dry.advance(1, 0, none, new Crew(), 4).stream().anyMatch(s -> s.startsWith("K: no power or water")));
+        assertEquals(20 - 8 - 8, none.count("Water", 1, 0));                           // they drank 8 and washed with 8, the kitchen took none
         assertEquals(-1, k.chargedDay);
     }
 
@@ -398,18 +413,55 @@ class ProductionTest {
         base.addUnits("Fuel", 1, 1, 1);
         Crew crew = new Crew(worker("C", "Survival", 30));
         pr.start(k, recipe("cook-wasteland-meat"), 1, 1, crew);
-        List<String> out = pr.advance(2, 0, base, crew, 0);
+        List<String> out = pr.advance(2, 0, base, crew, 5);                            // 5 people: drink 10, wash 10, the kitchen 15
         assertNull(k.job, out.toString());
         assertEquals(2, base.count("Food", 1, 1));
         assertEquals(0, base.count("Food", 2, 0));
         assertTrue(out.stream().anyMatch(s -> s.contains("2 Food I R1 (Tier I water)")), out.toString());
         // a recipe that makes water is not capped: its own water input is the product [mine]
-        base.addUnits("Water", 2, 1, 40 + 3);                                         // the kitchen's day takes its 40 l of the best first
+        base.addUnits("Water", 2, 1, 3);                                              // nobody in the base that day: the kitchen draws none
         base.addUnits("Fuel", 1, 1, 1);
         pr.start(k, recipe("boil-filtered-water"), 1, 1, crew);
         pr.advance(2, 24, base, crew, 0);
         assertNull(k.job);
         assertEquals(3, base.count("Water", 3, 1));
+    }
+
+    @Test
+    void aBetterWaterStandsInButNeverAsGoodAsTheWaterMade() {
+        // round 8 (Marek 11-21): "yes, fix that, but with care. Adding T III water to recipe making T II water from T I would be idiotic."
+        Production.Recipe boil = recipe("boil-water"), distil = recipe("distil-water"), brew = recipe("home-brew");
+        Production.Ttr boilW = boil.inputs.stream().filter(i -> i.type.equals("Water")).findFirst().orElseThrow();
+        Production.Ttr distilW = distil.inputs.stream().filter(i -> i.type.equals("Water")).findFirst().orElseThrow();
+        Production.Ttr brewW = brew.inputs.stream().filter(i -> i.type.equals("Water")).findFirst().orElseThrow();
+        assertEquals(1, Production.topTier(boil, boilW));                              // I -> II: Tier I only
+        assertEquals(2, Production.topTier(distil, distilW));                          // I -> III: Tier II will do too
+        assertEquals(4, Production.topTier(brew, brewW));                              // not water made: any better water
+        Production.Ttr fuel = brew.inputs.stream().filter(i -> i.type.equals("Food")).findFirst().orElseThrow();
+        assertEquals(1, Production.topTier(brew, fuel));                               // only Water stands in
+        Production pr = new Production();
+        pr.build("Reactor", 4, "Reactor");
+        Production.Building k = pr.build("Kitchen", 3, "K");
+        Base base = new Base(null);
+        base.addUnits("Food", 1, 1, 3);
+        base.addUnits("Water", 3, 1, 1);                                               // no Tier I in the store, only clean water
+        Crew crew = new Crew(worker("C", "Chemistry", 30));
+        pr.start(k, brew, 1, 1, crew);
+        pr.advance(1, 0, base, crew, 0);
+        assertTrue(k.job.inputsTaken, k.job.waiting);                                 // the home brew takes the Tier III water
+        assertEquals(0, base.count("Water", 3, 0));
+        // boiling never takes the better water
+        Production pr2 = new Production();
+        pr2.build("Reactor", 4, "Reactor");
+        Production.Building k2 = pr2.build("Kitchen", 3, "K");
+        Base b2 = new Base(null);
+        b2.addUnits("Water", 3, 1, 3);
+        b2.addUnits("Fuel", 1, 1, 1);
+        Crew c2 = new Crew(worker("S", "Survival", 30));
+        pr2.start(k2, boil, 1, 1, c2);
+        pr2.advance(1, 0, b2, c2, 0);
+        assertEquals("needs 3 Water I", k2.job.waiting);
+        assertEquals(3, b2.count("Water", 3, 0));
     }
 
     @Test
