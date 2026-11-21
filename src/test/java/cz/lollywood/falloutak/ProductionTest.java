@@ -749,8 +749,8 @@ class ProductionTest {
         // round 4: "Production perks - yes, add them as part of this update."
         for (String p : List.of("Salvager", "Assembly Line", "Master Craftsman", "Cook", "Good Harvest", "Quartermaster", "Foreman"))
             assertFalse(Data.PERKS.get(p).parked(), p);
-        // part 8; Reverse Engineer back with it (round 5: "seriously strong now")
-        for (String p : List.of("Data Miner", "Prototype", "Lab Rat", "Eureka", "Reverse Engineer")) assertTrue(Data.PERKS.get(p).parked(), p);
+        // part 8 in the plugin (0.51.0): the research ones offered in their RULED forms, Reverse Engineer with them
+        for (String p : List.of("Data Miner", "Prototype", "Lab Rat", "Eureka", "Reverse Engineer")) assertFalse(Data.PERKS.get(p).parked(), p);
         // Quartermaster: the faction's upkeep -20 % (02c) [the base's buildings: mine]
         Production pr = new Production();
         Production.Building ws = pr.build("Workshop", 2, "W");

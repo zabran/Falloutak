@@ -56,6 +56,16 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
                 return l;
             }
 
+            @Override public void award(String id, long xp, String why) {
+                if (id.startsWith("pc:")) {
+                    Player p = getServer().getPlayer(java.util.UUID.fromString(id.substring(3)));
+                    if (p != null) roster.award(p, xp, why);
+                } else if (id.startsWith("person:")) {
+                    Population.Person p = roster.pop.person(id.substring(7));
+                    if (p != null && !p.group.isBlank()) roster.pool(p.group, xp);
+                }
+            }
+
             @Override public void assign(String id, String activity) {
                 if (!id.startsWith("person:")) return;
                 Population.Person p = roster.pop.person(id.substring(7));

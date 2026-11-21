@@ -55,9 +55,10 @@ class StorageTest extends MockGame {
     }
 
     @Test
-    void reverseEngineerWaitsForResearch() {
+    void reverseEngineerComesWithResearch() {
         // round 5 (Marek 11-20): "Reverse Engineer - this is seriously strong now ... once it is gained, it skyrockets research."
-        assertTrue(Data.PERKS.get("Reverse Engineer").parked());
+        // part 8 (0.51.0): a working item taken apart = a find of 50 % and a free inspiration, the GM credits it
+        assertFalse(Data.PERKS.get("Reverse Engineer").parked());
     }
 
     @Test

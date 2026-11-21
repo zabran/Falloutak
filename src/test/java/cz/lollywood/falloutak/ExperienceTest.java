@@ -271,7 +271,7 @@ class ExperienceTest extends MockGame {
         Menus.actions(p);
         click("Pick a perk (1)");
         assertTrue(page().labels().contains("Toughness"), page().labels().toString());
-        assertFalse(page().labels().contains("Lab Rat"));                             // parked (part 8, research)
+        assertFalse(page().labels().contains("Lab Rat"));                             // its gate: any science 100
         double dr = c.resistances()[0];
         click("Toughness");
         assertTrue(c.hasPerk("Toughness"));

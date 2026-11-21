@@ -509,8 +509,8 @@
      "value": 100
     }
    ],
-   "effect": "every archive or database you read is searched for inspirations for your research (part 8)",
-   "parked": true,
+   "effect": "every archive or database you read is a find for every research project it touches (part 8, the GM credits each)",
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -837,8 +837,8 @@
      "value": 150
     }
    ],
-   "effect": "your prototypes pass their first test (part 8)",
-   "parked": true,
+   "effect": "your prototypes may be built at 90 % and their first test passes (part 8, RULED round 3)",
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -856,8 +856,8 @@
      "value": 150
     }
    ],
-   "effect": "taking a working item apart gives the inspiration for researching better ways to its parts; the experiments and the prototype still needed (part 8)",
-   "parked": true,
+   "effect": "a working item taken apart is a find of 50 % and a free inspiration for researching better ways to its parts; the experiments and the prototype still needed (part 8)",
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -1389,8 +1389,8 @@
      "value": 100
     }
    ],
-   "effect": "experiments take half the time (part 8)",
-   "parked": true,
+   "effect": "experiments give 15 % instead of 10 % and use half the apparatus (part 8, RULED round 2)",
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}
@@ -1406,8 +1406,8 @@
      "value": 150
     }
    ],
-   "effect": "once per research project, an inspiration without the item that would give it (part 8)",
-   "parked": true,
+   "effect": "once per research project, the inspiration at will, worth 10 % more (part 8, RULED round 3)",
+   "parked": false,
    "bound": false,
    "mods": {},
    "other": {}

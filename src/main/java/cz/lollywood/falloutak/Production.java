@@ -194,7 +194,8 @@ final class Production {
     /** A recipe by its id: the catalogue's, or a repair job's. */
     static Recipe recipe(String id) {
         Recipe r = RECIPES.get(id);
-        return r != null ? r : REPAIRS.get(id);
+        if (r == null) r = REPAIRS.get(id);
+        return r != null ? r : Research.JOBS.get(id);   // part 8: theory, experiments, prototypes
     }
 
     static Recipe repairRecipe(String type, int tier) { return REPAIRS.get("repair|" + type + "|" + tier); }
@@ -259,6 +260,8 @@ final class Production {
         /** This run: the work done (in hours at the minimum skill), when its inputs were taken (world hours), the extra in use. */
         double work, startedAt = -1;
         boolean inputsTaken, extra;
+        /** Part 8: an experiment's apparatus was halved (Lab Rat): its stop gives back the half. */
+        boolean halved;
         int madeRarity = 1;
         /** The parts of an output a run could not give whole (a harvest × the factor, Salvager's +50 %): kept for the next run [mine]. */
         Map<String, Double> carry = new HashMap<>();
@@ -311,6 +314,9 @@ final class Production {
 
         /** The worker's activity becomes this ("production", "gathering", or "" = idle again). */
         default void assign(String workerId, String activity) { }
+
+        /** XP to a worker: a PC's own, a group member's into his group's pool (part 8: a passed test, 06b). */
+        default void award(String workerId, long xp, String why) { }
     }
 
     final List<Building> buildings = new ArrayList<>();
@@ -336,6 +342,17 @@ final class Production {
      */
     double unwashed;
     int nextId = 1;
+    /** Part 8: the research projects by card id, and the failed rarity-1 prototypes for the GM to rule. */
+    final Map<String, Research.Project> research = new LinkedHashMap<>();
+    final List<Research.Pending> pending = new ArrayList<>();
+    /** The week of the last research roll (the lead's weekly inspiration). */
+    long researchWeek = Long.MIN_VALUE;
+    private transient Random rng;
+
+    Random rng() { if (rng == null) rng = new Random(); return rng; }
+
+    /** The tests' dice. */
+    void seed(long s) { rng = new Random(s); }
     /** A Quartermaster among the base's workers (02c: "your faction's upkeep −20 %"), as of the last hour run. */
     transient boolean quartermaster;
     private transient Path file;
@@ -496,7 +513,7 @@ final class Production {
         if (b.job == null) return "! " + b.name + " has no job";
         Recipe r = recipe(b.job.recipe);
         if (b.job.inputsTaken && r != null) for (Ttr t : r.inputs) if (!t.tool && (!t.extra || b.job.extra))
-            base.addUnits(t.type, t.tier, t.sets_rarity ? b.job.rarity : 1, t.count);
+            base.addUnits(t.type, t.tier, t.sets_rarity ? b.job.rarity : 1, b.job.halved ? (t.count + 1) / 2 : t.count);
         String done = b.name + ": " + (r == null ? "the job" : r.name) + " stopped after " + b.job.done + (b.job.done == 1 ? " run" : " runs");
         b.job = null;
         if (b.kind() == null || !b.kind().automatic) release(b, wf);
@@ -715,6 +732,7 @@ final class Production {
             long d = (long) Math.floor(t / 24);
             if (d != day) newDay(d, people, base, out);
             long week = (long) Math.floor(t / 168);
+            if (week != researchWeek) { if (researchWeek != Long.MIN_VALUE) Research.weekRolls(this, byId, out); researchWeek = week; }
             for (Building b : new ArrayList<>(buildings)) {
                 if (b.upkeepWeek != week) {
                     if (b.upkeepWeek >= 0 && upkeep(b) > 0 && b.upkeepDone < upkeep(b) - 1e-9) {
@@ -866,6 +884,7 @@ final class Production {
         if (crew.isEmpty() && r.hours > 0 && b.job.work < need(b, r, crew)) { b.job.waiting = "no workers"; return; }
         b.job.waiting = "";
         if (free > 0 && (b.kind() == null || !b.kind().automatic)) b.ranHours += dt;
+        if (Research.theory(r)) { Research.theoryHour(this, b, r, crew, free * efficiency(b), dt, wf, out); return; }   // part 8
         b.job.work += free * efficiency(b) * (foreman ? 1.25 : 1) * (b.job.extra ? 1.5 : 1);
         if (b.job.work >= need(b, r, crew) - 1e-9 && t + dt - b.job.startedAt >= r.days * 24 - 1e-9) finish(b, r, base, wf, crew, out);
     }
@@ -883,6 +902,7 @@ final class Production {
 
     /** The run's work in hours at the minimum: Perfectionist twice (02c), Assembly Line half from the second piece on (02c). */
     static double need(Building b, Recipe r, List<Worker> crew) {
+        if (Research.isJob(r)) return Research.need(r, crew);
         double h = r.hours;
         if (crew.stream().anyMatch(w -> w.perk("Perfectionist"))) h *= 2;
         if (b.job != null && b.job.done > 0 && crew.stream().anyMatch(w -> w.perk("Assembly Line"))) h *= 0.5;
@@ -912,7 +932,7 @@ final class Production {
             if (i.extra) continue;
             int have = i.tool ? base.count(i.type, i.tier, 0) : 0;
             if (!i.tool) for (int tt = i.tier; tt <= topTier(r, i); tt++) have += base.count(i.type, tt, wantRarity(b, i));
-            if (have < (i.tool ? 1 : i.count)) miss.add(i.count + " " + i.type + " " + Rules.roman(i.tier) + (i.sets_rarity && b.job.rarity > 1 ? " R" + b.job.rarity : ""));
+            if (have < (i.tool ? 1 : Research.count(r, i, crew))) miss.add(Research.count(r, i, crew) + " " + i.type + " " + Rules.roman(i.tier) + (i.sets_rarity && b.job.rarity > 1 ? " R" + b.job.rarity : ""));
         }
         if (miss.length() > 0) return miss.toString();
         int rarity = 99;
@@ -922,7 +942,7 @@ final class Production {
                 b.job.extra = base.count(i.type, i.tier, 0) >= i.count && base.takeUnits(i.type, i.tier, 0, i.count) > 0;
                 continue;
             }
-            int used = 99, left = i.count;
+            int used = 99, left = Research.count(r, i, crew);
             for (int tt = i.tier; tt <= topTier(r, i) && left > 0; tt++) {   // the exact tier first, then a better Water (round 8)
                 int n = Math.min(left, base.count(i.type, tt, wantRarity(b, i)));
                 if (n <= 0) continue;
@@ -932,6 +952,7 @@ final class Production {
             if (i.sets_rarity) rarity = Math.min(rarity, used);
         }
         b.job.madeRarity = rarity == 99 ? 1 : rarity;
+        b.job.halved = Research.experiment(r) && Research.perk(null, crew, "Lab Rat");
         b.job.inputsTaken = true;
         b.job.startedAt = t;
         b.job.water = b.chargedDay == day ? b.waterTier : 5;
@@ -953,7 +974,7 @@ final class Production {
     private static int wantRarity(Building b, Ttr i) { return i.sets_rarity ? b.job.rarity : (i.rarity > 0 ? i.rarity : 0); }
 
     /** The job is over: the crew free again but for an automatic room's; a site goes. */
-    private void end(Building b, Workforce wf) {
+    void end(Building b, Workforce wf) {
         b.job = null;
         if (b.kind() == null || !b.kind().automatic) release(b, wf);
         if (b.site) buildings.remove(b);
@@ -961,6 +982,7 @@ final class Production {
 
     private void finish(Building b, Recipe r, Base base, Workforce wf, List<Worker> crew, List<String> out) {
         Job j = b.job;
+        if (Research.isJob(r)) { Research.finish(this, b, r, base, wf, crew, out); return; }   // part 8: an experiment, a prototype's test
         if (!r.repairs.isEmpty()) {
             // the repair job (round 5) [mine, EXAMPLE]: the repair kit's points by the best skill (Mr. Fixit x2) to up to REPAIR.parts worn parts
             double skill = 0;
@@ -1004,6 +1026,7 @@ final class Production {
             j.carry.put(ck, Math.max(0, total - k));
             if (k <= 0) continue;
             base.addUnits(m.type, tier, rarity, k);
+            Research.made(this, m.type, tier, k, out);   // part 8: the achievements count what is made
             made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rarity + (tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
         }
         j.water = 5;

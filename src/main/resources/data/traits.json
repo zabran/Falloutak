@@ -260,9 +260,9 @@
    "name": "Absent-Minded Genius",
    "from": "",
    "group": "Research and production",
-   "bonus": "+1 I; your research finds inspirations 1.5x as often",
+   "bonus": "+1 I; your research's inspirations give 20 % instead of 10 %, and the weekly roll for one ×1.5 (part 8, RULED round 2)",
    "drawback": "−2 P, −5 Initiative",
-   "status": "parked",
+   "status": "in",
    "mods": {},
    "other": {}
   },
@@ -280,9 +280,9 @@
    "name": "Tinkerer",
    "from": "",
    "group": "Research and production",
-   "bonus": "experiments and prototypes take 25 % less time",
+   "bonus": "a third experiment on each research project (experiments up to 30 %), prototypes take 25 % less time (part 8, RULED round 2)",
    "drawback": "−10 Rhetorics and Economy (you talk only about the machine)",
-   "status": "parked",
+   "status": "in",
    "mods": {},
    "other": {}
   },

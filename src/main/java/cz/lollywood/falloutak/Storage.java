@@ -291,8 +291,9 @@ final class Storage implements Listener {
         if (n <= 0 || !(e.getPlayer() instanceof Player p)) return;
         Sfx.to(p, "store.sort");
         Menus.say(p, n + (n == 1 ? " item" : " items") + " sorted from the Mess Chest into the store.");
-        // Reverse Engineer waits for part 8 (round 5, Marek 11-20: "this is seriously strong now ... once it is gained, it skyrockets
-        // research"): its instant schematics are gone; the parts it came apart into are kept for research's inspiration
+        // Reverse Engineer (round 5, Marek 11-20: "this is seriously strong now ... once it is gained, it skyrockets research"): its
+        // instant schematics are gone; since part 8 (0.51.0) a working item taken apart is a find of 50 % and a free inspiration, which
+        // the GM credits on the research card (Research.find)
     }
 
     static int sortMess(Inventory inv, Base base) { return sortMess(inv, base, new TreeSet<>()); }

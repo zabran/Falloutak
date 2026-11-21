@@ -4771,6 +4771,173 @@
    }
   },
   {
+   "id": "build-a-laboratory",
+   "name": "Build a laboratory",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Engineering",
+   "min": 40,
+   "hours": 40,
+   "days": 0,
+   "known": "start",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Stone and glass",
+     "tier": 2,
+     "count": 6,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Metal",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "part 8: theory and experiments (08 §3.3)",
+   "builds": {
+    "kind": "Laboratory",
+    "tier": 2
+   }
+  },
+  {
+   "id": "raise-a-laboratory-to-iii",
+   "name": "Raise a laboratory to III",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Engineering",
+   "min": 100,
+   "hours": 80,
+   "days": 0,
+   "known": "research",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Stone and glass",
+     "tier": 2,
+     "count": 8,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 6,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Metal",
+     "tier": 3,
+     "count": 6,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Laboratory III",
+   "better": "projects of Tier III",
+   "builds": {
+    "kind": "Laboratory",
+    "tier": 3
+   }
+  },
+  {
+   "id": "raise-a-laboratory-to-iv",
+   "name": "Raise a laboratory to IV",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Engineering",
+   "min": 150,
+   "hours": 160,
+   "days": 0,
+   "known": "research",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Stone and glass",
+     "tier": 2,
+     "count": 10,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 8,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Metal",
+     "tier": 3,
+     "count": 8,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Power",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Laboratory IV",
+   "better": "projects of Tier IV",
+   "builds": {
+    "kind": "Laboratory",
+    "tier": 4
+   }
+  },
+  {
    "id": "collect-seepage",
    "name": "Collect seepage",
    "building": "Base",

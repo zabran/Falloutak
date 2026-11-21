@@ -50,6 +50,7 @@ final class Works {
         b.add(btn("Work anywhere in the base", "building projects and hand work that need no room", x -> site(x, "Base")));
         b.add(btn("Gathering outside", "wood, stone, water, herbs, hunting (0 XP until the local map, part 9)", x -> site(x, "Outside")));
         b.add(btn("All known recipes", pr.known.size() + " known beyond the start", Works::recipes));
+        b.add(btn("Research", "the research cards (part 8): theory and experiments in a laboratory, the prototype and its test", Labs::main));
         b.add(btn("Washing water", washing(pr), Works::washForm));
         if (gm(p)) b.add(btn("GM: buildings and recipes", "add the shelter, build or remove a building, unlock a recipe, the harvest", Works::gmPage));
         menu(p, "Production", lines, b, Menus::actions);

@@ -3,6 +3,25 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.51.0 (2026-11-21): part 8, research.**
+- **The research cards** (`data/research.json`, generated with the catalogue: one card a researched way, 29, the two gene ones
+  PARKED): P = 100 × T² × R points, the gate (the science at 25 / 50 / 100 / 150 by the tier), the lines, the achievement (N of a type
+  made in the base, counted as it is made), the experiment's apparatus. *Production → Research*: each card's progress by source.
+- **The shares** (RULED rounds 1-3): a find up to 50 % and an inspiration 10 % (the GM's; the lead's weekly Intelligence × 3 % roll
+  for the inspiration), the achievement 20 %, two experiments 10 % each (no roll: Electronics and Machinery of the tier used up),
+  related research up to 25 % (5 % a finished card of a shared line, half of a running one's credits). **No theory floor**: theory
+  (the science ÷ the gate points an hour each, at most 4, up to 3 researchers) only for the rest.
+- **The Laboratory** (a new building kind: 3 slots, power 15, water 5, upkeep Chemistry): *Build a laboratory* (Tier II) at the
+  start; its Tier III and IV are research cards run in the laboratory below. Theory and experiments run in it, the prototype in the
+  way's own building, twice its hours.
+- **The test**: 50 % + (skill − gate), +10 % a failed test, a 100 always fails. Passed: the way is known, 100 × T × R XP to every
+  researcher (a PC's own, a group member's into his group's pool). Failed: one rarity lower; at rarity 1 the GM rules it
+  (*GM: rule a failed prototype*).
+- **The research perks and traits OFFERED in their ruled forms**: Absent-Minded Genius (inspirations 20 %, the roll × 1.5), Tinkerer
+  (a third experiment, prototypes −25 % time), Lab Rat (experiments 15 %, half the apparatus), Eureka (the inspiration at will, +10 %),
+  Prototype (built at 90 %, the first test passes), Data Miner and Reverse Engineer (finds the GM credits; Reverse Engineer 50 % and
+  the inspiration). 158 tests.
+
 **Version 0.50.0 (2026-11-21): part 7 round 11: one Water type again.**
 - **Boiled water is again a named item of Water II**, beside *Filtered water*, not a type (Marek: *"Once more, there is only 1
   water type. There can be multiple items with the same TTR and it never does matter, because players can select the specific item

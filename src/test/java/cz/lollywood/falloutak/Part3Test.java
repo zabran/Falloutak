@@ -421,11 +421,12 @@ class Part3Test {
             if (g.rule() != null && !g.rule().isEmpty()) assertFalse(Data.TRAITS.containsKey(g.rule()), g.rule() + " is the gene " + g.name());
         assertFalse(Data.TRAITS.containsKey("Brittle Bones"));
         assertFalse(Data.TRAITS.containsKey("Medical Marvel"));
-        assertEquals("parked", Data.TRAITS.get("Tinkerer").status());
+        assertEquals("in", Data.TRAITS.get("Tinkerer").status());                     // part 8 in the plugin (0.51.0)
         assertEquals("in", Data.TRAITS.get("Perfectionist").status());                // production: offered since part 7's round 4
         assertEquals("cos", Data.TRAITS.get("Fast Shot").status());
         Character d = of("Human", 5, 5, 5, 5, 5, 6, 9);
-        assertTrue(Forms.offeredTraits(d).stream().noneMatch(t -> t.name().equals("Fast Shot") || t.name().equals("Tinkerer")));
+        assertTrue(Forms.offeredTraits(d).stream().noneMatch(t -> t.name().equals("Fast Shot")));
+        assertTrue(Forms.offeredTraits(d).stream().anyMatch(t -> t.name().equals("Tinkerer")));     // part 8 in the plugin (0.51.0)
         d.unlocked.add("Fast Shot");
         assertTrue(Forms.offeredTraits(d).stream().anyMatch(t -> t.name().equals("Fast Shot")));
         // the numbers become a permanent effect: Bruiser +2 S, -2 AP; Gifted +1 everything, -10 every skill

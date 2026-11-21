@@ -297,6 +297,21 @@
    "water_use": "",
    "water_per_person": 0,
    "condensate": 0
+  },
+  {
+   "kind": "Laboratory",
+   "makes": "research: theory and experiments (part 8)",
+   "slots": 3,
+   "power": 15,
+   "water": 5,
+   "daily": false,
+   "automatic": false,
+   "produces": {},
+   "upkeep_skill": "Chemistry",
+   "note": "T II built at the start (Build a laboratory); its T III and IV are research projects run in the laboratory below",
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   }
  ]
 }
