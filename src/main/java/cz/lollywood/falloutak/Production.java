@@ -568,8 +568,9 @@ final class Production {
     String stop(Building b, Workforce wf, Base base) {
         if (b.job == null) return "! " + b.name + " has no job";
         Recipe r = recipe(b.job.recipe);
-        if (b.job.inputsTaken && r != null) for (Ttr t : r.inputs) if (!t.tool && (!t.extra || b.job.extra))
-            base.addUnits(t.type, t.tier, t.sets_rarity ? b.job.rarity : 1, b.job.halved ? (t.count + 1) / 2 : t.count);
+        if (b.job.inputsTaken && r != null) for (Ttr t : r.inputs) if (!t.tool && (!t.extra || b.job.extra))   // 0.61.0: a named input
+            base.addUnits(t.type, t.tier, t.sets_rarity ? b.job.rarity : t.rarity > 0 ? t.rarity : 1,           // back to its own row (salt R2)
+                    b.job.halved ? (t.count + 1) / 2 : t.count);
         String done = b.name + ": " + (r == null ? "the job" : r.name) + " stopped after " + b.job.done + (b.job.done == 1 ? " run" : " runs");
         if (!b.job.lead.isEmpty()) wf.assign(b.job.lead, "");
         b.job = null;
@@ -995,6 +996,7 @@ final class Production {
         }
         StringJoiner miss = new StringJoiner(", ");
         for (Ttr i : r.inputs) {   // 0.60.0: a named input only while one of its items is unlocked (salt: brought in, later traded)
+            if (i.extra) continue;      // 0.61.0: a named EXTRA (the salt lick) is only left out, never a reason to wait
             if (i.items == null || i.items.isEmpty() || i.items.stream().anyMatch(base::unlockedName)) continue;
             miss.add(i.count + " " + String.join(" or ", i.items) + " (not available: bring it in or trade for it)");
         }
@@ -1009,8 +1011,11 @@ final class Production {
         int rarity = 99;
         for (Ttr i : r.inputs) {
             if (i.tool) continue;
-            if (i.extra) {
-                b.job.extra = base.count(i.type, i.tier, 0) >= i.count && base.takeUnits(i.type, i.tier, 0, i.count) > 0;
+            if (i.extra) {   // 0.61.0: a named extra takes its own row (salt R2) and only while unlocked; a plain one any rarity
+                boolean named = i.items != null && !i.items.isEmpty();
+                int rr = named ? i.rarity : 0;
+                boolean open = !named || i.items.stream().anyMatch(base::unlockedName);
+                b.job.extra = open && base.count(i.type, i.tier, rr) >= i.count && base.takeUnits(i.type, i.tier, rr, i.count) > 0;
                 continue;
             }
             int used = 99, left = Research.count(r, i, crew);

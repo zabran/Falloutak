@@ -2769,6 +2769,106 @@
    ]
   },
   {
+   "id": "split-brine",
+   "name": "Split brine",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 30,
+   "hours": 4,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "items": [
+      "Bleach"
+     ]
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "items": [
+      "Lye"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    },
+    {
+     "type": "Water",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Chlor-alkali",
+   "better": "bleach and lye from salt water and the base's power"
+  },
+  {
+   "id": "chlorinate-water",
+   "name": "Chlorinate water",
+   "building": "Kitchen",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 15,
+   "hours": 1,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Water",
+     "tier": 2,
+     "count": 8,
+     "items": [
+      "Chlorinated water"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Water",
+     "tier": 1,
+     "count": 8,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Bleach"
+     ]
+    }
+   ],
+   "research": "Chlor-alkali",
+   "better": "water made safe from germs without fuel (the rads stay: Tier II)"
+  },
+  {
    "id": "rebuild-a-lead-battery",
    "name": "Rebuild a lead battery",
    "building": "Workshop",
@@ -3045,9 +3145,21 @@
      "sets_rarity": true,
      "tool": false,
      "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": true,
+     "items": [
+      "Salt"
+     ]
     }
    ],
-   "note": "wild rabbits and pigeons"
+   "note": "wild rabbits and pigeons; a salt lick (the extra) speeds it"
   },
   {
    "id": "breed-rabbits",
@@ -3087,8 +3199,130 @@
      "sets_rarity": false,
      "tool": false,
      "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": true,
+     "items": [
+      "Salt"
+     ]
     }
-   ]
+   ],
+   "note": "a salt lick (the extra) speeds it"
+  },
+  {
+   "id": "breed-goats-and-pigs",
+   "name": "Breed goats and pigs",
+   "building": "Pens",
+   "tier": 3,
+   "skill": "Biology",
+   "min": 30,
+   "hours": 12,
+   "days": 90,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Livestock",
+     "tier": 3,
+     "count": 3,
+     "items": [
+      "Goats",
+      "Pigs"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Livestock",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 8,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": true,
+     "items": [
+      "Salt"
+     ]
+    }
+   ],
+   "note": "the feral goats and pigs caught outside; a salt lick (the extra) speeds it"
+  },
+  {
+   "id": "milk-the-goats",
+   "name": "Milk the goats",
+   "building": "Pens",
+   "tier": 3,
+   "skill": "Biology",
+   "min": 20,
+   "hours": 2,
+   "days": 1,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 2,
+     "items": [
+      "Goat milk"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Livestock",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": true,
+     "extra": false
+    },
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 3,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": true,
+     "items": [
+      "Salt"
+     ]
+    }
+   ],
+   "note": "the goats are kept (a tool: they tire); the milk carries what their fodder did (Tier II); a salt lick speeds it"
   },
   {
    "id": "catch-rats-and-pigeons",
@@ -5102,6 +5336,52 @@
    "builds": {
     "kind": "Pens",
     "tier": 2
+   }
+  },
+  {
+   "id": "build-stalls",
+   "name": "Build stalls",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 25,
+   "hours": 16,
+   "days": 0,
+   "known": "start",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Wood",
+     "tier": 2,
+     "count": 8,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Metal",
+     "tier": 1,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "a barn with stalls for goats, pigs and cattle (09b round 6) [EXAMPLE]",
+   "builds": {
+    "kind": "Pens",
+    "tier": 3
    }
   },
   {

@@ -342,6 +342,12 @@
      "tier": 2,
      "rarity": 1,
      "id": ""
+    },
+    {
+     "name": "Bleach",
+     "tier": 2,
+     "rarity": 1,
+     "id": ""
     }
    ]
   },
@@ -452,6 +458,12 @@
      "id": ""
     },
     {
+     "name": "Goat milk",
+     "tier": 2,
+     "rarity": 1,
+     "id": ""
+    },
+    {
      "name": "Potatoes",
      "tier": 3,
      "rarity": 1,
@@ -491,6 +503,12 @@
     },
     {
      "name": "Filtered water",
+     "tier": 2,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Chlorinated water",
      "tier": 2,
      "rarity": 1,
      "id": ""
@@ -910,6 +928,24 @@
     {
      "name": "Chickens",
      "tier": 2,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Goats",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Pigs",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Cattle",
+     "tier": 4,
      "rarity": 1,
      "id": ""
     }

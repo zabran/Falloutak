@@ -482,6 +482,42 @@
    "basic": false
   },
   {
+   "id": "chlor-alkali",
+   "name": "Chlor-alkali",
+   "recipes": [
+    "split-brine",
+    "chlorinate-water"
+   ],
+   "science": "Chemistry",
+   "tier": 2,
+   "rarity": 1,
+   "points": 400,
+   "gate": 50,
+   "lab": 2,
+   "lines": [
+    "water",
+    "chemicals"
+   ],
+   "needs": [],
+   "eureka": {
+    "kind": "made",
+    "type": "Power",
+    "tier": 1,
+    "count": 5,
+    "text": "5 Power I made in the base (salt-water cells: the brine and the current)",
+    "model": "Build 2 Mines → Apprenticeship",
+    "auto": true
+   },
+   "notes": [],
+   "experiment": {
+    "electronics": 2,
+    "machinery": 1
+   },
+   "better": "bleach and lye from salt water and the base's power",
+   "parked": false,
+   "basic": false
+  },
+  {
    "id": "edison-cell",
    "name": "Edison cell",
    "recipes": [

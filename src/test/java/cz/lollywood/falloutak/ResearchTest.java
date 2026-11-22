@@ -57,7 +57,7 @@ class ResearchTest {
 
     @Test
     void theCardsAreTheCataloguesResearchedWays() {
-        assertEquals(36, Research.CARDS.size());                                            // round 8: the grow room built from the start
+        assertEquals(37, Research.CARDS.size());                                            // round 8: the grow room built from the start; 0.61.0 + Chlor-alkali
         assertEquals(2, Research.CARDS.values().stream().filter(c -> c.parked).count());     // gene research PARKED (Marek 11-13)
         int[] gate = {0, 25, 50, 100, 150};
         for (Research.Card c : Research.CARDS.values()) {
