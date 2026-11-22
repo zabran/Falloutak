@@ -50,7 +50,14 @@ import java.util.*;
  */
 final class Production {
     // ------------------------------------------------------------------ the catalogue
-    static final class Ttr { String type = ""; int tier = 1, count = 1, rarity; boolean sets_rarity, tool, extra; }
+    /**
+     * A TTR in or out of a recipe. 0.60.0 (Marek 11-22, verbatim: *""An item is unlocked from the start only if a recipe the base knows
+     * makes it. Otherwise it unlocks when it is brought in, or by the GM." - yes, 100%."* · *""A recipe input can name an item, such as
+     * Salt. It accepts the type's units only while that item is unlocked." - could be, OK.*): {@code items} on an OUTPUT = the named
+     * items it makes (unlocked by making them); on an INPUT = the named items it accepts (its own rarity, e.g. salt = Chemicals I R2,
+     * taken only while one of them is unlocked).
+     */
+    static final class Ttr { String type = ""; int tier = 1, count = 1, rarity; boolean sets_rarity, tool, extra; List<String> items = new ArrayList<>(); }
     static final class Builds { String kind = ""; int tier = 1; }
     static final class Recipe {
         String id = "", name = "", building = "", skill = "", known = "start", research = "", better = "", note = "";
@@ -235,7 +242,32 @@ final class Production {
     }
 
     static String ttr(Ttr t) {
+        if (t.items != null && !t.items.isEmpty())   // 0.60.0: a named input, "1 Salt (Chemicals I R2)"
+            return (t.tool ? "tool: " : t.extra ? "extra: " : "") + t.count + " " + String.join(" or ", t.items) + " (" + t.type + " "
+                    + Rules.roman(t.tier) + (t.rarity > 1 ? " R" + t.rarity : "") + ")";
         return (t.tool ? "tool: " : t.extra ? "extra: " : "") + t.count + " " + t.type + " " + Rules.roman(t.tier) + (t.rarity > 0 ? " R" + t.rarity : "") + (t.sets_rarity ? "*" : "");
+    }
+
+    /** 0.60.0: a row whose named items (the catalogue's) are none of these: salt's row, Chemicals I R2, for a recipe making lye. */
+    static boolean reserved(String type, int tier, int rarity, List<String> made) {
+        ItemType t = TYPES.get(type);
+        if (t == null) return false;
+        boolean any = false;
+        for (Named n : t.items) if (n.tier == tier && n.rarity == rarity) { any = true; if (made != null && made.contains(n.name)) return false; }
+        return any;
+    }
+
+    /** 0.60.0: the recipes that make this named item (by their outputs' {@code items}). */
+    static List<Recipe> makersOf(String name) {
+        List<Recipe> l = new ArrayList<>();
+        for (Recipe r : RECIPES.values()) for (Ttr m : r.makes) if (m.items != null && m.items.contains(name)) { l.add(r); break; }
+        return l;
+    }
+
+    /** 0.60.0: does a recipe this base knows (from the start or researched) make this named item. */
+    boolean makesNamed(String name) {
+        for (Recipe r : makersOf(name)) if (known(r)) return true;
+        return false;
     }
 
     static String makesText(Recipe r) {
@@ -962,6 +994,11 @@ final class Production {
             return null;
         }
         StringJoiner miss = new StringJoiner(", ");
+        for (Ttr i : r.inputs) {   // 0.60.0: a named input only while one of its items is unlocked (salt: brought in, later traded)
+            if (i.items == null || i.items.isEmpty() || i.items.stream().anyMatch(base::unlockedName)) continue;
+            miss.add(i.count + " " + String.join(" or ", i.items) + " (not available: bring it in or trade for it)");
+        }
+        if (miss.length() > 0) return miss.toString();
         for (Ttr i : r.inputs) {
             if (i.extra) continue;
             int have = i.tool ? base.count(i.type, i.tier, 0) : 0;
@@ -1061,9 +1098,11 @@ final class Production {
             if (j.carry == null) j.carry = new HashMap<>();
             j.carry.put(ck, Math.max(0, total - k));
             if (k <= 0) continue;
-            base.addUnits(m.type, tier, rarity, k);
+            int rr = rarity;   // 0.60.0: never into a row kept for a named item it does not make (lye at R2 is not salt)
+            while (rr > 1 && reserved(m.type, tier, rr, m.items)) rr--;
+            base.addUnits(m.type, tier, rr, k, m.items);
             Research.made(this, m.type, tier, k, out);   // part 8: the eurekas count what is made
-            made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rarity + (tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
+            made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rr + (tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
         }
         j.water = 5;
         for (Ttr i : r.inputs) if (i.tool) base.wear(i.type, i.tier, Math.max(1, r.hours));   // a tool: 1 % a work hour [EXAMPLE]

@@ -320,7 +320,10 @@
     {
      "type": "Textile",
      "tier": 1,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Nettle fibre"
+     ]
     }
    ],
    "inputs": []
@@ -339,7 +342,10 @@
     {
      "type": "Textile",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Raw hide"
+     ]
     }
    ],
    "inputs": [
@@ -369,7 +375,10 @@
     {
      "type": "Textile",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Tanned leather"
+     ]
     }
    ],
    "inputs": [
@@ -408,7 +417,10 @@
     {
      "type": "Textile",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Woven cloth"
+     ]
     }
    ],
    "inputs": [
@@ -437,7 +449,10 @@
     {
      "type": "Textile",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Tanned leather"
+     ]
     }
    ],
    "inputs": [
@@ -477,7 +492,11 @@
     {
      "type": "Stone and glass",
      "tier": 1,
-     "count": 4
+     "count": 4,
+     "items": [
+      "Stone",
+      "Clay"
+     ]
     }
    ],
    "inputs": []
@@ -496,7 +515,11 @@
     {
      "type": "Stone and glass",
      "tier": 1,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Stone",
+      "Sand"
+     ]
     }
    ],
    "inputs": [
@@ -526,7 +549,10 @@
     {
      "type": "Stone and glass",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Brick"
+     ]
     }
    ],
    "inputs": [
@@ -564,7 +590,10 @@
     {
      "type": "Stone and glass",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Rough glass"
+     ]
     }
    ],
    "inputs": [
@@ -602,7 +631,10 @@
     {
      "type": "Stone and glass",
      "tier": 2,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Brick"
+     ]
     }
    ],
    "inputs": [
@@ -642,7 +674,10 @@
     {
      "type": "Chemicals",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Lye"
+     ]
     }
    ],
    "inputs": [
@@ -681,7 +716,10 @@
     {
      "type": "Chemicals",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Vinegar"
+     ]
     }
    ],
    "inputs": [
@@ -710,7 +748,10 @@
     {
      "type": "Chemicals",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Spirit"
+     ]
     }
    ],
    "inputs": [
@@ -757,7 +798,10 @@
     {
      "type": "Chemicals",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Quicklime"
+     ]
     }
    ],
    "inputs": [
@@ -795,7 +839,10 @@
     {
      "type": "Chemicals",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Soap"
+     ]
     }
    ],
    "inputs": [
@@ -834,7 +881,10 @@
     {
      "type": "Chemicals",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Powder"
+     ]
     }
    ],
    "inputs": [
@@ -873,7 +923,10 @@
     {
      "type": "Chemicals",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Spirit"
+     ]
     }
    ],
    "inputs": [
@@ -922,7 +975,10 @@
     {
      "type": "Fuel",
      "tier": 1,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Firewood"
+     ]
     }
    ],
    "inputs": []
@@ -941,7 +997,10 @@
     {
      "type": "Fuel",
      "tier": 1,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Firewood"
+     ]
     }
    ],
    "inputs": [
@@ -970,7 +1029,10 @@
     {
      "type": "Fuel",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Charcoal"
+     ]
     }
    ],
    "inputs": [
@@ -999,7 +1061,10 @@
     {
      "type": "Fuel",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Rendered fat"
+     ]
     }
    ],
    "inputs": [
@@ -1028,7 +1093,10 @@
     {
      "type": "Fuel",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Charcoal"
+     ]
     }
    ],
    "inputs": [
@@ -1058,7 +1126,10 @@
     {
      "type": "Fuel",
      "tier": 2,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Charcoal"
+     ]
     }
    ],
    "inputs": [
@@ -1089,7 +1160,11 @@
     {
      "type": "Livestock",
      "tier": 1,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Rats",
+      "Pigeons"
+     ]
     }
    ],
    "inputs": []
@@ -1108,12 +1183,18 @@
     {
      "type": "Food",
      "tier": 1,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Raw meat"
+     ]
     },
     {
      "type": "Textile",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Raw hide"
+     ]
     }
    ],
    "inputs": [
@@ -1142,7 +1223,10 @@
     {
      "type": "Food",
      "tier": 1,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Wild greens"
+     ]
     }
    ],
    "inputs": []
@@ -1161,7 +1245,10 @@
     {
      "type": "Food",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Cooked meat"
+     ]
     }
    ],
    "inputs": [
@@ -1200,7 +1287,10 @@
     {
      "type": "Food",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Jerky"
+     ]
     }
    ],
    "inputs": [
@@ -1217,13 +1307,109 @@
      "type": "Chemicals",
      "tier": 1,
      "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    }
+   ],
+   "note": "salted and dried: keeps"
+  },
+  {
+   "id": "salt-meat-in-brine",
+   "name": "Salt meat in brine",
+   "building": "Kitchen",
+   "tier": 2,
+   "skill": "Survival",
+   "min": 20,
+   "hours": 1,
+   "days": 7,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 3
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 3,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    },
+    {
+     "type": "Water",
+     "tier": 2,
+     "count": 1,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     }
    ],
-   "note": "salted and dried: keeps"
+   "note": "the herds' meat kept for the winter: the disease roll gone, the rads stay"
+  },
+  {
+   "id": "sauerkraut",
+   "name": "Sauerkraut",
+   "building": "Kitchen",
+   "tier": 2,
+   "skill": "Survival",
+   "min": 15,
+   "hours": 2,
+   "days": 21,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 4
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 5,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    }
+   ],
+   "note": "cabbage and roots at ~2 % salt: keeps the winter"
   },
   {
    "id": "field-potatoes",
@@ -1239,12 +1425,18 @@
     {
      "type": "Food",
      "tier": 2,
-     "count": 10
+     "count": 10,
+     "items": [
+      "Field potatoes"
+     ]
     },
     {
      "type": "Seeds",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Saved seed"
+     ]
     }
    ],
    "inputs": [
@@ -1275,12 +1467,18 @@
     {
      "type": "Food",
      "tier": 3,
-     "count": 15
+     "count": 15,
+     "items": [
+      "Potatoes"
+     ]
     },
     {
      "type": "Seeds",
      "tier": 3,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Seed potatoes"
+     ]
     }
    ],
    "inputs": [
@@ -1320,7 +1518,10 @@
     {
      "type": "Food",
      "tier": 3,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Potatoes"
+     ]
     }
    ],
    "inputs": [
@@ -1360,7 +1561,10 @@
     {
      "type": "Food",
      "tier": 3,
-     "count": 8
+     "count": 8,
+     "items": [
+      "Mushrooms"
+     ]
     }
    ],
    "inputs": [
@@ -1409,7 +1613,10 @@
     {
      "type": "Water",
      "tier": 1,
-     "count": 10
+     "count": 10,
+     "items": [
+      "Dirty water"
+     ]
     }
    ],
    "inputs": [],
@@ -1429,7 +1636,10 @@
     {
      "type": "Water",
      "tier": 2,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Boiled water"
+     ]
     }
    ],
    "inputs": [
@@ -1468,7 +1678,10 @@
     {
      "type": "Water",
      "tier": 2,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Filtered water"
+     ]
     }
    ],
    "inputs": [
@@ -1507,7 +1720,10 @@
     {
      "type": "Water",
      "tier": 3,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Purified water"
+     ]
     }
    ],
    "inputs": [
@@ -1546,7 +1762,10 @@
     {
      "type": "Water",
      "tier": 3,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Purified water"
+     ]
     }
    ],
    "inputs": [
@@ -1584,7 +1803,10 @@
     {
      "type": "Water",
      "tier": 3,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Purified water"
+     ]
     }
    ],
    "inputs": [
@@ -1624,7 +1846,10 @@
     {
      "type": "Medicine",
      "tier": 1,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Herbs"
+     ]
     }
    ],
    "inputs": [],
@@ -1644,7 +1869,10 @@
     {
      "type": "Medicine",
      "tier": 1,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Rag dressing"
+     ]
     }
    ],
    "inputs": [
@@ -1673,7 +1901,12 @@
     {
      "type": "Medicine",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Bandage",
+      "Splint",
+      "Tourniquet"
+     ]
     }
    ],
    "inputs": [
@@ -1720,7 +1953,10 @@
     {
      "type": "Medicine",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Antiseptic"
+     ]
     }
    ],
    "inputs": [
@@ -1759,7 +1995,10 @@
     {
      "type": "Medicine",
      "tier": 2,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Rehydration salts"
+     ]
     }
    ],
    "inputs": [
@@ -1767,10 +2006,13 @@
      "type": "Chemicals",
      "tier": 1,
      "count": 1,
-     "rarity": 0,
-     "sets_rarity": true,
+     "rarity": 2,
+     "sets_rarity": false,
      "tool": false,
-     "extra": false
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
     },
     {
      "type": "Food",
@@ -1783,6 +2025,48 @@
     }
    ],
    "note": "salt and sugar (04c §9)"
+  },
+  {
+   "id": "saline",
+   "name": "Saline",
+   "building": "Infirmary",
+   "tier": 2,
+   "skill": "Medicine",
+   "min": 15,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    },
+    {
+     "type": "Water",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "salt in clean water: washing wounds (04c)"
   },
   {
    "id": "willow-bark-extract",
@@ -1993,7 +2277,10 @@
     {
      "type": "Gene therapy",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Gene therapy (a T1 gene)"
+     ]
     }
    ],
    "inputs": [
@@ -2032,7 +2319,10 @@
     {
      "type": "Gene therapy",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Gene therapy (a T2 gene)"
+     ]
     }
    ],
    "inputs": [
@@ -2070,7 +2360,12 @@
     {
      "type": "Implants",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Subdermal Studs",
+      "Fingertip Magnet",
+      "Light under the Skin"
+     ]
     }
    ],
    "inputs": [
@@ -2109,7 +2404,11 @@
     {
      "type": "Implants",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Audio Implant",
+      "RFID Chip"
+     ]
     }
    ],
    "inputs": [
@@ -2165,7 +2464,10 @@
     {
      "type": "Gear and tools",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Stone tools"
+     ]
     }
    ],
    "inputs": [
@@ -2203,7 +2505,10 @@
     {
      "type": "Gear and tools",
      "tier": 1,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Earplugs"
+     ]
     }
    ],
    "inputs": [
@@ -2241,7 +2546,10 @@
     {
      "type": "Gear and tools",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Hand tools"
+     ]
     }
    ],
    "inputs": [
@@ -2279,7 +2587,10 @@
     {
      "type": "Gear and tools",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Gas filter"
+     ]
     }
    ],
    "inputs": [
@@ -2327,7 +2638,10 @@
     {
      "type": "Gear and tools",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Armour repair kit"
+     ]
     }
    ],
    "inputs": [
@@ -2375,7 +2689,10 @@
     {
      "type": "Gear and tools",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Hand tools"
+     ]
     }
    ],
    "inputs": [
@@ -2424,7 +2741,10 @@
     {
      "type": "Power",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Salt-water cell"
+     ]
     }
    ],
    "inputs": [
@@ -2462,7 +2782,10 @@
     {
      "type": "Power",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Lead battery"
+     ]
     }
    ],
    "inputs": [
@@ -2500,7 +2823,10 @@
     {
      "type": "Power",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Lead battery"
+     ]
     }
    ],
    "inputs": [
@@ -2547,7 +2873,10 @@
     {
      "type": "Power",
      "tier": 2,
-     "count": 4
+     "count": 4,
+     "items": [
+      "Lead battery"
+     ]
     }
    ],
    "inputs": [
@@ -2626,7 +2955,10 @@
     {
      "type": "Seeds",
      "tier": 1,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Wild seeds"
+     ]
     }
    ],
    "inputs": []
@@ -2645,7 +2977,10 @@
     {
      "type": "Seeds",
      "tier": 2,
-     "count": 3
+     "count": 3,
+     "items": [
+      "Saved seed"
+     ]
     }
    ],
    "inputs": [
@@ -2685,7 +3020,11 @@
     {
      "type": "Livestock",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Rabbits",
+      "Chickens"
+     ]
     }
    ],
    "inputs": [
@@ -2724,7 +3063,10 @@
     {
      "type": "Livestock",
      "tier": 2,
-     "count": 4
+     "count": 4,
+     "items": [
+      "Rabbits"
+     ]
     }
    ],
    "inputs": [
@@ -2762,7 +3104,11 @@
     {
      "type": "Livestock",
      "tier": 1,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Rats",
+      "Pigeons"
+     ]
     }
    ],
    "inputs": [
@@ -3715,7 +4061,10 @@
     {
      "type": "Metal",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Scrap metal"
+     ]
     }
    ],
    "inputs": [
@@ -4472,7 +4821,10 @@
     {
      "type": "Explosives",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Fire pot"
+     ]
     }
    ],
    "inputs": [
@@ -4510,7 +4862,10 @@
     {
      "type": "Explosives",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Fire pot"
+     ]
     }
    ],
    "inputs": [
@@ -4548,7 +4903,10 @@
     {
      "type": "Explosives",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Demolition charge"
+     ]
     }
    ],
    "inputs": [
@@ -4595,7 +4953,10 @@
     {
      "type": "Explosives",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Demolition charge"
+     ]
     }
    ],
    "inputs": [
@@ -4633,7 +4994,10 @@
     {
      "type": "Explosives",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Demolition charge"
+     ]
     }
    ],
    "inputs": [
@@ -5334,7 +5698,10 @@
     {
      "type": "Water",
      "tier": 1,
-     "count": 5
+     "count": 5,
+     "items": [
+      "Dirty water"
+     ]
     }
    ],
    "inputs": [],
@@ -5354,7 +5721,12 @@
     {
      "type": "Implants",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Subdermal Studs",
+      "Fingertip Magnet",
+      "Light under the Skin"
+     ]
     }
    ],
    "inputs": [
@@ -5393,7 +5765,11 @@
     {
      "type": "Implants",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Audio Implant",
+      "RFID Chip"
+     ]
     }
    ],
    "inputs": [
@@ -5442,7 +5818,10 @@
     {
      "type": "Gene therapy",
      "tier": 2,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Gene therapy (a T2 gene)"
+     ]
     }
    ],
    "inputs": [
@@ -5482,7 +5861,10 @@
     {
      "type": "Gene therapy",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Gene therapy (a T1 gene)"
+     ]
     }
    ],
    "inputs": [
@@ -5522,7 +5904,10 @@
     {
      "type": "Power",
      "tier": 1,
-     "count": 1
+     "count": 1,
+     "items": [
+      "Salt-water cell"
+     ]
     }
    ],
    "inputs": [

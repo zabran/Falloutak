@@ -157,10 +157,25 @@ final class Base {
     /** Tier I-II at rarity 1: the base makes it from the start (the gate, 05c §7). */
     static boolean madeAtStart(int tier, int rarity) { return tier <= 2 && rarity == 1; }
 
-    /** A named thing can be handed out: made from the start, its row made or brought in, or unlocked by the GM. */
-    boolean unlocked(String type, Production.Named n) {
-        return madeAtStart(n.tier, n.rarity) || unlocked.contains(n.name) || unlocked.contains(key(type, n.tier, n.rarity));
+    /**
+     * A named thing can be handed out. 0.60.0 (Marek 11-22, verbatim: *""An item is unlocked from the start only if a recipe the base knows
+     * makes it. Otherwise it unlocks when it is brought in, or by the GM." - yes, 100%."*): a recipe the base knows makes it, or it was
+     * made, brought in (the Mess Chest) or unlocked by the GM. Its row being made no longer opens the row's other names (making lye no
+     * longer opens salt); a row with none of its names unlocked is still handed out as the type itself ({@link #choices}).
+     */
+    boolean unlocked(String type, Production.Named n) { return unlockedName(n.name); }
+
+    /** 0.60.0: which named items a recipe the base knows makes; the plugin sets it to the base's Production. Null = the start recipes (tests). */
+    transient java.util.function.Predicate<String> knownMaker;
+
+    boolean makeable(String name) {
+        if (knownMaker != null) return knownMaker.test(name);
+        for (Production.Recipe r : Production.makersOf(name)) if (r.atStart()) return true;
+        return false;
     }
+
+    /** 0.60.0: a named item is open to the base: a known recipe makes it, or it was made, brought in or unlocked by the GM. */
+    boolean unlockedName(String name) { return name != null && (unlocked.contains(name) || makeable(name)); }
 
     static String genericName(String type, int tier, int rarity) { return type + " " + Rules.roman(tier) + (rarity > 1 ? " R" + rarity : ""); }
 
@@ -198,9 +213,15 @@ final class Base {
     }
 
     /** n units made in the base: undamaged, into their row; the row is unlocked (made in the base, 05c §7). */
-    void addUnits(String type, int tier, int rarity, int n) {
+    void addUnits(String type, int tier, int rarity, int n) { addUnits(type, tier, rarity, n, null); }
+
+    /** 0.60.0: ... and the named items the recipe makes are unlocked (made in the base). */
+    void addUnits(String type, int tier, int rarity, int n, List<String> items) {
         for (int i = 0; i < n; i++) add(type, tier, rarity, 100);
-        if (n > 0) unlocked.add(key(type, tier, rarity));
+        if (n > 0) {
+            unlocked.add(key(type, tier, rarity));
+            if (items != null) unlocked.addAll(items);
+        }
         save();
     }
 

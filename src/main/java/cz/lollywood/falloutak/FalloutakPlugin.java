@@ -80,6 +80,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         zones = new Zones(getDataFolder().toPath());
         base = new Base(getDataFolder().toPath());
         production = Production.load(getDataFolder().toPath());
+        base.knownMaker = production::makesNamed;   // 0.60.0: a named item is open when a recipe the base knows makes it
         Items.KEY = new org.bukkit.NamespacedKey(this, "fo_thing");
         Items.NPC = new org.bukkit.NamespacedKey(this, "fo_npc");
         Items.COND = new org.bukkit.NamespacedKey(this, "fo_cond");
