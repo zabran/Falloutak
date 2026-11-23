@@ -293,6 +293,13 @@ final class Menus {
                 c.wearing.add("Air bottle");
                 actions(x);
             }));
+        if (carry.containsKey("gear:Nut"))   // 09c §1.3 (round 9)
+            b.add(btn("Throw a nut (" + carry.get("gear:Nut") + ")", "where you look, up to 10 blocks: it sets off the first anomaly on its way and shows its edge (2 AP in rounds)", x -> {
+                if (!pl.battle.spend(x, 2, "a nut")) { actions(x); return; }
+                if (!Items.take(x, "gear:Nut")) return;
+                say(x, pl.anomalies.throwNut(x));
+                actions(x);
+            }));
         if (c.wearing.contains("Hazard suit")) b.add(btn("Take off the hazard suit", "", x -> { c.wearing.remove("Hazard suit"); actions(x); }));
         else if (carry.containsKey("gear:Hazard suit") && !pl.battle.inBattle(p))   // minutes to put on: not in rounds [mine]
             b.add(btn("Put on the hazard suit", Items.describe("gear:Hazard suit"), x -> { c.wearing.add("Hazard suit"); actions(x); }));
@@ -698,6 +705,7 @@ final class Menus {
         b.add(btn("All characters", "for everyone at once: pass time, heal, stop bleeding, give an item", Menus::gmAll));
         b.add(btn("Pass time (everyone)", "the game clock for every character: survival, chems, bleeding, healing, clinical death", x -> passTime(x, null)));
         b.add(btn("Gas zones" + (pl.zones.list.isEmpty() ? "" : " (" + pl.zones.list.size() + ")"), "a gas over an area: a factory hall, an anomaly, a cloud (03b §3c)", Menus::zonesMenu));
+        b.add(btn("Anomalies and the Black Rain", "place anomalies and fields, artifacts, nuts and detectors; the surge (09c, round 9)", Menus::anomalyMenu));
         b.add(btn("Time of day (everyone)", "set the hour and minute on everyone's clock (the day stays)", x -> timeOfDay(x, null)));
         b.add(btn("Base", "the store's chests (one a type, the Mess Chest) and the unlocked items (05c §7)", Menus::gmBase));
         b.add(btn("Award XP", "kills, checks, a found area, research, a quest (part 6): into the PCs and their groups' pools", Menus::xpMenu));
@@ -1220,7 +1228,7 @@ final class Menus {
         zs.sort(Comparator.comparingDouble(z -> { org.bukkit.World w = Bukkit.getWorld(z.world);
             return w == null || !w.equals(g.getWorld()) ? 1e18 : z.centre(w).distanceSquared(g.getLocation()); }));
         for (Zones.Zone z : zs.subList(0, Math.min(12, zs.size())))
-            b.add(btn("Remove zone " + z.id + ": " + z.gas + " " + Rules.roman(z.strength), z.describe(), x -> { pl.zones.remove(z); zonesMenu(x); }));
+            b.add(btn("Remove zone " + z.id + ": " + (z.anomaly.isEmpty() ? z.gas + " " + Rules.roman(z.strength) : "anomaly " + z.anomaly), z.describe(), x -> { pl.zones.remove(z); zonesMenu(x); }));
         if (pl.zones.list.stream().anyMatch(z -> z.rounds >= 0))
             b.add(btn("Remove every zone that counts down", "the clouds; the lasting ones stay", x -> {
                 for (Zones.Zone z : new ArrayList<>(pl.zones.list)) if (z.rounds >= 0) pl.zones.remove(z);
@@ -1229,6 +1237,109 @@ final class Menus {
         menu(g, "Gas zones", List.of(line(pl.zones.list.size() + " zone(s)" + (here == null ? "; you stand in none" : "; you stand in zone " + here.id + ": " + here.describe()), NamedTextColor.WHITE),
                 line("Whoever's eyes are inside breathes it (a zone wins over a character's own gas). Visible: smoke, riot gas, chlorine, acid fog, pollen. Smoke, the acid fog and the pollen HIDE: a ranged shot into, out of or through them −10 (the pollen is breathed only by the allergic); "
                         + "the rest only to the GM (purple). A countdown runs with a fight's rounds and Pass time for everyone.", NamedTextColor.GRAY)), b, Menus::gm);
+    }
+
+    // ------------------------------------------------------------------ the anomalies and the Black Rain (09c, `09b` round 9)
+    /** The GM's page: an anomaly by kind where he stands, a field around him, the nearest removed, nuts, detectors, artifacts, the Black Rain. */
+    static void anomalyMenu(Player g) {
+        if (!g.hasPermission("falloutak.gm")) return;
+        List<Ui.Btn> b = new ArrayList<>();
+        b.add(btn("An anomaly where you stand", "pick the kind, then the radius", x -> pick(x, "The kind", "09c §2: its tell, its harm, its mitigation.",
+                new ArrayList<>(Anomalies.KINDS.keySet()), k -> Anomalies.KINDS.get(k).name(), k -> Anomalies.KINDS.get(k).tell(),
+                (y, k) -> pick(y, "Radius", "Blocks from you.", List.of("1", "2", "3", "4"), r -> r + " blocks", r -> "a ball of radius " + r,
+                        (z, r) -> { say(z, anomalyCommand(z, new String[]{"place", k, r})); anomalyMenu(z); }, Menus::anomalyMenu), Menus::anomalyMenu)));
+        b.add(btn("A field around you", "6 anomalies of mixed kinds within 30 blocks on the ground, 1-3 artifacts in them (09c §1.1)",
+                x -> { say(x, anomalyCommand(x, new String[]{"field", "30", "6"})); anomalyMenu(x); }));
+        b.add(btn("Remove the nearest anomaly", "", x -> { say(x, anomalyCommand(x, new String[]{"remove"})); anomalyMenu(x); }));
+        b.add(btn("Give me 10 nuts", "", x -> { say(x, anomalyCommand(x, new String[]{"give", "nut", "10"})); anomalyMenu(x); }));
+        for (int t = 1; t <= 4; t++) {
+            int tt = t;
+            b.add(btn("Give me a detector, Tier " + Rules.roman(t), Items.describe("gear:Anomaly detector " + Rules.roman(t)),
+                    x -> { say(x, anomalyCommand(x, new String[]{"give", "detector", String.valueOf(tt)})); anomalyMenu(x); }));
+        }
+        b.add(btn("Give me an artifact", "the twelve of 09c §3", x -> pick(x, "The artifact", "It acts from the hotbar.", new ArrayList<>(Anomalies.ARTIFACTS.keySet()),
+                n -> n, n -> Anomalies.ARTIFACTS.get(n).text(), (y, n) -> { say(y, anomalyCommand(y, new String[]{"give", n})); anomalyMenu(y); }, Menus::anomalyMenu)));
+        b.add(btn("The Black Rain: the warning", "the signs: the radios wake, the ravens flee, the sky darkens", x -> { say(x, rainCommand(x, new String[]{"warn"})); anomalyMenu(x); }));
+        b.add(btn("The Black Rain: the storm, " + Anomalies.RAIN_ROUNDS + " rounds", "out under the sky: rads and the acid each round; then the fields move",
+                x -> { say(x, rainCommand(x, new String[]{"start"})); anomalyMenu(x); }));
+        b.add(btn("The Black Rain: stop it now", "the fields move, new artifacts in half of them", x -> { say(x, rainCommand(x, new String[]{"stop"})); anomalyMenu(x); }));
+        long n = pl.zones.list.stream().filter(z -> !z.anomaly.isEmpty()).count();
+        menu(g, "Anomalies", List.of(line(n + " anomal" + (n == 1 ? "y" : "ies") + " in the worlds; the Black Rain: "
+                        + (pl.anomalies.rainPhase == 0 ? "none" : pl.anomalies.rainPhase == 1 ? "the warning" : "falling"), NamedTextColor.WHITE),
+                line("Walking in: its first hit at once (Lucky Escape 2 × Luck %); inside, the rounds run. Their tells show to all, their outlines to the GMs.", NamedTextColor.GRAY)), b, Menus::gm);
+    }
+
+    /** /anomaly (GMs): kinds · place <kind> [radius] · field [radius] [count] · list · remove [id] · artifact <id> [name] · give <item> [count]. */
+    static String anomalyCommand(Player g, String[] a) {
+        if (!g.hasPermission("falloutak.gm")) return "GMs only.";
+        String sub = a.length == 0 ? "list" : a[0].toLowerCase(Locale.ROOT);
+        switch (sub) {
+            case "kinds" -> { StringBuilder s = new StringBuilder("The kinds:"); for (Anomalies.Kind k : Anomalies.KINDS.values()) s.append(" ").append(k.id()).append(" (").append(k.name()).append(");"); return s.toString(); }
+            case "place" -> {
+                if (a.length < 2 || !Anomalies.KINDS.containsKey(a[1])) return "/anomaly place <kind> [radius]: kinds " + String.join(", ", Anomalies.KINDS.keySet());
+                double r = a.length > 2 ? Double.parseDouble(a[2]) : 2;
+                Zones.Zone z = pl.zones.anomaly(g.getLocation().add(0, 1, 0), r, a[1]);
+                return "anomaly " + z.id + ": " + z.describe();
+            }
+            case "field" -> {
+                int radius = a.length > 1 ? Integer.parseInt(a[1]) : 30, n = a.length > 2 ? Integer.parseInt(a[2]) : 6;
+                List<Zones.Zone> made = pl.anomalies.field(g, Math.max(6, radius), Math.max(1, Math.min(10, n)));
+                long arts = made.stream().filter(z -> !z.artifact.isEmpty()).count();
+                return "a field of " + made.size() + " anomalies within " + radius + " blocks, " + arts + " artifact" + (arts == 1 ? "" : "s") + " in them";
+            }
+            case "list" -> {
+                StringBuilder s = new StringBuilder();
+                for (Zones.Zone z : pl.zones.list) if (!z.anomaly.isEmpty()) s.append(s.isEmpty() ? "" : " · ").append(z.id).append(": ").append(z.describe());
+                return s.isEmpty() ? "No anomalies." : s.toString();
+            }
+            case "remove" -> {
+                Zones.Zone best = null;
+                double bd = 1e18;
+                for (Zones.Zone z : pl.zones.list) {
+                    if (z.anomaly.isEmpty()) continue;
+                    if (a.length > 1) { if (z.id.equals(a[1])) best = z; continue; }
+                    if (!z.world.equals(g.getWorld().getName())) continue;
+                    double d = z.centre(g.getWorld()).distanceSquared(g.getLocation());
+                    if (d < bd) { bd = d; best = z; }
+                }
+                if (best == null) return "No such anomaly.";
+                pl.zones.remove(best);
+                return "removed " + best.id + ": " + best.describe();
+            }
+            case "artifact" -> {
+                if (a.length < 2) return "/anomaly artifact <id> [name]: lays an artifact at its heart (its kind's by default)";
+                for (Zones.Zone z : pl.zones.list)
+                    if (z.id.equals(a[1]) && !z.anomaly.isEmpty()) {
+                        String n = a.length > 2 ? String.join(" ", Arrays.copyOfRange(a, 2, a.length)) : Anomalies.KINDS.get(z.anomaly).artifact();
+                        if (!Anomalies.ARTIFACTS.containsKey(n)) return "No artifact " + n + ".";
+                        z.artifact = n;
+                        pl.zones.save();
+                        return "the " + n + " lies at the heart of anomaly " + z.id;
+                    }
+                return "No anomaly " + a[1] + ".";
+            }
+            case "give" -> {
+                if (a.length < 2) return "/anomaly give nut [count] | detector <1-4> | <artifact>";
+                if (a[1].equalsIgnoreCase("nut")) { int n = a.length > 2 ? Integer.parseInt(a[2]) : 10; Items.give(g, "gear:Nut", n); return n + " nuts"; }
+                if (a[1].equalsIgnoreCase("detector")) { int t = a.length > 2 ? Math.max(1, Math.min(4, Integer.parseInt(a[2]))) : 1; Items.give(g, "gear:Anomaly detector " + Rules.roman(t), 1); return "an anomaly detector, Tier " + Rules.roman(t); }
+                String n = String.join(" ", Arrays.copyOfRange(a, 1, a.length));
+                for (String x : Anomalies.ARTIFACTS.keySet()) if (x.equalsIgnoreCase(n)) { Items.give(g, "artifact:" + x, 1); return "the " + x + ": " + Anomalies.ARTIFACTS.get(x).text(); }
+                return "No artifact " + n + ".";
+            }
+            default -> { return "/anomaly kinds | place <kind> [radius] | field [radius] [count] | list | remove [id] | artifact <id> [name] | give <item> [count]"; }
+        }
+    }
+
+    /** /blackrain (GMs): warn · start [rounds] · stop (09c §5, round 9: the surge as the Black Rain). */
+    static String rainCommand(Player g, String[] a) {
+        if (!g.hasPermission("falloutak.gm")) return "GMs only.";
+        String sub = a.length == 0 ? "" : a[0].toLowerCase(Locale.ROOT);
+        return switch (sub) {
+            case "warn" -> pl.anomalies.warn(g.getWorld());
+            case "start" -> pl.anomalies.start(g.getWorld(), a.length > 1 ? Integer.parseInt(a[1]) : Anomalies.RAIN_ROUNDS);
+            case "stop" -> pl.anomalies.stop();
+            default -> "/blackrain warn | start [rounds] | stop";
+        };
     }
 
     /** Picks a gas, then its strength. */

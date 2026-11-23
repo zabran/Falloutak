@@ -31,6 +31,10 @@ final class Zones {
         double x1, y1, z1, x2, y2, z2, r;
         /** Game rounds left; -1 = lasting. */
         int rounds = -1;
+        /** An ANOMALY (09c, `09b` round 9): its kind ({@link Anomalies#KINDS}) instead of a gas; the artifact at its heart, if any; the
+         *  scene's round until which it is spent (the kinds that recharge). */
+        String anomaly = "", artifact = "";
+        long spentUntil = 0;
 
         boolean contains(Location l) { return l.getWorld() != null && contains(l.getWorld().getName(), l.getX(), l.getY(), l.getZ()); }
 
@@ -50,6 +54,12 @@ final class Zones {
         Rules.Gas kind() { return Rules.GASES.get(gas); }
 
         String describe() {
+            if (anomaly != null && !anomaly.isEmpty()) {
+                Anomalies.Kind k = Anomalies.KINDS.get(anomaly);
+                return "anomaly: " + (k == null ? anomaly : k.name()) + ", " + (ball ? "a ball of radius " + SheetGui.f(r) + " at " + (int) Math.floor(x1) + " "
+                        + (int) Math.floor(y1) + " " + (int) Math.floor(z1) : "a box from " + (int) x1 + " " + (int) y1 + " " + (int) z1)
+                        + (artifact == null || artifact.isEmpty() ? "" : ", the " + artifact + " inside");
+            }
             String shape = ball ? "a ball of radius " + SheetGui.f(r) + " at " + (int) Math.floor(x1) + " " + (int) Math.floor(y1) + " " + (int) Math.floor(z1)
                     : "a box " + (int) (x2 - x1) + "×" + (int) (y2 - y1) + "×" + (int) (z2 - z1) + " from " + (int) x1 + " " + (int) y1 + " " + (int) z1;
             return (label.isEmpty() ? "" : label + ": ") + gas + " " + Rules.roman(strength) + ", " + shape + (rounds < 0 ? ", lasting" : ", " + rounds + " rounds left");
@@ -70,7 +80,13 @@ final class Zones {
         if (!Files.isRegularFile(file)) return;
         try {
             Zone[] zs = Store.GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Zone[].class);
-            if (zs != null) for (Zone z : zs) if (z != null && Rules.GASES.containsKey(z.gas)) list.add(z);
+            if (zs != null)
+                for (Zone z : zs) {
+                    if (z == null) continue;
+                    if (z.anomaly == null) z.anomaly = "";
+                    if (z.artifact == null) z.artifact = "";
+                    if (Rules.GASES.containsKey(z.gas) || Anomalies.KINDS.containsKey(z.anomaly)) list.add(z);
+                }
             for (Zone z : list) try { seq = Math.max(seq, Integer.parseInt(z.id)); } catch (NumberFormatException ignored) { }
         } catch (IOException | RuntimeException e) {
             Bukkit.getLogger().warning("[Falloutak] zones.json unreadable: " + e);
@@ -90,8 +106,21 @@ final class Zones {
     /** The gas zone a point is in (the strongest where they overlap), or null; a cloud that only hides is not a gas here. */
     Zone at(Location l) {
         Zone best = null;
-        for (Zone z : list) if (!NOT_BREATHED.contains(z.gas) && z.contains(l) && (best == null || z.strength > best.strength)) best = z;
+        for (Zone z : list) if (z.anomaly.isEmpty() && !NOT_BREATHED.contains(z.gas) && z.contains(l) && (best == null || z.strength > best.strength)) best = z;
         return best;
+    }
+
+    /** An anomaly: a lasting ball of a kind (09c; the GM's), no gas. */
+    Zone anomaly(Location c, double r, String kind) {
+        Zone z = new Zone();
+        z.id = String.valueOf(++seq);
+        z.world = c.getWorld().getName();
+        z.ball = true;
+        z.x1 = c.getX(); z.y1 = c.getY(); z.z1 = c.getZ(); z.r = r;
+        z.anomaly = kind;
+        list.add(z);
+        save();
+        return z;
     }
 
     /**
@@ -220,6 +249,7 @@ final class Zones {
     /** Each second: particles in every zone someone is near; the invisible ones faintly, to the GMs only. */
     void show() {
         for (Zone z : list) {
+            if (!z.anomaly.isEmpty()) continue;   // the anomalies show their own tells (Anomalies#tells)
             World w = Bukkit.getWorld(z.world);
             if (w == null) continue;
             Location mid = z.centre(w);

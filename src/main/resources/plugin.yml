@@ -37,6 +37,12 @@ commands:
   maps:
     description: The maps (part 9, GMs). /maps · go <world> [all] · back
     usage: /maps [go <world> [all]|back]
+  anomaly:
+    description: The anomalies (GMs, 09c). /anomaly kinds | place <kind> [radius] | field [radius] [count] | list | remove [id] | artifact <id> [name] | give <item> [count]
+    usage: /anomaly kinds|place|field|list|remove|artifact|give
+  blackrain:
+    description: The Black Rain, the surge (GMs). /blackrain warn | start [rounds] | stop
+    usage: /blackrain warn|start [rounds]|stop
   pack:
     description: The Pip-Boy pictures in the sheet (the Falloutak pack). /pack [on|off|auto]
     usage: /pack [on|off|auto]

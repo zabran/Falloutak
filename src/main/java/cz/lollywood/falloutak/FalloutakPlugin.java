@@ -27,6 +27,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
     Roster roster;
     /** Gas zones in the world (03b §3c, Marek 11-18: localized). */
     Zones zones;
+    Anomalies anomalies;
     /** The base's store of generic items (05c §7, Marek 11-18: chosen in the base before going out). */
     Base base;
     /** The store's chests (Marek 11-19: one chest per type, the Mess Chest). */
@@ -78,6 +79,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         store = new Store(getDataFolder().toPath());
         zones = new Zones(getDataFolder().toPath());
+        anomalies = new Anomalies(this);
         base = new Base(getDataFolder().toPath());
         production = Production.load(getDataFolder().toPath());
         base.knownMaker = production::makesNamed;   // 0.60.0: a named item is open when a recipe the base knows makes it
@@ -96,6 +98,10 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         if (sndCmd != null) sndCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? soundsCommand(p, a) : "Players only."); return true; });
         var creCmd = getCommand("creature");
         if (creCmd != null) creCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? Creatures.command(p, a) : "Players only."); return true; });
+        var anCmd = getCommand("anomaly");   // 09c (round 9): the anomalies, their artifacts, the nut and the detector (GMs)
+        if (anCmd != null) anCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? Menus.anomalyCommand(p, a) : "Players only."); return true; });
+        var rainCmd = getCommand("blackrain");   // the Black Rain, the surge (round 9; GMs)
+        if (rainCmd != null) rainCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? Menus.rainCommand(p, a) : "Players only."); return true; });
         var mapsCmd = getCommand("maps");
         if (mapsCmd != null) mapsCmd.setExecutor((s, c, l, a) -> { s.sendMessage(Maps.command(s, a)); return true; });
         var packCmd = getCommand("pack");

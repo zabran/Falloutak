@@ -29,13 +29,18 @@ public final class Hud {
     void tick() {
         seconds++;
         pl.zones.show();   // the visible gases as particles (real time is only for what is seen)
+        pl.anomalies.tells();      // the anomalies' tells (09c, round 9)
+        pl.anomalies.rainTick();   // the Black Rain: its warning, who is out in it, its end
         for (Player p : Bukkit.getOnlinePlayers()) {
             Character c = pl.characters.get(p.getUniqueId());
             if (c == null) continue;
             c.submerged = headInWater(p);   // the air is read from the world; Oxygen moves only with game time (03b §3c)
             c.nearRads = glowNear(p);       // 03b §7b, round 9: the glowing ones near are radiation sources
             pl.zones.apply(c, p);           // the gas zone his eyes are in (Marek 11-18: localized)
+            pl.anomalies.apply(p, c);       // the anomaly his body is in (09c, round 9)
+            pl.anomalies.belt(p, c);        // the artifacts on his belt
             Map<String, Integer> carry = Items.carried(p);   // what he wears (05c), the big gas mask with the filters he carries
+            String det = pl.anomalies.detect(p, carry);      // the anomaly detector (09c §1.4)
             c.setArmour(Items.readArmour(p), carry.containsKey("gear:Gas filter"), carry.containsKey("gear:CO filter"));
             // Marek 11-18: "battle rounds should also be active during taking damage from environment"
             // (not in creative or spectator mode: the GM placing a zone around himself is not caught in it)
@@ -50,6 +55,7 @@ public final class Hud {
                         .append(Component.text(" · AP " + c.apMax(), NamedTextColor.AQUA))
                         .append(Component.text(" · Rads " + Math.round(rads), NamedTextColor.YELLOW))
                         .append(Component.text(c.bleeding > 0 ? " · BLEEDING " + SheetGui.f(c.bleeding) + " Blood/round" : "", NamedTextColor.DARK_RED))
+                        .append(Component.text(det, NamedTextColor.LIGHT_PURPLE))
                         .append(Component.text(demo.contains(p.getUniqueId()) ? "  [demo clock: 1 s = 1 h]" : "", NamedTextColor.DARK_GRAY)));
             }
             Battle.cosmetic(() -> sidebar(p, c));   // the look only (the test server lacks parts of the scoreboard)
@@ -148,6 +154,8 @@ public final class Hud {
             double v = c.survival.get(st) + d[st.ordinal()];
             c.survival.put(st, Math.max(0, Math.min(st == Rules.Stat.RADS ? (c.glowing() ? Rules.GLOW_CAP : 2000) : c.max(st), v)));
         }
+        if (c.other("cold_cap") > 0)   // the ember (09c §3): Hypothermia stops at Minor
+            c.survival.put(Rules.Stat.HYPOTHERMIA, Math.min(c.survival.getOrDefault(Rules.Stat.HYPOTHERMIA, 0.0), 0.4 * c.max(Rules.Stat.HYPOTHERMIA)));
         // the note on Pain: "When over 75, it lowers to 75 after hour of resting" (resting = asleep here)
         if (c.sleeping && c.survival.get(Rules.Stat.PAIN) > 75) c.survival.put(Rules.Stat.PAIN, 75.0);
         double floor = c.other("pain_floor", true);   // the mutation Chronic Pain: never below 10
@@ -321,6 +329,10 @@ public final class Hud {
         bleedRound(c);
         String r = c.breathRound(rnd);
         if (r != null) c.news.add(r);
+        String a = Menus.pl == null || Menus.pl.anomalies == null ? null : Menus.pl.anomalies.round(c, rnd);   // 09c §2 (round 9)
+        if (a != null) c.news.add(a);
+        String b = Anomalies.rainRound(c, rnd);                                                            // the Black Rain
+        if (b != null) c.news.add(b);
     }
 
     static String clock(double minutes) { int s = (int) Math.round(minutes * 60); return s / 60 + ":" + String.format("%02d", s % 60); }

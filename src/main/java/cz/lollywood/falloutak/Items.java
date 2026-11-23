@@ -29,7 +29,8 @@ final class Items {
 
     /** 03b §3c: the gas mask and its filters, the air bottle, ear protection (worn from the Actions). */
     static final List<String> GEAR = List.of("Stimpak", "Adrenaline", "Defibrillator", "Gas filter", "CO filter", "Air bottle",
-            "Earplugs", "Electronic muffs", "Small gas mask", "Armour repair kit");   // the big gas mask and the hazard suit are armour now (05c)
+            "Earplugs", "Electronic muffs", "Small gas mask", "Armour repair kit", "Nut", "Anomaly detector I", "Anomaly detector II",
+            "Anomaly detector III", "Anomaly detector IV");   // 09c §1.3-§1.4 (round 9)   // the big gas mask and the hazard suit are armour now (05c)
     static final List<String> SUPPLIES = List.of("improvised", "tier3", "tier4");
 
     static ItemStack make(String id, int count) {
@@ -50,8 +51,23 @@ final class Items {
                 case "Electronic muffs" -> Material.ECHO_SHARD;
                 case "Hazard suit" -> Material.SHULKER_SHELL;
                 case "Small gas mask" -> Material.FIREWORK_STAR;
-                case "Armour repair kit" -> Material.IRON_NUGGET;
+                case "Armour repair kit", "Nut" -> Material.IRON_NUGGET;
+                case "Anomaly detector I", "Anomaly detector II", "Anomaly detector III", "Anomaly detector IV" -> Material.COMPASS;
                 default -> Material.GLASS_BOTTLE;
+            };
+            case "artifact" -> switch (k[1]) {   // 09c §3: nothing that places or throws
+                case "Feather stone" -> Material.PRISMARINE_SHARD;
+                case "Spark coil" -> Material.BREEZE_ROD;
+                case "Ember" -> Material.BLAZE_POWDER;
+                case "Glass slug" -> Material.SLIME_BALL;
+                case "Stopped watch" -> Material.DISC_FRAGMENT_5;
+                case "Frost pearl" -> Material.PRISMARINE_CRYSTALS;
+                case "Lodestone" -> Material.RAW_IRON;
+                case "Shell" -> Material.ARMADILLO_SCUTE;
+                case "Green heart" -> Material.HEART_OF_THE_SEA;
+                case "Crystal" -> Material.QUARTZ;
+                case "Black glass" -> Material.NETHERITE_SCRAP;
+                default -> Material.FEATHER;   // the float
             };
             case "supplies" -> Material.PAPER;
             case "thing" -> thingMaterial(k[1]);
@@ -88,6 +104,7 @@ final class Items {
             case "geneset" -> "Gene set: " + k[1];
             case "armour" -> k[1].replaceAll("\\|.*", "") + " (" + k[1].replaceAll(".*\\|", "").toLowerCase(Locale.ROOT) + ")";
             case "gear" -> k[1];
+            case "artifact" -> "Artifact: " + k[1];
             case "supplies" -> "Surgical supplies (" + switch (k[1]) { case "tier3" -> "Tier III"; case "tier4" -> "Tier IV"; default -> "improvised"; } + ")";
             case "thing", "made" -> k[1].replaceAll(".*\\|", "");
             default -> "Pip-Boy";
@@ -204,7 +221,7 @@ final class Items {
     }
 
     private static NamedTextColor color(String kind) {
-        return switch (kind) { case "chem", "therapy", "geneset" -> NamedTextColor.LIGHT_PURPLE; case "implant" -> NamedTextColor.AQUA; case "armour" -> NamedTextColor.GOLD; case "pipboy" -> NamedTextColor.GREEN; default -> NamedTextColor.WHITE; };
+        return switch (kind) { case "chem", "therapy", "geneset" -> NamedTextColor.LIGHT_PURPLE; case "implant" -> NamedTextColor.AQUA; case "artifact" -> NamedTextColor.YELLOW; case "armour" -> NamedTextColor.GOLD; case "pipboy" -> NamedTextColor.GREEN; default -> NamedTextColor.WHITE; };
     }
 
     static String describe(String id) {
@@ -240,7 +257,12 @@ final class Items {
                 case "Air bottle" -> "worn from your Actions: an hour of air, every gas and no air at all (under water too);\nbottled oxygen against CO (used up)";
                 case "Earplugs" -> "worn from your Actions: the eardrum roll halved, no ringing; P −1 while worn";
                 case "Electronic muffs" -> "Tier IV, worn from your Actions: the eardrum roll halved, no ringing, no P −1";
-                case "Hazard suit" -> "worn from your Actions: the skin sealed, so the acid fog's burns stay out (03b §3c);\nthe breath still needs a mask or a bottle";
+                case "Hazard suit" -> "worn from your Actions: the skin sealed, so the acid fog's burns stay out (03b §3c);\nthe breath still needs a mask or a bottle; the Black Rain runs off it";
+                case "Nut" -> "anything metal: thrown from your Actions (2 AP in rounds) up to 10 blocks where you look,\nit sets off the first anomaly on its way and shows its edge; the throw, the pull, the lift\nare then safe for a round, the lightning two; the blind spot swallows it (09c §1.3; used up)";
+                case "Anomaly detector I" -> "Electronics, Tier I: beeps faster the nearer an anomaly within 10 blocks, the blind spot too (09c §1.4)";
+                case "Anomaly detector II" -> "Electronics, Tier II: beeps, and the direction";
+                case "Anomaly detector III" -> "Electronics, Tier III: beeps, the direction and the kind";
+                case "Anomaly detector IV" -> "Electronics, Tier IV: beeps, the direction, the kind, and an artifact inside (it glints for you)";
                 default -> "a revival: the chance × 1.0 (kept)";
             };
             case "supplies" -> "an operation: × " + Rules.SUPPLIES.getOrDefault(k[1], 0.6) + " (used up)";

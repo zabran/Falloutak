@@ -116,6 +116,10 @@ public final class Character {
     public int glowHours = 0;
     /** What the glowing ones near shed an hour onto this body (read from the world each second: players and figurants within 5 blocks). */
     public transient double nearRads = 0;
+    /** The anomaly the body is in (09c, round 9: read from the world each second): its kind, its zone, near its heart; what the world
+     *  should show for its last hit (a throw, a lightning); out under the Black Rain. */
+    public transient String anomaly = "", anomalyZone = "", anomalyFx = "";
+    public transient boolean anomalyCentre, rainExposed;
     /** Hours toward the next loss of a negative healing rate (Fatal Radiation Poisoning, 11-19). */
     public double sickHours = 0;
 
@@ -884,9 +888,10 @@ public final class Character {
         Data.Template t = tpl();
         boolean power = "power".equals(t.needs());
         return switch (st) {
-            case WATER -> power ? 0 : h * t.waterFactor();
-            case FOOD -> h * t.foodFactor();   // a synthetic body: its power
-            case SLEEP -> h < 0 ? h * t.sleepFactor() : h;   // the need (DEC2: x0.75); a synthetic body: its memory, cleaned like sleep
+            case WATER -> power ? 0 : h * t.waterFactor() * (1 + other("water_need"));   // an artifact's price (the ember: x1.25)
+            case FOOD -> h * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
+            case SLEEP -> h < 0 ? h * t.sleepFactor() * (1 + other("sleep_need")) : h;   // the need (DEC2: x0.75); a synthetic body: its memory, cleaned like sleep
+            case HYPOTHERMIA -> h + other("cold_per_hour");   // the frost pearl's price (09c §3)
             case RADS -> (locationRads + nearRads) * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");   // + the glowing ones near (round 9)
             case BLOOD -> inArrest() ? 0 : h;   // no circulation, no new blood [mine]
             default -> h;
@@ -1319,6 +1324,34 @@ public final class Character {
                 + (fight ? len + " round" + (len > 1 ? "s" : "") : len * 10 + " minutes");
     }
 
+    /**
+     * Damage of a type ({@link #DAMAGE_TYPES} index) after the body's protection: Normal through DT, then DR; the others through their
+     * resistance % (the anomalies, 09c §2). Never below 0.
+     */
+    public int harm(int raw, int type) {
+        if (type == 0) return (int) Math.round(Math.max(0, raw - dt()) * (1 - dr()));
+        double r = Math.max(-1, Math.min(0.9, resistances()[type] / 100));
+        return (int) Math.max(0, Math.round(raw * (1 - r)));
+    }
+
+    /**
+     * The artifacts on the belt (09c §3, round 9): each in the hotbar is an effect in its own slot while it is there; the black glass's
+     * Sneak +60 only while he stands still (Marek 11-23: *"the black glass - make it +60 while standing still."*).
+     */
+    public void belt(Set<String> names, boolean still) {
+        effects.removeIf(e -> e.slot().startsWith("artifact:") && !names.contains(e.slot().substring(9).replace(" (still)", ""))
+                || e.slot().equals("artifact:Black glass (still)") && !still);
+        for (String n : names) {
+            Anomalies.Artifact a = Anomalies.ARTIFACTS.get(n);
+            if (a == null || inSlot("artifact:" + n) != null) continue;
+            effects.add(new Effect("Artifact: " + n + " (" + a.text() + ")", "artifact", "artifact:" + n, false, a.mods().clone(),
+                    new LinkedHashMap<>(a.other()), 1e6, null, 100));
+        }
+        if (still && names.contains("Black glass") && inSlot("artifact:Black glass (still)") == null)
+            effects.add(new Effect("Artifact: the black glass, standing still: Sneak +60", "artifact", "artifact:Black glass (still)", false, new int[7],
+                    new LinkedHashMap<>(Map.of("skill:Sneak", 60.0)), 1e6, null, 100));
+    }
+
     /** What a glowing one sheds an hour now (03b §7b, round 9): {@link Rules#GLOW_SHED} of the rads it holds; 0 for anyone else. */
     public double shedRate() { return glowing() && !dead ? survival.getOrDefault(Rules.Stat.RADS, 0.0) * Rules.GLOW_SHED : 0; }
 
@@ -1608,6 +1641,11 @@ public final class Character {
     public boolean envHarm() {
         if (dead || inArrest()) return false;
         if (noAir() || holdingBreath) return true;
+        if (rainExposed && !wearing.contains("Hazard suit")) return true;   // the Black Rain (round 9)
+        if (!anomaly.isEmpty()) {                                            // an anomaly that acts each round (09c §2)
+            Anomalies.Kind k = Anomalies.KINDS.get(anomaly);
+            if (k != null && (k.hurts() || k.recharge() > 0) && !(anomaly.equals("echo") && deaf())) return true;
+        }
         Rules.Gas g = gasHere();
         if (g == null || g.bad() || g.hourlyPoison() > 0) return riotUntil > now() + 1e-9;
         if (g.burnDice() > 0 && !wearing.contains("Hazard suit")) return true;

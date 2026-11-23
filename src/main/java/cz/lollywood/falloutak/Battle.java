@@ -926,6 +926,8 @@ public final class Battle implements Listener {
     static String envWhat(Character c) {
         if (c.submerged) return "under water";
         if (!c.air) return "no air";
+        if (c.rainExposed) return "out in the Black Rain";
+        if (!c.anomaly.isEmpty() && Anomalies.KINDS.containsKey(c.anomaly)) return "in " + Anomalies.KINDS.get(c.anomaly).name();
         Rules.Gas g = c.gasHere();
         if (g != null) return g.name() + " " + Rules.roman(c.gasPower());
         if (c.holdingBreath) return "a held breath";
