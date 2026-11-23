@@ -152,10 +152,10 @@ class RoundTwelveTest {
         h.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
         assertEquals("Ghoul G2", h.necrosisGene().name());
         assertEquals("Survivor", h.baseTpl().name());
-        assertTrue(names(h.baseTpl()).contains("Broad HLA G2"), "the template's genes stay, changed by the ghoul (round 15; G2 leathered, round 16)");
+        assertTrue(names(h.baseTpl()).contains("Broad HLA G1 G2"), "the template's genes stay, changed by the ghoul: the turn's +10 % and the hide's gift last (round 17)");
         assertEquals(dt0 + 3, h.dt(), "the leathered hide");
         h.ghoulAdvance(2, Part3Test.fixed(0.5, 1));
-        assertEquals("Ghoul G4", h.necrosisGene().name());
+        assertEquals("Ghoul", h.necrosisGene().name(), "glowing: back to the ghoul's own rad res (round 17)");
         assertTrue(h.necrosisGene().text().contains("jumped husk"), h.necrosisGene().text());
         assertTrue(h.glowing());
     }
@@ -193,7 +193,7 @@ class RoundTwelveTest {
         c.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
         Base b = new Base(dir);
         List<String> added = b.sample(c.recipes());
-        assertEquals(List.of("Eyes M1 G1", "Muscle G1", "Mind G1", "Frame G1", "Immunity G2", "Skin G2", "Metabolism G2", "Look G2", "Ghoul G2"), added,
+        assertEquals(List.of("Eyes M1 G1", "Muscle G1", "Mind G1", "Frame G1", "Immunity G1 G2", "Skin G2", "Metabolism G2", "Look G2", "Ghoul G2"), added,
                 "round 15: the ghoul's parts in the body's slots, each its own gene (Eyes: the dark step and the ghoul's P +3); round 16: M and G");
         assertTrue(b.sample(c.recipes()).isEmpty(), "known already");
         Character other = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);

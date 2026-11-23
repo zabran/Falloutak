@@ -459,30 +459,36 @@ public final class Data {
             if (!base.isEmpty() && b == null) return null;
             Gene g;
             String root;
-            int gNo = 0;   // the ghoul mutation that last changed this gene (round 16: G1-G4), 0 = none
+            List<Integer> gs = new ArrayList<>();   // the ghoul mutations whose change in this gene lasts (rounds 16-17: G1-G4)
             if (slot.equals(NECROSIS)) {
                 Gene core = ghoulish ? ghoulVariant(b != null ? b : GENES.get("Ghoul"), ghoul) : b;
                 g = steps.isEmpty() ? core : littleNecrosis(variant(core, NECROSIS, events, steps), events);
                 root = ghoulish ? (b != null ? b.name() : "Ghoul") : b == null ? NECROSIS : b.name();
-                if (ghoulish && ghoul != null && !ghoul.isEmpty()) gNo = ghoulStageNo(ghoul);   // each stage changes its rad res; the Ghoul gene itself is G1
+                int ns = ghoulish ? necrosisRad(ghoul)[1] : 0;   // the stage whose rad res lasts; glowing's return to 40 % leaves none
+                if (ns > 0) gs.add(ns);
             } else {
                 g = variant(b, slot, events, steps);
                 Part p = ghoulish ? ghoulParts(ghoul, turned).get(slot) : null;
                 if (p != null) g = withPart(g, p, slot);
                 root = b == null ? slot : b.name();
-                if (p != null) gNo = p.stage();
+                if (p != null) gs.addAll(p.stages());
             }
             if (g == null) return null;
             // round 16 (Marek, verbatim: "name the Ghoul mutations as G1-G4, so that it is clear."): the mutations' M and the ghoul line's G
-            String nm = !name.isEmpty() ? name : root + (events > 0 && !steps.isEmpty() ? " M" + events : "") + (gNo > 0 ? " G" + gNo : "");
+            StringBuilder gn = new StringBuilder();
+            for (int x : gs) gn.append(" G").append(x);
+            String nm = !name.isEmpty() ? name : root + (events > 0 && !steps.isEmpty() ? " M" + events : "") + gn;
             return g.name().equals(nm) ? g : remake(g, nm, g.real(), g.text(), g.load(), g.mods(), g.other());
         }
     }
 
     /**
      * The ghoul line's number in a gene's name (round 16, Marek, verbatim: *"name the Ghoul mutations as G1-G4, so that it is clear."*): G1
-     * the ghoul, G2 leathered, G3 husk, G4 glowing; a gene shows the ghoul mutation that last changed it (*Muscle G1* stays G1 to the end,
-     * *Look* goes G2, G3, G4 as each stage changes its Charisma; the Necrosis gene follows the body, each stage changing its rad res).
+     * the ghoul, G2 leathered, G3 husk, G4 glowing. Round 17 (verbatim: *"only the actual lasting changes should be in name. If for the
+     * mutation G2 has lasting change and G4 adds something else, it is Gene G2 G4. If mutation G2 is completely subsumed (like if it never
+     * happened) by G4, the name should be just Gene G4."*): a gene names every ghoul mutation whose change in it lasts (*Metabolism G3 G4*:
+     * the husk's healing stays, the glowing one's E +2 replaced the leathered's E −1; *Look G4*; *Immunity G1 G2*); the Necrosis gene at
+     * glowing is the plain *Ghoul* again (its rad res back to 40 %).
      */
     public static int ghoulStageNo(List<String> path) {
         return path == null || path.isEmpty() ? 1 : Arrays.asList(Rules.GHOUL_STAGES).indexOf(path.get(path.size() - 1)) + 2;
@@ -497,7 +503,7 @@ public final class Data {
     }
 
     /** What the ghoul line puts into one of the body's slots (03b §7b, the lean Necrosis, round 15): attribute changes and other numbers. */
-    public record Part(int[] mods, Map<String, Double> other, List<String> said, int stage) {}
+    public record Part(int[] mods, Map<String, Double> other, List<String> said, List<Integer> stages) {}
 
     /**
      * THE LEAN NECROSIS (03b §7b; round 15, Marek 11-23, verbatim: *"Is the lean Necrosis split above fine? - seems so. I presume that every
@@ -510,16 +516,18 @@ public final class Data {
         Map<String, int[]> mods = new LinkedHashMap<>();
         Map<String, Map<String, Double>> oth = new LinkedHashMap<>();
         Map<String, List<String>> said = new LinkedHashMap<>();
-        Map<String, Integer> stageOf = new LinkedHashMap<>();   // the ghoul mutation that last changed the slot: G1 the turn, G2-G4 the stages
+        // round 17: the ghoul mutations whose change in the slot LASTS (G1 the turn, G2-G4 the stages); a stage whose number a later stage
+        // replaced is subsumed and not named
+        Map<String, TreeSet<Integer>> lasting = new LinkedHashMap<>();
         int[] cur = {1};
         java.util.function.BiConsumer<String, Object[]> mod = (slot, a) -> {
-            stageOf.merge(slot, cur[0], Math::max);
+            lasting.computeIfAbsent(slot, x -> new TreeSet<>()).add(cur[0]);
             mods.computeIfAbsent(slot, x -> new int[7])[(Integer) a[0]] += (Integer) a[1];
             said.computeIfAbsent(slot, x -> new ArrayList<>()).add(Rules.SPECIAL[(Integer) a[0]].substring(0, 1) + " " + ((Integer) a[1] > 0 ? "+" : "−")
                     + Math.abs((Integer) a[1]));
         };
         java.util.function.BiConsumer<String, Object[]> put = (slot, a) -> {
-            stageOf.merge(slot, cur[0], Math::max);
+            lasting.computeIfAbsent(slot, x -> new TreeSet<>()).add(cur[0]);
             oth.computeIfAbsent(slot, x -> new LinkedHashMap<>()).merge((String) a[0], (Double) a[1], Double::sum);
             said.computeIfAbsent(slot, x -> new ArrayList<>()).add((String) a[2]);
         };
@@ -567,7 +575,8 @@ public final class Data {
         }
         Map<String, Part> out = new LinkedHashMap<>();
         for (String slot : said.keySet())
-            out.put(slot, new Part(mods.getOrDefault(slot, new int[7]), oth.getOrDefault(slot, new LinkedHashMap<>()), said.get(slot), stageOf.get(slot)));
+            out.put(slot, new Part(mods.getOrDefault(slot, new int[7]), oth.getOrDefault(slot, new LinkedHashMap<>()), said.get(slot),
+                    new ArrayList<>(lasting.getOrDefault(slot, new TreeSet<>()))));
         return out;
     }
 
@@ -658,22 +667,32 @@ public final class Data {
      * Marek 11-23: *"the ghoul missing the benefites of previous stages, only gaining the maluses"*). The smell's Sneak −10, the rad
      * resistances and the gifts mine, EXAMPLE. Its load the Ghoul gene's (the stages never changed the food).
      */
-    public static Gene ghoulVariant(Gene ghoul, List<String> path) {
-        if (ghoul == null || path == null || path.isEmpty()) return ghoul;
-        double rr = 0;   // round 15, the lean Necrosis: only the radiation side here (leathered 75 %, husk 90 %, glowing back to the ghoul's own 40 %)
+    /**
+     * The Necrosis gene's rad res by the way the body went (round 15, the lean Necrosis: leathered 75 %, husk 90 %, glowing back to the ghoul's
+     * own 40 %): {the added points, the stage number (G2-G4) whose value lasts, 0 when none does (glowing undid it)}.
+     */
+    static int[] necrosisRad(List<String> path) {
+        if (path == null || path.isEmpty()) return new int[]{0, 0};
+        int rr = 0, at = 0;
         int last = Arrays.asList(Rules.GHOUL_STAGES).indexOf(path.get(path.size() - 1));
-        List<String> jumped = new ArrayList<>();
         for (int k = 0; k <= last; k++) {
-            String st = Rules.GHOUL_STAGES[k];
-            boolean walked = path.contains(st);
-            if (!walked) jumped.add(st);
-            switch (st) {
-                case "leathered" -> { if (walked) rr = 35; }
-                case "husk" -> { if (walked) rr = 50; }
-                case "glowing" -> rr = 0;
+            boolean walked = path.contains(Rules.GHOUL_STAGES[k]);
+            switch (Rules.GHOUL_STAGES[k]) {
+                case "leathered" -> { if (walked) { rr = 35; at = 2; } }
+                case "husk" -> { if (walked) { rr = 50; at = 3; } }
+                case "glowing" -> { rr = 0; at = 0; }
                 default -> { }
             }
         }
+        return new int[]{rr, rr != 0 ? at : 0};
+    }
+
+    public static Gene ghoulVariant(Gene ghoul, List<String> path) {
+        if (ghoul == null || path == null || path.isEmpty()) return ghoul;
+        double rr = necrosisRad(path)[0];
+        int last = Arrays.asList(Rules.GHOUL_STAGES).indexOf(path.get(path.size() - 1));
+        List<String> jumped = new ArrayList<>();
+        for (int k = 0; k <= last; k++) if (!path.contains(Rules.GHOUL_STAGES[k])) jumped.add(Rules.GHOUL_STAGES[k]);
         Map<String, Double> other = new LinkedHashMap<>(ghoul.other());
         if (rr != 0) other.merge("rad_res", rr, Double::sum);
         String name = ghoul.name() + " G" + ghoulStageNo(path);

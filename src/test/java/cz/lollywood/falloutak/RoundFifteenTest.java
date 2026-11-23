@@ -56,15 +56,22 @@ class RoundFifteenTest {
         h.turnGhoul();
         assertEquals("Look", gene(h, "Look") == null ? "Look" : "?", "the ghoul itself touches no Look");
         String[] want = {"G2", "G3", "G4"};
-        for (String w : want) {
+        String[] meta = {"Metabolism G2", "Metabolism G2 G3", "Metabolism G3 G4"};
+        String[] mind = {"Mind G1", "Mind G1 G3", "Mind G1 G4"};
+        String[] nec = {"Ghoul G2", "Ghoul G3", "Ghoul"};
+        for (int k = 0; k < 3; k++) {
             h.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
-            assertEquals("Look " + w, gene(h, "Look").name(), "each stage changes Look's Charisma");
+            assertEquals("Look " + want[k], gene(h, "Look").name(), "each stage's Charisma replaces the last: only the latest lasts");
             assertEquals("Muscle G1", gene(h, "Muscle").name(), "only the turn changed it: G1 to the end");
-            assertEquals("Ghoul " + w, h.necrosisGene().name());
+            assertEquals(meta[k], gene(h, "Metabolism").name(), "the leathered's E −1 lasts until the glowing one's E +2 replaces it; the husk's healing stays");
+            assertEquals(mind[k], gene(h, "Mind").name(), "the ghoul's own I +3 stays; the stages' I replace each other");
+            assertEquals(nec[k], h.necrosisGene().name(), "the rad res: 75, 90, then back to the ghoul's own");
         }
         assertEquals("Skin G2", gene(h, "Skin").name(), "the hide and the smell are the leathered's: G2");
         assertEquals("Pain G3", gene(h, "Pain").name());
-        assertEquals("Eyes G4", gene(h, "Eyes").name(), "the glowing one's light");
+        assertEquals("Eyes G1 G4", gene(h, "Eyes").name(), "the ghoul's P +3 and the glowing one's light");
+        assertEquals("Immunity G1 G2", gene(h, "Immunity").name());
+        assertEquals("Frame G1 G4", gene(h, "Frame").name());
         Character b = Part3Test.of("Ghoul", 5, 5, 5, 5, 5, 6, 5);
         assertEquals("Ghoul mind", gene(b, "Mind").name(), "born: its own genes, unchanged");
         b.ghoulAdvance(2, Part3Test.fixed(0.5, 1));

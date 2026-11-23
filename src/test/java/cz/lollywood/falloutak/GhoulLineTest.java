@@ -61,7 +61,7 @@ class GhoulLineTest {
         assertEquals(i0 - 5, g.attr(Rules.I, true), "a ghoul's I +3 − 5 = −2 against a human");
         assertEquals(a0 + 2, g.attr(Rules.A, true));
         assertEquals(List.of("leathered", "husk", "glowing"), g.ghoulPath);
-        assertEquals("Ghoul G4", g.necrosisGene().name(), "the stage is the Necrosis gene's variant; round 16: G1-G4");
+        assertEquals("Ghoul", g.necrosisGene().name(), "round 17: glowing undid the stages' rad res, nothing lasts in Necrosis");
         assertTrue(g.effects.stream().noneMatch(e -> "ghoul line".equals(e.source())), "no effect any more");
         assertEquals(1, g.effects.stream().filter(e -> "glowing mind".equals(e.source())).count());
     }
