@@ -39,12 +39,17 @@ import java.util.UUID;
  * Part 9's BATTLE MAPS for the world map's encounters (`09` §3.1 C, RULED: *"a world-map encounter pastes an arena by terrain"*; `09d`
  * round 2, Marek 11-23: *"a battle arena per terrain - lets go for it."* · *"it would be possible to have more encounters at once at one
  * battle map. And sight can be turned to hunt, if players want to."*). An arena world ({@link #WORLD}, empty but for the arenas) holds
- * one 48 x 48 arena a terrain of Arag's map (field, road, forest, town ruin), BUILT AGAIN for every fight from a new seed, so no two look
- * the same; the party is moved in, the scene's enemies (every hostile group and every hunted animal of it) stand where the way they met
+ * one arena a terrain of Arag's map (field, road, forest, town ruin), BUILT AGAIN for every fight from a new seed, so no two look
+ * the same, AT LEAST 64 x 64 (09d round 4, Marek 11-24: *"You need 30 to run away from enemy, so 60x60 sould be minimum for single
+ * encounter. Not to mention that some weapons have quite reach with high anough skill"*): the party stands {@link #ESCAPE} blocks from
+ * the edge behind it, the enemies at a distance by the longest reach in the fight, and the map grows with that distance and with the
+ * groups ({@link #sizeFor}); the party is moved in, the scene's enemies (every hostile group and every hunted animal of it) stand where the way they met
  * puts them, the fight is the battle's own, and each player goes back to where he was when it ends.
  * <ul>
- *   <li><b>AMBUSH</b> (they were spotted and the party attacks): the party in cover along the south edge, the enemies in the open in the
- *   north half; THE PARTY ACTS FIRST (02c §7: the attacker acts first).</li>
+ *   <li><b>AMBUSH</b> (they were spotted and the party attacks): the party in cover {@link #ESCAPE} blocks from the south edge, the
+ *   enemies in the open to the north at the start distance; THE PARTY ACTS FIRST (02c §7: the attacker acts first).</li>
+ *   <li><b>TALK</b> (09d round 4): placed as an ambush, the talk goes on for {@link Battle#TALK_ROUNDS} rounds while the party moves
+ *   into position ({@link Battle.Talk}).</li>
  *   <li><b>HUNT</b> (a sight turned into a hunt): placed as an ambush; an animal that is not hostile runs from the party and is gone once
  *   far enough.</li>
  *   <li><b>AMBUSHED</b> (not spotted): the party in the open in the middle, the enemies round it 9-14 blocks away; THEY ACT FIRST.</li>
@@ -56,16 +61,42 @@ final class Arena {
     private Arena() {}
 
     static final String WORLD = "fo_arena";
-    static final int SIZE = 48, Y = 64, H = 14, MARGIN = 6, SLOT = 200;
-    /** The size of the arena being built (48 for up to three groups, 64 for five, 80 for more: 09d round 3, *"if it is big enough,
-     *  more could get there"*) [the steps mine]. */
-    static int size = SIZE;
+    static final int SIZE = 64, Y = 64, H = 14, MARGIN = 6, SLOT = 200, ESCAPE = 30, MAX_SIZE = 128;
+    /** The arena being built: its side, the party's line (blocks from the south edge) and the enemies' start distance from it. */
+    static int size = SIZE, coverZ = ESCAPE, dist = 20;
     static final String[] TERRAINS = {"field", "road", "forest", "town"};
-    /** AMBUSH and HUNT: the party first, in cover; AMBUSHED: they first, round the party; PARLEY: a talk that failed, placed as an
-     *  ambush (they were seen first) but they attack first. */
-    enum Mode { AMBUSH, HUNT, AMBUSHED, PARLEY }
+    /** AMBUSH and HUNT: the party first, in cover; AMBUSHED: they first, round the party; TALK: placed as an ambush, the talk first;
+     *  PARLEY: a peaceful meeting gone hostile, placed as an ambush but they attack first. */
+    enum Mode { AMBUSH, HUNT, AMBUSHED, TALK, PARLEY }
 
-    static int sizeFor(int groups) { return groups <= 3 ? 48 : groups <= 5 ? 64 : 80; }
+    /** The enemies' start distance from the party's line: 0.8 x the longest reach in the fight, 12 to 40 blocks [mine, EXAMPLE]. */
+    static int startDistance(int reach) { return Math.max(12, Math.min(40, (int) Math.round(reach * 0.8))); }
+
+    /**
+     * The map's side (09d round 4): one group needs the party's {@link #ESCAPE} blocks behind it, the start distance and 14 blocks beyond
+     * the enemies, at least 64; 2-3 groups x 1.25, 4-5 x 1.5, more x 1.75, at most {@link #MAX_SIZE} [the steps mine, EXAMPLE].
+     */
+    static int sizeFor(int groups, int reach) {
+        int one = Math.max(SIZE, ESCAPE + startDistance(reach) + 14);
+        double k = groups <= 1 ? 1 : groups <= 3 ? 1.25 : groups <= 5 ? 1.5 : 1.75;
+        return Math.min(MAX_SIZE, (int) Math.round(one * k));
+    }
+
+    /** The longest reach in the fight: the party's guns and bows (their own gear) and the enemies' (a gunner's pistol, a creature's bite). */
+    static int reach(List<Player> party, List<Group> groups) {
+        int r = 0;
+        for (Player q : party)
+            for (org.bukkit.inventory.ItemStack it : q.getInventory().getContents()) {
+                Production.Design d = Items.made(Items.id(it));
+                Battle.Weapon w = d == null ? null : Battle.GEAR.get(d.name);
+                if (w != null && !w.melee()) r = Math.max(r, w.range);
+            }
+        for (Group g : groups) { Foe f = foe(g.kind().key()); if (f != null) r = Math.max(r, f.gun() ? Battle.SMG.range : f.reach()); }
+        return r;
+    }
+
+    /** A count of things on a 48-block arena, scaled to this one's area. */
+    private static int sc(int n) { return Math.max(1, (int) Math.round(n * size * (double) size / (48.0 * 48.0))); }
 
     record Spot(int x, int y, int z) { Location at(World w) { return new Location(w, x + 0.5, y, z + 0.5); } }
 
@@ -145,9 +176,13 @@ final class Arena {
     /** Builds the terrain's arena at its slot from {@code seed}: the ground, the things on it, and the spots. */
     static Layout build(World w, String terrain, long seed) { return build(w, terrain, seed, SIZE); }
 
-    static Layout build(World w, String terrain, long seed, int sz) {
+    static Layout build(World w, String terrain, long seed, int sz) { return build(w, terrain, seed, sz, 20); }
+
+    static Layout build(World w, String terrain, long seed, int sz, int d) {
         if (slot(terrain) == 0 && !terrain.equals("field")) terrain = "field";
         size = sz;
+        dist = d;
+        coverZ = Math.max(8, Math.min(ESCAPE, sz - d - 14));
         int x0 = slot(terrain) * SLOT, z0 = 0;
         Random r = new Random(seed);
         // clear: the air above, the ground below, a barrier round it (nobody walks off the map)
@@ -241,23 +276,23 @@ final class Arena {
 
     private static void field(World w, Random r, int x0, int z0) {
         // a crop strip (wheat on farmland) across the north, hay, bushes, a fence line, a ruined shed
-        int cz = z0 + 30 + r.nextInt(6);
+        int cz = Math.min(z0 + size - 8, z0 + coverZ + 8 + r.nextInt(Math.max(1, dist - 10)));
         for (int x = x0 + 4; x < x0 + size - 4; x++)
             for (int z = cz; z < cz + 6; z++) if ((x + z) % 7 != 0) { set(w, x, Y - 1, z, Material.FARMLAND); set(w, x, Y, z, Material.WHEAT); }
-        for (int k = 0; k < 7; k++) {
+        for (int k = 0; k < sc(7); k++) {
             int x = x0 + 3 + r.nextInt(size - 6), z = z0 + 8 + r.nextInt(size - 12);
             set(w, x, Y, z, Material.HAY_BLOCK);
             if (r.nextBoolean()) set(w, x + 1, Y, z, Material.HAY_BLOCK);
             if (r.nextDouble() < 0.4) set(w, x, Y + 1, z, Material.HAY_BLOCK);
         }
-        for (int k = 0; k < 10; k++) {
+        for (int k = 0; k < sc(10); k++) {
             int x = x0 + 2 + r.nextInt(size - 4), z = z0 + 2 + r.nextInt(size - 4);
             set(w, x, Y, z, Material.OAK_LEAVES);
             if (r.nextBoolean()) set(w, x, Y, z + 1, Material.OAK_LEAVES);
         }
-        int fz = z0 + 10 + r.nextInt(4);
+        int fz = z0 + coverZ + 2 + r.nextInt(3);
         for (int x = x0 + 2; x < x0 + size - 2; x++) if (r.nextDouble() < 0.8) set(w, x, Y, fz, Material.OAK_FENCE);
-        int sx = x0 + 6 + r.nextInt(size - 18), sz = z0 + 18 + r.nextInt(8);
+        int sx = x0 + 6 + r.nextInt(size - 18), sz = z0 + coverZ + 8 + r.nextInt(Math.max(1, size - coverZ - 16));
         for (int x = sx; x < sx + 6; x++)
             for (int z = sz; z < sz + 5; z++) {
                 boolean wall = x == sx || x == sx + 5 || z == sz || z == sz + 4;
@@ -265,15 +300,15 @@ final class Arena {
                 int h = 1 + r.nextInt(3);
                 for (int y = Y; y < Y + h; y++) if (r.nextDouble() < 0.85) set(w, x, y, z, Material.COBBLESTONE);
             }
-        for (int k = 0; k < 140; k++) {
+        for (int k = 0; k < sc(140); k++) {
             int x = x0 + r.nextInt(size), z = z0 + r.nextInt(size);
             if (freeAt(w, x, Y, z) && w.getBlockAt(x, Y - 1, z).getType() == Material.GRASS_BLOCK) set(w, x, Y, z, r.nextDouble() < 0.7 ? Material.SHORT_GRASS : Material.TALL_GRASS);
         }
     }
 
     private static void road(World w, Random r, int x0, int z0) {
-        // the road east to west through the middle, its lane marks, potholes, wrecks; a ditch and trees beside it
-        int rz = z0 + size / 2 - 3;
+        // the road east to west between the two lines, its lane marks, potholes, wrecks; a ditch and trees beside it
+        int rz = Math.min(z0 + size - 12, z0 + coverZ + Math.max(5, dist / 2) - 3);
         for (int x = x0 - MARGIN + 1; x < x0 + size + MARGIN - 1; x++)
             for (int z = rz; z < rz + 7; z++) {
                 double u = r.nextDouble();
@@ -282,18 +317,18 @@ final class Arena {
                 set(w, x, Y - 1, z, m);
             }
         for (int x = x0 + 2; x < x0 + size - 2; x++) { set(w, x, Y - 1, rz - 2, Material.MUD); set(w, x, Y - 1, rz + 8, Material.MUD); }
-        int cars = 3 + r.nextInt(3);
+        int cars = sc(3) + r.nextInt(3);
         for (int k = 0; k < cars; k++) car(w, r, x0 + 3 + r.nextInt(size - 8), rz + (r.nextBoolean() ? 0 : 4), r.nextDouble() < 0.75);
-        for (int k = 0; k < 9; k++) {
-            int x = x0 + 2 + r.nextInt(size - 4), z = r.nextBoolean() ? z0 + 4 + r.nextInt(rz - z0 - 8) : rz + 11 + r.nextInt(size - (rz - z0) - 14);
+        for (int k = 0; k < sc(9); k++) {
+            int x = x0 + 2 + r.nextInt(size - 4), z = r.nextBoolean() ? z0 + 4 + r.nextInt(Math.max(1, rz - z0 - 8)) : rz + 11 + r.nextInt(Math.max(1, size - (rz - z0) - 14));
             if (freeAt(w, x, Y, z)) tree(w, r, x, z, Material.OAK_LOG, Material.OAK_LEAVES, 4 + r.nextInt(3));
         }
-        for (int k = 0; k < 6; k++) { int x = x0 + 2 + r.nextInt(size - 4), z = z0 + 6 + r.nextInt(size - 12); if (freeAt(w, x, Y, z)) set(w, x, Y, z, Material.OAK_LEAVES); }
+        for (int k = 0; k < sc(6); k++) { int x = x0 + 2 + r.nextInt(size - 4), z = z0 + 6 + r.nextInt(size - 12); if (freeAt(w, x, Y, z)) set(w, x, Y, z, Material.OAK_LEAVES); }
         // a bus stop's ruin and a fallen sign
         int bx = x0 + 8 + r.nextInt(size - 16);
         for (int x = bx; x < bx + 4; x++) set(w, x, Y, rz - 4, Material.STONE_BRICK_WALL);
         set(w, bx, Y + 1, rz - 4, Material.STONE_BRICK_WALL);
-        for (int k = 0; k < 80; k++) {
+        for (int k = 0; k < sc(80); k++) {
             int x = x0 + r.nextInt(size), z = z0 + r.nextInt(size);
             if (freeAt(w, x, Y, z) && w.getBlockAt(x, Y - 1, z).getType() == Material.GRASS_BLOCK) set(w, x, Y, z, Material.SHORT_GRASS);
         }
@@ -301,25 +336,25 @@ final class Arena {
 
     private static void forest(World w, Random r, int x0, int z0) {
         Material[][] kinds = {{Material.SPRUCE_LOG, Material.SPRUCE_LEAVES}, {Material.OAK_LOG, Material.OAK_LEAVES}, {Material.BIRCH_LOG, Material.BIRCH_LEAVES}};
-        int trees = 34 + r.nextInt(10);
+        int trees = sc(34) + r.nextInt(10);
         for (int k = 0; k < trees; k++) {
             int x = x0 + 1 + r.nextInt(size - 2), z = z0 + 1 + r.nextInt(size - 2);
             if (!freeAt(w, x, Y, z) || !freeAt(w, x + 1, Y, z) || !freeAt(w, x - 1, Y, z)) continue;
             Material[] kk = kinds[r.nextDouble() < 0.55 ? 0 : r.nextBoolean() ? 1 : 2];
             tree(w, r, x, z, kk[0], kk[1], 5 + r.nextInt(4));
         }
-        for (int k = 0; k < 5; k++) {   // fallen trunks
+        for (int k = 0; k < sc(5); k++) {   // fallen trunks
             int x = x0 + 3 + r.nextInt(size - 10), z = z0 + 3 + r.nextInt(size - 6);
             boolean ax = r.nextBoolean();
             int len = 3 + r.nextInt(4);
             for (int i = 0; i < len; i++) if (freeAt(w, x + (ax ? i : 0), Y, z + (ax ? 0 : i))) setLog(w, x + (ax ? i : 0), Y, z + (ax ? 0 : i), Material.SPRUCE_LOG, ax ? Axis.X : Axis.Z);
         }
-        for (int k = 0; k < 8; k++) {   // rocks
+        for (int k = 0; k < sc(8); k++) {   // rocks
             int x = x0 + 2 + r.nextInt(size - 4), z = z0 + 2 + r.nextInt(size - 4);
             if (freeAt(w, x, Y, z)) set(w, x, Y, z, r.nextBoolean() ? Material.MOSSY_COBBLESTONE : Material.COBBLESTONE);
             if (r.nextBoolean() && freeAt(w, x + 1, Y, z)) set(w, x + 1, Y, z, Material.MOSSY_COBBLESTONE);
         }
-        for (int k = 0; k < 120; k++) {
+        for (int k = 0; k < sc(120); k++) {
             int x = x0 + r.nextInt(size), z = z0 + r.nextInt(size);
             Material g = w.getBlockAt(x, Y - 1, z).getType();
             if (freeAt(w, x, Y, z) && (g == Material.GRASS_BLOCK || g == Material.PODZOL || g == Material.MOSS_BLOCK))
@@ -329,11 +364,11 @@ final class Arena {
 
     private static void town(World w, Random r, int x0, int z0) {
         // ruined houses (walls broken to random heights, window and door gaps), rubble, wrecks, a street through the middle
-        int sz = z0 + size / 2 - 2;
+        int sz = Math.min(z0 + size - 12, z0 + coverZ + Math.max(5, dist / 2) - 2);
         for (int x = x0 - MARGIN + 1; x < x0 + size + MARGIN - 1; x++) for (int z = sz; z < sz + 5; z++) set(w, x, Y - 1, z, r.nextDouble() < 0.15 ? Material.BLACK_CONCRETE : Material.GRAY_CONCRETE);
         Material[] walls = {Material.BRICKS, Material.STONE_BRICKS, Material.CRACKED_STONE_BRICKS, Material.WHITE_CONCRETE, Material.LIGHT_GRAY_CONCRETE};
         int houses = 0;
-        for (int tries = 0; tries < 40 && houses < 6; tries++) {
+        for (int tries = 0; tries < sc(40) && houses < sc(6); tries++) {
             int wx = 6 + r.nextInt(5), wz = 5 + r.nextInt(4);
             int hx = x0 + 2 + r.nextInt(size - wx - 4), hz = r.nextBoolean() ? z0 + 3 + r.nextInt(Math.max(1, sz - z0 - wz - 5)) : sz + 7 + r.nextInt(Math.max(1, size - (sz - z0) - wz - 9));
             boolean clash = false;
@@ -355,10 +390,10 @@ final class Arena {
                     }
                 }
         }
-        for (int k = 0; k < 10; k++) rubble(w, r, x0 + 2 + r.nextInt(size - 4), z0 + 2 + r.nextInt(size - 4));
+        for (int k = 0; k < sc(10); k++) rubble(w, r, x0 + 2 + r.nextInt(size - 4), z0 + 2 + r.nextInt(size - 4));
         for (int k = 0; k < 2 + r.nextInt(2); k++) car(w, r, x0 + 3 + r.nextInt(size - 8), sz + r.nextInt(2), true);
         for (int k = 0; k < 4; k++) { int x = x0 + 4 + r.nextInt(size - 8); if (freeAt(w, x, Y, sz - 1)) { set(w, x, Y, sz - 1, Material.ANDESITE_WALL); if (r.nextBoolean()) set(w, x, Y + 1, sz - 1, Material.IRON_BARS); } }
-        for (int k = 0; k < 30; k++) { int x = x0 + r.nextInt(size), z = z0 + r.nextInt(size); if (freeAt(w, x, Y, z) && r.nextBoolean()) set(w, x, Y, z, Material.DEAD_BUSH); }
+        for (int k = 0; k < sc(30); k++) { int x = x0 + r.nextInt(size), z = z0 + r.nextInt(size); if (freeAt(w, x, Y, z) && r.nextBoolean()) set(w, x, Y, z, Material.DEAD_BUSH); }
     }
 
     // ------------------------------------------------------------------ the spots
@@ -378,14 +413,14 @@ final class Arena {
                 int dz = z - z0;
                 boolean shield = false;   // something solid just north (toward the enemies)
                 for (int dx = -1; dx <= 1; dx++) if (w.getBlockAt(x + dx, y, z + 1).getType().isSolid() || w.getBlockAt(x + dx, y, z + 2).getType().isSolid()) shield = true;
-                if (dz >= 3 && dz <= 12 && shield) cover.add(s);
+                if (dz >= coverZ - 4 && dz <= coverZ + 3 && shield) cover.add(s);
                 double d = Math.hypot(x + 0.5 - cx, z + 0.5 - cz);
                 if (d <= 4.5) open.add(s);
-                if (dz >= Math.round(size * 0.58) && dz <= size - 6) far.add(s);
-                if (d >= 9 && d <= Math.max(14, size / 4.0)) ring.add(s);
+                if (dz >= coverZ + dist - 2 && dz <= Math.min(size - 4, coverZ + dist + 10)) far.add(s);
+                if (d >= 9 && d <= Math.max(14, size / 5.0)) ring.add(s);
             }
-        // when the cover is thin, the south strip's open spots do
-        if (cover.size() < 8) for (int x = x0 + 4; x < x0 + size - 4 && cover.size() < 12; x += 2) if (standing(w, x, Y, z0 + 6)) cover.add(new Spot(x, Y, z0 + 6));
+        // when the cover is thin, the line's open spots do
+        if (cover.size() < 8) for (int x = x0 + 4; x < x0 + size - 4 && cover.size() < 12; x += 2) if (standing(w, x, Y, z0 + coverZ)) cover.add(new Spot(x, Y, z0 + coverZ));
         return new Layout(terrain, x0, z0, size, spread(cover, r), spread(open, r), spread(far, r), spread(ring, r));
     }
 
@@ -416,10 +451,16 @@ final class Arena {
      * the last player has left it. Returns what happened, or a refusal ("!").
      */
     static String fight(FalloutakPlugin pl, List<Player> party, String terrain, List<Group> groups, Mode mode, long seed, Runnable done) {
+        return fight(pl, party, terrain, groups, mode, seed, done, null, "");
+    }
+
+    /** The same, with a talk on the battle map ({@code talk} with the group whose kind's key is {@code talkKey}; 09d round 4). */
+    static String fight(FalloutakPlugin pl, List<Player> party, String terrain, List<Group> groups, Mode mode, long seed, Runnable done, Battle.Talk talk, String talkKey) {
         if (current != null && !current.over && !pl.battle.players(current).isEmpty()) return "! another fight is on a battle map";
         for (Player q : party) if (pl.battle.inBattle(q)) pl.battle.stop(q);
         World w = world();
-        Layout lay = build(w, terrain, seed, sizeFor(groups.size()));
+        int reach = reach(party, groups);
+        Layout lay = build(w, terrain, seed, sizeFor(groups.size(), reach), startDistance(reach));
         Battle.Fight f = new Battle.Fight("the enemies");
         f.demo = false;
         f.enemiesFirst = mode == Mode.AMBUSHED || mode == Mode.PARLEY;
@@ -454,6 +495,8 @@ final class Arena {
                 t.byParty = false;
                 t.meatKg = foe.meatKg();
                 t.hides = foe.hides();
+                t.foe = foe.key();
+                t.talking = talk != null && g.kind().key().equals(talkKey);
                 if (!foe.nemesis().isEmpty()) t.kind = foe.nemesis();
                 if (foe.gun()) t.gunHealth = Math.max(1, Battle.SMG.maxHealth * (0.25 + 0.35 * r.nextDouble()));   // used guns (05 §9, round 11)
                 f.dummies.add(e.getUniqueId());
@@ -462,7 +505,8 @@ final class Arena {
             }
         }
         // the party
-        List<Spot> ours = mode == Mode.AMBUSHED ? lay.open() : lay.cover();   // a failed talk: they were seen first, the party kept its cover
+        if (talk != null) for (Battle.Target t : f.targets.values()) if (t.talking) { f.talk = talk; break; }
+        List<Spot> ours = mode == Mode.AMBUSHED ? lay.open() : lay.cover();   // a talk or a parley: they were seen first, the party kept its cover
         if (ours.isEmpty()) ours = lay.open();
         back.clear();
         StringBuilder who = new StringBuilder();
@@ -471,7 +515,9 @@ final class Arena {
             case AMBUSH -> "AMBUSH on the " + terrain + " map: you lie in cover, they have not seen you (" + who + "). Round 1: YOUR TURN, all of you at once.";
             case HUNT -> "THE HUNT on the " + terrain + " map (" + who + "): you are downwind. Round 1: YOUR TURN; what is not hostile will run.";
             case AMBUSHED -> "AMBUSHED on the " + terrain + " map (" + who + "): they are all round you and act first.";
-            case PARLEY -> "THE TALK FAILED on the " + terrain + " map (" + who + "): they go for their guns first; you still have your cover.";
+            case TALK -> "THE TALK on the " + terrain + " map (" + who + "): " + (talk == null ? "you" : talk.speakerName) + " steps out and talks; it lasts "
+                    + Battle.TALK_ROUNDS + " rounds. Move into position meanwhile. An attack breaks the talk and catches them off guard; it can also go wrong.";
+            case PARLEY -> "THEY TURN HOSTILE on the " + terrain + " map (" + who + "): they go for their guns first; you still have your cover.";
         };
         int i = 0;
         for (Player q : party) {

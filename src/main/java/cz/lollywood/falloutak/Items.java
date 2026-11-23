@@ -70,6 +70,7 @@ final class Items {
                 default -> Material.FEATHER;   // the float
             };
             case "supplies" -> Material.PAPER;
+            case "body" -> k[1].startsWith("Donor organ") ? Material.RABBIT_FOOT : Material.GHAST_TEAR;   // the field's samples (09d round 4)
             case "thing" -> thingMaterial(k[1]);
             case "made" -> madeMaterial(k[1]);
             default -> Material.CLOCK;   // the Pip-Boy
@@ -105,6 +106,7 @@ final class Items {
             case "armour" -> k[1].replaceAll("\\|.*", "") + " (" + k[1].replaceAll(".*\\|", "").toLowerCase(Locale.ROOT) + ")";
             case "gear" -> k[1];
             case "artifact" -> "Artifact: " + k[1];
+            case "body" -> k[1].replace("|", " (") + ")";
             case "supplies" -> "Surgical supplies (" + switch (k[1]) { case "tier3" -> "Tier III"; case "tier4" -> "Tier IV"; default -> "improvised"; } + ")";
             case "thing", "made" -> k[1].replaceAll(".*\\|", "");
             default -> "Pip-Boy";

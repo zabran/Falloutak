@@ -202,6 +202,10 @@ public final class Battle implements Listener {
         /** What its body gives the party that holds the field (09d round 3: food from a hunt): raw meat in kg, raw hides. */
         double meatKg;
         int hides;
+        /** The talk on the battle map (09d round 4): this figure is talking and holds; caught off guard by an attack in the talk (+10 to
+         *  hit it for the rest of the party's turn); its statblock's key (raider, patrol, trader, or the creature's), for the loot. */
+        boolean talking, surprised;
+        String foe = "";
         double gunHealth = SMG.maxHealth;
         boolean dropped, broken, moved, steadied, lostTurn;
         /** Lying on the ground (knocked down or out, dying): the prone +4 AC and +20 to be hit within reach. */
@@ -318,12 +322,34 @@ public final class Battle implements Listener {
         boolean settled;
         /** What each player still on the field when it ended takes home (meat, hides), given when his inventory is back. */
         final Map<UUID, List<ItemStack>> spoils = new HashMap<>();
+        /** The talk in progress on the battle map (09d round 4), or null. */
+        Talk talk;
         /** Each player leaving (the arena sends him back), and the fight's end (the last one out). */
         java.util.function.Consumer<Player> onLeave = q -> { };
         Runnable onEnd = () -> { };
         Fight() {}
         Fight(String them) { this.them = them; }
     }
+
+    /**
+     * THE TALK ON THE BATTLE MAP (`09d` round 4, Marek 11-24: *"the talking should already start on the battle map, so players should have
+     * chance to get into positions at least. Failure happens during that. Only one of players talks (selectable). Also, players can attack
+     * during the fight to get slight advantage."*): the speaker's check (Rhetorics + 20 the first sight − 20 they came to fight, ruled
+     * *"yes"* the same day) is rolled when it begins; it lasts {@value #TALK_ROUNDS} rounds of the party's turns, in which everyone moves
+     * into position while the talkers hold; a failed one goes wrong at the end of the party's turn of round {@code failAt} and they shoot
+     * first; a good one ends with them going their way for their full kill XP; an attack in it breaks it and catches them off guard
+     * [the rounds, the moment and the +10 mine, EXAMPLE].
+     */
+    static final class Talk {
+        final UUID speaker;
+        final String speakerName, who, check;
+        final int failAt;
+        Talk(UUID speaker, String speakerName, String who, String check, int failAt) {
+            this.speaker = speaker; this.speakerName = speakerName; this.who = who; this.check = check; this.failAt = failAt;
+        }
+    }
+
+    static final int TALK_ROUNDS = 3, TALK_SURPRISE = 10;
 
     final FalloutakPlugin pl;
     final Raiders raiders;
@@ -874,6 +900,7 @@ public final class Battle implements Listener {
             else { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, "still jammed (d100 " + d + " > " + need + ": 30 + Crafting / 2)"); }
             return;
         }
+        if (s.fight != null && s.fight.talk != null && s.ap >= apOf(c, w, m)) breakTalk(s.fight, p);
         int pen = movePenalty(s, w, at);
         Combat.Shot sh = shot(p, s, c, w, m, a, pen);
         Combat.ToHit th = Combat.toHit(sh);
@@ -1025,6 +1052,7 @@ public final class Battle implements Listener {
         sh.extra.put("prosthetic arm", c.armToHit(w.twoHanded));
         if (signature(c, w)) sh.extra.put("Signature Weapon", 15);
         if (nemesis(c, tg)) sh.extra.put("Nemesis", 15);
+        if (tg != null && tg.surprised) sh.extra.put("caught mid-talk", TALK_SURPRISE);
         if (m.aimed()) sh.extra.put("targeting eyes", (int) Math.round(c.other("aimed")));
         if (c.other("to_hit") != 0) sh.extra.put("Twitchy", (int) Math.round(c.other("to_hit")));   // the trait as a gene (03c §8)
         int gasHit = c.gasPenalty()[1];
@@ -1418,6 +1446,7 @@ public final class Battle implements Listener {
             aimAt = hitB.getHitPosition().toLocation(p.getWorld());
         }
         int blocks = Math.max(1, (int) Math.round(aimAt.distance(p.getEyeLocation())));
+        if (s.fight != null && s.fight.talk != null && s.ap >= 4) breakTalk(s.fight, p);
         if (!pay(p, s, c, 4, "the throw")) return;
         Sfx.at(p.getLocation(), "grenade.throw");
         Target tg = te != null ? s.targets.get(te.getUniqueId()) : null;
@@ -1437,6 +1466,7 @@ public final class Battle implements Listener {
         sh.stance = s.stance();
         sh.senses = c.senses();
         sh.extra.put("prosthetic arm", c.armToHit(false));
+        if (tg != null && tg.surprised) sh.extra.put("caught mid-talk", TALK_SURPRISE);
         sh.movePenalty = moved(s, p.getLocation().toBlockLocation()) && !s.steadied ? -10 : 0;
         sh.range = range;
         Combat.ToHit th = Combat.toHit(sh);
@@ -1728,11 +1758,12 @@ public final class Battle implements Listener {
     }
 
     /**
-     * The fight's XP and spoils, once (06b §3 and §5.4.1; 09d round 3): every enemy THE PARTY beat gives his kill XP, 3.1 x HP^1.09, to
-     * the team (one beaten by another danger, or that got away, none: Fallout 2 pays the player's kills); when the whole party got away
-     * at the edge alive, every group it never touched was SLIPPED PAST = resolved without killing on the battle map = its full kill XP
-     * (Marek 11-23: *"When you resolve the encounter non-lethaly on the battle map, you get the full kill XP."*); a group fought and left
-     * pays nothing more. The players on the field at the end take the dead creatures' meat and hides (09d round 3: food from a hunt).
+     * The fight's XP, once (06b §3 and §5.4.1; 09d rounds 3-4): EVERY ENEMY BEATEN gives his kill XP, 3.1 x HP^1.09, to the team, whoever
+     * beat him (Marek 11-24: *"kills made by other dangers pay you no XP" - I would count that, because you may have used them to kill
+     * others and running away gives full XP already.*); one that got away pays nothing; when the whole party got away at the edge alive,
+     * every group it never touched was SLIPPED PAST = resolved without killing on the battle map = its full kill XP (Marek 11-23: *"When
+     * you resolve the encounter non-lethaly on the battle map, you get the full kill XP."*). The players on the field at the end get ITS
+     * BODIES to loot, one by one ({@link Loot}; Marek 11-24: *"allow to loot every killed/downed creature"*).
      */
     void settle(Fight f, boolean slippedPast) {
         if (f.settled) return;
@@ -1745,35 +1776,24 @@ public final class Battle implements Listener {
             groupTouched.merge(t.group, t.touched, Boolean::logicalOr);
             groupStanding.merge(t.group, t.inFight(), Boolean::logicalOr);
         }
-        int slipped = 0;
+        int slipped = 0, byOthers = 0;
         for (Target t : f.targets.values()) {
             if (t.escaped) continue;
             boolean beaten = !t.inFight();
-            if (beaten && t.byParty) hps.add((double) t.hpMax);
+            if (beaten) { hps.add((double) t.hpMax); if (!t.byParty) byOthers++; }
             else if (slippedPast && !t.flees && !groupTouched.getOrDefault(t.group, false) && groupStanding.getOrDefault(t.group, false)) { hps.add((double) t.hpMax); slipped++; }
         }
         if (pl.roster != null && !hps.isEmpty() && !team.isEmpty()) {
             String r = pl.roster.killAward(team, hps, slipped > 0 ? "an encounter slipped past on the battle map" : f.them + " beaten");
-            for (Player q : team) q.sendMessage(Component.text((slipped > 0 ? "Slipped past " + slipped + " unharmed: their full kill XP. " : "") + r, NamedTextColor.GREEN));
+            for (Player q : team) q.sendMessage(Component.text((slipped > 0 ? "Slipped past " + slipped + " unharmed: their full kill XP. " : "")
+                    + (byOthers > 0 ? byOthers + " fell to the other dangers: theirs counts too. " : "") + r, NamedTextColor.GREEN));
         }
-        if (slippedPast) return;   // whoever left the field left the carcasses
+        if (slippedPast || f.field == null) return;   // whoever left the field left the bodies; the demo has none
         List<Player> here = players(f);
         if (here.isEmpty()) return;
-        double kg = 0;
-        int hides = 0;
-        for (Target t : f.targets.values()) if (!t.escaped && (t.dead || t.dying()) && t.melee) { kg += t.meatKg; hides += t.hides; }
-        boolean hunter = false;
-        for (Player q : here) if (pl.character(q).hasPerk("Hunter")) hunter = true;   // 02c: double meat and hides from creatures
-        if (hunter) { kg *= 2; hides *= 2; }
-        int portions = (int) Math.round(kg * 2);   // a food portion is 0.5 kg (Items' weights)
-        if (portions + hides == 0) return;
-        for (int k = 0; k < here.size(); k++) {
-            int mine = portions / here.size() + (k < portions % here.size() ? 1 : 0), hide = hides / here.size() + (k < hides % here.size() ? 1 : 0);
-            List<ItemStack> l = new ArrayList<>();
-            if (mine > 0) l.addAll(Arena.stacks(Items.storeId("Food", 1, 1, "Raw meat"), mine));
-            if (hide > 0) l.addAll(Arena.stacks(Items.storeId("Textile", 1, 1, "Raw hide"), hide));
-            f.spoils.put(here.get(k).getUniqueId(), l);
-        }
+        int n = Loot.collect(f, rnd);
+        if (n > 0) for (Player q : here) q.sendMessage(Component.text("The field is yours: " + n + " bod" + (n == 1 ? "y" : "ies")
+                + " to loot (the Travel menu: The field): search, butcher (Survival), treat or take samples (Medicine).", NamedTextColor.GOLD));
     }
 
     /** A player at the battle map's edge gets away (09d round 3: *"get out of the map by going to the edge (just like hunted animals)"*). */
@@ -1810,13 +1830,69 @@ public final class Battle implements Listener {
         if (!them.isEmpty()) tell(f, String.join("; ", them) + ".", NamedTextColor.GRAY);
         Player q0 = ps.get(0);
         if (checkOver(q0, states.get(q0.getUniqueId()), pl.character(q0))) return;
+        if (f.talk != null && talkStep(f)) return;
         if (f.enemiesFirst) f.round++;
         enemyPhase(f, () -> { if (!f.enemiesFirst) f.round++; partyPhase(f); });
+    }
+
+    /**
+     * The talk at the end of the party's turn (09d round 4): it goes wrong (they shoot first: their turn follows), it ends well (the
+     * talkers go their way for their full kill XP; true when that ended the fight), or it goes on (the talkers hold in their turn).
+     */
+    boolean talkStep(Fight f) {
+        Talk k = f.talk;
+        if (k.failAt > 0 && f.round >= k.failAt) {
+            endTalk(f);
+            tell(f, "THE TALK GOES WRONG (" + k.speakerName + ": " + k.check + "): " + k.who + " go for their guns. They shoot first.", NamedTextColor.RED);
+            return false;
+        }
+        if (k.failAt == 0 && f.round >= TALK_ROUNDS) {
+            List<Double> hps = new ArrayList<>();
+            for (var en : f.targets.entrySet()) {
+                Target t = en.getValue();
+                if (!t.talking) continue;
+                hps.add((double) t.hpMax);
+                t.talking = false;
+                t.escaped = true;   // they go their way
+                Entity e = pl.getServer().getEntity(en.getKey());
+                if (e != null) e.remove();
+            }
+            f.talk = null;
+            List<Player> team = new ArrayList<>();
+            for (UUID u : f.members) { Player q = pl.getServer().getPlayer(u); if (q != null) team.add(q); }
+            String r = pl.roster != null && !team.isEmpty() && !hps.isEmpty() ? pl.roster.killAward(team, hps, "talked down on the battle map") : "";
+            tell(f, "TALKED DOWN (" + k.speakerName + ": " + k.check + "): " + k.who + " lower their guns and go their way. Resolved without killing: "
+                    + "their full kill XP. " + r, NamedTextColor.GREEN);
+            List<Player> ps = players(f);
+            if (ps.isEmpty()) return true;
+            Player q0 = ps.get(0);
+            return checkOver(q0, states.get(q0.getUniqueId()), pl.character(q0));
+        }
+        tell(f, "The talk goes on (" + k.speakerName + " talks; round " + f.round + " of " + TALK_ROUNDS + "): get into position. An attack now catches "
+                + k.who + " off guard (+" + TALK_SURPRISE + " to hit them this turn).", NamedTextColor.YELLOW);
+        return false;
+    }
+
+    /** A player attacks in the middle of the talk: it is over and the talkers are caught off guard until the party's turn ends. */
+    void breakTalk(Fight f, Player p) {
+        Talk k = f.talk;
+        if (k == null) return;
+        for (Target t : f.targets.values()) if (t.talking) { t.talking = false; t.surprised = true; }
+        f.talk = null;
+        tell(f, p.getName() + " strikes in the middle of the talk: " + k.who + " are caught off guard (+" + TALK_SURPRISE + " to hit them for the rest of "
+                + "your turn).", NamedTextColor.GOLD);
+    }
+
+    /** The talk is over without a word more (it went wrong, or another danger fell on the talkers). */
+    void endTalk(Fight f) {
+        for (Target t : f.targets.values()) t.talking = false;
+        f.talk = null;
     }
 
     /** The enemies' turn, each in Sequence order, at the player nearest to him; then {@code then}. */
     void enemyPhase(Fight f, Runnable then) {
         f.enemyPhase = true;
+        for (Target t : f.targets.values()) t.surprised = false;   // caught off guard only in the party's turn of the attack
         for (Player q : players(f)) {
             State sq = states.get(q.getUniqueId());
             sq.enemyTurn = true;
@@ -1855,6 +1931,11 @@ public final class Battle implements Listener {
         Sfx.to(p, lost ? "ap.lacking" : "turn.start");
         String pass = s.env ? "end the round from the Pip-Boy" : "click the clock to pass it";
         p.sendMessage(Component.text("Round " + s.round + ": your turn" + (out ? " (UNCONSCIOUS: " + pass + ")." : lost ? " (lost: " + pass + ")." : "."), NamedTextColor.AQUA));
+        if (s.fight != null && s.fight.talk != null) {
+            Talk k = s.fight.talk;
+            p.sendMessage(Component.text((p.getUniqueId().equals(k.speaker) ? "You talk to " + k.who : k.speakerName + " talks to " + k.who) + " (round " + s.round
+                    + " of " + TALK_ROUNDS + "): move into position. An attack breaks the talk and catches them off guard; the talk can still go wrong.", NamedTextColor.YELLOW));
+        }
         show(p, s, c, out ? "unconscious" : lost ? "this turn is lost" : "your turn: " + s.ap + " AP" + (c.bleeding > 0 ? "; bleeding " + SheetGui.f(c.bleeding) + " Blood a round" : ""));
     }
 

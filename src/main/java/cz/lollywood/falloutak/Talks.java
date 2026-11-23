@@ -23,12 +23,18 @@ import static cz.lollywood.falloutak.Menus.tellGm;
  * The talks and the trade of a world-map scene [every form and number here mine, EXAMPLE; trade and money are their own part, RULED
  * in part 7 §10, so this barter is a stand-in until that part is ruled]:
  * <ul>
- *   <li><b>A hostile group seen first can be talked to</b>: the speaker's Rhetorics + 20 (they were seen first) − 20 (they came to
- *   fight); Negotiator retries a failed check once (02c). Talked down = resolved without killing = its full kill XP (06b §3); a failed
- *   talk = the battle map, they go for their guns first, the party keeps its cover.</li>
+ *   <li><b>A hostile group seen first can be talked to ON THE BATTLE MAP</b> (round 4, Marek 11-24: *"the talking should already start on
+ *   the battle map, so players should have chance to get into positions at least. Failure happens during that. Only one of players
+ *   talks (selectable). Also, players can attack during the fight to get slight advantage."* · the balance *"yes"*): the chosen
+ *   speaker's Rhetorics + 20 (they were seen first) − 20 (they came to fight), Negotiator retries a failed check once (02c); the talk
+ *   lasts {@link Battle#TALK_ROUNDS} rounds while the party moves into position; talked down = resolved without killing = its full
+ *   kill XP (06b §3); a failed talk goes wrong in one of its rounds and they shoot first; an attack in it catches them off guard
+ *   ({@link Battle.Talk}).</li>
  *   <li><b>A raider group or a band that comes to talk wants a TOLL</b>: pay it in goods (10 a person in the party, at what they would
  *   pay for them), talk your way out (Rhetorics − 10; the check's XP, at least 10), or refuse (they turn hostile).</li>
- *   <li><b>A patrol brings NEWS</b>: the nearest raider base within 15 km of the party, its group, the way and the distance.</li>
+ *   <li><b>A patrol brings NEWS</b>: the nearest raider base within 15 km of the party, its group, the way and the distance; A HIDDEN
+ *   CAMP only for pay (goods worth {@link #NEWS_PRICE}), a good word (Rhetorics {@value #NEWS_TALK}) or after a barter with traders
+ *   (round 4, Marek 11-24: *"seems fine, if barter is done/information is paid or there is successful speech check."*).</li>
  *   <li><b>Traders BARTER</b>: their wares (tier I-II, drawn for the scene), an item worth 10 x 3^(tier − 1) x rarity; they sell at
  *   x (1.5 − Economy / 200, at least 1) and buy at x (0.5 + Economy / 400, at most 1) by the clicking player's Economy (Fallout 2's
  *   barter in spirit); what you sell is credit for what you buy, and they give no change.</li>
@@ -37,7 +43,7 @@ import static cz.lollywood.falloutak.Menus.tellGm;
 final class Talks {
     private Talks() {}
 
-    static final int SEEN_FIRST = 20, HOSTILE = -20, TOLL_TALK = -10, TOLL_A_HEAD = 10, NEWS_KM = 15;
+    static final int SEEN_FIRST = 20, HOSTILE = -20, TOLL_TALK = -10, TOLL_A_HEAD = 10, NEWS_KM = 15, NEWS_PRICE = 20, NEWS_TALK = -10;
 
     /** Who can talk: the people (raiders, bands, patrols, traders), not the creatures. */
     static boolean talks(WorldMap.Kind k) { return !k.key().startsWith("creature:"); }
@@ -65,26 +71,36 @@ final class Talks {
     }
 
     // ------------------------------------------------------------------ a hostile group seen first
-    /** Talking to a hostile group the party saw first: talked down (the kill XP) or the fight. */
-    static String parley(FalloutakPlugin pl, Player p, Travel.Met m) {
-        if (!m.hostile() || !m.seen || !talks(m.e.kind())) return "! you cannot talk to them";
-        Check k = check(pl.character(p), SEEN_FIRST + HOSTILE, rnd(pl));
-        if (k.ok()) {
-            List<Double> hps = new ArrayList<>();
-            for (int i = 0; i < m.e.count(); i++) hps.add(m.e.kind().hp());
-            String r = pl.roster.killAward(Travel.party(p), hps, "talked down on the battle map");
-            Travel.scene.remove(m);
-            tellGm("travel: " + p.getName() + " talked " + m.e.kind().name() + " down (" + k.text() + ")");
-            return "You step out first and talk (" + k.text() + "): they lower their guns and let you pass. Resolved without killing: their full kill XP. " + r;
+    /** Who speaks for the party (round 4: *"Only one of players talks (selectable)"*): each one's chance. */
+    static void speakerMenu(FalloutakPlugin pl, Player p, Travel.Met m) {
+        List<Component> lines = new ArrayList<>();
+        List<Ui.Btn> b = new ArrayList<>();
+        lines.add(line("Who speaks to " + m.e.kind().name() + "? The talk is on the battle map: " + Battle.TALK_ROUNDS + " rounds in which the rest of you get into "
+                + "position. An attack breaks it and catches them off guard; it can also go wrong, and then they shoot first.", NamedTextColor.GOLD));
+        for (Player q : Travel.party(p)) {
+            Character c = pl.character(q);
+            int ch = clamp((int) Math.round(c.skill("Rhetorics")) + SEEN_FIRST + HOSTILE);
+            b.add(btn(q.getName() + " speaks (" + ch + " %" + (c.hasPerk("Negotiator") ? ", Negotiator" : "") + ")", "Rhetorics " + Math.round(c.skill("Rhetorics"))
+                    + " + 20 the first sight − 20 they came to fight", x -> say(x, parley(pl, x, m, q))));
         }
-        tellGm("travel: the talk with " + m.e.kind().name() + " failed (" + k.text() + ")");
-        String r = Travel.battleMap(pl, p, Arena.Mode.PARLEY);
-        return "You step out and talk (" + k.text() + "): it goes wrong. " + r;
+        Menus.menu(p, "Talk to " + m.e.kind().name(), lines, b, x -> Travel.menu(pl, x));
+    }
+
+    static String parley(FalloutakPlugin pl, Player p, Travel.Met m) { return parley(pl, p, m, p); }
+
+    /** The talk with a hostile group the party saw first, on the battle map: the speaker's check now, its outcome in its rounds. */
+    static String parley(FalloutakPlugin pl, Player p, Travel.Met m, Player speaker) {
+        if (!m.hostile() || !m.seen || !talks(m.e.kind())) return "! you cannot talk to them";
+        Check k = check(pl.character(speaker), SEEN_FIRST + HOSTILE, rnd(pl));
+        int failAt = k.ok() ? 0 : 1 + rnd(pl).nextInt(Battle.TALK_ROUNDS);
+        Battle.Talk t = new Battle.Talk(speaker.getUniqueId(), speaker.getName(), m.e.kind().name(), k.text(), failAt);
+        tellGm("travel: " + speaker.getName() + " talks to " + m.e.kind().name() + " (" + k.text() + (k.ok() ? "" : "; it goes wrong in round " + failAt) + ")");
+        return Travel.battleMap(pl, p, Arena.Mode.TALK, t, m.e.kind().key());
     }
 
     // ------------------------------------------------------------------ a peaceful talk
-    /** The toll paid so far in this scene (by value). */
-    static int paid;
+    /** The toll paid so far in this scene (by value); what was paid toward a patrol's price for the hidden camps. */
+    static int paid, newsPaid;
 
     static int toll(Player p) { return TOLL_A_HEAD * Travel.party(p).size(); }
 
@@ -116,9 +132,25 @@ final class Talks {
             }));
             b.add(btn("Refuse and walk on", "they turn hostile", x -> say(x, turnHostile(pl, x, m))));
         } else {
-            lines.add(line("They stop to talk: news of the roads.", NamedTextColor.YELLOW));
-            b.add(btn("Hear their news", "what they know of the raiders near here", x -> { say(x, news()); Travel.scene.remove(m); Travel.menu(pl, x); }));
-            b.add(btn("Part ways", "nothing more", x -> { Travel.scene.remove(m); Travel.menu(pl, x); }));
+            lines.add(line("They stop to talk: news of the roads. What they know of hidden camps costs goods worth " + NEWS_PRICE + " (paid so far: " + newsPaid
+                    + "), or a good word.", NamedTextColor.YELLOW));
+            b.add(btn("Hear their news", "what they say freely of the raiders near here (no hidden camps)", x -> { say(x, news(false)); Travel.scene.remove(m); newsPaid = 0; Travel.menu(pl, x); }));
+            b.add(btn("Ask about hidden camps", "Rhetorics " + Battle.sign(NEWS_TALK) + "; failed, they say only the free news", x -> {
+                Check k = check(pl.character(x), NEWS_TALK, rnd(pl));
+                if (k.ok()) say(x, "They tell you more (" + k.text() + "): " + news(true) + " " + pl.roster.award(x, Math.max(10, -NEWS_TALK), "news talked out of a patrol (the check)"));
+                else say(x, "They will not say more (" + k.text() + "): " + news(false));
+                Travel.scene.remove(m); newsPaid = 0; Travel.menu(pl, x);
+            }));
+            for (Map.Entry<String, int[]> e : sellable(p).entrySet()) {
+                int v = sellPrice(e.getValue()[0], e.getValue()[1], pl.character(p));
+                if (v <= 0) continue;
+                b.add(btn("Pay: " + name(e.getKey()) + " (" + v + ")", "one of " + e.getValue()[2] + " you carry, toward their price for the hidden camps", x -> {
+                    if (take(x, e.getKey())) newsPaid += v;
+                    if (newsPaid >= NEWS_PRICE) { say(x, "Paid (" + newsPaid + "): " + news(true)); Travel.scene.remove(m); newsPaid = 0; Travel.menu(pl, x); }
+                    else talkMenu(pl, x, m);
+                }));
+            }
+            b.add(btn("Part ways", "nothing more", x -> { Travel.scene.remove(m); newsPaid = 0; Travel.menu(pl, x); }));
         }
         Menus.menu(p, "Talk: " + m.e.kind().name(), lines, b, x -> Travel.menu(pl, x));
     }
@@ -133,14 +165,16 @@ final class Talks {
         return Travel.battleMap(pl, p, Arena.Mode.PARLEY);
     }
 
-    /** The nearest raider base within {@link #NEWS_KM} km of the party (the hidden camps too: that is what news is worth). */
-    static String news() {
+    static String news() { return news(false); }
+
+    /** The nearest raider base within {@link #NEWS_KM} km of the party; a hidden camp only when {@code hidden} (paid, talked out, bartered). */
+    static String news(boolean hidden) {
         WorldMap m = Travel.map;
         if (m == null) return "They know nothing.";
         WorldMap.Src best = null;
         double bd = Double.MAX_VALUE;
         for (WorldMap.Src b : m.bases) {
-            if (b.cleared || !b.type.equals("raiders")) continue;
+            if (b.cleared || !b.type.equals("raiders") || (b.hidden && !hidden)) continue;
             double d = m.km(Travel.pi, Travel.pj, b.i + 0.5, b.j + 0.5);
             if (d < bd) { bd = d; best = b; }
         }
@@ -216,6 +250,8 @@ final class Talks {
     /** The traders' wares of this scene: item id -> stock; and the party's credit with them. */
     static final Map<String, Integer> wares = new LinkedHashMap<>();
     static int credit;
+    /** Something changed hands with the traders this scene: then they share their news, the hidden camps too (round 4). */
+    static boolean bartered;
     static Travel.Met tradingWith;
 
     /** Their wares, drawn once for the scene: six goods and two made things of tier I-II. */
@@ -233,7 +269,7 @@ final class Talks {
     }
 
     static void tradeMenu(FalloutakPlugin pl, Player p, Travel.Met m) {
-        if (tradingWith != m) { tradingWith = m; stock(new Random(pl.rnd.nextLong())); }
+        if (tradingWith != m) { tradingWith = m; bartered = false; stock(new Random(pl.rnd.nextLong())); }
         Character c = pl.character(p);
         List<Component> lines = new ArrayList<>();
         List<Ui.Btn> b = new ArrayList<>();
@@ -246,6 +282,7 @@ final class Talks {
                 if (credit < price) say(x, "! not enough credit: sell them something first");
                 else {
                     credit -= price;
+                    bartered = true;
                     wares.merge(w.getKey(), -1, Integer::sum);
                     for (ItemStack rest : x.getInventory().addItem(Items.make(w.getKey(), 1)).values()) x.getWorld().dropItem(x.getLocation(), rest);
                 }
@@ -256,12 +293,13 @@ final class Talks {
             int price = sellPrice(e.getValue()[0], e.getValue()[1], c);
             if (price <= 0) continue;
             b.add(btn("Sell: " + name(e.getKey()) + " (" + price + ")", "one of " + e.getValue()[2] + " you carry", x -> {
-                if (take(x, e.getKey())) credit += price;
+                if (take(x, e.getKey())) { credit += price; bartered = true; }
                 tradeMenu(pl, x, m);
             }));
         }
-        b.add(btn("Done trading", "the traders go their way" + (credit > 0 ? " (your " + credit + " credit is lost)" : ""), x -> {
-            Travel.scene.remove(m); tradingWith = null; credit = 0; wares.clear(); Travel.menu(pl, x);
+        b.add(btn("Done trading", "the traders go their way" + (credit > 0 ? " (your " + credit + " credit is lost)" : "") + (bartered ? "; they tell you their news" : ""), x -> {
+            if (bartered) say(x, "Over the deal they tell you: " + news(true));
+            Travel.scene.remove(m); tradingWith = null; credit = 0; wares.clear(); bartered = false; Travel.menu(pl, x);
         }));
         Menus.menu(p, "Trade: " + m.e.kind().name(), lines, b, x -> Travel.menu(pl, x));
     }

@@ -85,7 +85,7 @@ class WorksTest extends MockGame {
         click("Production");
         click("W");
         click("Repair worn parts");
-        click("Hard armour parts II · 7 worn at 60 %");
+        click("Hard armour parts II · 8 worn at 60 %");
         pg = click("Start", "n", 0f);
         assertTrue(said(gm).contains("Repair worn Hard armour parts II until stopped"), said(gm));
         assertTrue(pg.text().contains("Repair worn Hard armour parts II"), pg.text());
@@ -97,7 +97,7 @@ class WorksTest extends MockGame {
         PlayerMock p = player();
         plugin.character(p).applyTemplate("Orc");
         plugin.base.addUnits("Soft armour parts", 2, 1, 2);
-        plugin.base.addUnits("Hard armour parts", 2, 1, 7);
+        plugin.base.addUnits("Hard armour parts", 2, 1, 8);
         plugin.base.addUnits("Ammo", 1, 1, 30);
         Menus.actions(p);
         click("Production");

@@ -557,7 +557,7 @@ class ProductionTest {
         Production pr = new Production();
         Production.Building wb = pr.build("Workbench", 2, "B");
         Base base = new Base(null);
-        base.disassemble(Production.piece("Metal Armor", "Chest"), 1, 60);           // 7 hard + 2 soft at 60 %
+        base.disassemble(Production.piece("Metal Armor", "Chest"), 1, 60);           // 8 hard + 2 soft at 60 %
         base.addUnits("Metal", 2, 1, 5);
         Production.Recipe r = Production.repairRecipe("Hard armour parts", 2);
         assertNotNull(r);
@@ -570,8 +570,8 @@ class ProductionTest {
         List<String> out = pr.advance(3, 0, base, crew, 0);                            // a run an hour at most; 60 points: 3 to full a run
         assertNull(wb.job, out.toString());
         assertEquals(0, base.worn("Hard armour parts", 2, 1));
-        assertEquals(7, base.pools.get(Base.key("Hard armour parts", 2, 1)).fresh);
-        assertEquals(5 - 3, base.count("Metal", 2, 1));                                 // three runs: 3 + 3 + 1
+        assertEquals(8, base.pools.get(Base.key("Hard armour parts", 2, 1)).fresh);
+        assertEquals(5 - 3, base.count("Metal", 2, 1));                                 // three runs: 3 + 3 + 2
         assertTrue(out.stream().anyMatch(s -> s.contains("the repair is done")), out.toString());
         // Jury Rigging: any material of the tier when its own is missing
         base.disassemble(Production.piece("Metal Armor", "Head"), 1, 50);

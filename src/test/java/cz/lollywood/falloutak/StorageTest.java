@@ -31,7 +31,7 @@ class StorageTest extends MockGame {
     @Test
     void theMessChestTakesItemsApartAndSortsThings() {
         Inventory mess = server.createInventory(null, 27);
-        mess.addItem(Items.piece(new Character.Worn("Metal Armor", "Chest", 60)));    // 2 soft + 7 hard, all at 60 % (round 5)
+        mess.addItem(Items.piece(new Character.Worn("Metal Armor", "Chest", 60)));    // 2 soft + 8 hard, all at 60 % (round 5)
         mess.addItem(Items.piece(new Character.Worn("Leather Armor", "Legs", 70)));   // 1 soft I R2 at 70 %
         mess.addItem(Items.make("gear:Stimpak", 2));
         mess.addItem(Items.made(Production.design("Pistols", "Pipe pistol"), 1, 40)); // assembled from worn parts: its 40 % back
@@ -41,7 +41,7 @@ class StorageTest extends MockGame {
         Set<String> parts = new TreeSet<>();
         assertEquals(1 + 1 + 2 + 1 + 12 + 10, Storage.sortMess(mess, plugin.base, parts));
         assertEquals(2, plugin.base.count("Soft armour parts", 2, 1));
-        assertEquals(7, plugin.base.count("Hard armour parts", 2, 1));
+        assertEquals(8, plugin.base.count("Hard armour parts", 2, 1));
         assertEquals(60, plugin.base.pools.get(Base.key("Hard armour parts", 2, 1)).average(), 1e-9);
         assertEquals(1, plugin.base.count("Soft armour parts", 1, 2));
         assertEquals(40, plugin.base.pools.get(Base.key("Firearm parts", 1, 1)).average(), 1e-9);

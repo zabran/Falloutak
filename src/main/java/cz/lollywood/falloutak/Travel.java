@@ -34,9 +34,10 @@ import static cz.lollywood.falloutak.Menus.tellGm;
  *   <li>game time passes for everyone in the party (part 4's survival runs: food, water, sleep), outside the base;</li>
  *   <li><b>a roll every 4 hours of travel</b> (`09` §3.3, RULED) on the sectors walked: any encounter = 1 − e^(−meetings), placed where it
  *   fell, of every type (round 1): a FIGHT, a TALK, a TRADE or a SIGHT;</li>
- *   <li><b>spotting = Fallout 2's</b> with Survival (RULED): d100 below the party's best (at most 95) sees it in time; a hostile one seen
- *   can be GONE ROUND (only the Survival check's XP, 100 − the chance, to the scout: 06b §3, restated by Marek 11-23), TALKED TO (the
- *   people: a bonus for the first sight, {@link Talks}) or AMBUSHED (09d round 2, Marek 11-23: *"would it be possible to give players the
+ *   <li><b>spotting = Fallout 2's</b> with Survival (RULED): d100 below the party's best (at most 95) less the check's difficulty
+ *   ({@link #spotDifficulty}) sees it in time; a hostile one seen can be GONE ROUND (only the Survival check's XP = ITS DIFFICULTY, at
+ *   least 10: Marek 11-24, *"unlike in fallout, here it should be basic skill check XP, i.e. as much as was difficulty"*), TALKED TO ON
+ *   THE BATTLE MAP (the people: one speaker, a bonus for the first sight, {@link Talks}, {@link Battle.Talk}) or AMBUSHED (09d round 2, Marek 11-23: *"would it be possible to give players the
  *   option to ambush them instead"*: on the battle map, the party acts first); one not seen is an ambush ON THE PARTY, they act
  *   first;</li>
  *   <li><b>every meeting of the window at once</b> (09d round 2: *"I think it would be possible to have more encounters at once at one
@@ -68,6 +69,8 @@ final class Travel {
     /** The scene that stopped the journey (every meeting of that window), the terrain where they met, and where they were going. */
     static final List<Met> scene = new ArrayList<>();
     static String sceneTerrain = "field";
+    /** The spotting check's difficulty where and when the scene met the party (the go-round's XP). */
+    static int sceneDifficulty;
     static String dest = "";
     /** The most meetings one window puts into one scene; the battle map grows with them (09d round 3) [EXAMPLE, mine]. */
     static final int AT_ONCE = 8;
@@ -158,6 +161,12 @@ final class Travel {
         for (Character c : cs) if (c.loadTier() >= 1) { f *= 0.5; break; }
         return f;
     }
+
+    /**
+     * The spotting check's difficulty in % points (09d round 4: the go-round pays it as its XP, at least 10): night −20, forest or a ruined
+     * town −20 (Fallout 2's tile modifier) [the numbers mine, EXAMPLE].
+     */
+    static int spotDifficulty(String terrain, boolean day) { return (day ? 0 : 20) + (terrain.equals("forest") || terrain.equals("town") ? 20 : 0); }
 
     static int[] cell(double i, double j) { return new int[]{(int) Math.floor(i), (int) Math.floor(j)}; }
 
@@ -254,6 +263,7 @@ final class Travel {
         if (lead.day() != marchDay) { marchDay = lead.day(); marched = 0; }
         if (!push && marched >= MARCH_H - 1e-9) return "! 8 hours marched today: rest, or push on (sleep debt, part 4)";
         Walk wk = walk(pi, pj, to.i() + 0.5, to.j() + 0.5, speedFactor(cs), lead.hourOfDay(), marched, push, rnd);
+        Loot.clear();   // the party sets out: the last field's bodies stay behind
         // time passes for the whole party, outside the base
         List<String> news = new ArrayList<>();
         for (Character c : cs) {
@@ -272,11 +282,13 @@ final class Travel {
         StringBuilder out = new StringBuilder(String.format(Locale.ROOT, "%.1f km in %s toward %s: now %s, %s.", wk.km(), Hud.clock(wk.hours() * 60),
                 to.name(), where(), lead.timeText()));
         if (!wk.encs().isEmpty()) {
-            double seeAt = Math.min(95, best(cs, "Survival"));
-            scene.clear();
-            for (WorldMap.Encounter e : wk.encs()) scene.add(new Met(e, !e.type().equals("fight") || rnd.nextInt(100) < seeAt));
             int[] c0 = cell(pi, pj);
             sceneTerrain = map.terrainAt(c0[0], c0[1]);
+            double hh = ((lead.hourOfDay() % 24) + 24) % 24;
+            sceneDifficulty = spotDifficulty(sceneTerrain, hh >= 6 && hh < 18);
+            double seeAt = Math.min(95, best(cs, "Survival")) - sceneDifficulty;
+            scene.clear();
+            for (WorldMap.Encounter e : wk.encs()) scene.add(new Met(e, !e.type().equals("fight") || rnd.nextInt(100) < seeAt));
             out.append("\n").append(sceneText());
             List<String> gm = new ArrayList<>();
             for (Met m : scene) gm.add(m.e.kind().key() + " (" + m.e.type() + ", " + m.e.count() + (m.hostile() ? (m.seen ? ", spotted" : ", AMBUSH") : "") + ")");
@@ -310,15 +322,17 @@ final class Travel {
         for (Met m : scene)
             l.add((m.hostile() ? (m.seen ? "SPOTTED IN TIME: " : "AMBUSH! ") : m.hunt ? "HUNTED: " : "ENCOUNTER: ") + m.e.text() + ".");
         if (ambushed()) l.add("They act first: to the battle map (" + sceneTerrain + ").");
-        else if (anyHostile()) l.add("Go round them (the Survival check's XP), talk to them (you saw them first: a bonus), or ambush them (on the battle map, you act first).");
+        else if (anyHostile()) l.add("Go round them (the Survival check's XP: its difficulty " + sceneDifficulty + ", at least 10), talk to them on the battle map (you saw them "
+                + "first: a bonus), or ambush them (on the battle map, you act first).");
         for (Met m : scene) if (m.e.type().equals("sight")) { l.add("A sight can be hunted (the menu)."); break; }
         return String.join("\n", l);
     }
 
     /**
      * Going round the hostile ones, all seen in time: ONLY THE SURVIVAL CHECK'S XP (Marek 11-23, `09d` round 3: *"When you dodge encounter
-     * on the world map, you only get the Survival check XP, just like in Fallout."*): Fallout 2's 100 − the chance it had, at least 10
-     * (06b §2), to the scout (the party's best Survival); the peaceful ones stay in the scene.
+     * on the world map, you only get the Survival check XP"*), which is OUR check's XP, its difficulty, at least 10 (Marek 11-24: *"unlike in
+     * fallout, here it should be basic skill check XP, i.e. as much as was difficulty"*; 06b §2), to the scout (the party's best Survival);
+     * the peaceful ones stay in the scene.
      */
     static String goRound(FalloutakPlugin pl, Player p) {
         if (!anyHostile() || ambushed()) return "! nothing seen in time to go round";
@@ -327,15 +341,15 @@ final class Travel {
         Player scout = p;
         double bs = -1;
         for (Player q : party(p)) { double v = pl.character(q).skill("Survival"); if (v > bs) { bs = v; scout = q; } }
-        long xp = dodgeXp(bs);
-        String r = pl.roster.award(scout, xp, "an encounter dodged (the Survival check)");
+        long xp = dodgeXp(sceneDifficulty);
+        String r = pl.roster.award(scout, xp, "an encounter dodged (the Survival check, difficulty " + sceneDifficulty + ")");
         tellGm("travel: went round " + String.join(", ", what) + ". " + r);
         scene.removeIf(Met::hostile);
-        return "You go round them unseen: " + scout.getName() + "'s Survival check, " + xp + " XP.";
+        return "You go round them unseen: " + scout.getName() + "'s Survival check (difficulty " + sceneDifficulty + "), " + xp + " XP.";
     }
 
-    /** Fallout 2's XP for an encounter dodged: 100 − the chance it had (the best Survival, at most 95), at least 10. */
-    static long dodgeXp(double bestSurvival) { return Math.max(10, 100 - Math.round(Math.min(95, Math.max(0, bestSurvival)))); }
+    /** The XP for an encounter dodged: the spotting check's difficulty, at least 10 (06b §2). */
+    static long dodgeXp(int difficulty) { return Math.max(10, difficulty); }
 
     /** The scene's groups for the battle map: every hostile one, and the hunted animals (which run unless they are the hostile kind). */
     static List<Arena.Group> groups(boolean hunted) {
@@ -352,14 +366,17 @@ final class Travel {
      * party first; AMBUSHED = one was not seen, they act first; HUNT = no hostile one, the hunted animals. The scene's fought and
      * hunted groups are gone when the fight ends; the others stay.
      */
-    static String battleMap(FalloutakPlugin pl, Player p, Arena.Mode mode) {
+    static String battleMap(FalloutakPlugin pl, Player p, Arena.Mode mode) { return battleMap(pl, p, mode, null, ""); }
+
+    /** The same with the talk on the battle map (09d round 4): {@code talk} with the group of {@code talkKey}. */
+    static String battleMap(FalloutakPlugin pl, Player p, Arena.Mode mode, Battle.Talk talk, String talkKey) {
         if (scene.isEmpty()) return "! no encounter waits";
-        if (mode == Arena.Mode.AMBUSH && (!anyHostile() || ambushed())) return "! nothing hostile seen in time to ambush";
+        if ((mode == Arena.Mode.AMBUSH || mode == Arena.Mode.TALK) && (!anyHostile() || ambushed())) return "! nothing hostile seen in time to ambush or talk to";
         if (mode == Arena.Mode.HUNT && (anyHostile() || !anyHunted())) return anyHostile() ? "! the hostile ones first (go round them or ambush them; the hunted join an ambush)" : "! mark what you hunt first";
         if (mode == Arena.Mode.AMBUSHED && !ambushed()) return "! nobody ambushed you";
         List<Arena.Group> g = groups(mode != Arena.Mode.AMBUSHED);
         if (g.isEmpty()) return "! nobody to fight";
-        String r = Arena.fight(pl, party(p), sceneTerrain, g, mode, pl.rnd.nextLong(), Travel::afterFight);
+        String r = Arena.fight(pl, party(p), sceneTerrain, g, mode, pl.rnd.nextLong(), Travel::afterFight, talk, talkKey);
         if (!r.startsWith("!")) tellGm("travel: " + mode.name().toLowerCase(Locale.ROOT) + " on the " + sceneTerrain + " battle map: " + sceneShort());
         return r;
     }
@@ -497,6 +514,9 @@ final class Travel {
         if (c.day() != marchDay) { marchDay = c.day(); marched = 0; }
         lines.add(line("The party (you and the players within " + (int) PARTY_BLOCKS + " blocks) is " + where() + ".", NamedTextColor.WHITE));
         lines.add(line(c.timeText() + " · " + WorldMap.SEASONS[season] + " · marched today " + Hud.clock(marched * 60) + " of 8 h", NamedTextColor.GRAY));
+        if (!Loot.bodies.isEmpty())
+            b.add(btn("The field: " + Loot.bodies.size() + " bod" + (Loot.bodies.size() == 1 ? "y" : "ies"), "search, butcher (Survival), treat or take samples (Medicine)",
+                    x -> Loot.menu(pl, x)));
         if (!scene.isEmpty()) {
             lines.add(line("On the " + sceneTerrain + ":", NamedTextColor.GRAY));
             for (Met m : scene)
@@ -506,9 +526,9 @@ final class Travel {
             else if (anyHostile()) {
                 b.add(btn("Go round them", "unseen: only the Survival check's XP, to your scout (06b §3)", x -> { say(x, goRound(pl, x)); menu(pl, x); }));
                 for (Met m : scene) if (m.hostile() && Talks.talks(m.e.kind()))
-                    b.add(btn("Talk to " + m.e.kind().name(), "you saw them first: Rhetorics " + Battle.sign(Talks.SEEN_FIRST + Talks.HOSTILE)
-                            + " (+20 the first sight, −20 they came to fight); talked down = their full kill XP, failed = the fight, they first",
-                            x -> { say(x, Talks.parley(pl, x, m)); if (!pl.battle.inBattle(x)) menu(pl, x); }));
+                    b.add(btn("Talk to " + m.e.kind().name(), "on the battle map: one of you speaks, Rhetorics " + Battle.sign(Talks.SEEN_FIRST + Talks.HOSTILE)
+                            + " (+20 the first sight, −20 they came to fight); the rest get into position; talked down = their full kill XP",
+                            x -> Talks.speakerMenu(pl, x, m)));
                 b.add(btn("Ambush them", "the battle map (" + sceneTerrain + "): you in cover, YOU act first" + (anyHunted() ? "; the hunted animals too" : ""),
                         x -> { say(x, battleMap(pl, x, Arena.Mode.AMBUSH)); }));
             }

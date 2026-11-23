@@ -54,6 +54,8 @@ final class Raiders {
             if (f.pending.isEmpty()) {
                 if (!it.hasNext()) { if (f.task != null) f.task.cancel(); f.task = null; done.run(); return; }
                 UUID u = it.next();
+                Battle.Target tu = f.targets.get(u);
+                if (tu != null && tu.talking) return;   // the talk on the battle map (09d round 4): they hold while it lasts
                 Object prey = prey(f, u, ps);
                 if (prey instanceof Player p) plan(p, b.state(p), b.pl.character(p), u);
                 else if (prey instanceof UUID v) cross(f, u, v, ps.get(0));
@@ -153,6 +155,7 @@ final class Raiders {
     /** One attack of a danger on another. */
     private void strike(Battle.Fight f, LivingEntity le, Battle.Target t, LivingEntity ol, Battle.Target o) {
         if (t.dead || t.dying() || t.down || t.out || o.dead || o.escaped || ol.isDead()) return;
+        if (o.talking && f.talk != null) { b.endTalk(f); b.tell(f, t.name + " falls on " + o.name + ": the talk is cut short.", NamedTextColor.RED); }
         Location face = le.getLocation().clone();
         face.setDirection(ol.getLocation().toVector().subtract(face.toVector()).setY(0));
         le.teleport(face);

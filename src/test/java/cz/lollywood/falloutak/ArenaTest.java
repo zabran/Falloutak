@@ -86,8 +86,8 @@ class ArenaTest extends MockGame {
                     for (Arena.Spot o : l) if (o != s) assertFalse(Math.abs(o.x() - s.x()) <= 1 && Math.abs(o.z() - s.z()) <= 1, t + ": nobody next to another");
                 }
             }
-            for (Arena.Spot s : a.cover()) assertTrue(s.z() - a.z0() <= 12, t + ": the cover is on the party's (south) side");
-            for (Arena.Spot s : a.far()) assertTrue(s.z() - a.z0() >= 28, t + ": the enemies far, in the north half");
+            for (Arena.Spot s : a.cover()) assertTrue(s.z() - a.z0() >= Arena.coverZ - 4 && s.z() - a.z0() <= Arena.coverZ + 3, t + ": the party's line, " + Arena.ESCAPE + " blocks from the south edge (09d round 4)");
+            for (Arena.Spot s : a.far()) assertTrue(s.z() - a.z0() >= Arena.coverZ + Arena.dist - 2, t + ": the enemies at the start distance, north");
             // the barrier keeps the fight on the map
             assertEquals(Material.BARRIER, world.getBlockAt(a.x0() - Arena.MARGIN, Arena.Y, a.z0() + 10).getType());
         }
@@ -149,7 +149,7 @@ class ArenaTest extends MockGame {
         assertFalse(f.enemyPhase, "round 1: the party's turn");
         Battle.State sa = plugin.battle.state(a), sb = plugin.battle.state(b);
         assertTrue(sa.ap > 0 && sb.ap > 0 && !sa.enemyTurn && !sb.enemyTurn, "both play at once");
-        assertTrue(a.getLocation().getBlockY() == Arena.Y && a.getLocation().getBlockZ() < 14, "a in cover on the south side: " + a.getLocation());
+        assertTrue(a.getLocation().getBlockY() == Arena.Y && Math.abs(a.getLocation().getBlockZ() - Arena.coverZ) <= 4, "a in cover on the party's line: " + a.getLocation());
         // a ends his turn: the party's turn goes on for b
         plugin.battle.endTurnFor(a);
         assertTrue(sa.enemyTurn && !f.enemyPhase, "a waits for b");

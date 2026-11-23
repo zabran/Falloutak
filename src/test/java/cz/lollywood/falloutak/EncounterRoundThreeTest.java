@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ class EncounterRoundThreeTest extends MockGame {
     void map() { Arena.use = world; Travel.use(WorldMapTest.fixture()); Travel.here("Roadside"); }
 
     @AfterEach
-    void noMap() { Arena.use = null; Arena.current = null; Travel.map = null; Travel.file = null; Travel.scene.clear(); Talks.dice = null; Talks.tradingWith = null; }
+    void noMap() { Arena.use = null; Arena.current = null; Travel.map = null; Travel.file = null; Travel.scene.clear(); Talks.dice = null; Talks.tradingWith = null; Loot.clear(); Loot.dice = null; }
 
     private static WorldMap.Kind kind(String key) { return Travel.map.kinds.get(key); }
 
@@ -43,16 +44,18 @@ class EncounterRoundThreeTest extends MockGame {
         PlayerMock a = player();
         Character c = plugin.character(a);
         scene("raiders:pond", "fight", 8, true);
+        Travel.sceneDifficulty = 40;   // a forest at night (round 4: the XP = the check's difficulty)
         long xp0 = c.xp;
-        double surv = c.skill("Survival");
         String r = Travel.goRound(plugin, a);
         assertTrue(r.contains("Survival check"), r);
-        assertEquals(Travel.dodgeXp(surv), c.xp - xp0, "100 − the chance it had, at least 10: " + r);
+        assertEquals(40, c.xp - xp0, "the check's difficulty: " + r);
         assertTrue(c.xp - xp0 < 8 * Rules.killXp(30), "far less than their kill XP");
-        assertEquals(10, Travel.dodgeXp(95));
-        assertEquals(10, Travel.dodgeXp(150), "the chance is at most 95");
-        assertEquals(70, Travel.dodgeXp(30));
+        assertEquals(10, Travel.dodgeXp(0), "at least 10");
+        assertEquals(20, Travel.dodgeXp(20));
     }
+
+    /** Ends the party's turn and lets the enemies' turn run. */
+    private void endRound(PlayerMock a) { plugin.battle.endTurnFor(a); server.getScheduler().performTicks(400); }
 
     @Test
     void aGroupSeenFirstCanBeTalkedDownForItsKillXp() {
@@ -61,11 +64,18 @@ class EncounterRoundThreeTest extends MockGame {
         Travel.Met m = scene("raiders:pond", "fight", 4, true);
         Menus.actions(a);
         click("Travel (the world map)");
-        assertTrue(page().text().contains("Talk to the Pond raiders") || page().buttons().stream().anyMatch(b -> b.label().startsWith("Talk to")), page().text());
+        click("Talk to " + m.e.kind().name());
+        assertTrue(page().text().contains("Who speaks"), page().text());
         Talks.dice = d100(1);
         long xp0 = c.xp;
-        String r = Talks.parley(plugin, a, m);
-        assertTrue(r.contains("let you pass"), r);
+        clickAndClose(page().buttons().stream().filter(b -> b.label().startsWith(a.getName() + " speaks")).findFirst().orElseThrow().label());
+        Battle.Fight f = plugin.battle.fightOf(a);
+        assertNotNull(f, "the talk is on the battle map");
+        assertNotNull(f.talk);
+        assertFalse(f.enemiesFirst, "the party moves first: into position");
+        for (Battle.Target t : f.targets.values()) assertTrue(t.talking);
+        for (int k = 0; k < Battle.TALK_ROUNDS && plugin.battle.inBattle(a); k++) endRound(a);
+        assertFalse(plugin.battle.inBattle(a), "talked down: the fight is over");
         assertTrue(c.xp - xp0 >= Math.round(4 * Rules.killXp(30) * 0.99), "their full kill XP: " + (c.xp - xp0));
         assertTrue(Travel.scene.isEmpty());
         // the chance: Rhetorics + 20 (seen first) − 20 (they came to fight)
@@ -74,16 +84,22 @@ class EncounterRoundThreeTest extends MockGame {
     }
 
     @Test
-    void aFailedTalkIsAFightTheyBegin() {
+    void aFailedTalkGoesWrongInItsRoundsAndTheyShootFirst() {
         PlayerMock a = player();
         Travel.Met m = scene("raiders:pond", "fight", 2, true);
-        Talks.dice = d100(100);
+        Talks.dice = d100(100);   // failed; it goes wrong at the end of round 3
         String r = Talks.parley(plugin, a, m);
-        assertTrue(r.contains("goes wrong") && r.contains("THE TALK FAILED"), r);
+        assertTrue(r.contains("THE TALK"), r);
         Battle.Fight f = plugin.battle.fightOf(a);
         assertNotNull(f);
-        assertTrue(f.enemiesFirst, "they go for their guns first");
-        assertTrue(a.getLocation().getBlockZ() - 0 < 14, "the party kept its cover (the south side): " + a.getLocation());
+        assertEquals(3, f.talk.failAt);
+        assertTrue(a.getLocation().getBlockZ() - Arena.coverZ < 6, "the party kept its cover, " + Arena.ESCAPE + " blocks from the south edge: " + a.getLocation());
+        endRound(a);
+        endRound(a);
+        assertNotNull(f.talk, "still talking in round 3");
+        plugin.battle.endTurnFor(a);
+        assertNull(f.talk, "it went wrong");
+        for (Battle.Target t : f.targets.values()) assertFalse(t.talking, "they go for their guns");
         plugin.battle.stop(a);
     }
 
@@ -205,12 +221,13 @@ class EncounterRoundThreeTest extends MockGame {
         assertTrue(plugin.battle.raiders.prey(f, boar, plugin.battle.players(f)) instanceof org.bukkit.entity.Player);
         f.targets.get(raider).peaceable = false;
         f.targets.get(boar).peaceable = false;
-        // its hit is not the party's: no kill XP for what another danger killed
+        // what another danger killed counts too (round 4, Marek 11-24: "I would count that")
         Battle.Target t = f.targets.get(raider);
         for (Battle.Target x : f.targets.values()) { x.dead = true; x.byParty = false; }
         long xp0 = plugin.character(a).xp;
         plugin.battle.checkOver(a, plugin.battle.state(a), plugin.character(a));
-        assertEquals(xp0, plugin.character(a).xp, "killed by each other: nobody's XP");
+        assertTrue(plugin.character(a).xp - xp0 >= Math.round((Rules.killXp(30) + Rules.killXp(Arena.FOES.get("boar").hp())) * 0.99) - 2,
+                "killed by each other: their XP is the party's (" + (plugin.character(a).xp - xp0) + ")");
         assertTrue(t.dead);
         server.getScheduler().performTicks(60);
     }
@@ -226,6 +243,10 @@ class EncounterRoundThreeTest extends MockGame {
         plugin.battle.checkOver(a, plugin.battle.state(a), plugin.character(a));
         server.getScheduler().performTicks(60);
         assertFalse(plugin.battle.inBattle(a));
+        // round 4: each body is butchered from the field's menu (a Survival check: here a sure one)
+        assertEquals(2, Loot.bodies.size());
+        Loot.dice = d100(1);
+        for (Loot.Body x : List.copyOf(Loot.bodies)) assertTrue(Loot.butcher(plugin, a, x).contains("well"));
         int meat = 0, hides = 0;
         for (ItemStack it : a.getInventory().getContents()) {
             String id = Items.id(it);
@@ -234,19 +255,19 @@ class EncounterRoundThreeTest extends MockGame {
             if (id.contains("Raw hide")) hides += it.getAmount();
         }
         double kg = Arena.FOES.get("boar").meatKg();
-        assertEquals((int) Math.round(2 * kg * 2), meat, "two boars of " + kg + " kg, a portion 0.5 kg");
-        assertEquals(2, hides);
+        assertEquals(2 * (int) Math.round(kg * 2), meat, "two boars of " + kg + " kg, a portion 0.5 kg");
+        assertEquals(2 * Arena.FOES.get("boar").hides(), hides);
     }
 
     @Test
     void moreGroupsGetABiggerMap() {
-        assertEquals(48, Arena.sizeFor(3));
-        assertEquals(64, Arena.sizeFor(5));
-        assertEquals(80, Arena.sizeFor(8));
-        Arena.Layout big = Arena.build(world, "field", 9, 80);
-        assertEquals(80, big.size());
-        assertTrue(big.far().size() > Arena.build(world, "field", 9, 48).far().size(), "more room for them");
-        for (Arena.Spot s : big.far()) assertTrue(s.z() - big.z0() >= 46, "their half of the bigger map");
+        assertEquals(80, Arena.sizeFor(3, 25));
+        assertEquals(96, Arena.sizeFor(5, 25));
+        assertEquals(112, Arena.sizeFor(8, 25));
+        Arena.Layout big = Arena.build(world, "field", 9, 112, 20);
+        assertEquals(112, big.size());
+        assertFalse(big.far().isEmpty());
+        for (Arena.Spot s : big.far()) assertTrue(s.z() - big.z0() >= Arena.coverZ + 18, "at the start distance north of the party's line");
         assertEquals(8, Travel.AT_ONCE);
     }
 }

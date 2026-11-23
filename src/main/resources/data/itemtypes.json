@@ -226,6 +226,12 @@
      "id": ""
     },
     {
+     "name": "Sinew",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
      "name": "Tanned leather",
      "tier": 2,
      "rarity": 1,
@@ -429,6 +435,12 @@
     },
     {
      "name": "Wild greens",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Raw fat",
      "tier": 1,
      "rarity": 1,
      "id": ""
