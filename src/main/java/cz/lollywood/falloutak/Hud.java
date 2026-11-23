@@ -138,6 +138,8 @@ public final class Hud {
         if (floor > 0 && c.survival.get(Rules.Stat.PAIN) < floor) c.survival.put(Rules.Stat.PAIN, floor);
         String stageHp = c.stageHour(stages0);   // the stages' HP Current (an hour; radiation's once) and HP Max (04, RULED 11-15)
         if (stageHp != null) c.news.add(stageHp);
+        String crisis = c.crisis(java.util.concurrent.ThreadLocalRandom.current());   // 03b §7b: the crisis at 1 000 rads (round 7)
+        if (crisis != null) c.news.add(crisis);
         heal(c);
         c.radiationRolls(rads0, c.survival.getOrDefault(Rules.Stat.RADS, 0.0), java.util.concurrent.ThreadLocalRandom.current());   // 03d §5
         c.therapyHour();   // 03d §2, §10

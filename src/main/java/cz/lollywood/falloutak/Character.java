@@ -107,6 +107,8 @@ public final class Character {
     public double minuteAcc = 0;
     public boolean dead = false;
     public double restHours = 0, mendHours = 0, lastMutation = -1e9;
+    /** The crisis was rolled for this stay at 1 000 rads or more (03b §7b); cleared when the rads fall below 1 000. */
+    public boolean crisisRolled = false;
     /** Hours toward the next loss of a negative healing rate (Fatal Radiation Poisoning, 11-19). */
     public double sickHours = 0;
 
@@ -1156,7 +1158,40 @@ public final class Character {
         if (m.randomAttr() != 0) { int i = rnd.nextInt(7); mods[i] += m.randomAttr(); extra = " (" + Rules.SPECIAL[i] + ")"; }
         add(new Effect("Mutation: " + m.name() + extra, "mutation", "", true, mods, new LinkedHashMap<>(m.other()), 0, null, 100));
         return "d100 " + d + " + (Luck − 5) × 4 − 10 a 100 rads above the first = " + score + ": " + cat.toUpperCase(Locale.ROOT) + " → " + m.name()
-                + extra + (m.notes().isEmpty() ? "" : " (" + m.notes() + ")") + "; " + rads + " rads expelled";
+                + extra + (m.notes().isEmpty() ? "" : " (" + m.notes() + ")") + "; " + rads + " rads expelled" + ghoulLine(cat);
+    }
+
+    /**
+     * What a mutation's result means for the ghoul line (03b §7, RULED 11-22: *"the third mutation, if it rolls bad or very bad, turns the
+     * person into a ghoul." - seems fine.*; §7b, round 7: a ghoul's very bad result = the next stage): told, the GM sets it (the stages
+     * are not templates in the plugin yet).
+     */
+    String ghoulLine(String cat) {
+        long n = effects.stream().filter(e -> "mutation".equals(e.source())).count();
+        boolean ghoul = "Ghoul".equals(baseTpl().name());
+        if (!ghoul && n >= 3 && (cat.equals("bad") || cat.equals("very bad")))
+            return " → mutation " + n + ", " + cat + ": the body turns GHOUL (03b §7; the GM sets the template)";
+        if (ghoul && cat.equals("very bad"))
+            return " → a ghoul's very bad result: the next stage of the ghoul line (03b §7b: leathered, husk, glowing; the GM sets it)";
+        return "";
+    }
+
+    /**
+     * THE CRISIS (03b §7b, round 7): the first hour at 1 000 rads or more, the body's last resort: d100 + (Luck − 5) × 4; above 50 it
+     * answers with a FORCED mutation roll expelling 500 rads (outside the yearly roll: {@link #lastMutation} untouched), which takes it out
+     * of Fatal Radiation; 50 or less, nothing: Fatal Radiation runs as ruled (RadAway and Stimpaks, the scar, 04 §3.8). Once a stay;
+     * below 1 000 the next stay rolls again. Returns the news, or null.
+     */
+    public String crisis(Random rnd) {
+        double held = survival.getOrDefault(Rules.Stat.RADS, 0.0);
+        if (held < Rules.CRISIS_RADS) { crisisRolled = false; return null; }
+        if (crisisRolled || dead) return null;
+        crisisRolled = true;
+        int d = 1 + rnd.nextInt(100);
+        int score = Rules.crisisScore(d, attr(Rules.L, true));
+        String head = "THE CRISIS at " + Rules.CRISIS_RADS + " rads: d100 " + d + " + (Luck − 5) × 4 = " + score;
+        if (!Rules.crisisLives(score)) return head + " (50 or less): the body does not answer; Fatal Radiation runs (RadAway, Stimpaks)";
+        return head + " (above 50): the body answers with a forced mutation (" + mutate(Rules.CRISIS_EXPEL, rnd) + ")";
     }
 
     // ------------------------------------------------------------------ clinical death (03b §5)

@@ -520,6 +520,18 @@ public final class Rules {
     /** The yearly mutation roll (03b §7): d100 + (Luck − 5) × 4 − 10 for each 100 rads above the first 100. */
     public static int mutationScore(int d100, int luck, int rads) { return d100 + (luck - 5) * 4 - 10 * (rads / 100 - 1); }
 
+    /**
+     * THE CRISIS at 1 000 rads (03b §7b, `09b` round 7, Marek 11-22: *""at 1,000 rads the body gets a forced mutation roll" - great idea,
+     * lets add that to PCs as well. And just like before, Luck helps a lot here (hence why ghouls have bigger luck)."* · *"please, add
+     * luck inside ... The 1 in 2 seems still usable."*): d100 + (Luck − 5) × 4; above {@link #CRISIS_AT} the body answers (Luck 5: one
+     * in two, Luck 10: 70 %, a ghoul's Luck +3: 62 % from Luck 5).
+     */
+    public static int crisisScore(int d100, int luck) { return d100 + (luck - 5) * 4; }
+
+    public static final int CRISIS_AT = 50, CRISIS_RADS = 1000, CRISIS_EXPEL = 500;
+
+    public static boolean crisisLives(int score) { return score > CRISIS_AT; }
+
     /** 0 or less very bad, 1-50 bad, 51-80 neutral, 81+ good. */
     public static String mutationCategory(int score) { return score <= 0 ? "very bad" : score <= 50 ? "bad" : score <= 80 ? "neutral" : "good"; }
 
