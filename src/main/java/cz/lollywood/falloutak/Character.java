@@ -1414,6 +1414,8 @@ public final class Character {
             if (base[i] + body[i] + g.mods()[i] < 1) { base[i] = 1 - body[i] - g.mods()[i]; kept.add(Rules.SPECIAL[i] + " kept at 1"); }
         necrosis = true;
         bodyTpl = null;
+        int rate0 = templatePerkRate;
+        if (templatePerkRate > 0) templatePerkRate = Math.max(templatePerkRate, gt != null ? gt.perkRate() : Rules.GHOUL_PERK_RATE);   // round 13
         List<String> barred = new ArrayList<>();
         if (gt != null) for (Feat t : traits) if (gt.forbiddenTraits().contains(t.name())) barred.add(t.name());
         ghoulPath.clear();
@@ -1421,6 +1423,7 @@ public final class Character {
         if (hp > hpMax()) hp = hpMax();
         return "the body turns GHOUL: the Ghoul gene fills the Necrosis slot (03b §7b: S −2, P +3, I +3, A −4, L +3, HP −5, poison +10 %, "
                 + "rad res +40 %); the template (" + born.name() + ") and its genes stay"
+                + (templatePerkRate != rate0 ? "; a perk every " + templatePerkRate + " levels now (was " + rate0 + ")" : "")
                 + (kept.isEmpty() ? "" : "; " + String.join(", ", kept))
                 + (barred.isEmpty() ? "" : "; a ghoul's body bars " + String.join(", ", barred) + ": the GM decides");
     }
@@ -1445,11 +1448,14 @@ public final class Character {
         String from = at == 0 ? "ghoul" : ghoulStage();
         ghoulPath.add(Rules.GHOUL_STAGES[to - 1]);
         bodyTpl = null;   // 09b round 12: the stage is the Necrosis gene's variant (Data.ghoulVariant), no effect
+        int rate0 = templatePerkRate;   // round 13: the further from human, the slower the perks
+        if (templatePerkRate > 0) templatePerkRate = Math.max(templatePerkRate, Rules.GHOUL_STAGE_PERK_RATE[to - 1]);
         if (glowing()) {   // round 9: it keeps its rads, up to the cap; no crisis any more
             survival.put(Rules.Stat.RADS, Math.min(Rules.GLOW_CAP, survival.getOrDefault(Rules.Stat.RADS, 0.0)));
             crisisRolled = false;
         }
-        String s = " → THE GHOUL LINE: " + from + " → " + ghoulStage() + (to - at > 1 ? " (a jump of " + (to - at) + " stages)" : "") + " (03b §7b)";
+        String s = " → THE GHOUL LINE: " + from + " → " + ghoulStage() + (to - at > 1 ? " (a jump of " + (to - at) + " stages)" : "") + " (03b §7b)"
+                + (templatePerkRate != rate0 ? "; a perk every " + templatePerkRate + " levels now" : "");
         return to == 3 ? s + "; " + madness(rnd) : s;
     }
 

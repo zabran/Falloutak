@@ -18,7 +18,7 @@
     "Isolation": 40
    },
    "gas_dr": 0,
-   "weight_kg": 4.5,
+   "weight_kg": 5.0,
    "value": 90,
    "pieces": [
     "Chest",
@@ -59,7 +59,7 @@
     "Isolation": 30
    },
    "gas_dr": 0,
-   "weight_kg": 2.3,
+   "weight_kg": 2.5,
    "value": 250,
    "pieces": [
     "Chest"
@@ -98,7 +98,7 @@
     "Isolation": 30
    },
    "gas_dr": 0,
-   "weight_kg": 3.2,
+   "weight_kg": 3.5,
    "value": 1000,
    "pieces": [
     "Chest"
@@ -137,7 +137,7 @@
     "Isolation": 30
    },
    "gas_dr": 0,
-   "weight_kg": 3.6,
+   "weight_kg": 4.0,
    "value": 700,
    "pieces": [
     "Chest",
@@ -178,7 +178,7 @@
     "Isolation": 40
    },
    "gas_dr": 0,
-   "weight_kg": 4.5,
+   "weight_kg": 5.0,
    "value": 1000,
    "pieces": [
     "Chest",
@@ -219,7 +219,7 @@
     "Isolation": 0
    },
    "gas_dr": 0,
-   "weight_kg": 15.9,
+   "weight_kg": 17.5,
    "value": 1100,
    "pieces": [
     "Head",
@@ -262,7 +262,7 @@
     "Isolation": 10
    },
    "gas_dr": 0,
-   "weight_kg": 15.9,
+   "weight_kg": 17.5,
    "value": 1900,
    "pieces": [
     "Head",
@@ -305,7 +305,7 @@
     "Isolation": 80
    },
    "gas_dr": 0,
-   "weight_kg": 15.9,
+   "weight_kg": 17.5,
    "value": 4500,
    "pieces": [
     "Head",
@@ -348,7 +348,7 @@
     "Isolation": 50
    },
    "gas_dr": 0,
-   "weight_kg": 9.1,
+   "weight_kg": 10.0,
    "value": 6500,
    "pieces": [
     "Head",
@@ -391,7 +391,7 @@
     "Isolation": 55
    },
    "gas_dr": 0,
-   "weight_kg": 11.3,
+   "weight_kg": 12.5,
    "value": 8000,
    "pieces": [
     "Head",
@@ -434,7 +434,7 @@
     "Isolation": 60
    },
    "gas_dr": 0,
-   "weight_kg": 11.3,
+   "weight_kg": 12.5,
    "value": 4800,
    "pieces": [
     "Head",
@@ -477,7 +477,7 @@
     "Isolation": 40
    },
    "gas_dr": 0,
-   "weight_kg": 19.1,
+   "weight_kg": 21.0,
    "value": 12500,
    "pieces": [
     "Head",
@@ -527,7 +527,7 @@
     "Isolation": 50
    },
    "gas_dr": 0,
-   "weight_kg": 22.7,
+   "weight_kg": 25.0,
    "value": 15000,
    "pieces": [
     "Head",
@@ -577,7 +577,7 @@
     "Isolation": 60
    },
    "gas_dr": 0,
-   "weight_kg": 20.4,
+   "weight_kg": 22.5,
    "value": 20000,
    "pieces": [
     "Head",
@@ -627,7 +627,7 @@
     "Isolation": 65
    },
    "gas_dr": 0,
-   "weight_kg": 22.7,
+   "weight_kg": 25.0,
    "value": 25000,
    "pieces": [
     "Head",
@@ -677,7 +677,7 @@
     "Isolation": 10
    },
    "gas_dr": 70,
-   "weight_kg": 9.1,
+   "weight_kg": 10.0,
    "value": 6100,
    "pieces": [
     "Head",
@@ -726,7 +726,7 @@
     "Isolation": 10
    },
    "gas_dr": 90,
-   "weight_kg": 11.3,
+   "weight_kg": 12.5,
    "value": 9000,
    "pieces": [
     "Head",
@@ -775,7 +775,7 @@
     "Isolation": 0
    },
    "gas_dr": 0,
-   "weight_kg": 9.1,
+   "weight_kg": 10.0,
    "value": 450,
    "pieces": [
     "Chest",
@@ -816,7 +816,7 @@
     "Isolation": 0
    },
    "gas_dr": 0,
-   "weight_kg": 11.3,
+   "weight_kg": 12.5,
    "value": 1000,
    "pieces": [
     "Chest",
@@ -857,7 +857,7 @@
     "Isolation": 0
    },
    "gas_dr": 15,
-   "weight_kg": 9.1,
+   "weight_kg": 10.0,
    "value": 1600,
    "pieces": [
     "Chest",
@@ -898,7 +898,7 @@
     "Isolation": 0
    },
    "gas_dr": 40,
-   "weight_kg": 13.6,
+   "weight_kg": 15.0,
    "value": 3100,
    "pieces": [
     "Chest",
@@ -939,7 +939,7 @@
     "Isolation": 10
    },
    "gas_dr": 0,
-   "weight_kg": 4.5,
+   "weight_kg": 5.0,
    "value": 1000,
    "pieces": [
     "Chest",

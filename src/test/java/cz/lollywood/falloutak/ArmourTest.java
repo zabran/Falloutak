@@ -84,7 +84,7 @@ class ArmourTest {
         assertTrue(m.shielded(Rules.GASES.get("chlorine")) && m.eyesShielded(Rules.GASES.get("chlorine")));
         m.setArmour(Map.of(), true, false);
         assertFalse(m.wearing.contains("Gas mask"));                              // taken off with the helmet slot
-        // Tactics' environmental armour: sealed, a gas filter built in; 9.1 kg = medium, Sneak −10 % (Tactics' −50 % dropped, 05c §3b)
+        // Tactics' environmental armour: sealed, a gas filter built in; 10 kg = medium, Sneak −10 % (Tactics' −50 % dropped, 05c §3b)
         Character e = human();
         double sneak = e.skill("Sneak");
         e.setArmour(set("Environmental Armor", 100, "Head", "Chest", "Legs", "Feet"), false, false);
@@ -149,7 +149,7 @@ class ArmourTest {
         orc.setArmour(set("Combat Armor", 100, "Head", "Chest", "Legs"), false, false);
         assertEquals(3, orc.armourAc());                                          // the human helmet only (20 × 0.1667)
         assertEquals(orc.dt(), orc.dtAt(Rules.Part.TORSO, "Normal"));            // the misfit chest gives nothing
-        assertEquals(9.1, orc.wornKg(), 0.05);                                    // but still weighs
+        assertEquals(10.0, orc.wornKg(), 0.05);                                   // but still weighs (Fallout's 20 lb x 0.5, round 13)
         assertFalse(orc.complete("Combat Armor"));
         String r = orc.refit("Chest");
         assertTrue(r.contains("refitted") || r.contains("needs Crafting 100"), r);
@@ -168,15 +168,15 @@ class ArmourTest {
         int ap0 = c.apMax();
         double sneak0 = c.skill("Sneak");
         assertEquals(0, c.armourClass());
-        c.setArmour(set("Metal Armor", 100, "Head", "Chest", "Legs"), false, false);   // 15.9 kg
+        c.setArmour(set("Metal Armor", 100, "Head", "Chest", "Legs"), false, false);   // 17.5 kg (round 13: 35 lb x 0.5)
         assertEquals(2, c.armourClass());
         assertEquals(ap0 - 1, c.apMax());
         assertEquals(sneak0 - 25, c.skill("Sneak"), 1e-9);
-        c.setArmour(set("Power Armor", 100, "Head", "Chest", "Legs", "Feet"), false, false);   // 19.1 kg
+        c.setArmour(set("Power Armor", 100, "Head", "Chest", "Legs", "Feet"), false, false);   // 21 kg (42 lb x 0.5)
         assertEquals(2, c.armourClass());                                        // untrained: its full weight
         assertEquals("Power Armour Training 50 of 100 hours", c.paTaught(5));
         assertEquals("Power Armour Training learned", c.paTaught(5));
-        assertEquals(1, c.armourClass());                                        // trained: half, 9.6 kg = medium
+        assertEquals(1, c.armourClass());                                        // trained: half, 10.5 kg = medium
         assertNull(c.paHour());
         // the comfort interval (05c §6): ordinary clothes 10-25 °C, winter clothes 6-21, arctic gear −9 to 6, power armour cooled 4-45
         Character w = human();

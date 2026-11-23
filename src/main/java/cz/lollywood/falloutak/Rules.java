@@ -555,6 +555,13 @@ public final class Rules {
     public static int ghoulSteps(int score) { return score > 0 ? 0 : 1 + (score <= -20 ? 1 : 0) + (score <= -40 ? 1 : 0); }
 
     public static final String[] GHOUL_STAGES = {"leathered", "husk", "glowing"};
+    /**
+     * The perk rate of a ghoul and its stages (`09b` round 13, Marek 11-23, verbatim: *"It should change as well. Perk rate should scale with
+     * how humanly you can expirience the reality."*): the ghoul the Ghoul template's 4; leathered 4, husk 5, glowing 6 [mine, EXAMPLE].
+     * Never faster than the body's own (the max).
+     */
+    public static final int GHOUL_PERK_RATE = 4;
+    public static final int[] GHOUL_STAGE_PERK_RATE = {4, 5, 6};
 
     /*
      * THE GLOWING ONE'S RADS (03b §7b, `09b` round 9, Marek 11-23, verbatim: *""A glowing ghoul is healed by the radiation around it (10
