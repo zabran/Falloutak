@@ -39,7 +39,7 @@ class CrisisTest {
         assertTrue(out.contains("the body answers") && out.contains("BAD"), out);
         assertEquals(500, c.survival.get(Rules.Stat.RADS), 1e-9);
         assertEquals(-1e9, c.lastMutation, 1e-9, "the yearly roll is untouched");
-        assertEquals(1, c.effects.stream().filter(e -> "mutation".equals(e.source())).count());
+        assertEquals(1, c.mutationCount(), "a gene changed, or a body change (09b round 12)");
         assertNull(c.crisis(Part3Test.fixed(0.5, 80)), "below 1 000 again: nothing to roll");
     }
 

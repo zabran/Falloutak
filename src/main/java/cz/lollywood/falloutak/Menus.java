@@ -482,6 +482,14 @@ final class Menus {
         for (Character.Effect e : t.implants())
             b.add(btn("Take out: " + e.name().replaceAll(" · Tier.*", ""), "costs it " + Math.round(Rules.salvageLoss(med)) + " % condition at your Medicine"
                     + (t.dead || o.npc() ? "" : "; he must agree"), x -> removeAsk(x, whoOf(o.entity()), e)));
+        if (!t.dead && !t.recipes().isEmpty())
+            b.add(btn("Take a gene sample", sampleText(t), x -> {
+                String r = sample(whoOf(o.entity()));
+                say(x, r);
+                o.tell(p.getName() + " took your gene sample: " + r, NamedTextColor.LIGHT_PURPLE);
+                tellGm(p.getName() + " → " + o.name() + ": " + r);
+                on(x, whoOf(o.entity()));
+            }));
         b.add(btn("Their sheet", "sheets are open to all", x -> SheetView.open(x, t, SheetGui.Page.OVERVIEW)));
         if (p.hasPermission("falloutak.gm")) b.add(btn("GM: " + o.name(), "the GM's tools on him", x -> gmOn(x, whoOf(o.entity()))));
         if (!cannot.isEmpty()) {
@@ -1082,6 +1090,7 @@ final class Menus {
             c.survival.put(Rules.Stat.OXYGEN, c.max(Rules.Stat.OXYGEN)); c.oxygenZeroAt = -1; gmOn(x, o); }));
         b.add(btn("Survival values", "set his water, food, sleep, poison, cold, heat, Blood and Pain by sliders (rads: Add rads)", x -> survivalForm(x, o)));
         b.add(btn("Effects", "his chems, hangovers, mutations and traits' effects: remove one", x -> effectsList(x, o)));
+        if (!c.mutated.isEmpty()) b.add(btn("Mutated genes (" + c.mutated.size() + ")", "the genes his mutations changed (03b §7a): undo one", x -> mutatedList(x, o)));
         b.add(btn("Clinical death now", "HP below −Endurance: its clock runs with game time (an implanted defibrillator shocks)", x -> { c.hp = Rules.deathFloor(c.attrs(false)) - 1; c.arrestAt = c.now(); c.cprFrom = -1;
             String d = c.autoDefibrillate(pl.rnd); if (!d.isEmpty()) say(x, o.name() + ":" + d); gmOn(x, o); }));
         if (c.inArrest() || c.dead) b.add(btn("Revive now", "no roll: back at −Endurance", x -> { c.dead = false; c.revived(); gmOn(x, o); }));
@@ -1506,6 +1515,7 @@ final class Menus {
         for (String ch : Data.CHEMS.keySet()) ids.add("chem:" + ch);
         for (Data.Implant im : Data.IMPLANTS.values()) for (int t : im.tiers().descendingKeySet()) ids.add("implant:" + im.name() + (t == 4 ? "" : "|" + t));
         for (Data.Gene g : Data.GENES.values()) if (!g.slot().equals("ORGAN")) ids.add("therapy:" + g.name());
+        if (pl.base != null) for (String n : pl.base.genePool.keySet()) ids.add("therapy:" + n);   // 03b §7a: the genes made in the game
         for (String s : Data.SETS.keySet()) ids.add("geneset:" + s);
         for (String gr : Items.GEAR) ids.add("gear:" + gr);
         for (Data.Armour a : Data.ARMOUR.values()) for (String s : a.pieces()) ids.add(Items.armourId(a.name(), s));   // 05c
@@ -1600,6 +1610,7 @@ final class Menus {
         lines.add(line("A therapy lays one gene over the template's own in its slot for a while (03d): the tissue's years × the tier; "
                 + "a course (a week to two months, with its fever) before it acts; half its numbers in its last quarter.", NamedTextColor.GRAY));
         b.add(btn("Give a gene", "the slot, the gene, then who gives it and where (03d §1-§6)", x -> therapySlot(x, o)));
+        if (!c.recipes().isEmpty()) b.add(btn("Take a gene sample", sampleText(c), x -> { say(x, sample(o)); therapies(x, o); }));
         b.add(btn("Give a shop set", "Heavy Gravity, Witcher, Chlorofil, Tiefling: one 15-year course (03d §9)", x -> pick(x, "Gene set for " + o.name(),
                 "One course, one roll at its highest tier; an adult gets no shape or organ genes.", new ArrayList<>(Data.SETS.keySet()), n -> n,
                 n -> Data.SETS.get(n).shop() + "\ngenes: " + String.join(", ", Data.SETS.get(n).genes()), (y, n) -> therapyCourse(y, o, null, Data.SETS.get(n)),
@@ -1618,6 +1629,34 @@ final class Menus {
         menu(g, "Gene therapy: " + o.name(), lines, b, x -> gmOn(x, o));
     }
 
+    /** What a sample takes (03b §7a): the body's changed genes, and which the pool lacks. */
+    static String sampleText(Character c) {
+        List<String> l = new ArrayList<>();
+        for (Data.Recipe r : c.recipes()) {
+            Data.Gene g = r.build();
+            if (g != null) l.add(g.name() + (pl.base.genePool.containsKey(g.name()) || Data.GENES.containsKey(g.name()) ? " (known)" : ""));
+        }
+        return "blood or a biopsy: his changed genes into the base's gene pool, for gene therapy (03b §7a): " + String.join(", ", l);
+    }
+
+    /** A sample of a body's changed genes into the base's pool (03b §7a; 09b round 12). */
+    static String sample(Who o) {
+        if (o == null) return "! nobody";
+        List<String> added = pl.base.sample(o.c().recipes());
+        return added.isEmpty() ? o.name() + "'s genes are all in the pool already"
+                : o.name() + "'s sample: " + String.join(", ", added) + " into the gene pool (gene therapy gives them now, 03d)";
+    }
+
+    /** The GM undoes a mutation's change to a gene (03b §7a). */
+    static void mutatedList(Player g, Who o) {
+        Character c = o.c();
+        List<String> idx = new ArrayList<>();
+        for (int i = 0; i < c.mutated.size(); i++) idx.add(String.valueOf(i));
+        pick(g, "Mutated genes: " + o.name(), "Each a mutation that changed the gene in its slot, in order. Undo one: the slot loses it.", idx,
+                i -> { Character.Mutated m = c.mutated.get(Integer.parseInt(i)); return m.slot + ": " + m.name + (m.attr >= 0 ? " (" + Rules.SPECIAL[m.attr] + ")" : ""); },
+                i -> "undo it", (x, i) -> { say(x, o.name() + ": " + c.undoMutation(Integer.parseInt(i))); gmOn(x, o); }, x -> gmOn(x, o));
+    }
+
     /** Give a gene, step 1: the slot (the ORGAN genes are grafts, never therapies). */
     static void therapySlot(Player g, Who o) {
         List<String> slots = new ArrayList<>();
@@ -1632,6 +1671,7 @@ final class Menus {
                 s -> {
                     StringBuilder sb = new StringBuilder();
                     for (Data.Gene x : Data.GENES.values()) if (x.slot().equals(s)) sb.append(sb.isEmpty() ? "" : ", ").append(x.name());
+                    for (Data.Gene x : pl.base.pooled(s)) sb.append(sb.isEmpty() ? "" : ", ").append(x.name()).append(" (the pool)");
                     return sb.toString();
                 }, (x, s) -> therapyGene(x, o, s), x -> therapies(x, o));
     }
@@ -1640,11 +1680,12 @@ final class Menus {
     static void therapyGene(Player g, Who o, String slot) {
         List<String> names = new ArrayList<>();
         for (Data.Gene x : Data.GENES.values()) if (x.slot().equals(slot)) names.add(x.name());
+        for (Data.Gene x : pl.base.pooled(slot)) names.add(x.name());   // 03b §7a: made in the game, sampled
         pick(g, slot + " for " + o.name(), "The gene: its tier sets the course and its years (" + Character.tissueYears(slot)
                         + " years × T1 1, T2 1.5, T3 2, T4 2.5).", names,
-                n -> { Data.Gene x = Data.GENES.get(n); return n + " (" + x.tier() + (x.adult() ? "" : ", puberty only") + ")"; },
-                n -> Forms.geneTip(Data.GENES.get(n)) + "\nlasts " + SheetView.hours(Character.therapyHours(Data.GENES.get(n))),
-                (x, n) -> therapyCourse(x, o, Data.GENES.get(n), null), x -> therapySlot(x, o));
+                n -> { Data.Gene x = Data.gene(n); return n + " (" + x.tier() + (x.adult() ? "" : ", puberty only") + ")"; },
+                n -> Forms.geneTip(Data.gene(n)) + "\nlasts " + SheetView.hours(Character.therapyHours(Data.gene(n))),
+                (x, n) -> therapyCourse(x, o, Data.gene(n), null), x -> therapySlot(x, o));
     }
 
     /** Give a gene or a set, step 3: who gives it and where; then the rolls (03d §6, §4). */
@@ -1677,7 +1718,7 @@ final class Menus {
         Character me = pl.character(p), c = o.c();
         boolean set = item.startsWith("geneset:");
         String what = item.substring(item.indexOf(':') + 1);
-        Data.Gene gene = set ? null : Data.GENES.get(what);
+        Data.Gene gene = set ? null : Data.gene(what);
         Data.GeneSet gs = set ? Data.SETS.get(what) : null;
         if (gene == null && gs == null) return;
         if (gene != null) { String bar = c.therapyBar(gene, false); if (bar != null) { say(p, "! " + bar); return; } }

@@ -178,6 +178,29 @@ public final class Character {
     private transient int keptKey = -1;
 
     /**
+     * A mutation that CHANGED a gene (03b §7a; 09b round 12, Marek 11-23, verbatim: *"the selected random mutation is applied to selected
+     * random gene slot creating a new gene"*): the slot, the mutation, the attribute a random one hit (-1). In order; a slot may change again.
+     */
+    public static final class Mutated {
+        public String slot = "", name = "";
+        public int attr = -1;
+
+        public Mutated() {}
+
+        Mutated(String slot, String name, int attr) { this.slot = slot; this.name = name; this.attr = attr; }
+    }
+
+    /** The mutations that changed this body's genes (03b §7a), in order. */
+    public final List<Mutated> mutated = new ArrayList<>();
+    /**
+     * The body turned GHOUL (03b §7; 09b round 12, Marek 11-23, verbatim: *"It is supposed to be a mutation."*): the Ghoul gene in the
+     * Necrosis slot ({@link Data#NECROSIS}), the template and its genes kept. A ghoul born (the Ghoul template) has the gene already.
+     */
+    public boolean necrosis;
+    private transient Data.Template bodyTpl;
+    private transient String bodyKey;
+
+    /**
      * Out of the game (round 11: *"for the purpose of playing, it should be possible to save your current inventory + character (esp. in
      * MC, where you can do other things than just play)"*): `/game off` until `/game on`; the HUD and the world leave him alone.
      */
@@ -291,7 +314,7 @@ public final class Character {
             this.gene = gene; this.hours = hours; this.courseLeft = courseLeft; this.state = state; this.set = set == null ? "" : set;
         }
 
-        public Data.Gene g() { return Data.GENES.get(gene); }
+        public Data.Gene g() { return Data.gene(gene); }
         public boolean active() { return g() != null && courseLeft <= 0 && (hours <= 0 || elapsed < hours); }
         /** Full for its time, half its numbers for its last quarter (§2). */
         public double share() { return hours > 0 && elapsed >= 0.75 * hours ? 0.5 : 1; }
@@ -317,8 +340,67 @@ public final class Character {
         return s;
     }
 
-    /** The template as born (or as made in puberty), without the therapies. */
+    /**
+     * The body as it is now, without the therapies: the template as born with the genes its mutations CHANGED (03b §7a) and the ghoul's
+     * Necrosis gene (09b round 12) in their slots.
+     */
     public Data.Template baseTpl() {
+        Data.Template born = bornTpl();
+        if (mutated.isEmpty() && !isGhoul()) return born;
+        List<Data.Gene> changed = bodyGenes(born);
+        if (changed.isEmpty()) return born;
+        StringBuilder k = new StringBuilder(born.name()).append('#').append(System.identityHashCode(born));
+        for (Data.Gene g : changed) k.append('|').append(g.name());
+        String key = k.toString();
+        if (!key.equals(bodyKey) || bodyTpl == null) {
+            List<Data.Cover> cv = new ArrayList<>();
+            for (Data.Gene g : changed) cv.add(new Data.Cover(g, 1, "on"));
+            bodyTpl = Data.withTherapies(born, cv);
+            bodyKey = key;
+        }
+        return bodyTpl;
+    }
+
+    /** Is the body a ghoul: turned (the Necrosis gene), born one (the Ghoul template's gene), or a save before 0.68.0's turned one. */
+    public boolean isGhoul() {
+        if (necrosis) return true;
+        Data.Template born = bornTpl();
+        if (born.name().equals("Ghoul")) return true;
+        for (Data.Gene g : born.genes()) if (g.slot().equals(Data.NECROSIS)) return true;
+        return false;
+    }
+
+    /** The born template's gene in a plain slot, or null. */
+    private static Data.Gene geneIn(Data.Template t, String slot) {
+        for (Data.Gene g : t.genes()) if (g.slot().equals(slot)) return g;
+        return null;
+    }
+
+    /** The genes this body CHANGED, one a slot: each mutated slot's variant, and the Necrosis slot's (the Ghoul gene, or its stage). */
+    List<Data.Gene> bodyGenes(Data.Template born) {
+        List<Data.Gene> l = new ArrayList<>();
+        for (Data.Recipe r : recipes(born)) { Data.Gene g = r.build(); if (g != null) l.add(g); }
+        return l;
+    }
+
+    /** How each changed gene of this body is made (what a sample takes into the base's pool, 03b §7a). */
+    public List<Data.Recipe> recipes() { return recipes(bornTpl()); }
+
+    private List<Data.Recipe> recipes(Data.Template born) {
+        Map<String, List<Data.Applied>> bySlot = new LinkedHashMap<>();
+        for (Mutated m : mutated) bySlot.computeIfAbsent(m.slot, x -> new ArrayList<>()).add(new Data.Applied(m.name, m.attr));
+        List<Data.Recipe> l = new ArrayList<>();
+        bySlot.forEach((slot, ms) -> { Data.Gene b = geneIn(born, slot); l.add(new Data.Recipe(b == null ? "" : b.name(), slot, ms, List.of())); });
+        if (isGhoul()) {
+            Data.Gene own = geneIn(born, Data.NECROSIS);
+            List<String> path = ghoulPath == null ? List.of() : ghoulPath;
+            if (own == null || !path.isEmpty()) l.add(new Data.Recipe(own != null ? own.name() : "Ghoul", Data.NECROSIS, List.of(), path));
+        }
+        return l;
+    }
+
+    /** The template as born (or as made in puberty), without the mutations' changes and the therapies. */
+    public Data.Template bornTpl() {
         if (Data.CUSTOM.equals(template)) return customTpl != null ? customTpl : (customTpl = Data.custom(genes));
         Data.Template t = Data.TEMPLATES.getOrDefault(template, Data.TEMPLATES.get("Human"));
         if (keptGenes.isEmpty() || !t.name().equals("Ghoul")) return t;
@@ -332,7 +414,7 @@ public final class Character {
     }
 
     /** The template's HP bonus, with the therapies' (Bone lattice's HP +5 over the template's gene in the Frame slot). */
-    public int hpBonus() { return templateHp + tpl().hp() - baseTpl().hp(); }
+    public int hpBonus() { return templateHp + tpl().hp() - bornTpl().hp(); }
 
     /** The therapy in a gene's place ({@link Data.Gene#key()}), or null. */
     public Therapy therapyIn(String key) {
@@ -564,12 +646,45 @@ public final class Character {
         List<Data.Mutation> l = new ArrayList<>();
         for (Data.Mutation m : Data.MUTATIONS) if (m.category().equals(cat)) l.add(m);
         if (l.isEmpty()) return "rolled " + score + ": " + cat + ", none listed";
-        Data.Mutation m = l.get(rnd.nextInt(l.size()));
-        int[] mods = m.mods().clone();
-        String extra = "";
-        if (m.randomAttr() != 0) { int i = rnd.nextInt(7); mods[i] += m.randomAttr(); extra = " (" + Rules.SPECIAL[i] + ")"; }
-        add(new Effect("Mutation: " + m.name() + extra, "mutation", "", true, mods, new LinkedHashMap<>(m.other()), 0, null, 100));
-        return cat + ": " + m.name() + extra;
+        return cat + ": " + applyMutation(l.get(rnd.nextInt(l.size())), rnd);
+    }
+
+    /**
+     * A mutation hits the body (03b §7a; 09b round 12, Marek 11-23, verbatim: *"I think there should be a system where the selected random
+     * mutation is applied to selected random gene slot creating a new gene."*): a random slot of the 21 ({@link Data#mutableSlots}), its gene
+     * (the template's, or the plain human's) becomes a NEW gene, the gene + the mutation; the tumour, the withered limb and the blind eye stay
+     * body changes [mine]. Returns what happened.
+     */
+    String applyMutation(Data.Mutation m, Random rnd) {
+        int attr = m.randomAttr() != 0 ? rnd.nextInt(7) : -1;
+        String extra = attr >= 0 ? " (" + Rules.SPECIAL[attr] + ")" : "";
+        if (Data.BODY_CHANGES.contains(m.name())) {
+            int[] mods = m.mods().clone();
+            if (attr >= 0) mods[attr] += m.randomAttr();
+            add(new Effect("Mutation: " + m.name() + extra, "mutation", "", true, mods, new LinkedHashMap<>(m.other()), 0, null, 100));
+            return m.name() + extra + " (a body change, no gene)";
+        }
+        List<String> slots = Data.mutableSlots();
+        String slot = slots.get(rnd.nextInt(slots.size()));
+        Data.Gene before = geneIn(baseTpl(), slot);
+        mutated.add(new Mutated(slot, m.name(), attr));
+        bodyTpl = null;
+        Data.Gene now = geneIn(baseTpl(), slot);
+        return m.name() + extra + " in the " + slot + " slot: " + (before == null ? "the plain " + slot : before.name()) + " → a new gene, "
+                + (now == null ? "?" : now.name() + " (load " + (now.load() >= 0 ? "+" : "") + now.load() + ")");
+    }
+
+    /** The GM undoes a mutation's change to a gene (03b §7a): the slot loses it. Returns what was undone. */
+    public String undoMutation(int i) {
+        if (i < 0 || i >= mutated.size()) return "no such mutation";
+        Mutated m = mutated.remove(i);
+        bodyTpl = null;
+        return "the " + m.name + " mutation undone in the " + m.slot + " slot";
+    }
+
+    /** How many mutations the body took: the genes changed and the body changes (and a save's old ones, before 0.68.0). */
+    public int mutationCount() {
+        return mutated.size() + (int) effects.stream().filter(e -> "mutation".equals(e.source())).count();
     }
 
 
@@ -765,10 +880,14 @@ public final class Character {
      */
     /** What he carries now, in kg: the inventory and the armour worn (set each second by the HUD; {@link Items#weight}). */
     public transient double carriedKg;
-    static final double LB = 0.4536;
+    /**
+     * A pound in OUR kg (09b round 12, Marek 11-23, verbatim: *"If the numbers have needlessly long decimal expansion and it does not allow
+     * players to bring in more items, please consider instead convert it to kg with cruder "×0.5"."*): ×0.5, not 0.4536 (round 11's).
+     */
+    static final double LB = 0.5;
 
     /**
-     * The capacity in kg: Fallout 2's 25 + 25 × S + Athletics pounds (Small Frame 25 + 15 × S; Strong Back +50, Hoarder +25) × 0.4536,
+     * The capacity in kg: Fallout 2's 25 + 25 × S + Athletics pounds (Small Frame 25 + 15 × S; Strong Back +50, Hoarder +25) × 0.5,
      * the Raccoon frame's ×½, + the artifacts' kg (the feather stone +15, the float −10). The Hoarder's own −1 does not lower it.
      */
     public double capacityKg() {
@@ -1256,12 +1375,9 @@ public final class Character {
         survival.put(Rules.Stat.RADS, held - rads);
         if (l.isEmpty()) return "rolled " + score + ": " + cat + " (no mutation listed)";
         Data.Mutation m = l.get(rnd.nextInt(l.size()));
-        int[] mods = m.mods().clone();
-        String extra = "";
-        if (m.randomAttr() != 0) { int i = rnd.nextInt(7); mods[i] += m.randomAttr(); extra = " (" + Rules.SPECIAL[i] + ")"; }
-        add(new Effect("Mutation: " + m.name() + extra, "mutation", "", true, mods, new LinkedHashMap<>(m.other()), 0, null, 100));
-        return "d100 " + d + " + (Luck − 5) × 4 − 10 a 100 rads above the first = " + score + ": " + cat.toUpperCase(Locale.ROOT) + " → " + m.name()
-                + extra + (m.notes().isEmpty() ? "" : " (" + m.notes() + ")") + "; " + rads + " rads expelled" + ghoulLine(cat, score, rnd);
+        String what = applyMutation(m, rnd);
+        return "d100 " + d + " + (Luck − 5) × 4 − 10 a 100 rads above the first = " + score + ": " + cat.toUpperCase(Locale.ROOT) + " → " + what
+                + (m.notes().isEmpty() ? "" : " (" + m.notes() + ")") + "; " + rads + " rads expelled" + ghoulLine(cat, score, rnd);
     }
 
     /**
@@ -1271,8 +1387,8 @@ public final class Character {
      * just use the ghoul template that we already have?"*): {@link #turnGhoul}.
      */
     String ghoulLine(String cat, int score, Random rnd) {
-        long n = effects.stream().filter(e -> "mutation".equals(e.source())).count();
-        boolean ghoul = "Ghoul".equals(baseTpl().name());
+        long n = mutationCount();
+        boolean ghoul = isGhoul();
         if (!ghoul && n >= 3 && (cat.equals("bad") || cat.equals("very bad")))
             return " → mutation " + n + ", " + cat + ": " + turnGhoul();
         if (ghoul && cat.equals("very bad")) return ghoulAdvance(Rules.ghoulSteps(score), rnd);
@@ -1280,35 +1396,33 @@ public final class Character {
     }
 
     /**
-     * The body turns GHOUL (03b §7, round 9): the Ghoul template (`species.json`, §2a) takes the old one's place; what the player built
-     * stays (his points, skills, traits, perks, mutations and therapies). An attribute the ghoul's modifier would take below 1 is kept
-     * at 1 [mine]; a trait the ghoul template bars stays until the GM removes it [mine]. A synthetic body never turns. Returns the news.
+     * The body turns GHOUL (03b §7; 09b round 12, Marek 11-23, verbatim: *"so ghoul is now not gene but implant? Why? It is supposed to be a
+     * mutation."* · *"ghouls should be possible to reconstruct into genes as well - add a new slot if needed."*): the GHOUL GENE fills the
+     * new Necrosis slot; the template, its genes and what the player built stay (his points, skills, traits, perks, mutations and
+     * therapies). An attribute the gene would take below 1 is kept at 1 [mine]; a trait the Ghoul template bars stays until the GM removes
+     * it [mine]; the perk rate stays the template's [mine]. A synthetic body never turns. Returns the news.
      */
     public String turnGhoul() {
-        Data.Template old = baseTpl(), g = Data.TEMPLATES.get("Ghoul");
-        if (g == null) return "the body turns GHOUL (no Ghoul template in the data: the GM sets it)";
-        if (old.family().equals("synthetic")) return "a synthetic body cannot turn ghoul";
-        if (old.name().equals("Ghoul")) return "already a ghoul";
-        keptGenes.clear();   // the old body's genes stay, laid over the ghoul's (round 11)
-        for (Data.Gene x : old.genes()) keptGenes.add(x.name());
-        template = g.name();
-        customTpl = null;
-        keptTpl = null;
-        templateHp = g.hp();
-        templateSkillPoints = g.skillPoints();
-        templatePerkRate = g.perkRate();
+        Data.Template born = bornTpl(), gt = Data.TEMPLATES.get("Ghoul");
+        Data.Gene g = Data.GENES.get("Ghoul");
+        if (g == null) return "the body turns GHOUL (no Ghoul gene in the data: the GM sets it)";
+        if (born.family().equals("synthetic")) return "a synthetic body cannot turn ghoul";
+        if (isGhoul()) return "already a ghoul";
+        int[] body = baseTpl().mods();
         List<String> kept = new ArrayList<>();
         for (int i = 0; i < 7; i++)
-            if (base[i] + g.mods()[i] < 1) { base[i] = 1 - g.mods()[i]; kept.add(Rules.SPECIAL[i] + " kept at 1"); }
+            if (base[i] + body[i] + g.mods()[i] < 1) { base[i] = 1 - body[i] - g.mods()[i]; kept.add(Rules.SPECIAL[i] + " kept at 1"); }
+        necrosis = true;
+        bodyTpl = null;
         List<String> barred = new ArrayList<>();
-        for (Feat t : traits) if (g.forbiddenTraits().contains(t.name())) barred.add(t.name());
+        if (gt != null) for (Feat t : traits) if (gt.forbiddenTraits().contains(t.name())) barred.add(t.name());
         ghoulPath.clear();
         crisisRolled = false;
         if (hp > hpMax()) hp = hpMax();
-        return "the body turns GHOUL: the template is now Ghoul (was " + old.name() + "; 03b §2a: S −2, P +3, I +3, A −4, L +3, rad res 40 %)"
-                + (keptGenes.isEmpty() ? "" : "; its genes stay over the ghoul's: " + String.join(", ", keptGenes))
+        return "the body turns GHOUL: the Ghoul gene fills the Necrosis slot (03b §7b: S −2, P +3, I +3, A −4, L +3, HP −5, poison +10 %, "
+                + "rad res +40 %); the template (" + born.name() + ") and its genes stay"
                 + (kept.isEmpty() ? "" : "; " + String.join(", ", kept))
-                + (barred.isEmpty() ? "" : "; the ghoul template bars " + String.join(", ", barred) + ": the GM decides");
+                + (barred.isEmpty() ? "" : "; a ghoul's body bars " + String.join(", ", barred) + ": the GM decides");
     }
 
     public String ghoulStage() { return ghoulPath == null || ghoulPath.isEmpty() ? "" : ghoulPath.get(ghoulPath.size() - 1); }
@@ -1324,13 +1438,13 @@ public final class Character {
      */
     public String ghoulAdvance(int steps, Random rnd) {
         if (ghoulPath == null) ghoulPath = new ArrayList<>();
-        if (steps <= 0 || !"Ghoul".equals(baseTpl().name())) return "";
+        if (steps <= 0 || !isGhoul()) return "";
         int at = ghoulPath.isEmpty() ? 0 : java.util.Arrays.asList(Rules.GHOUL_STAGES).indexOf(ghoulStage()) + 1;
         if (at >= 3) return " → already glowing: " + madness(rnd);
         int to = Math.min(3, at + steps);
         String from = at == 0 ? "ghoul" : ghoulStage();
         ghoulPath.add(Rules.GHOUL_STAGES[to - 1]);
-        add(ghoulEffect());
+        bodyTpl = null;   // 09b round 12: the stage is the Necrosis gene's variant (Data.ghoulVariant), no effect
         if (glowing()) {   // round 9: it keeps its rads, up to the cap; no crisis any more
             survival.put(Rules.Stat.RADS, Math.min(Rules.GLOW_CAP, survival.getOrDefault(Rules.Stat.RADS, 0.0)));
             crisisRolled = false;
@@ -1339,42 +1453,8 @@ public final class Character {
         return to == 3 ? s + "; " + madness(rnd) : s;
     }
 
-    /**
-     * The line's totals against the base ghoul by the path (03b §7b). Each stage's numbers are its totals against the base ghoul, a later
-     * stage's replace an earlier one's. Round 9 (Marek 11-23, verbatim: *"please, make jumping the stages more punishing - the ghoul
-     * missing the benefites of previous stages, only gaining the maluses. Maybe add some more tiny benefits for each stage that can gt
-     * collected in this way."*): a stage WALKED gives all its numbers and its small gift; a stage JUMPED gives only its harm. The smell's
-     * Sneak −10, the rad resistances and the gifts mine, EXAMPLE.
-     */
-    Effect ghoulEffect() {
-        Integer[] set = new Integer[7];
-        Map<String, Double> o = new LinkedHashMap<>();
-        int last = java.util.Arrays.asList(Rules.GHOUL_STAGES).indexOf(ghoulStage());
-        List<String> jumped = new ArrayList<>();
-        for (int k = 0; k <= last; k++) {
-            String st = Rules.GHOUL_STAGES[k];
-            boolean walked = ghoulPath.contains(st);
-            if (!walked) jumped.add(st);
-            switch (st) {
-                case "leathered" -> {   // harm: E −1, C −2, the smell; help: the hide DT +3, rad res 75 %; gift: the hide keeps out bites and germs
-                    set[Rules.E] = -1; set[Rules.C] = -2; o.put("skill:Sneak", -10.0);
-                    if (walked) { o.put("dt", 3.0); o.put("rad_res", 35.0); o.put("poison_res", 10.0); }
-                }
-                case "husk" -> {   // harm: C −4, I −2, healing ×½; help: rad res 90 %; gift: the dried nerves, Pain gained ×¾
-                    set[Rules.C] = -4; set[Rules.I] = -2; o.put("healing_half", 1.0);
-                    if (walked) { o.put("rad_res", 50.0); o.put("pain_gain", -0.25); }
-                }
-                case "glowing" -> {   // the end: I −5, C −5, E +2, A +2; the body open to rads again (the ghoul's own 40 %); gift: its own light
-                    set[Rules.I] = -5; set[Rules.C] = -5; set[Rules.E] = 2; set[Rules.A] = 2; o.put("rad_res", 0.0); o.put("senses", 1.0);
-                }
-                default -> { }
-            }
-        }
-        int[] m = new int[7];
-        for (int i = 0; i < 7; i++) m[i] = set[i] == null ? 0 : set[i];
-        String path = String.join(" → ", ghoulPath) + (jumped.isEmpty() ? "" : " (jumped " + String.join(", ", jumped) + ": only its harm)");
-        return new Effect("Ghoul line: " + path, "ghoul line", "ghoul line", true, m, o, 0, null, 100);
-    }
+    /** The Necrosis slot's gene now: the Ghoul gene or its stage (03b §7b), or null for a body that is no ghoul. */
+    public Data.Gene necrosisGene() { return geneIn(baseTpl(), Data.NECROSIS); }
 
     static final String[][] ILLNESSES = {
             {"paranoia", "trusts nobody: Charisma checks with strangers −20"},
@@ -1572,6 +1652,7 @@ public final class Character {
         if (arrestAt >= 0 && !dead && arrestCause.isEmpty() && hp >= Rules.deathFloor(attrs(false))) arrestAt = -1;
         if (arrestAt < 0) cprFrom = -1;
         refitImplants();
+        effects.removeIf(e -> "ghoul line".equals(e.source()));   // 0.63.0-0.67.0: the stage's numbers are the Necrosis gene's now (09b round 12)
         // part 8 round 7 (Marek 11-21: *"Shall I rename it, for example to Flash of Insight? - yes."*): the perk Eureka's new name
         for (ListIterator<Feat> it = perks.listIterator(); it.hasNext(); ) {
             Feat f = it.next();

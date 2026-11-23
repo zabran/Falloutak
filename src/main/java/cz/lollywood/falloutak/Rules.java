@@ -75,7 +75,7 @@ public final class Rules {
     public static int initiative(int[] a) { return 2 * a[P]; }
     public static double carry(int[] a, double athletics) { return 25 + 25 * a[S] + athletics; }
 
-    /** The same in kg (round 11: *"Fallout 2's pounds - covert it to kg."*): × 0.4536. */
+    /** The same in kg (round 11: *"Fallout 2's pounds - covert it to kg."*; round 12: *"cruder "×0.5""*): × 0.5. */
     public static double carryKg(int[] a, double athletics) { return carry(a, athletics) * Character.LB; }
 
     /**

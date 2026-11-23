@@ -72,6 +72,7 @@ final class Base {
         Map<String, List<Spot>> chests = new LinkedHashMap<>();
         Map<String, Integer> wornOut = new LinkedHashMap<>();
         List<OldUnit> units;
+        List<Data.Recipe> genePool;
     }
 
     /** The Mess Chest's name among the chests. */
@@ -84,6 +85,12 @@ final class Base {
     final Map<String, List<Spot>> chests = new LinkedHashMap<>();
     /** Items worn out in the base's work, by type (part 8 round 4: a eureka counts them). */
     final Map<String, Integer> wornOut = new LinkedHashMap<>();
+    /**
+     * THE GENE POOL (03b §7a; 09b round 12, Marek 11-23, verbatim: *"Mutations are historically the low tech way into genetic research, so
+     * why not add it here."* · *"ghouls should be possible to reconstruct into genes as well"*): the genes made in the game (a mutation's,
+     * the ghoul's and its stages') whose carrier gave the base a sample, by name: gene therapy gives them like any gene (03d).
+     */
+    final Map<String, Data.Recipe> genePool = new LinkedHashMap<>();
     private final Path file;
     /** While the file is read: nothing is written back until it is whole (an old type converted to parts saves once, at the end). */
     private boolean loading;
@@ -443,6 +450,27 @@ final class Base {
 
     static boolean category(String what) { return categories().contains(what); }
 
+    // ------------------------------------------------------------------ the gene pool (03b §7a)
+    /** A carrier's sample (blood, a biopsy): his changed genes into the pool. Returns the genes new to it. */
+    List<String> sample(List<Data.Recipe> recipes) {
+        List<String> added = new ArrayList<>();
+        for (Data.Recipe r : recipes) {
+            Data.Gene g = r.build();
+            if (g == null || genePool.containsKey(g.name()) || Data.GENES.containsKey(g.name())) continue;
+            genePool.put(g.name(), r);
+            added.add(g.name());
+        }
+        if (!added.isEmpty()) save();
+        return added;
+    }
+
+    /** The pool's genes of a slot. */
+    List<Data.Gene> pooled(String slot) {
+        List<Data.Gene> l = new ArrayList<>();
+        for (String n : genePool.keySet()) { Data.Gene g = Data.gene(n); if (g != null && g.slot().equals(slot)) l.add(g); }
+        return l;
+    }
+
     // ------------------------------------------------------------------ the file
     private void load() {
         if (file == null || !Files.isRegularFile(file)) return;
@@ -453,6 +481,10 @@ final class Base {
             if (s == null) return;
             if (s.unlocked != null) unlocked.addAll(s.unlocked);
             if (s.wornOut != null) wornOut.putAll(s.wornOut);
+            if (s.genePool != null) for (Data.Recipe r : s.genePool) {
+                Data.Gene g = r == null ? null : r.build();
+                if (g != null) genePool.put(g.name(), r);
+            }
             if (s.pools != null) for (Pool p : s.pools) {
                 if (p == null || p.count <= 0) continue;
                 if (Production.TYPES.containsKey(p.type)) {
@@ -479,6 +511,7 @@ final class Base {
         s.unlocked = new ArrayList<>(unlocked);
         s.chests = chests;
         s.wornOut = wornOut;
+        s.genePool = new ArrayList<>(genePool.values());
         try {
             Files.createDirectories(file.getParent());
             Path tmp = file.resolveSibling("base.json.tmp");

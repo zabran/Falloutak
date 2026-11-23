@@ -61,7 +61,8 @@ class GhoulLineTest {
         assertEquals(i0 - 5, g.attr(Rules.I, true), "a ghoul's I +3 − 5 = −2 against a human");
         assertEquals(a0 + 2, g.attr(Rules.A, true));
         assertEquals(List.of("leathered", "husk", "glowing"), g.ghoulPath);
-        assertEquals(1, g.effects.stream().filter(e -> "ghoul line".equals(e.source())).count(), "one effect in its slot");
+        assertEquals("Ghoul · leathered · husk · glowing", g.necrosisGene().name(), "09b round 12: the stage is the Necrosis gene's variant");
+        assertTrue(g.effects.stream().noneMatch(e -> "ghoul line".equals(e.source())), "no effect any more");
         assertEquals(1, g.effects.stream().filter(e -> "glowing mind".equals(e.source())).count());
     }
 
@@ -89,7 +90,7 @@ class GhoulLineTest {
         assertEquals(sn0 - 10, sneak(g), 1e-9, "and the smell");
         assertEquals(c0 - 4, g.attr(Rules.C, true));
         assertEquals(pg0 * 0.75, g.painGain(), 1e-9, "the husk itself was walked: its gift");
-        assertTrue(g.inSlot("ghoul line").name().contains("jumped leathered"), g.inSlot("ghoul line").name());
+        assertTrue(g.necrosisGene().name().contains("jumped leathered"), g.necrosisGene().name());
     }
 
     @Test
@@ -219,15 +220,16 @@ class GhoulLineTest {
     }
 
     @Test
-    void theThirdBadMutationTurnsAHumanIntoAGhoulByTheTemplate() {
+    void theThirdBadMutationTurnsAHumanIntoAGhoulByTheGhoulGene() {
         Character h = Part3Test.of("Human", 5, 5, 5, 5, 5, 2, 9);
         for (int k = 0; k < 2; k++) h.effects.add(new Character.Effect("Mutation: old " + k, "mutation", "", true, new int[7], Map.of(), 0, null, 100));
         h.survival.put(Rules.Stat.RADS, 300.0);
         int s0 = h.attr(Rules.S, true), p0 = h.attr(Rules.P, true);
         // expelling 100: d100 30 + (9 − 5) × 4 = 46: bad, the third mutation
         String out = h.mutate(100, Part3Test.fixed(0.5, 30));
-        assertTrue(out.contains("the body turns GHOUL: the template is now Ghoul (was Human"), out);
-        assertEquals("Ghoul", h.template);
+        assertTrue(out.contains("the body turns GHOUL: the Ghoul gene fills the Necrosis slot"), out);
+        assertEquals("Human", h.template, "09b round 12: the template stays, the ghoul is a gene");
+        assertEquals("Ghoul", h.necrosisGene().name());
         assertEquals(s0 - 2, h.attr(Rules.S, true));
         assertEquals(p0 + 3, h.attr(Rules.P, true));
         assertEquals(1, h.attr(Rules.A, true), "A 2 − 4 kept at 1");

@@ -100,7 +100,7 @@ final class Items {
         return switch (k[0]) {
             case "chem" -> k[1];
             case "implant" -> "Implant: " + k[1].replaceAll("\\|.*", "") + " (Tier " + switch (k[1].replaceAll(".*\\|", "")) { case "3" -> "III"; case "2" -> "II"; case "1" -> "I"; default -> "IV"; } + ")";
-            case "therapy" -> "Gene therapy: " + k[1] + (Data.GENES.containsKey(k[1]) ? " (" + Data.GENES.get(k[1]).tier() + ")" : "");
+            case "therapy" -> "Gene therapy: " + k[1] + (Data.gene(k[1]) != null ? " (" + Data.gene(k[1]).tier() + ")" : "");
             case "geneset" -> "Gene set: " + k[1];
             case "armour" -> k[1].replaceAll("\\|.*", "") + " (" + k[1].replaceAll(".*\\|", "").toLowerCase(Locale.ROOT) + ")";
             case "gear" -> k[1];
@@ -237,7 +237,7 @@ final class Items {
                 yield im == null ? "" : "the " + im.slot() + " slot: " + Part3.numbersAt(im, tier) + "\nfitted by an operation (a medic's Actions, on you)";
             }
             case "therapy" -> {
-                Data.Gene g = Data.GENES.get(k[1]);
+                Data.Gene g = Data.gene(k[1]);
                 yield g == null ? "" : "the " + g.slot() + " slot: " + g.text() + "\nlasts " + SheetView.hours(Character.therapyHours(g))
                         + "\ngiven by a medic's Actions, on you (his Biology; used up)";
             }

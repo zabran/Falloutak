@@ -46,19 +46,20 @@ class RoundElevenTest extends MockGame {
 
     // ------------------------------------------------------------------ the turned ghoul's genes
     @Test
-    void aTurnedGhoulKeepsItsGenesOverTheGhoulsOwn() {
+    void aTurnedGhoulKeepsItsGenesBesideTheGhoulGene() {
+        // round 12 (Marek 11-23: "It is supposed to be a mutation."): the template and its genes stay, the Ghoul gene fills its own slot
         Character c = Part3Test.of("Survivor", 5, 5, 5, 5, 5, 6, 5);
-        double hla = Data.GENES.get("Broad HLA").poison();
+        double p0 = c.baseTpl().poisonRes();
         String s = c.turnGhoul();
-        assertTrue(s.contains("its genes stay"), s);
-        assertEquals("Ghoul", c.baseTpl().name());
-        assertEquals(3, c.keptGenes.size());
+        assertTrue(s.contains("the template (Survivor) and its genes stay"), s);
+        assertEquals("Survivor", c.baseTpl().name());
+        assertTrue(c.keptGenes.isEmpty(), "no more kept genes: they never left");
         assertTrue(c.baseTpl().genes().stream().anyMatch(g -> g.name().equals("Broad HLA")));
-        assertEquals(Data.TEMPLATES.get("Ghoul").poisonRes() + hla, c.baseTpl().poisonRes(), 1e-9, "added to the ghoul's, as an implant's");
+        assertEquals("Ghoul", c.necrosisGene().name());
+        assertEquals(p0 + 0.10, c.baseTpl().poisonRes(), 1e-9, "the ghoul's +10 % on the Survivor's own");
         Character h = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
         h.turnGhoul();
-        assertTrue(h.keptGenes.isEmpty());
-        assertSame(Data.TEMPLATES.get("Ghoul"), h.baseTpl(), "a human has none: the plain ghoul");
+        assertEquals(java.util.List.of("Ghoul"), h.baseTpl().genes().stream().map(Data.Gene::name).toList(), "a human: the Ghoul gene alone");
     }
 
     // ------------------------------------------------------------------ jams
@@ -129,14 +130,14 @@ class RoundElevenTest extends MockGame {
     void theCapacityIsFallout2sPoundsInKgWithThePerksAndTheArtifacts() {
         Character c = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
         double ath = c.skills()[Rules.skillIndex("Athletics")];
-        assertEquals((25 + 125 + ath) * 0.4536, c.capacityKg(), 1e-9);
+        assertEquals((25 + 125 + ath) * 0.5, c.capacityKg(), 1e-9, "round 12: × 0.5");
         c.traits.add(new Character.Feat("Small Frame", "", ""));
-        assertEquals((25 + 75 + ath) * 0.4536, c.capacityKg(), 1e-9, "Small Frame: 15 × S");
+        assertEquals((25 + 75 + ath) * 0.5, c.capacityKg(), 1e-9, "Small Frame: 15 × S");
         c.traits.clear();
         c.perks.add(new Character.Feat("Strong Back", "", ""));
-        assertEquals((25 + 125 + ath + 50) * 0.4536, c.capacityKg(), 1e-9);
+        assertEquals((25 + 125 + ath + 50) * 0.5, c.capacityKg(), 1e-9);
         c.belt(java.util.Set.of("Feather stone"), false);
-        assertEquals((25 + 125 + ath + 50) * 0.4536 + 15, c.capacityKg(), 1e-9, "the feather stone +15 kg");
+        assertEquals((25 + 125 + ath + 50) * 0.5 + 15, c.capacityKg(), 1e-9, "the feather stone +15 kg");
     }
 
     @Test

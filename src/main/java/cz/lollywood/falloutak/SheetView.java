@@ -116,7 +116,7 @@ public final class SheetView {
                                 : "\n" + Production.hygiene(c.unwashedDays)), null),
                         c("Unwashed", WHITE), r(f(c.unwashedDays), c.unwashedDays >= 7 ? NamedTextColor.RED : c.unwashedDays >= 3 ? NamedTextColor.YELLOW : WHITE),
                         c(c.unwashedDays >= 7 ? "filthy" : c.unwashedDays >= 3 ? "dirty" : "days", HOW))
-                .row(tip("(25 + 25 × S + Athletics) pounds × 0.4536 (Fallout 2's, in kg: round 11); Small Frame 15 × S, Strong Back +50 lb, "
+                .row(tip("(25 + 25 × S + Athletics) pounds × 0.5 (Fallout 2's, in kg: round 12); Small Frame 15 × S, Strong Back +50 lb (+25 kg), "
                                 + "Hoarder +25 lb, the artifacts' kg\nwhat you carry = your inventory and the armour you wear (Items.weight)\nover it: to +50 % half "
                                 + "speed and the needs ×1.5, to +100 % the AP halved too and ×2, more: no AP", null),
                         c("Carry", WHITE), r(f(Math.round(c.carriedKg * 10) / 10.0) + " / " + f(Math.round(c.capacityKg() * 10) / 10.0),
@@ -293,13 +293,14 @@ public final class SheetView {
                         c(tp.premium() ? "premium, CoS " + tp.cosPoints() : tp.faction() ? "a people's, opened by joining them" : tp.who().equals("pc") ? "basic" : tp.who(), HOW), NONE);
         Data.Template born = c.baseTpl();
         if (!born.genes().isEmpty()) {
-            t.title("Genes", "one a slot · load " + (born.load() >= 0 ? "+" : "") + born.load() + " · food × " + f(tp.foodFactor()) + " (03c)");
+            t.title("Genes", "one a slot · yellow = changed by a mutation (03b §7a) · load " + (born.load() >= 0 ? "+" : "") + born.load() + " · food × " + f(tp.foodFactor()) + " (03c)");
             for (Data.Gene g : born.genes()) {
                 Character.Therapy over = c.therapyIn(g.key());
                 boolean covered = over != null && over.active();
                 t.row(tip(g.text() + (g.real().isEmpty() ? "" : "\n[real] " + g.real()) + "\nload " + g.load()
                                 + (covered ? "\ncovered by the " + over.gene + " therapy while it lasts" : ""), null),
-                        c(g.slot() + ": " + g.name() + (covered ? " (covered)" : ""), covered ? HOW : WHITE), c(g.tier(), HOW), NONE);
+                        c(g.slot() + ": " + g.name() + (covered ? " (covered)" : ""), covered ? HOW : Data.GENES.containsKey(g.name()) ? WHITE : NamedTextColor.YELLOW),
+                        c(g.tier(), HOW), NONE);
             }
         }
         if (!c.therapies.isEmpty()) {
