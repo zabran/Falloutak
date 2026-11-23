@@ -1634,7 +1634,7 @@ final class Menus {
         List<String> l = new ArrayList<>();
         for (Data.Recipe r : c.recipes()) {
             Data.Gene g = r.build();
-            if (g != null) l.add(g.name() + (pl.base.genePool.containsKey(g.name()) || Data.GENES.containsKey(g.name()) ? " (known)" : ""));
+            if (g != null) l.add(g.name() + (pl.base.knows(r) ? " (known)" : ""));
         }
         return "blood or a biopsy: his changed genes into the base's gene pool, for gene therapy (03b §7a): " + String.join(", ", l);
     }
@@ -1653,7 +1653,7 @@ final class Menus {
         List<String> idx = new ArrayList<>();
         for (int i = 0; i < c.mutated.size(); i++) idx.add(String.valueOf(i));
         pick(g, "Mutated genes: " + o.name(), "Each a mutation that changed the gene in its slot, in order. Undo one: the slot loses it.", idx,
-                i -> { Character.Mutated m = c.mutated.get(Integer.parseInt(i)); return m.slot + ": " + m.name + (m.attr >= 0 ? " (" + Rules.SPECIAL[m.attr] + ")" : ""); },
+                i -> { Character.Mutated m = c.mutated.get(Integer.parseInt(i)); return m.slot + ": " + m.text(); },
                 i -> "undo it", (x, i) -> { say(x, o.name() + ": " + c.undoMutation(Integer.parseInt(i))); gmOn(x, o); }, x -> gmOn(x, o));
     }
 

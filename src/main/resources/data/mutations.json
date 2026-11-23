@@ -1,143 +1,6 @@
 {
- "source": "03b §7 (the yearly roll RULED 11-16; the examples [mine])",
+ "source": "03b §7a (09b rounds 13-14): the mutations that stay BODY CHANGES, no gene; every other mutation turns the dials (Falloutak Data.DIALS)",
  "rows": [
-  {
-   "name": "Thick Skin",
-   "category": "good",
-   "mods": {},
-   "other": {
-    "dt": 1
-   },
-   "notes": ""
-  },
-  {
-   "name": "Night Eyes",
-   "category": "good",
-   "mods": {},
-   "other": {
-    "senses": 1
-   },
-   "notes": "low light as the elf"
-  },
-  {
-   "name": "Iron Gut",
-   "category": "good",
-   "mods": {},
-   "other": {},
-   "notes": "Tier I-II food harm halved"
-  },
-  {
-   "name": "Rad Sponge",
-   "category": "good",
-   "mods": {},
-   "other": {
-    "rad_res": 10
-   },
-   "notes": ""
-  },
-  {
-   "name": "Dense Bones",
-   "category": "good",
-   "mods": {},
-   "other": {
-    "hp_max": 3
-   },
-   "notes": ""
-  },
-  {
-   "name": "Big Brain",
-   "category": "neutral",
-   "mods": {
-    "intelligence": 1,
-    "strength": -1
-   },
-   "other": {},
-   "notes": ""
-  },
-  {
-   "name": "Scales",
-   "category": "neutral",
-   "mods": {
-    "agility": -1
-   },
-   "other": {
-    "dt": 2
-   },
-   "notes": ""
-  },
-  {
-   "name": "Twitch Muscles",
-   "category": "neutral",
-   "mods": {
-    "agility": 1
-   },
-   "other": {
-    "pain_gain": 0.5
-   },
-   "notes": ""
-  },
-  {
-   "name": "Fast Healer",
-   "category": "neutral",
-   "mods": {},
-   "other": {
-    "heal_factor": 0.5
-   },
-   "notes": "healing x 1.5, chems last half as long"
-  },
-  {
-   "name": "Third Eye",
-   "category": "neutral",
-   "mods": {
-    "perception": 1,
-    "charisma": -2
-   },
-   "other": {},
-   "notes": ""
-  },
-  {
-   "name": "Weak Attribute",
-   "category": "bad",
-   "mods": {
-    "random": -1
-   },
-   "other": {},
-   "notes": ""
-  },
-  {
-   "name": "Chronic Pain",
-   "category": "bad",
-   "mods": {},
-   "other": {
-    "pain_floor": 10
-   },
-   "notes": ""
-  },
-  {
-   "name": "Brittle Bones",
-   "category": "bad",
-   "mods": {},
-   "other": {},
-   "notes": "crippled at half the damage"
-  },
-  {
-   "name": "Weak Eyes",
-   "category": "bad",
-   "mods": {
-    "perception": -1
-   },
-   "other": {},
-   "notes": "-10 at range"
-  },
-  {
-   "name": "Lesions",
-   "category": "bad",
-   "mods": {
-    "charisma": -1
-   },
-   "other": {},
-   "notes": "every wound one infection class worse"
-  },
   {
    "name": "Tumour",
    "category": "very bad",
@@ -153,30 +16,10 @@
    "notes": "crippled for good: a prosthesis candidate"
   },
   {
-   "name": "Badly Weak Attribute",
-   "category": "very bad",
-   "mods": {
-    "random": -2
-   },
-   "other": {},
-   "notes": ""
-  },
-  {
    "name": "One Eye Blind",
    "category": "very bad",
    "mods": {},
    "other": {},
-   "notes": ""
-  },
-  {
-   "name": "Failing Organ",
-   "category": "very bad",
-   "mods": {
-    "endurance": -2
-   },
-   "other": {
-    "heal_factor": -0.5
-   },
    "notes": ""
   }
  ]

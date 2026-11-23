@@ -24,13 +24,13 @@ class RoundThirteenTest {
         Character g = Part3Test.of("Ghoul", 5, 5, 5, 5, 5, 6, 5);
         g.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
         assertEquals(4, g.templatePerkRate, "leathered 4");
-        assertTrue(g.ghoulAdvance(1, Part3Test.fixed(0.5, 1)).contains("a perk every 5 levels now"));
-        assertEquals(5, g.templatePerkRate, "husk 5");
         g.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
-        assertEquals(6, g.templatePerkRate, "glowing 6");
+        assertEquals(4, g.templatePerkRate, "husk 4 (round 14: \"So that the slow down is not so fast.\")");
+        assertTrue(g.ghoulAdvance(1, Part3Test.fixed(0.5, 1)).contains("a perk every 5 levels now"));
+        assertEquals(5, g.templatePerkRate, "glowing 5");
         Character j = Part3Test.of("Ghoul", 5, 5, 5, 5, 5, 6, 5);
         j.ghoulAdvance(3, Part3Test.fixed(0.5, 1));
-        assertEquals(6, j.templatePerkRate, "a jump straight to glowing: its rate all the same");
+        assertEquals(5, j.templatePerkRate, "a jump straight to glowing: its rate all the same");
     }
 
     @Test

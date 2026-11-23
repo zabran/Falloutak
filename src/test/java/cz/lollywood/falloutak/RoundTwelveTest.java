@@ -55,6 +55,8 @@ class RoundTwelveTest {
     }
 
     // ------------------------------------------------------------------ mutations as gene variants
+    static Data.Step step(String dial, int sign) { return new Data.Step(dial, sign, 1, ""); }
+
     @Test
     void aMutationChangesTheGeneOfARandomSlot() {
         List<String> slots = Data.mutableSlots();
@@ -62,10 +64,11 @@ class RoundTwelveTest {
         assertFalse(slots.contains("ORGAN") || slots.contains("Aptitude") || slots.contains(Data.NECROSIS));
         Character c = Part3Test.of("Human", 5, 5, 5, 5, 5, 5, 5);
         int i0 = c.attr(Rules.I, true), s0 = c.attr(Rules.S, true);
-        String out = c.applyMutation(Data.mutation("Big Brain"), seq(slot("Mind")));
-        assertTrue(out.contains("in the Mind slot: the plain Mind → a new gene, plain Mind · Big Brain"), out);
+        // neutral: a good step (the 5th dial, Intelligence), a bad one on another dial (the first left, Strength), then the slot
+        String out = c.applyMutation("neutral", seq(Data.DIALS.indexOf("Intelligence"), 0, slot("Mind")));
+        assertTrue(out.contains("Intelligence +1, Strength −1 in the Mind slot: the plain Mind → Mind M1"), out);
         Data.Gene g = gene(c, "Mind");
-        assertEquals("plain Mind · Big Brain", g.name());
+        assertEquals("Mind M1", g.name());
         assertEquals(0, g.load(), "neutral: the load ±0");
         assertEquals("T1", g.tier());
         assertEquals(i0 + 1, c.attr(Rules.I, true));
@@ -73,47 +76,37 @@ class RoundTwelveTest {
         assertEquals("Human", c.template);
         assertTrue(c.effects.stream().noneMatch(e -> "mutation".equals(e.source())), "a gene, not an effect");
         assertEquals(1, c.mutationCount());
-        assertNull(Data.GENES.get(g.name()), "made, never in the data");
-        assertEquals(g.text(), Data.gene(g.name()).text(), "found by its name");
+        assertNull(Data.gene(g.name()), "made in a body: in no list until a sample");
     }
 
     @Test
-    void aMutationOverATemplatesGeneKeepsItsNumbersAndStacks() {
+    void aMutationOverATemplatesGeneKeepsItsNumbersAndTheNameDoesNotGrow() {
         Character c = Part3Test.of("Survivor", 5, 5, 5, 5, 5, 5, 5);
         double iso0 = c.baseTpl().isolation(), food0 = c.baseTpl().foodFactor();
         int dt0 = c.dt(), a0 = c.attr(Rules.A, true);
-        c.applyMutation(Data.mutation("Thick Skin"), seq(slot("Cold")));
+        c.applySteps("Cold", List.of(step("DT", 1)));
         Data.Gene g = gene(c, "Cold");
-        assertEquals("Arctic fat-burner · Thick Skin", g.name());
+        assertEquals("Arctic fat-burner M1", g.name());
         assertEquals(4, g.load(), "good: +4");
         assertEquals(iso0, c.baseTpl().isolation(), 1e-9, "the gene's own isolation kept");
         assertEquals(dt0 + 1, c.dt());
         assertEquals(food0 * 1.04, c.baseTpl().foodFactor(), 1e-9, "the load: food × (1 + 0.01 × 4)");
-        c.applyMutation(Data.mutation("Scales"), seq(slot("Cold")));
+        c.applySteps("Cold", List.of(step("DT", 1), step("Agility", -1)));
         g = gene(c, "Cold");
-        assertEquals("Arctic fat-burner · Thick Skin · Scales", g.name(), "the same slot again: one more change");
-        assertEquals(dt0 + 3, c.dt());
+        assertEquals("Arctic fat-burner M2", g.name(), "round 13: the name does not grow");
+        assertEquals(dt0 + 2, c.dt());
         assertEquals(a0 - 1, c.attr(Rules.A, true));
+        assertEquals(4, g.load(), "+4, then a neutral ±0");
+        assertTrue(g.text().contains("mutated: DT +1, DT +1, Agility −1"), g.text());
         assertEquals(3, names(c.baseTpl()).size(), "still one gene a slot");
-    }
-
-    @Test
-    void aRandomAttributeMutationNamesItsAttribute() {
-        Character c = Part3Test.of("Human", 5, 5, 5, 5, 5, 5, 5);
-        int a0 = c.attr(Rules.A, true);
-        c.applyMutation(Data.mutation("Weak Attribute"), seq(Rules.A, slot("Frame")));
-        Data.Gene g = gene(c, "Frame");
-        assertEquals("plain Frame · Weak Attribute (A)", g.name());
-        assertEquals(-4, g.load(), "bad: −4");
-        assertEquals(a0 - 1, c.attr(Rules.A, true));
     }
 
     @Test
     void theTumourTheWitheredLimbAndTheBlindEyeStayBodyChanges() {
         Character c = Part3Test.of("Human", 5, 5, 5, 5, 5, 5, 5);
-        for (String n : List.of("Tumour", "Withered Limb", "One Eye Blind")) {
-            assertTrue(c.applyMutation(Data.mutation(n), seq(0)).contains("a body change, no gene"));
-        }
+        assertTrue(c.applyMutation("very bad", seq(0)).startsWith("Tumour"), "d10 1-2: the tumour");
+        assertTrue(c.applyMutation("very bad", seq(2)).startsWith("Withered Limb"), "d10 3");
+        assertTrue(c.applyMutation("very bad", seq(3)).startsWith("One Eye Blind"), "d10 4");
         assertTrue(c.mutated.isEmpty());
         assertEquals(3, c.mutationCount());
     }
@@ -122,8 +115,8 @@ class RoundTwelveTest {
     void theGmUndoesAMutation() {
         Character c = Part3Test.of("Human", 5, 5, 5, 5, 5, 5, 5);
         int i0 = c.attr(Rules.I, true);
-        c.applyMutation(Data.mutation("Big Brain"), seq(slot("Mind")));
-        assertTrue(c.undoMutation(0).contains("undone in the Mind slot"));
+        c.applySteps("Mind", List.of(step("Intelligence", 1)));
+        assertTrue(c.undoMutation(0).contains("(Intelligence +1) undone in the Mind slot"));
         assertEquals(i0, c.attr(Rules.I, true));
         assertNull(gene(c, "Mind"));
         assertEquals("no such mutation", c.undoMutation(0));
@@ -179,7 +172,7 @@ class RoundTwelveTest {
     @Test
     void aSaveKeepsTheChangedGenes() {
         Character c = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
-        c.applyMutation(Data.mutation("Weak Attribute"), seq(Rules.P, slot("Eyes")));
+        c.applySteps("Eyes", List.of(step("Perception", -1)));
         c.turnGhoul();
         Character d = Store.fromJson(Store.toJson(c));
         d.migrate();
@@ -192,25 +185,29 @@ class RoundTwelveTest {
     @Test
     void aSampleTakesTheChangedGenesIntoThePoolAndTherapyGivesThem(@TempDir Path dir) {
         Character c = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
-        c.applyMutation(Data.mutation("Night Eyes"), seq(slot("Eyes")));
+        c.applySteps("Eyes", List.of(step("dark", 1)));
         c.turnGhoul();
         c.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
         Base b = new Base(dir);
         List<String> added = b.sample(c.recipes());
-        assertEquals(List.of("plain Eyes · Night Eyes", "Ghoul · leathered"), added);
+        assertEquals(List.of("Eyes M1", "Ghoul · leathered"), added);
         assertTrue(b.sample(c.recipes()).isEmpty(), "known already");
-        assertEquals(1, b.pooled("Eyes").size());
+        Character other = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
+        other.applySteps("Eyes", List.of(step("Perception", 1)));
+        assertEquals(List.of("Eyes M1b"), b.sample(other.recipes()), "another Eyes M1: a letter, so the two are never mistaken");
+        assertEquals(2, b.pooled("Eyes").size());
         Character born = Part3Test.of("Ghoul", 5, 5, 5, 5, 5, 6, 5);
         assertTrue(b.sample(born.recipes()).isEmpty(), "a ghoul born carries the data's own Ghoul gene: nothing new");
-        Data.VARIANTS.clear();
+        Data.POOL.clear();
         Base again = new Base(dir);
-        assertEquals(added, new ArrayList<>(again.genePool.keySet()), "the pool is kept, each gene made again from its recipe");
+        assertEquals(List.of("Eyes M1", "Ghoul · leathered", "Eyes M1b"), new ArrayList<>(again.genePool.keySet()), "kept, each made again from its recipe");
         assertNotNull(Data.gene("Ghoul · leathered"));
+        assertEquals(1, Data.gene("Eyes M1b").mods()[Rules.P]);
         Character o = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
         assertEquals(0, o.senses());
-        String r = o.giveTherapy(Data.gene("plain Eyes · Night Eyes"), 100, 1, false, false, new Random(1));
+        String r = o.giveTherapy(Data.gene("Eyes M1"), 100, 1, false, false, new Random(1));
         assertFalse(r.startsWith("!"), r);
         o.therapies.get(0).courseLeft = 0;
-        assertEquals(1, o.senses(), "the night eyes, by gene therapy");
+        assertEquals(1, o.senses(), "the dark halved, by gene therapy");
     }
 }

@@ -179,15 +179,22 @@ public final class Character {
 
     /**
      * A mutation that CHANGED a gene (03b §7a; 09b round 12, Marek 11-23, verbatim: *"the selected random mutation is applied to selected
-     * random gene slot creating a new gene"*): the slot, the mutation, the attribute a random one hit (-1). In order; a slot may change again.
+     * random gene slot creating a new gene"*; the catalogue, rounds 13-14): its slot and its steps on the dials. In order; a slot may change
+     * again.
      */
     public static final class Mutated {
-        public String slot = "", name = "";
-        public int attr = -1;
+        public String slot = "";
+        public List<Data.Step> steps = new ArrayList<>();
 
         public Mutated() {}
 
-        Mutated(String slot, String name, int attr) { this.slot = slot; this.name = name; this.attr = attr; }
+        Mutated(String slot, List<Data.Step> steps) { this.slot = slot; this.steps = new ArrayList<>(steps); }
+
+        public String text() {
+            List<String> l = new ArrayList<>();
+            for (Data.Step s : steps) l.add(s.text());
+            return String.join(", ", l);
+        }
     }
 
     /** The mutations that changed this body's genes (03b §7a), in order. */
@@ -387,14 +394,19 @@ public final class Character {
     public List<Data.Recipe> recipes() { return recipes(bornTpl()); }
 
     private List<Data.Recipe> recipes(Data.Template born) {
-        Map<String, List<Data.Applied>> bySlot = new LinkedHashMap<>();
-        for (Mutated m : mutated) bySlot.computeIfAbsent(m.slot, x -> new ArrayList<>()).add(new Data.Applied(m.name, m.attr));
+        Map<String, List<Mutated>> bySlot = new LinkedHashMap<>();
+        for (Mutated m : mutated) if (m.steps != null && !m.steps.isEmpty()) bySlot.computeIfAbsent(m.slot, x -> new ArrayList<>()).add(m);
         List<Data.Recipe> l = new ArrayList<>();
-        bySlot.forEach((slot, ms) -> { Data.Gene b = geneIn(born, slot); l.add(new Data.Recipe(b == null ? "" : b.name(), slot, ms, List.of())); });
+        bySlot.forEach((slot, ms) -> {
+            Data.Gene b = geneIn(born, slot);
+            List<Data.Step> steps = new ArrayList<>();
+            for (Mutated m : ms) steps.addAll(m.steps);
+            l.add(new Data.Recipe(b == null ? "" : b.name(), slot, ms.size(), steps, List.of()));
+        });
         if (isGhoul()) {
             Data.Gene own = geneIn(born, Data.NECROSIS);
             List<String> path = ghoulPath == null ? List.of() : ghoulPath;
-            if (own == null || !path.isEmpty()) l.add(new Data.Recipe(own != null ? own.name() : "Ghoul", Data.NECROSIS, List.of(), path));
+            if (own == null || !path.isEmpty()) l.add(new Data.Recipe(own != null ? own.name() : "Ghoul", Data.NECROSIS, 0, List.of(), path));
         }
         return l;
     }
@@ -643,34 +655,35 @@ public final class Character {
         int d = 1 + rnd.nextInt(100);
         int score = Rules.mutationScore(d, attr(Rules.L, true), 100);
         String cat = Rules.mutationCategory(score);
-        List<Data.Mutation> l = new ArrayList<>();
-        for (Data.Mutation m : Data.MUTATIONS) if (m.category().equals(cat)) l.add(m);
-        if (l.isEmpty()) return "rolled " + score + ": " + cat + ", none listed";
-        return cat + ": " + applyMutation(l.get(rnd.nextInt(l.size())), rnd);
+        return cat + ": " + applyMutation(cat, rnd);
     }
 
     /**
      * A mutation hits the body (03b §7a; 09b round 12, Marek 11-23, verbatim: *"I think there should be a system where the selected random
-     * mutation is applied to selected random gene slot creating a new gene."*): a random slot of the 21 ({@link Data#mutableSlots}), its gene
-     * (the template's, or the plain human's) becomes a NEW gene, the gene + the mutation; the tumour, the withered limb and the blind eye stay
-     * body changes [mine]. Returns what happened.
+     * mutation is applied to selected random gene slot creating a new gene."*; the catalogue, rounds 13-14): the grade's steps on the dials
+     * ({@link Data#rollMutation}) land in a random slot of the 21 ({@link Data#mutableSlots}): its gene (the template's, or the plain human's)
+     * becomes a NEW gene; a body change (the tumour, a withered limb, a blind eye) is no gene. Returns what happened.
      */
-    String applyMutation(Data.Mutation m, Random rnd) {
-        int attr = m.randomAttr() != 0 ? rnd.nextInt(7) : -1;
-        String extra = attr >= 0 ? " (" + Rules.SPECIAL[attr] + ")" : "";
-        if (Data.BODY_CHANGES.contains(m.name())) {
-            int[] mods = m.mods().clone();
-            if (attr >= 0) mods[attr] += m.randomAttr();
-            add(new Effect("Mutation: " + m.name() + extra, "mutation", "", true, mods, new LinkedHashMap<>(m.other()), 0, null, 100));
-            return m.name() + extra + " (a body change, no gene)";
+    String applyMutation(String category, Random rnd) {
+        Data.Rolled r = Data.rollMutation(category, rnd);
+        if (r.bodyChange() != null) {
+            Data.Mutation m = Data.mutation(r.bodyChange());
+            add(new Effect("Mutation: " + r.bodyChange(), "mutation", "", true, m == null ? new int[7] : m.mods().clone(),
+                    m == null ? new LinkedHashMap<>() : new LinkedHashMap<>(m.other()), 0, null, 100));
+            return r.bodyChange() + (m != null && !m.notes().isEmpty() ? " (" + m.notes() + ")" : "") + ": a body change, no gene";
         }
         List<String> slots = Data.mutableSlots();
-        String slot = slots.get(rnd.nextInt(slots.size()));
+        return applySteps(slots.get(rnd.nextInt(slots.size())), r.steps());
+    }
+
+    /** The steps change the gene of a slot (03b §7a). Returns what happened. */
+    String applySteps(String slot, List<Data.Step> steps) {
         Data.Gene before = geneIn(baseTpl(), slot);
-        mutated.add(new Mutated(slot, m.name(), attr));
+        Mutated m = new Mutated(slot, steps);
+        mutated.add(m);
         bodyTpl = null;
         Data.Gene now = geneIn(baseTpl(), slot);
-        return m.name() + extra + " in the " + slot + " slot: " + (before == null ? "the plain " + slot : before.name()) + " → a new gene, "
+        return m.text() + " in the " + slot + " slot: " + (before == null ? "the plain " + slot : before.name()) + " → "
                 + (now == null ? "?" : now.name() + " (load " + (now.load() >= 0 ? "+" : "") + now.load() + ")");
     }
 
@@ -679,7 +692,7 @@ public final class Character {
         if (i < 0 || i >= mutated.size()) return "no such mutation";
         Mutated m = mutated.remove(i);
         bodyTpl = null;
-        return "the " + m.name + " mutation undone in the " + m.slot + " slot";
+        return "the mutation (" + m.text() + ") undone in the " + m.slot + " slot";
     }
 
     /** How many mutations the body took: the genes changed and the body changes (and a save's old ones, before 0.68.0). */
@@ -1370,14 +1383,10 @@ public final class Character {
         int d = 1 + rnd.nextInt(100);
         int score = Rules.mutationScore(d, attr(Rules.L, true), rads);
         String cat = Rules.mutationCategory(score);
-        List<Data.Mutation> l = new ArrayList<>();
-        for (Data.Mutation m : Data.MUTATIONS) if (m.category().equals(cat)) l.add(m);
         survival.put(Rules.Stat.RADS, held - rads);
-        if (l.isEmpty()) return "rolled " + score + ": " + cat + " (no mutation listed)";
-        Data.Mutation m = l.get(rnd.nextInt(l.size()));
-        String what = applyMutation(m, rnd);
+        String what = applyMutation(cat, rnd);
         return "d100 " + d + " + (Luck − 5) × 4 − 10 a 100 rads above the first = " + score + ": " + cat.toUpperCase(Locale.ROOT) + " → " + what
-                + (m.notes().isEmpty() ? "" : " (" + m.notes() + ")") + "; " + rads + " rads expelled" + ghoulLine(cat, score, rnd);
+                + "; " + rads + " rads expelled" + ghoulLine(cat, score, rnd);
     }
 
     /**
@@ -1659,6 +1668,7 @@ public final class Character {
         if (arrestAt < 0) cprFrom = -1;
         refitImplants();
         effects.removeIf(e -> "ghoul line".equals(e.source()));   // 0.63.0-0.67.0: the stage's numbers are the Necrosis gene's now (09b round 12)
+        mutated.removeIf(m -> m == null || m.steps == null || m.steps.isEmpty());   // 0.68.0-0.69.0's named mutations: the catalogue replaced them
         // part 8 round 7 (Marek 11-21: *"Shall I rename it, for example to Flash of Insight? - yes."*): the perk Eureka's new name
         for (ListIterator<Feat> it = perks.listIterator(); it.hasNext(); ) {
             Feat f = it.next();

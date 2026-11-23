@@ -451,17 +451,33 @@ final class Base {
     static boolean category(String what) { return categories().contains(what); }
 
     // ------------------------------------------------------------------ the gene pool (03b §7a)
-    /** A carrier's sample (blood, a biopsy): his changed genes into the pool. Returns the genes new to it. */
+    /**
+     * A carrier's sample (blood, a biopsy): his changed genes into the pool. A gene the pool has (the same recipe) or the data has is known; a
+     * new one whose name the pool already holds gets a letter (*Skin M1b*). Returns the genes new to it, by their pool names.
+     */
     List<String> sample(List<Data.Recipe> recipes) {
         List<String> added = new ArrayList<>();
         for (Data.Recipe r : recipes) {
-            Data.Gene g = r.build();
-            if (g == null || genePool.containsKey(g.name()) || Data.GENES.containsKey(g.name())) continue;
-            genePool.put(g.name(), r);
-            added.add(g.name());
+            if (knows(r)) continue;
+            Data.Recipe p = new Data.Recipe(r.base, r.slot, r.events, r.steps, r.ghoul);
+            Data.Gene g = p.build();
+            if (g == null || Data.GENES.containsKey(g.name())) continue;
+            String name = g.name();
+            for (char c = 'b'; genePool.containsKey(name) && c <= 'z'; c++) name = g.name() + c;
+            p.name = name;
+            genePool.put(name, p);
+            Data.POOL.put(name, p.build());
+            added.add(name);
         }
         if (!added.isEmpty()) save();
         return added;
+    }
+
+    /** Is this gene known: in the pool already (the same recipe), or one of the data's. */
+    boolean knows(Data.Recipe r) {
+        for (Data.Recipe x : genePool.values()) if (x.key().equals(r.key())) return true;
+        Data.Gene g = r.build();
+        return g != null && Data.GENES.containsKey(g.name());
     }
 
     /** The pool's genes of a slot. */
@@ -483,7 +499,7 @@ final class Base {
             if (s.wornOut != null) wornOut.putAll(s.wornOut);
             if (s.genePool != null) for (Data.Recipe r : s.genePool) {
                 Data.Gene g = r == null ? null : r.build();
-                if (g != null) genePool.put(g.name(), r);
+                if (g != null) { genePool.put(g.name(), r); Data.POOL.put(g.name(), g); }
             }
             if (s.pools != null) for (Pool p : s.pools) {
                 if (p == null || p.count <= 0) continue;

@@ -310,16 +310,16 @@ public final class Data {
      *  new slot if needed."*): the Ghoul gene and the ghoul line's stages, its variants. */
     public static final String NECROSIS = "Necrosis";
 
-    /** The mutations that stay BODY CHANGES, no gene (03b §7a [mine]): a disease begun, an injury. */
+    /** The mutations that stay BODY CHANGES, no gene (03b §7a, ACCEPTED round 13): a disease begun, an injury (`data/mutations.json`). */
     public static final Set<String> BODY_CHANGES = Set.of("Tumour", "Withered Limb", "One Eye Blind");
 
-    /** Every gene MADE in the game (a mutation's variant, a ghoul stage), by name: the name says how it was made, so one name is one gene. */
-    public static final Map<String, Gene> VARIANTS = new LinkedHashMap<>();
+    /** THE GENE POOL's genes (03b §7a) by their name in the pool: registered by the base ({@link Base}) when sampled or read. */
+    public static final Map<String, Gene> POOL = new LinkedHashMap<>();
 
-    /** A gene by name: the data's, else one made in the game (null if neither). */
-    public static Gene gene(String name) { Gene g = GENES.get(name); return g != null ? g : VARIANTS.get(name); }
+    /** A gene by name: the data's, else the pool's (null if neither). */
+    public static Gene gene(String name) { Gene g = GENES.get(name); return g != null ? g : POOL.get(name); }
 
-    /** A mutation by name, or null. */
+    /** A mutation of the data (the body changes) by name, or null. */
     public static Mutation mutation(String name) {
         for (Mutation m : MUTATIONS) if (m.name().equals(name)) return m;
         return null;
@@ -328,7 +328,7 @@ public final class Data {
     /**
      * The slots a mutation may land in (09b round 12, Marek 11-23, verbatim: *"the selected random mutation is applied to selected random
      * gene slot creating a new gene"*): every slot of 03c but the ORGAN genes and the aptitudes (several of each) and Necrosis (the ghoul
-     * line's own) [the three left out mine]: the 21 slots.
+     * line's own): the 21 slots (ACCEPTED round 13).
      */
     public static List<String> mutableSlots() {
         List<String> l = new ArrayList<>();
@@ -337,36 +337,116 @@ public final class Data {
         return l;
     }
 
-    /** A mutation as it hit: its name and the attribute a random one took (-1 none). */
-    public record Applied(String name, int attr) {}
+    /**
+     * THE DIALS a mutation turns (03b §7a, the catalogue: round 13, Marek 11-23, verbatim: *"I think defining all possible effects that
+     * mutation can give would be better."* · *"less slot specific/less requiring other genes"*; round 14: *"the 18-dial mutation catalogue -
+     * this seems fine, just attributes should be 7 options instead additional of d7 roll."*): 24 dials, the seven attributes each its own;
+     * each a number the gene system carries, with a good and a bad step the size of a T1 gene [the steps mine, ACCEPTED round 14]; any dial in
+     * any slot. The sun and melee damage are shown on the sheet; the plugin applies neither yet (nor a template's).
+     */
+    public static final List<String> DIALS = List.of("Strength", "Perception", "Endurance", "Charisma", "Intelligence", "Agility", "Luck",
+            "HP max", "DT", "DR", "rad res", "poison res", "isolation", "food", "water", "sleep", "healing", "bleeding", "Pain", "dark", "skill",
+            "melee", "falls", "dying");
+
+    /** One step on a dial: good (+1) or bad (−1), single or double (a very bad result), and for the skill dial the skill it hit. */
+    public record Step(String dial, int sign, int size, String skill) {
+        /** A factor's step: the good or the bad one, to the size's power. */
+        double factor(double good, double bad) { return Math.pow(sign > 0 ? good : bad, size); }
+
+        public String text() {
+            int k = sign * size;
+            String pm = (k > 0 ? "+" : "−") + Math.abs(k);
+            int ai = Arrays.asList(Rules.SPECIAL).indexOf(dial);
+            if (ai >= 0) return dial + " " + pm;
+            return switch (dial) {
+                case "HP max" -> "HP max " + (k > 0 ? "+" : "−") + 3 * Math.abs(k);
+                case "DT" -> "DT " + pm;
+                case "DR" -> "DR " + (k > 0 ? "+" : "−") + 5 * Math.abs(k) + " %";
+                case "rad res" -> "rad res " + (k > 0 ? "+" : "−") + 10 * Math.abs(k) + " %";
+                case "poison res" -> "poison and disease " + (k > 0 ? "+" : "−") + 10 * Math.abs(k) + " %";
+                case "isolation" -> "isolation " + (k > 0 ? "+" : "−") + 10 * Math.abs(k) + " %";
+                case "food" -> "food need × " + r2(factor(0.9, 1.15));
+                case "water" -> "water need × " + r2(factor(0.9, 1.15));
+                case "sleep" -> "sleep need × " + r2(factor(0.85, 1.2));
+                case "healing" -> "healing × " + r2(factor(1.25, 0.75));
+                case "bleeding" -> "bleeding × " + r2(factor(0.75, 1.5));
+                case "Pain" -> "Pain gained × " + r2(factor(0.85, 1.25));
+                case "dark" -> sign > 0 ? "the dark halved" : size > 1 ? "the sun burns" : "the sun hurts";
+                case "skill" -> skill + " " + (k > 0 ? "+" : "−") + 10 * Math.abs(k) + " %";
+                case "melee" -> "melee damage " + (k > 0 ? "+" : "−") + 10 * Math.abs(k) + " %";
+                case "falls" -> "fall damage × " + r2(factor(0.75, 1.5));
+                case "dying" -> "clinical death's window × " + r2(factor(1.5, 0.75));
+                default -> dial + " " + pm;
+            };
+        }
+
+        private static String r2(double v) { return String.valueOf(Math.round(v * 100) / 100.0); }
+    }
+
+    /** What a mutation roll gave: a body change (its name), or the steps that change a gene. */
+    public record Rolled(String bodyChange, List<Step> steps) {}
 
     /**
-     * How to make a changed gene again (a sample in the base's pool, 03b §7a): the gene it came from ("" = the plain human's, none), its
-     * slot, the mutations in order, and for the Necrosis slot the ghoul line's way.
+     * A mutation by its grade (03b §7a, the catalogue, round 14): good = one good step; neutral = one good and one bad step on another dial
+     * (Fallout 76's pairs); bad = one bad step; very bad = one bad step at double, or a body change: the tumour one time in five (as ruled,
+     * `04b` §3b), a withered limb or a blind eye one time in ten each [the split mine, ACCEPTED round 14].
+     */
+    public static Rolled rollMutation(String category, Random rnd) {
+        switch (category) {
+            case "good" -> { return new Rolled(null, List.of(step(rnd, 1, 1, null))); }
+            case "bad" -> { return new Rolled(null, List.of(step(rnd, -1, 1, null))); }
+            case "neutral" -> {
+                Step g = step(rnd, 1, 1, null);
+                return new Rolled(null, List.of(g, step(rnd, -1, 1, g.dial())));
+            }
+            default -> {
+                int d = 1 + rnd.nextInt(10);
+                if (d <= 2) return new Rolled("Tumour", List.of());
+                if (d == 3) return new Rolled("Withered Limb", List.of());
+                if (d == 4) return new Rolled("One Eye Blind", List.of());
+                return new Rolled(null, List.of(step(rnd, -1, 2, null)));
+            }
+        }
+    }
+
+    /** A random dial (not {@code notDial}), and for the skill dial a random base skill. */
+    static Step step(Random rnd, int sign, int size, String notDial) {
+        List<String> l = new ArrayList<>(DIALS);
+        if (notDial != null) l.remove(notDial);
+        String d = l.get(rnd.nextInt(l.size()));
+        String sk = d.equals("skill") ? Rules.SKILLS.get(rnd.nextInt(Rules.SKILLS.size())).name() : "";
+        return new Step(d, sign, size, sk);
+    }
+
+    /**
+     * How to make a changed gene again (a body's, or a sample in the base's pool, 03b §7a): the gene it came from ("" = the plain human's,
+     * none), its slot, how many mutations hit it and their steps, and for the Necrosis slot the ghoul line's way; {@code name} = its name in
+     * the pool ("" in a body).
      */
     public static final class Recipe {
-        public String base = "", slot = "";
-        public List<Applied> mutations = new ArrayList<>();
+        public String name = "", base = "", slot = "";
+        public int events;
+        public List<Step> steps = new ArrayList<>();
         public List<String> ghoul = new ArrayList<>();
 
         public Recipe() {}
 
-        public Recipe(String base, String slot, List<Applied> mutations, List<String> ghoul) {
-            this.base = base == null ? "" : base; this.slot = slot; this.mutations = new ArrayList<>(mutations); this.ghoul = new ArrayList<>(ghoul);
+        public Recipe(String base, String slot, int events, List<Step> steps, List<String> ghoul) {
+            this.base = base == null ? "" : base; this.slot = slot; this.events = events; this.steps = new ArrayList<>(steps);
+            this.ghoul = new ArrayList<>(ghoul);
         }
 
-        /** The gene it makes, or null when its parts are gone from the data. */
+        /** What it is made of (two recipes with one key make the same gene). */
+        public String key() { return base + "|" + slot + "|" + events + "|" + steps + "|" + ghoul; }
+
+        /** The gene it makes (under its pool name when it has one), or null when its parts are gone from the data. */
         public Gene build() {
             Gene b = base.isEmpty() ? null : gene(base);
             if (!base.isEmpty() && b == null) return null;
-            if (slot.equals(NECROSIS)) return ghoulVariant(b != null ? b : GENES.get("Ghoul"), ghoul);
-            return variant(b, slot, mutations);
+            Gene g = slot.equals(NECROSIS) ? ghoulVariant(b != null ? b : GENES.get("Ghoul"), ghoul) : variant(b, slot, events, steps);
+            return g == null || name.isEmpty() || g.name().equals(name) ? g
+                    : remake(g, name, g.real(), g.text(), g.load(), g.mods(), g.other());
         }
-    }
-
-    /** The load a mutation's grade adds to the gene (03b §7a [mine]): good +4 (more food), neutral 0, bad −4, very bad −8 (a drawback pays back). */
-    public static int gradeLoad(String category) {
-        return switch (category) { case "good" -> 4; case "neutral" -> 0; case "bad" -> -4; default -> -8; };
     }
 
     /** An empty gene: the plain human's in a slot (nothing of its own). */
@@ -382,45 +462,59 @@ public final class Data {
                 g.window(), g.heal(), g.bleed(), g.fall(), g.sun(), g.atDeath(), g.huge(), g.aptitude());
     }
 
-    /** What a mutation does, in short (its numbers, else its note). */
-    static String describe(Mutation m, int attr) {
-        List<String> l = new ArrayList<>();
-        for (int i = 0; i < 7; i++) if (m.mods()[i] != 0) l.add(Rules.SPECIAL[i].substring(0, 1) + " " + (m.mods()[i] > 0 ? "+" : "−") + Math.abs(m.mods()[i]));
-        if (attr >= 0 && m.randomAttr() != 0) l.add(Rules.SPECIAL[attr].substring(0, 1) + " " + (m.randomAttr() > 0 ? "+" : "−") + Math.abs(m.randomAttr()));
-        m.other().forEach((k, v) -> l.add(k.replace('_', ' ') + " " + (v > 0 ? "+" : "") + (v == Math.rint(v) ? String.valueOf(v.intValue()) : String.valueOf(v))));
-        if (!m.notes().isEmpty()) l.add(m.notes());
-        return String.join(", ", l);
-    }
-
     /**
-     * A gene CHANGED by mutations (03b §7a; 09b round 12, Marek 11-23, verbatim: *"I think there should be a system where the selected random
-     * mutation is applied to selected random gene slot creating a new gene. There genes are not pre-build (too many options). Mutations are
-     * historically the low tech way into genetic research"*): the gene in the slot ({@code base}; null = the plain human's, none) + each
-     * mutation's numbers in order; its tier the gene's (the plain one T1), its load the gene's ± each grade's ({@link #gradeLoad}); named by
-     * what it is made of (*Tapetum · Scales*). Made, never listed in the data; kept in {@link #VARIANTS}.
+     * A gene CHANGED by mutations (03b §7a; 09b round 12, Marek 11-23, verbatim: *"the selected random mutation is applied to selected random
+     * gene slot creating a new gene. There genes are not pre-build (too many options)."*; the catalogue, rounds 13-14): the gene in the slot
+     * ({@code base}; null = the plain human's) with each step of the dials; its tier the gene's (the plain one T1), its load the gene's + 4 a
+     * good step, − 4 a bad one (double: − 8): good +4, neutral 0, bad −4, very bad −8 (ACCEPTED round 13). Its name does not grow (round 13:
+     * *"the name gets bigger by stacking it"*): the gene it came from + M and how many mutations hit it (*Arctic fat-burner M2*, *Skin M1*).
      */
-    public static Gene variant(Gene base, String slot, List<Applied> muts) {
+    public static Gene variant(Gene base, String slot, int events, List<Step> steps) {
         Gene g = base != null ? base : plain(slot);
-        if (muts.isEmpty()) return g;
+        if (steps.isEmpty()) return g;
         int[] m = g.mods().clone();
-        Map<String, Double> other = new LinkedHashMap<>(g.other());
-        int load = g.load();
-        StringBuilder name = new StringBuilder(g.name()), text = new StringBuilder(g.text().isEmpty() ? g.real() : g.text());
-        for (Applied a : muts) {
-            Mutation mu = mutation(a.name());
-            if (mu == null) continue;
-            for (int i = 0; i < 7; i++) m[i] += mu.mods()[i];
-            String at = "";
-            if (a.attr() >= 0 && mu.randomAttr() != 0) { m[a.attr()] += mu.randomAttr(); at = " (" + Rules.SPECIAL[a.attr()].substring(0, 1) + ")"; }
-            mu.other().forEach((k, v) -> other.merge(k, v, Double::sum));
-            other.values().removeIf(v -> Math.abs(v) < 1e-9);
-            load += gradeLoad(mu.category());
-            name.append(" · ").append(mu.name()).append(at);
-            text.append("; mutated, ").append(mu.category()).append(": ").append(mu.name()).append(at).append(" (").append(describe(mu, a.attr())).append(")");
+        int hp = g.hp(), dt = g.dt(), senses = g.senses(), load = g.load();
+        double dr = g.dr(), rad = g.rad(), poison = g.poison(), iso = g.iso(), food = g.food(), water = g.water(), sleep = g.sleep(),
+                heal = g.heal(), bleed = g.bleed(), pain = g.pain(), melee = g.melee(), fall = g.fall(), window = g.window();
+        String sun = g.sun();
+        Map<String, Double> skills = new LinkedHashMap<>(g.skills());
+        List<String> said = new ArrayList<>();
+        for (Step s : steps) {
+            int k = s.sign() * s.size();
+            int ai = Arrays.asList(Rules.SPECIAL).indexOf(s.dial());
+            if (ai >= 0) m[ai] += k;
+            else switch (s.dial()) {
+                case "HP max" -> hp += 3 * k;
+                case "DT" -> dt += k;
+                case "DR" -> dr += 0.05 * k;
+                case "rad res" -> rad += 0.10 * k;
+                case "poison res" -> poison += 0.10 * k;
+                case "isolation" -> iso += 0.10 * k;
+                case "food" -> food *= s.factor(0.9, 1.15);
+                case "water" -> water *= s.factor(0.9, 1.15);
+                case "sleep" -> sleep *= s.factor(0.85, 1.2);
+                case "healing" -> heal *= s.factor(1.25, 0.75);
+                case "bleeding" -> bleed *= s.factor(0.75, 1.5);
+                case "Pain" -> pain *= s.factor(0.85, 1.25);
+                case "dark" -> {
+                    if (s.sign() > 0) senses = Math.min(2, senses + 1);
+                    else sun = s.size() > 1 || sun.equals("pain") ? "hp" : "pain";
+                }
+                case "skill" -> skills.merge(s.skill(), 10.0 * k, Double::sum);
+                case "melee" -> melee += 0.10 * k;
+                case "falls" -> fall *= s.factor(0.75, 1.5);
+                case "dying" -> window *= s.factor(1.5, 0.75);
+                default -> { }
+            }
+            skills.values().removeIf(v -> Math.abs(v) < 1e-9);
+            load += 4 * k;
+            said.add(s.text());
         }
-        Gene v = remake(g, name.toString(), "a mutation of " + g.name(), text.toString(), load, m, other);
-        VARIANTS.put(v.name(), v);
-        return v;
+        String name = (base == null ? slot : base.name()) + " M" + Math.max(1, events);
+        String text = (g.text().isEmpty() ? g.real() : g.text()) + "; mutated: " + String.join(", ", said);
+        return new Gene(name, slot, g.tier().isEmpty() ? "T1" : g.tier(), load, "a mutation of " + g.name(), text, g.rule(), false, m, food, water,
+                sleep, pain, skills, poison, rad, iso, dt, hp, new LinkedHashMap<>(g.other()), g.family(), g.adult(), dr, melee, senses, window, heal,
+                bleed, fall, sun, g.atDeath(), g.huge(), g.aptitude());
     }
 
     /**
@@ -463,9 +557,7 @@ public final class Data {
         String name = ghoul.name() + " · " + String.join(" · ", path) + (jumped.isEmpty() ? "" : " (jumped " + String.join(", ", jumped) + ")");
         String text = ghoul.text() + "; the ghoul line: " + String.join(" → ", path)
                 + (jumped.isEmpty() ? "" : " (jumped " + String.join(", ", jumped) + ": only its harm)") + " (03b §7b)";
-        Gene v = remake(ghoul, name, "the ghoul line's " + path.get(path.size() - 1) + " (fiction)", text, ghoul.load(), m, other);
-        VARIANTS.put(v.name(), v);
-        return v;
+        return remake(ghoul, name, "the ghoul line's " + path.get(path.size() - 1) + " (fiction)", text, ghoul.load(), m, other);
     }
     public static final List<JsonObject> ITEMS = new ArrayList<>();
     /** The workbook's cell notes (`data/notes.json`), by tab and the cell's own text: the skills' and the stats' descriptions. */
