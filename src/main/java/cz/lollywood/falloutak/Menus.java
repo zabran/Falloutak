@@ -184,6 +184,9 @@ final class Menus {
         for (String s : Hud.around(c)) lines.add(line(s, NamedTextColor.GOLD));
         boolean able = !c.dead && !c.inArrest() && !c.unconscious();
         if (pl.battle.inEnv(p)) b.add(btn("! End the round", "6 s of game time pass: the air, the gas, bleeding (03b §3c)", x -> pl.battle.endEnvRound(x)));
+        // round 11: rounds by the player's own choice, and off when no enemy is near
+        if (!pl.battle.inBattle(p)) b.add(btn("Rounds ON", "time stands still between your rounds: move by AP, act, end each round here", x -> { say(x, pl.battle.roundsOn(x, c)); actions(x); }));
+        else b.add(btn("Rounds OFF", "only when no enemy that can fight is within " + (int) Battle.ENEMY_NEAR + " blocks and nothing hurts you", x -> { say(x, pl.battle.roundsOff(x, c)); actions(x); }));
         if (able) { gear(p, c, carry, b, cannot); armourRepair(p, c, carry, b, cannot); }
         if (able) {
             if (c.bleeding > 0 || (c.hp < c.hpMax() && c.inSlot("treatment:dressing") == null))
@@ -983,7 +986,7 @@ final class Menus {
     /** Everyone the clock moves for: the players online and the NPCs loaded. */
     static List<Who> everyone() {
         List<Who> l = new ArrayList<>();
-        for (Player o : Bukkit.getOnlinePlayers()) l.add(of(o));
+        for (Player o : Bukkit.getOnlinePlayers()) if (!pl.character(o).away) l.add(of(o));   // out of the game: untouched (round 11)
         for (Map.Entry<String, Character> e : pl.npcs.entrySet()) l.add(new Who(e.getKey(), e.getValue(), null, null));
         return l;
     }

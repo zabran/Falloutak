@@ -107,6 +107,14 @@ final class Raiders {
         }
         if (t.broken) { q.add(() -> say(p, t.name + "'s gun is destroyed: he has nothing to fight with.")); return; }
         if (Combat.broken(t.gunHealth)) { q.add(() -> say(p, t.name + "'s gun is broken: he has nothing to fight with.")); return; }
+        while (t.jammed && t.ap >= SHOT_AP) {   // 05 §9 (round 11): clearing his jam, JA2's check with his skill for its Mechanical [EXAMPLE]
+            t.ap -= SHOT_AP;
+            int d = 1 + b.rnd.nextInt(100), need = Combat.clearJam(t.skill);
+            if (d <= need) t.jammed = false;
+            boolean ok = !t.jammed;
+            q.add(() -> say(p, t.name + (ok ? " clears his jammed gun" : " fails to clear his jammed gun") + " (d100 " + d + (ok ? " ≤ " : " > ") + need + ", " + SHOT_AP + " AP)."));
+        }
+        if (t.jammed) { q.add(() -> say(p, t.name + "'s gun is still jammed.")); return; }
         if (t.ammo <= 0 && t.ap >= 2) { t.ap -= 2; t.ammo = Battle.SMG.magazine; q.add(() -> { say(p, t.name + " reloads (2 AP)."); Entity re = b.pl.getServer().getEntity(u); if (re != null) Sfx.at(re.getLocation(), "pistol.reload"); }); }
         if (b.pl.anomalies.hidden(p.getLocation(), le.getLocation())) {   // the player inside a blind spot: unseen (09c §2)
             q.add(() -> say(p, t.name + " cannot see you (a blind spot hides you): he waits."));
@@ -398,7 +406,7 @@ final class Raiders {
 
     /** One shot at the player, by the rules the player shoots by. */
     private void shoot(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t) {
-        if (!b.inBattle(p) || t.dead || t.dying() || t.down || t.out || t.frozen || t.dropped || t.broken || Combat.broken(t.gunHealth) || t.ammo <= 0) return;
+        if (!b.inBattle(p) || t.dead || t.dying() || t.down || t.out || t.frozen || t.jammed || t.dropped || t.broken || Combat.broken(t.gunHealth) || t.ammo <= 0) return;
         Location at = le.getLocation();
         if (!canShoot(le.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), p)
                 || b.pl.anomalies.hidden(p.getLocation(), at)) {
@@ -426,6 +434,16 @@ final class Raiders {
             case "blind" -> sh.blind = true;
             case "echo" -> sh.skill -= 10;
             default -> { }
+        }
+        // the jam (05 §9, round 11: raiders too, Marek *"yes, 100%"*): his used gun's condition, the magnet's 1-2 of d6
+        if (Combat.jamAt(t.gunHealth / w.maxHealth, 1, b.d100, az != null && az.anomaly.equals("magnet") ? 2 : 0) >= 0) {
+            t.jammed = true;
+            t.ammo--;
+            t.gunHealth = Math.max(1, t.gunHealth - Combat.WEAR_PER_ROUND);
+            Sfx.at(eye, "pistol.empty");
+            say(p, t.name + "'s gun JAMS (condition " + Math.round(t.gunHealth / w.maxHealth * 100) + " %): the round sticks; he will try to clear it.");
+            b.label(le, t);
+            return;
         }
         Battle.veil(b.pl.zones, eye, p.getEyeLocation(), sh, false);   // the Trhač's pollen hides the player from him too
         sh.part = Rules.Part.TORSO;

@@ -169,6 +169,21 @@ public final class Character {
     public void setGenes(List<String> names) { genes.clear(); genes.addAll(names); customTpl = null; }
 
     /**
+     * The genes a body that TURNED GHOUL keeps from the template it was born with (`09b` round 11, Marek 11-23, verbatim: *"The turned
+     * ghoul's genes - yes, that is the issue. The genes should stay, just as implant."*): laid over the Ghoul template in their slots, as a
+     * therapy's gene is (`Data.withTherapies`), so their numbers ADD to the ghoul's. Empty for a human, who has none.
+     */
+    public final List<String> keptGenes = new ArrayList<>();
+    private transient Data.Template keptTpl;
+    private transient int keptKey = -1;
+
+    /**
+     * Out of the game (round 11: *"for the purpose of playing, it should be possible to save your current inventory + character (esp. in
+     * MC, where you can do other things than just play)"*): `/game off` until `/game on`; the HUD and the world leave him alone.
+     */
+    public boolean away;
+
+    /**
      * The time of day (Marek 11-16: *"game clock has no time of day yet - add it please"*): the hour of day at clock 0, so the time is
      * {@code dayStart + now()}; the GM sets it (Time of day), passing time moves it. Day 1 begins at clock 0 [08:00 mine].
      */
@@ -305,7 +320,15 @@ public final class Character {
     /** The template as born (or as made in puberty), without the therapies. */
     public Data.Template baseTpl() {
         if (Data.CUSTOM.equals(template)) return customTpl != null ? customTpl : (customTpl = Data.custom(genes));
-        return Data.TEMPLATES.getOrDefault(template, Data.TEMPLATES.get("Human"));
+        Data.Template t = Data.TEMPLATES.getOrDefault(template, Data.TEMPLATES.get("Human"));
+        if (keptGenes.isEmpty() || !t.name().equals("Ghoul")) return t;
+        if (keptTpl == null || keptKey != keptGenes.hashCode()) {   // the genes kept, over the Ghoul template (round 11)
+            List<Data.Cover> cv = new ArrayList<>();
+            for (String n : keptGenes) { Data.Gene g = Data.GENES.get(n); if (g != null) cv.add(new Data.Cover(g, 1, "on")); }
+            keptTpl = Data.withTherapies(t, cv);
+            keptKey = keptGenes.hashCode();
+        }
+        return keptTpl;
     }
 
     /** The template's HP bonus, with the therapies' (Bone lattice's HP +5 over the template's gene in the Frame slot). */
@@ -727,8 +750,68 @@ public final class Character {
     public int apMax() {
         int extra = 0;
         if (has("Brittle Bones")) extra += 2;
-        return Math.max(0, Rules.ap(attrs(false)) + extra + (int) Math.round(other("ap") + stageOther("ap")) + gasPenalty()[2]   // riot gas AP −2 (03b §3c)
+        int ap = Math.max(0, Rules.ap(attrs(false)) + extra + (int) Math.round(other("ap") + stageOther("ap")) + gasPenalty()[2]   // riot gas AP −2 (03b §3c)
                 + CLASS_AP[armourClass()]);   // the armour's class (05c §3b)
+        int tier = loadTier();
+        return tier >= 3 ? 0 : tier == 2 ? ap / 2 : ap;   // round 11: over half again the load halves the AP, over double none
+    }
+
+    // ------------------------------------------------------------------ the load (02; `09b` round 11)
+    /*
+     * Marek 11-23, round 11, verbatim: *"Fallout 2's pounds - covert it to kg."* · *"overloading - I would say up to +50%, it just means
+     * half speed of movement and getting tired faster (and using more food, water and oxygen). Then +50% to +100% means AP halved as well
+     * and using even more. And more than that would mean no AP, like with paralyzed."* · *""the plugin doesn't add up what you carry." - it
+     * should - please add that function. It should work with inventory."* The needs ×1.5 and ×2 [mine, EXAMPLE].
+     */
+    /** What he carries now, in kg: the inventory and the armour worn (set each second by the HUD; {@link Items#weight}). */
+    public transient double carriedKg;
+    static final double LB = 0.4536;
+
+    /**
+     * The capacity in kg: Fallout 2's 25 + 25 × S + Athletics pounds (Small Frame 25 + 15 × S; Strong Back +50, Hoarder +25) × 0.4536,
+     * the Raccoon frame's ×½, + the artifacts' kg (the feather stone +15, the float −10). The Hoarder's own −1 does not lower it.
+     */
+    public double capacityKg() {
+        int st = attr(Rules.S, false) - (int) Math.round(effectMod("hoarder", Rules.S));
+        double ath = skills()[Rules.skillIndex("Athletics")];
+        double lb = 25 + (has("Small Frame") ? 15 : 25) * st + ath + (hasPerk("Strong Back") ? 50 : 0) + (has("Hoarder") ? 25 : 0);
+        double kg = lb * LB;
+        for (Data.Gene g : tpl().genes()) if (g.name().equals("Raccoon frame")) kg /= 2;
+        return Math.max(0, kg + other("carry_kg"));
+    }
+
+    private double effectMod(String slot, int i) {
+        for (Effect e : effects) if (e.slot().equals(slot)) return e.mod(i);
+        return 0;
+    }
+
+    /** 0 = within the capacity; 1 = to +50 % over (Strong Back: from +25 %); 2 = +50 to +100 %; 3 = more. */
+    public int loadTier() { return Rules.loadTier(carriedKg, capacityKg(), hasPerk("Strong Back")); }
+
+    /** Each block moved costs this many times the AP (round 11: half speed up to +100 % over). */
+    public double loadMoveFactor() { int t = loadTier(); return t == 1 || t == 2 ? 2 : 1; }
+
+    /**
+     * The load (round 11) as one effect in the slot "load": tiers 1 and 2 use food, water, sleep and oxygen ×1.5 and ×2 [mine]; tier 3
+     * is the paralysed body's AP (none, {@link #apMax}). And the Hoarder's −1 to every attribute below half the capacity (`02c`).
+     */
+    public void setLoad(double kg) {
+        carriedKg = kg;
+        int t = loadTier();
+        if (t == 0) effects.removeIf(e -> e.slot().equals("load"));
+        else {
+            double more = t == 1 ? 0.5 : 1.0;
+            Map<String, Double> o = new LinkedHashMap<>();
+            for (String k : List.of("food_need", "water_need", "sleep_need", "oxygen_need")) o.put(k, more);
+            String what = t == 1 ? "half speed, food, water, sleep and breath ×1.5" : t == 2 ? "half speed, AP halved, food, water, sleep and breath ×2"
+                    : "too heavy to move: no AP";
+            add(new Effect("Overloaded " + SheetGui.f(Math.round(kg * 10) / 10.0) + " / " + SheetGui.f(Math.round(capacityKg() * 10) / 10.0) + " kg: " + what,
+                    "load", "load", false, new int[7], o, 1e6, null, 100));
+        }
+        if (has("Hoarder") && kg < capacityKg() / 2) {
+            if (effects.stream().noneMatch(e -> e.slot().equals("hoarder")))
+                add(new Effect("Hoarder: carrying less than half (−1 to every attribute)", "trait", "hoarder", false, new int[]{-1, -1, -1, -1, -1, -1, -1}, Map.of(), 1e6, null, 100));
+        } else effects.removeIf(e -> e.slot().equals("hoarder"));
     }
 
     /**
@@ -1206,8 +1289,11 @@ public final class Character {
         if (g == null) return "the body turns GHOUL (no Ghoul template in the data: the GM sets it)";
         if (old.family().equals("synthetic")) return "a synthetic body cannot turn ghoul";
         if (old.name().equals("Ghoul")) return "already a ghoul";
+        keptGenes.clear();   // the old body's genes stay, laid over the ghoul's (round 11)
+        for (Data.Gene x : old.genes()) keptGenes.add(x.name());
         template = g.name();
         customTpl = null;
+        keptTpl = null;
         templateHp = g.hp();
         templateSkillPoints = g.skillPoints();
         templatePerkRate = g.perkRate();
@@ -1220,6 +1306,7 @@ public final class Character {
         crisisRolled = false;
         if (hp > hpMax()) hp = hpMax();
         return "the body turns GHOUL: the template is now Ghoul (was " + old.name() + "; 03b §2a: S −2, P +3, I +3, A −4, L +3, rad res 40 %)"
+                + (keptGenes.isEmpty() ? "" : "; its genes stay over the ghoul's: " + String.join(", ", keptGenes))
                 + (kept.isEmpty() ? "" : "; " + String.join(", ", kept))
                 + (barred.isEmpty() ? "" : "; the ghoul template bars " + String.join(", ", barred) + ": the GM decides");
     }
@@ -1708,7 +1795,7 @@ public final class Character {
         boolean arrest = inArrest();
         if (!arrest) {   // in clinical death nobody breathes: Oxygen stays where it is
             if (bottle) o = Math.min(max, o + Rules.OXYGEN_REFILL);
-            else if (holdingBreath || noAir()) o -= 1;
+            else if (holdingBreath || noAir()) o -= 1 + other("oxygen_need");   // overloaded: more (round 11)
             else if (g != null && g.bad()) { badAirRounds++; if (o < max / 2) o = Math.min(max / 2, o + Rules.OXYGEN_REFILL); }
             else if (g != null && g.oxygen() > 0 && !shielded(g)) o -= g.oxygen() * gasPower() * gasFactor(g);
             else o = Math.min(max, o + Rules.OXYGEN_REFILL);

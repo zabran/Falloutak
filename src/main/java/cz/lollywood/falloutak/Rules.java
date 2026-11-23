@@ -74,6 +74,20 @@ public final class Rules {
     public static int ac(int[] a) { return a[A]; }
     public static int initiative(int[] a) { return 2 * a[P]; }
     public static double carry(int[] a, double athletics) { return 25 + 25 * a[S] + athletics; }
+
+    /** The same in kg (round 11: *"Fallout 2's pounds - covert it to kg."*): × 0.4536. */
+    public static double carryKg(int[] a, double athletics) { return carry(a, athletics) * Character.LB; }
+
+    /**
+     * The load's tier (`09b` round 11, Marek's): 0 within the capacity; 1 up to +50 % over (half speed, tired faster, more food, water and
+     * oxygen; with Strong Back nothing up to +25 %, `02c`); 2 from +50 to +100 % (the AP halved as well); 3 more (no AP, as paralysed).
+     */
+    public static int loadTier(double kg, double capacity, boolean strongBack) {
+        if (capacity <= 0) return kg > 1e-9 ? 3 : 0;
+        double r = kg / capacity;
+        if (r <= (strongBack ? 1.25 : 1) + 1e-9) return 0;
+        return r <= 1.5 + 1e-9 ? 1 : r <= 2 + 1e-9 ? 2 : 3;
+    }
     public static int meleeBonus(int[] a) { return Math.max(a[S] - 5, 1); }
     /** Ruled 11-13: the workbook counted Medicine twice; the /20 term is Survival. */
     public static int healingRate(int[] a, double medicine, double survival) {

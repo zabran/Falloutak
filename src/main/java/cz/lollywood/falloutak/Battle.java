@@ -137,6 +137,8 @@ public final class Battle implements Listener {
         final Set<String> noticed = new HashSet<>(), missed = new HashSet<>();
         int apLoss;
         boolean held, frozen;
+        /** His gun jammed (05 §9, round 11): his next turn begins by clearing it. */
+        boolean jammed;
         Target(String name) { this.name = name; }
         boolean dying() { return !dead && hp <= 0; }
         String label() {
@@ -147,6 +149,7 @@ public final class Battle implements Listener {
             if (blind) st.add("blind");
             if (armCrippled) st.add("arm crippled");
             if (legCrippled) st.add("leg crippled");
+            if (!dead && jammed) st.add("gun jammed");
             if (!dead && broken) st.add("gun destroyed"); else if (!dead && Combat.broken(gunHealth)) st.add("gun broken"); else if (!dead && dropped) st.add("gun dropped");
             if (!dead && bleeding > 0) st.add("bleeding " + SheetGui.f(bleeding));
             return name + " · " + hp + "/" + hpMax + " HP" + (st.isEmpty() ? "" : " · " + String.join(", ", st));
@@ -181,6 +184,11 @@ public final class Battle implements Listener {
         boolean armCrippled, blind;
         /** The raiders are taking their turn: the player waits. */
         boolean enemyTurn;
+        /** Rounds kept without danger (`09b` round 11): the player's own choice, or the Black Rain's warning; why. */
+        boolean hold;
+        String holdWhy = "";
+        /** The guns jammed (05 §9, round 11): firing one again is the clearing check. */
+        final Set<String> jammed = new HashSet<>();
         int round = 1, lostTurns;
         org.bukkit.scheduler.BukkitTask task;
         final Deque<Runnable> pending = new ArrayDeque<>();
@@ -197,7 +205,7 @@ public final class Battle implements Listener {
     private final NamespacedKey key;
     private final Map<UUID, State> states = new HashMap<>();
     final Random rnd = new Random();
-    final java.util.function.IntSupplier d100 = () -> rnd.nextInt(100) + 1;
+    java.util.function.IntSupplier d100 = () -> rnd.nextInt(100) + 1;   // the dice (a test may fix them)
 
     Battle(FalloutakPlugin pl) {
         this.pl = pl;
@@ -308,6 +316,8 @@ public final class Battle implements Listener {
         });
         s.dummies.add(d.getUniqueId());
         Target t = new Target(name);
+        // round 11 (Marek: *"their guns should definitely be quite used"*): 25-60 % condition [EXAMPLE]: less damage, and they jam
+        t.gunHealth = Math.max(1, SMG.maxHealth * (0.25 + 0.35 * rnd.nextDouble()));
         s.targets.put(d.getUniqueId(), t);
         d.customName(Component.text(t.label(), NamedTextColor.RED));
     }
@@ -354,7 +364,7 @@ public final class Battle implements Listener {
     private static boolean quickItem(String id) { return id.equals("stim") || id.equals("grenade") || id.equals("gasgren") || id.equals("flare"); }
 
     // ------------------------------------------------------------------ movement: legs since the last action
-    private double stepCost(int stance, Character c) { return Rules.stepAp(stance, Math.max(c.brokenLegs, c.missingLegs()), c.has("Brittle Bones")) * c.legFactor(); }
+    private double stepCost(int stance, Character c) { return Rules.stepAp(stance, Math.max(c.brokenLegs, c.missingLegs()), c.has("Brittle Bones")) * c.legFactor() * c.loadMoveFactor(); }   // round 11: overloaded, half speed
 
     private static int blocks(Location a, Location b) { return Math.abs(a.getBlockX() - b.getBlockX()) + Math.abs(a.getBlockZ() - b.getBlockZ()); }
 
@@ -420,7 +430,7 @@ public final class Battle implements Listener {
     private Component bar(Player p, State s, Character c) {
         Location at = p.getLocation().toBlockLocation();
         String event = System.currentTimeMillis() - s.lastEventAt < 2500 ? s.lastEvent : null;
-        s.bar.name(Component.text("Round " + s.round + (s.env ? " · " + envWhat(c).toUpperCase(java.util.Locale.ROOT) : "") + (s.enemyTurn ? " · THE RAIDERS' TURN" : "") + " · HP " + c.hp + " / " + c.hpMax()
+        s.bar.name(Component.text("Round " + s.round + (s.env ? " · " + (s.hold && !c.envHarm() ? s.holdWhy : envWhat(c)).toUpperCase(java.util.Locale.ROOT) : "") + (s.enemyTurn ? " · THE RAIDERS' TURN" : "") + " · HP " + c.hp + " / " + c.hpMax()
                 + " · AP " + s.ap + " / " + c.apMax() + " · " + stanceLine(s, c) + (s.blind ? " · blind" : "")));
         s.bar.progress(Math.max(0f, Math.min(1f, s.ap / (float) Math.max(1, c.apMax()))));
         String id = id(p.getInventory().getItemInMainHand());
@@ -438,6 +448,7 @@ public final class Battle implements Listener {
                     .append(Component.text(m.toHit() != 0 ? " · to hit " + sign(m.toHit()) : "", NamedTextColor.YELLOW))
                     .append(Component.text(pen != 0 ? " · moved " + pen + " (steady: 1 AP)" : "", NamedTextColor.RED))
                     .append(Component.text(!w.melee() ? " · ammo " + s.ammo.get("smg") + "/" + w.magazine : "", NamedTextColor.GRAY))
+                    .append(Component.text(s.jammed.contains(w.name) ? " · JAMMED (fire: clear it, " + apOf(c, w, m) + " AP)" : "", NamedTextColor.RED))
                     .append(Component.text(" · cond " + Math.round(cond(s, w) * 100) + " %" + (Combat.broken(health(s, w)) ? " BROKEN" : ""),
                             cond(s, w) >= 0.75 ? NamedTextColor.GRAY : NamedTextColor.GOLD))
                     .append(Component.text("  » " + look, a != null && a.part() != null ? NamedTextColor.GOLD : NamedTextColor.DARK_GRAY));
@@ -538,6 +549,13 @@ public final class Battle implements Listener {
             return;
         }
         if (Combat.broken(health(s, w))) { show(p, s, c, "the " + w.name + " is broken: /sheet repair (a kit) first"); return; }
+        if (!w.melee() && s.jammed.contains(w.name)) {   // 05 §9 (round 11): firing a jammed gun is the clearing check (JA2), the attack's AP
+            if (!pay(p, s, c, apOf(c, w, m), "clearing the jam")) return;
+            int d = d100.getAsInt(), need = Combat.clearJam(c.skill("Crafting"));
+            if (d <= need) { s.jammed.remove(w.name); Sfx.at(p.getLocation(), "pistol.reload"); show(p, s, c, "the jam cleared (d100 " + d + " ≤ " + need + ": 30 + Crafting / 2)"); }
+            else { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, "still jammed (d100 " + d + " > " + need + ": 30 + Crafting / 2)"); }
+            return;
+        }
         int pen = movePenalty(s, w, at);
         Combat.Shot sh = shot(p, s, c, w, m, a, pen);
         Combat.ToHit th = Combat.toHit(sh);
@@ -551,6 +569,10 @@ public final class Battle implements Listener {
         Combat.Roll r = Combat.roll(th.chance(), cc, pt, me[Rules.L], better, jinxed(c), d100);
         Target tg = s.targets.get(a.target().getUniqueId());
         boolean burst = !w.melee() && m.ammo() > 1;
+        // the jam (05 §9, round 11): which round sticks; those before it leave the barrel, the stuck one is lost (JA2)
+        int jamRound = w.melee() || signature(c, w) ? -1 : Combat.jamAt(cond(s, w), m.ammo(), d100, jamExtra(c));
+        int shots = jamRound < 0 ? m.ammo() : jamRound, spent = jamRound < 0 ? m.ammo() : jamRound + 1;
+        if (jamRound >= 0) s.jammed.add(w.name);
         StringBuilder log = new StringBuilder();
         log.append(!w.melee() ? "Fired at " : "Struck at ").append(tg != null ? tg.name : who(a.target())).append(", ").append(sh.blocks).append(" blocks: ")
                 .append(m.name()).append(m.aimed() ? " at the " + a.part().label : "").append(" (").append(apOf(c, w, m)).append(" AP). To hit ")
@@ -558,7 +580,11 @@ public final class Battle implements Listener {
         th.terms().forEach((k, v) -> log.append(" ").append(k.equals("skill") ? w.skill + " " + v : sign(v) + " " + k));
         log.append(". Rolled ").append(r.d100()).append(r.d100() >= 100 ? " (a 100 always misses)" : "").append(": ");
         String result;
-        if (Anomalies.figure(a.target())) {   // 09c §2, round 10: a mirage's figure; the shot or the blow is spent on nothing
+        if (!w.melee() && shots == 0) {
+            log.append("JAMMED: the round sticks in the chamber, nothing fires (the round lost; firing again tries to clear it, 30 + Crafting / 2).");
+            result = "JAMMED";
+            Sfx.at(p.getLocation(), "pistol.empty");
+        } else if (Anomalies.figure(a.target())) {   // 09c §2, round 10: a mirage's figure; the shot or the blow is spent on nothing
             log.append("it goes through ").append(who(a.target())).append(": NOTHING IS THERE (a figure of the mirage).");
             result = (w.melee() ? "a blow" : "a shot") + " at nothing: the mirage";
             pl.anomalies.dissolve(a.target());
@@ -574,7 +600,7 @@ public final class Battle implements Listener {
             int hits;
             String spray = "";
             if (burst) {   // Fallout 2's spray: one roll for the burst; each round at the target rolls again (+20 on a crit)
-                int[] sp = Combat.burstSplit(m.ammo());
+                int[] sp = Combat.burstSplit(shots);
                 int acc = th.chance() + (r.crit() ? 20 : 0);
                 hits = 0;
                 for (int i = 0; i < sp[0]; i++) if (d100.getAsInt() <= acc) hits++;
@@ -624,10 +650,11 @@ public final class Battle implements Listener {
         if (!w.melee()) {
             double h = health(s, w);
             if (!Combat.broken(h) && !signature(c, w)) {   // FNV: 0.2 item health a round fired; a Signature Weapon never breaks
-                s.health.put(w.name, Math.max(1, h - Combat.WEAR_PER_ROUND * m.ammo()));
+                s.health.put(w.name, Math.max(1, h - Combat.WEAR_PER_ROUND * spent));
                 if (Combat.broken(health(s, w))) log.append(" The ").append(w.name).append(" breaks from wear (its last health point): /sheet repair.");
             }
-            s.ammo.put("smg", Math.max(0, s.ammo.get("smg") - m.ammo()));
+            s.ammo.put("smg", Math.max(0, s.ammo.get("smg") - spent));
+            if (jamRound > 0) { log.append(" THE GUN JAMS after ").append(shots).append(" round(s), the next one lost (firing again tries to clear it)."); result += " · JAMMED"; }
             if (s.ammo.get("smg") <= 0 && !s.broken.contains(w.name)) {   // reload automatic when out of ammo (Marek 11-14), 2 AP (Fallout 2)
                 if (s.ap >= 2) { s.ap -= 2; s.apAtAnchor = s.ap; s.ammo.put("smg", w.magazine); log.append(" Reloaded automatically (2 AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
                 else log.append(" Empty: reloads when you have 2 AP (or after the battle).");
@@ -912,6 +939,56 @@ public final class Battle implements Listener {
     }
 
     // ------------------------------------------------------------------ rounds the environment forces (Marek 11-18, round 23)
+    /** The jams on top (09c): the magnet's 1-2 of d6 while he stands in it, the Lodestone's 1 of d6 on his belt. */
+    static int jamExtra(Character c) {
+        int e = "magnet".equals(c.anomaly) ? 2 : 0;
+        if (c.effects.stream().anyMatch(x -> x.slot().equals("artifact:Lodestone"))) e += 1;
+        return e;
+    }
+
+    /** How near an enemy keeps a player in his rounds (round 11: off "if there are no enemies close") [mine, EXAMPLE]. */
+    static final double ENEMY_NEAR = 30;
+
+    /** The player's own rounds (round 11): on. */
+    String roundsOn(Player p, Character c) {
+        if (inBattle(p)) return "You are in rounds already.";
+        startEnv(p, c, "your own rounds");
+        return "Rounds ON: time stands still between them; end each from your Pip-Boy. Off again when no enemy is within " + (int) ENEMY_NEAR + " blocks.";
+    }
+
+    /** The player's own rounds (round 11): off, when no enemy that can fight is within {@link #ENEMY_NEAR} blocks and nothing hurts him. */
+    String roundsOff(Player p, Character c) {
+        State s = states.get(p.getUniqueId());
+        if (s == null) return "You are not in rounds.";
+        if (s.enemyTurn) return "The raiders' turn: wait.";
+        for (UUID u : s.dummies) {
+            Target t = s.targets.get(u);
+            Entity e = pl.getServer().getEntity(u);
+            if (t != null && !t.dead && !t.dying() && e != null && e.getWorld().equals(p.getWorld()) && e.getLocation().distance(p.getLocation()) < ENEMY_NEAR)
+                return "No: " + t.name + " is " + Math.round(e.getLocation().distance(p.getLocation())) + " blocks away (get " + (int) ENEMY_NEAR + " away first).";
+        }
+        if (s.env && c.envHarm()) return "No: " + envWhat(c) + " still hurts you; the rounds go on until you are out of it.";
+        stop(p);
+        return s.env ? "Rounds OFF." : "You got away: the fight is over for you.";
+    }
+
+    /** Everyone in that world into rounds, held there for {@code why} (the Black Rain's warning; not the GMs in creative or spectator). */
+    void holdAll(org.bukkit.World w, String why) {
+        for (Player p : w.getPlayers()) {
+            if (p.getGameMode() == org.bukkit.GameMode.CREATIVE || p.getGameMode() == org.bukkit.GameMode.SPECTATOR) continue;
+            Character c = pl.character(p);
+            if (c.away || c.dead) continue;
+            State s = states.get(p.getUniqueId());
+            if (s == null) startEnv(p, c, why);
+            else if (s.env && !s.hold) { s.hold = true; s.holdWhy = why; }
+        }
+    }
+
+    /** The Black Rain broke or ended: the rounds it held go on only for those it hurts. */
+    void releaseHold(String why) {
+        for (State s : states.values()) if (s.hold && s.holdWhy.equals(why)) s.hold = false;
+    }
+
     /** In rounds because the air or a gas hurts him, not in a fight. */
     boolean inEnv(Player p) { State s = states.get(p.getUniqueId()); return s != null && s.env; }
 
@@ -921,17 +998,26 @@ public final class Battle implements Listener {
      * stands still between them, game time only) and end when it stops. His own inventory stays; the Pip-Boy's Actions act (a
      * mask, the held breath, for AP) and end the round.
      */
-    void startEnv(Player p, Character c) {
+    void startEnv(Player p, Character c) { startEnv(p, c, null); }
+
+    /**
+     * Rounds without danger (`09b` round 11, Marek 11-23, verbatim: *"it should be possible to turn battle mode on by player and tu turn if
+     * off if there are no enemies close (player ran away)."* · the Black Rain *"should turn every player to the battle mode, so they can
+     * realize it is going to rain and plan based on that."*): {@code why} keeps them until he ends them or the reason passes.
+     */
+    void startEnv(Player p, Character c, String why) {
         State s = new State();
         s.env = true;
+        if (why != null) { s.hold = true; s.holdWhy = why; }
         s.sceneRound = pl.zones.round;
         s.ap = s.apAtAnchor = c.apMax();
         s.legs.add(new Leg(0, p.getLocation().toBlockLocation()));
         s.bar = BossBar.bossBar(Component.text(""), 1f, BossBar.Color.YELLOW, BossBar.Overlay.NOTCHED_10);
         p.showBossBar(s.bar);
         states.put(p.getUniqueId(), s);
-        p.sendMessage(Component.text("ROUNDS: " + envWhat(c) + ". Time stands still between the rounds: move by AP, act and END THE ROUND from your Pip-Boy.", NamedTextColor.GOLD));
-        show(p, s, c, "rounds: " + envWhat(c));
+        String what = s.hold && !c.envHarm() ? s.holdWhy : envWhat(c);
+        p.sendMessage(Component.text("ROUNDS: " + what + ". Time stands still between the rounds: move by AP, act and END THE ROUND from your Pip-Boy.", NamedTextColor.GOLD));
+        show(p, s, c, "rounds: " + what);
     }
 
     /** What the environment is doing to him, in a few words. */
@@ -960,7 +1046,7 @@ public final class Battle implements Listener {
         if (body != null) p.sendMessage(Component.text("Round " + s.round + ": " + body + ".", NamedTextColor.GOLD));
         pl.zones.apply(c, p);
         if (c.dead || c.inArrest()) { died(p, s, c, false); return; }
-        if (!c.envHarm()) { p.sendMessage(Component.text("Out of danger.", NamedTextColor.GREEN)); stop(p); return; }
+        if (!c.envHarm() && !s.hold) { p.sendMessage(Component.text("Out of danger.", NamedTextColor.GREEN)); stop(p); return; }
         newTurn(p, s, c);
     }
 

@@ -404,6 +404,80 @@ final class Items {
         return it.getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.STRING);
     }
 
+    // ------------------------------------------------------------------ weights (`09b` round 11: "It should work with inventory.")
+    /**
+     * An item's weight in kg [what is not ruled mine, EXAMPLE]: part 7's units of a material or of parts 1 kg (RULED: *"one part per kg"*,
+     * Metal *"1 = about a kg"*), water a litre = 1 kg, food a portion 0.5, a dose (medicine, chem, gene therapy, implant) 0.1, gear and
+     * tools 1, power cells 0.5, seeds 0.1, ammo loads 0.02, explosives 0.5, livestock by its tier (0.5, 2, 50, 500); an assembled item =
+     * its parts' kg over its batch; an armour piece = its set's kg × the piece's share (05c); the gear by the table; an artifact 0.5; the
+     * Pip-Boy and anything of Minecraft's own nothing.
+     */
+    static final Map<String, Double> GEAR_KG = Map.ofEntries(Map.entry("Stimpak", 0.1), Map.entry("Adrenaline", 0.1),
+            Map.entry("Defibrillator", 2.5), Map.entry("Gas filter", 0.3), Map.entry("CO filter", 0.4), Map.entry("Air bottle", 3.0),
+            Map.entry("Earplugs", 0.0), Map.entry("Electronic muffs", 0.3), Map.entry("Small gas mask", 0.3), Map.entry("Armour repair kit", 0.9),
+            Map.entry("Nut", 0.01), Map.entry("Anomaly detector I", 0.3), Map.entry("Anomaly detector II", 0.4),
+            Map.entry("Anomaly detector III", 0.5), Map.entry("Anomaly detector IV", 0.6), Map.entry("Gas mask", 1.2), Map.entry("Hazard suit", 3.0));
+
+    static double kg(String id) {
+        if (id == null) return 0;
+        String[] k = id.split(":", 2);
+        String body = k.length > 1 ? k[1] : "";
+        switch (k[0]) {
+            case "thing" -> {
+                String[] t = thing(id);
+                return t == null ? 0 : unitKg(t[0], parse(t[1]));
+            }
+            case "made" -> {
+                Production.Design d = made(id);
+                if (d == null) return 0;
+                double s = 0;
+                for (Production.Part p : d.parts) s += p.count * unitKg(p.type, p.tier);
+                return s / Math.max(1, d.makes);
+            }
+            case "armour" -> {
+                Data.Armour a = Data.ARMOUR.get(body.replaceAll("\\|.*", ""));
+                return a == null ? 0 : a.weightKg() * a.shares().getOrDefault(body.replaceAll(".*\\|", ""), 0.0);
+            }
+            case "gear" -> { return GEAR_KG.getOrDefault(body, 0.5); }
+            case "chem", "implant", "therapy", "geneset" -> { return 0.1; }
+            case "artifact" -> { return 0.5; }
+            case "supplies" -> { return 1; }
+            default -> { return 0; }
+        }
+    }
+
+    private static int parse(String s) { try { return Integer.parseInt(s); } catch (NumberFormatException e) { return 1; } }
+
+    /** A unit of a part-7 type (07b §1) [the non-ruled ones mine, EXAMPLE]. */
+    static double unitKg(String type, int tier) {
+        return switch (type) {
+            case "Water" -> 1;
+            case "Food" -> 0.5;
+            case "Medicine", "Chems", "Gene therapy", "Implants" -> 0.1;
+            case "Gear and tools" -> 1;
+            case "Power" -> 0.5;
+            case "Seeds" -> 0.1;
+            case "Ammo" -> 0.02;
+            case "Explosives" -> 0.5;
+            case "Livestock" -> switch (tier) { case 1 -> 0.5; case 2 -> 2; case 3 -> 50; default -> 500; };
+            default -> 1;   // the materials and the parts: a unit is a kg
+        };
+    }
+
+    /** What these items weigh, in kg (the Minecraft items of the game; the rest weigh nothing). */
+    static double weight(ItemStack[] items) {
+        double s = 0;
+        if (items == null) return 0;
+        for (ItemStack it : items) { String id = id(it); if (id != null) s += kg(id) * it.getAmount(); }
+        return s;
+    }
+
+    /** What the player carries in kg: his inventory and his off hand, the armour he wears by its own weight (05c's, {@link Character#wornKg}). */
+    static double weight(Player p, Character c) {
+        ItemStack[] inv = p.getInventory().getStorageContents();
+        return weight(inv) + weight(new ItemStack[]{p.getInventory().getItemInOffHand()}) + c.wornKg();
+    }
+
     /** What the player carries: id → count. */
     static Map<String, Integer> carried(Player p) {
         Map<String, Integer> m = new TreeMap<>();

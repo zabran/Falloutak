@@ -79,7 +79,7 @@ final class Anomalies {
         k("blind", "the blind spot", "none: a nut thrown in never lands", 0, "Black glass", false);
         k("lift", "the lift", "pieces floating, rain falling up", 1, "Float", false);
         int[] no = new int[7];
-        a("Feather stone", "gravity", "carry +15 kg", "+1 rad an hour", no, Map.of("rads_per_hour", 1.0));
+        a("Feather stone", "gravity", "carry +15 kg", "+1 rad an hour", no, Map.of("rads_per_hour", 1.0, "carry_kg", 15.0));
         a("Spark coil", "lightning", "recharges a fusion microcell a day", "Isolation −10 %", no, Map.of("isolation", -10.0));
         a("Ember", "heat", "Hypothermia stops at Minor", "Heat −10 %, thirst ×1.25", no, Map.of("cold_cap", 1.0, "heat_res", -10.0, "water_need", 0.25));
         a("Glass slug", "acid fog", "poison and disease +15 %", "armour condition wears ×1.5", no, Map.of("poison_res", 15.0));
@@ -93,7 +93,7 @@ final class Anomalies {
         a("Crystal", "the radio ghost", "hears every radio within 20 km", "the Pip-Boy glitches (its map off a day in six)", no, Map.of());
         // Marek 11-23, round 9, verbatim: "the black glass - make it +60 while standing still."
         a("Black glass", "the blind spot", "Sneak +60 standing still", "Perception −1", new int[]{0, -1, 0, 0, 0, 0, 0}, Map.of());
-        a("Float", "the lift", "a fall's first 3 blocks harm nothing", "carry −10 kg", no, Map.of());
+        a("Float", "the lift", "a fall's first 3 blocks harm nothing", "carry −10 kg", no, Map.of("carry_kg", -10.0));
     }
 
     static final int NUT_REACH = 10, DETECT_REACH = 10, RAIN_ROUNDS = 30;
@@ -649,9 +649,13 @@ final class Anomalies {
     long warnRound = 0;
     private int signShown = -1;
 
+    /** Why the players are held in rounds during the warning (round 11: *"it should turn every player to the battle mode"*). */
+    static final String RAIN_WHY = "the Black Rain is coming: find a roof";
+
     /** The GM's open warning: the signs in that world (09c §5's: the radio ghost, the ravens fleeing); he starts the storm himself. */
     String warn(World w) {
         if (rainPhase != 1) { rainTicks = 0; signShown = -1; warnRound = pl.zones.round; }
+        pl.battle.holdAll(w, RAIN_WHY);
         rainPhase = 1;
         rainWorld = w.getName();
         warnFor = 0;
@@ -666,13 +670,14 @@ final class Anomalies {
     String start(World w, int rounds, int warnSeconds) {
         if (warnSeconds <= 0) return breakStorm(w, rounds);
         if (rainPhase != 1) { rainTicks = 0; signShown = -1; warnRound = pl.zones.round; }
+        pl.battle.holdAll(w, RAIN_WHY);   // round 11: every player into rounds, to see it coming and plan
         rainPhase = 1;
         rainWorld = w.getName();
         warnFor = Math.max(rainTicks + 1, warnSeconds);
         rainRounds = Math.max(1, rounds);
         Battle.cosmetic(() -> w.setStorm(true));
-        return "The Black Rain is coming to " + w.getName() + ": " + (warnFor - rainTicks) + " s of warning (and " + WARN_ROUNDS
-                + " rounds for anyone in rounds), then " + rainRounds + " rounds of it. The players see the countdown.";
+        return "The Black Rain is coming to " + w.getName() + ": every player into rounds; " + WARN_ROUNDS + " rounds of warning (" + (warnFor - rainTicks)
+                + " s if nobody stays in rounds), then " + rainRounds + " rounds of it. The players see the countdown.";
     }
 
     /** The storm breaks at once. */
@@ -681,7 +686,11 @@ final class Anomalies {
     /** What the action bar says of the rain to a player in its world: the countdown, or the storm over him. */
     String rainNote(Player p, Character c) {
         if (rainPhase == 0 || !p.getWorld().getName().equals(rainWorld)) return "";
-        if (rainPhase == 1) return warnFor > 0 ? " · THE BLACK RAIN in " + Math.max(0, warnFor - rainTicks) + " s: find a roof" : "";
+        if (rainPhase == 1) {
+            if (warnFor <= 0) return "";
+            if (pl.battle.inBattle(p)) return " · THE BLACK RAIN in " + Math.max(0, warnRound + WARN_ROUNDS - pl.zones.round) + " rounds: find a roof";
+            return " · THE BLACK RAIN in " + Math.max(0, warnFor - rainTicks) + " s: find a roof";
+        }
         return c.rainExposed && !c.wearing.contains("Hazard suit") ? " · IN THE BLACK RAIN: get under a roof" : "";
     }
 
@@ -689,6 +698,7 @@ final class Anomalies {
     private String breakStorm(World w, int rounds) {
         rainPhase = 2;
         warnFor = 0;
+        pl.battle.releaseHold(RAIN_WHY);   // the rounds go on for those out under the sky
         rainWorld = w.getName();
         rainEnd = pl.zones.round + Math.max(1, rounds);
         Battle.cosmetic(() -> { w.setStorm(true); w.setThundering(true); });

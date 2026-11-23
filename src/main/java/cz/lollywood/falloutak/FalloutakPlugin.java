@@ -28,6 +28,8 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
     /** Gas zones in the world (03b §3c, Marek 11-18: localized). */
     Zones zones;
     Anomalies anomalies;
+    /** Saved games (round 11): a character with its inventory; /game off and on. */
+    Saves saves;
     /** The base's store of generic items (05c §7, Marek 11-18: chosen in the base before going out). */
     Base base;
     /** The store's chests (Marek 11-19: one chest per type, the Mess Chest). */
@@ -80,6 +82,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         store = new Store(getDataFolder().toPath());
         zones = new Zones(getDataFolder().toPath());
         anomalies = new Anomalies(this);
+        saves = new Saves(this);
         base = new Base(getDataFolder().toPath());
         production = Production.load(getDataFolder().toPath());
         base.knownMaker = production::makesNamed;   // 0.60.0: a named item is open when a recipe the base knows makes it
@@ -104,6 +107,8 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         if (rainCmd != null) rainCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? Menus.rainCommand(p, a) : "Players only."); return true; });
         var mapsCmd = getCommand("maps");
         if (mapsCmd != null) mapsCmd.setExecutor((s, c, l, a) -> { s.sendMessage(Maps.command(s, a)); return true; });
+        var gameCmd = getCommand("game");   // round 11: save and load a character with its inventory, leave the game and come back
+        if (gameCmd != null) gameCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? saves.command(p, a) : "Players only."); return true; });
         var packCmd = getCommand("pack");
         if (packCmd != null) packCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? packCommand(p, a) : "Players only."); return true; });
         saveDefaultConfig();
@@ -295,6 +300,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
                         + " AP a block standing)", NamedTextColor.YELLOW));
             }
             case "battle" -> { if (battle.inBattle(p)) battle.stop(p); else battle.start(p, c); }
+            case "rounds" -> say(p, battle.inBattle(p) ? battle.roundsOff(p, c) : battle.roundsOn(p, c));   // round 11: the player's own rounds
             case "implant", "implants" -> say(p, Part3.implant(c, args));
             case "surgery" -> say(p, Part3.surgery(c, args, rnd));
             case "revive" -> say(p, Part3.revive(c, args, rnd));

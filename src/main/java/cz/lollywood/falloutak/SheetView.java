@@ -116,8 +116,11 @@ public final class SheetView {
                                 : "\n" + Production.hygiene(c.unwashedDays)), null),
                         c("Unwashed", WHITE), r(f(c.unwashedDays), c.unwashedDays >= 7 ? NamedTextColor.RED : c.unwashedDays >= 3 ? NamedTextColor.YELLOW : WHITE),
                         c(c.unwashedDays >= 7 ? "filthy" : c.unwashedDays >= 3 ? "dirty" : "days", HOW))
-                .row(tip("25 + 25 × S + Athletics\nthe weight = the Minecraft inventory (EXAMPLE: empty)", null),
-                        c("Carry", WHITE), r("0 / " + f(Rules.carry(now, sk[0])), WHITE), c("kg", HOW))
+                .row(tip("(25 + 25 × S + Athletics) pounds × 0.4536 (Fallout 2's, in kg: round 11); Small Frame 15 × S, Strong Back +50 lb, "
+                                + "Hoarder +25 lb, the artifacts' kg\nwhat you carry = your inventory and the armour you wear (Items.weight)\nover it: to +50 % half "
+                                + "speed and the needs ×1.5, to +100 % the AP halved too and ×2, more: no AP", null),
+                        c("Carry", WHITE), r(f(Math.round(c.carriedKg * 10) / 10.0) + " / " + f(Math.round(c.capacityKg() * 10) / 10.0),
+                                c.loadTier() > 0 ? NamedTextColor.RED : WHITE), c("kg", HOW))
                 .row(tip("Luck % + Sneak / 10 %", null), c("Crit chance", WHITE), r(f(Rules.critChance(now, sk[Rules.skillIndex("Sneak")])), WHITE), c("%", HOW))
                 .row(tip("2 × I + template " + c.templateSkillPoints, null),
                         c("Skill pts a level", WHITE), r(String.valueOf(c.skillRate()), NamedTextColor.YELLOW), NONE)

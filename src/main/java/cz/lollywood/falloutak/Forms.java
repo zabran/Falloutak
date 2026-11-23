@@ -110,7 +110,7 @@ public final class Forms {
         double[] res = draft.resistances();
         lines.add(Component.text("HP " + draft.hpMax() + " · AP " + draft.apMax() + " · Initiative " + draft.initiative() + " · Healing " + draft.healingRate()
                 + " · Skill points a level " + Rules.skillPointsPerLevel(draft.attrs(true), t.skillPoints())
-                + " · Carry " + Math.round(Rules.carry(draft.attrs(true), sk[Rules.skillIndex("Athletics")])) + " lb"
+                + " · Carry " + Math.round(Rules.carryKg(draft.attrs(true), sk[Rules.skillIndex("Athletics")])) + " kg"
                 + " · Rad res " + Math.round(res[1]) + " % · Poison res " + Math.round(res[2]) + " %", NamedTextColor.WHITE));
         if (!msg.isEmpty()) lines.add(Component.text(msg, NamedTextColor.RED));
         List<Ui.Btn> b = new ArrayList<>();

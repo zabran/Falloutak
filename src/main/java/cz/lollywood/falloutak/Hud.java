@@ -34,6 +34,13 @@ public final class Hud {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Character c = pl.characters.get(p.getUniqueId());
             if (c == null) continue;
+            if (c.away) continue;   // out of the game (round 11: /game off): the world leaves him alone
+            // the load (round 11): what he carries (the demo's: his own inventory, kept aside), his speed by it
+            Battle.State bs = pl.battle.state(p);
+            c.setLoad(bs != null && bs.saved != null ? Items.weight(bs.saved) : Items.weight(p, c));
+            boolean gmSpeed = p.getGameMode() == org.bukkit.GameMode.CREATIVE || p.getGameMode() == org.bukkit.GameMode.SPECTATOR;
+            float speed = gmSpeed ? Math.max(0.2f, p.getWalkSpeed()) : switch (c.loadTier()) { case 0 -> 0.2f; case 1, 2 -> 0.1f; default -> 0f; };
+            if (Math.abs(p.getWalkSpeed() - speed) > 1e-4) Battle.cosmetic(() -> p.setWalkSpeed(speed));
             c.submerged = headInWater(p);   // the air is read from the world; Oxygen moves only with game time (03b §3c)
             c.nearRads = glowNear(p);       // 03b §7b, round 9: the glowing ones near are radiation sources
             pl.zones.apply(c, p);           // the gas zone his eyes are in (Marek 11-18: localized)
@@ -57,6 +64,7 @@ public final class Hud {
                         .append(Component.text(c.bleeding > 0 ? " · BLEEDING " + SheetGui.f(c.bleeding) + " Blood/round" : "", NamedTextColor.DARK_RED))
                         .append(Component.text(det, NamedTextColor.LIGHT_PURPLE))
                         .append(Component.text(pl.anomalies.rainNote(p, c), NamedTextColor.DARK_RED))   // the Black Rain's countdown (round 10)
+                        .append(Component.text(c.loadTier() > 0 ? " · OVERLOADED " + Math.round(c.carriedKg) + "/" + Math.round(c.capacityKg()) + " kg" : "", NamedTextColor.RED))
                         .append(Component.text(demo.contains(p.getUniqueId()) ? "  [demo clock: 1 s = 1 h]" : "", NamedTextColor.DARK_GRAY)));
             }
             Battle.cosmetic(() -> sidebar(p, c));   // the look only (the test server lacks parts of the scoreboard)

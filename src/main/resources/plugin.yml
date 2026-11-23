@@ -43,6 +43,9 @@ commands:
   blackrain:
     description: The Black Rain, the surge (GMs). /blackrain warn | start [rounds] [warning seconds, 60 by default, 0 = at once] | stop
     usage: /blackrain warn|start [rounds] [warning s]|stop
+  game:
+    description: Save and load your character with its inventory; leave the game and come back (round 11). /game save [name] | load [name] | list | off | on
+    usage: /game save|load|list|off|on
   pack:
     description: The Pip-Boy pictures in the sheet (the Falloutak pack). /pack [on|off|auto]
     usage: /pack [on|off|auto]

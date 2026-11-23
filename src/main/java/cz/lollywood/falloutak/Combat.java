@@ -360,6 +360,27 @@ public final class Combat {
      * The sheet's R28-R33 (F2's form): ((base) x max(1, crit multiplier) x (1 + the ammo's damage modifier) - DT) x (1 - DR), DR
      * scaled by (1 - the ammo's penetration); through the armour DT and DR are a fifth. Never below 0; rounded to whole HP [mine].
      */
+    /**
+     * JAMS (05 §9, `09b` round 11, Marek 11-23: *"Gun jams - agreed."* · raiders *"yes, 100%"*): Jagged Alliance 2's own CheckForGunJam
+     * (ja2-stracciatella `Weapons.cc`: a chance of 80 − the gun's status, less d100 for a shot or d80 for a burst's later rounds, jammed when a
+     * d100 falls under it) with New Vegas's threshold: 75 − the condition %, so never at 75 % and above. {@code extra}: a jam on 1 to
+     * {@code extra} of d6 a round on top (the magnet 2, the Lodestone 1; 09c). Returns the round (0-based) that jams, or −1.
+     */
+    static int jamAt(double condition, int rounds, java.util.function.IntSupplier d100, int extra) {
+        int base = (int) Math.round(75 - 100 * condition);
+        for (int i = 0; i < Math.max(1, rounds); i++) {
+            if (extra > 0 && 1 + (d100.getAsInt() - 1) * 6 / 100 <= extra) return i;
+            if (base <= 0) continue;
+            int r1 = d100.getAsInt() - 1;   // JA2's PreRandom(100): 0-99
+            int chance = base - (i == 0 ? r1 : r1 * 80 / 100);
+            if (chance > 0 && d100.getAsInt() - 1 < chance) return i;
+        }
+        return -1;
+    }
+
+    /** Clearing a jam: JA2's UNJAM_GUN_CHECK, 30 + Mechanical / 2, with our Crafting for its Mechanical (no reliability column yet). */
+    static int clearJam(double crafting) { return (int) Math.floor(30 + crafting / 2); }
+
     public static int damage(double base, double critMult, double ammoDamageMod, double ammoPenetration, int dt, double dr, boolean bypass) {
         double dm = Math.max(1, critMult) * (1 + ammoDamageMod);
         double dtE = dt / (bypass ? 5.0 : 1.0);
