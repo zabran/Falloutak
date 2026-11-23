@@ -327,15 +327,20 @@ public final class Data {
 
     /**
      * The slots a mutation may land in (09b round 12, Marek 11-23, verbatim: *"the selected random mutation is applied to selected random
-     * gene slot creating a new gene"*): every slot of 03c but the ORGAN genes and the aptitudes (several of each) and Necrosis (the ghoul
-     * line's own): the 21 slots (ACCEPTED round 13).
+     * gene slot creating a new gene"*): every slot of 03c but the ORGAN genes and the aptitudes (several of each): the 21, and since round
+     * 15 NECROSIS too (Marek, verbatim: *""did you mean that ordinary mutations should also be able to land in the Necrosis slot, giving a
+     * little necrosis without becoming a ghoul?" - yes, that is what was meant."*): 22.
      */
     public static List<String> mutableSlots() {
         List<String> l = new ArrayList<>();
         for (Gene g : GENES.values())
-            if (!g.slot().equals("ORGAN") && !g.slot().equals("Aptitude") && !g.slot().equals(NECROSIS) && !l.contains(g.slot())) l.add(g.slot());
+            if (!g.slot().equals("ORGAN") && !g.slot().equals("Aptitude") && !l.contains(g.slot())) l.add(g.slot());
+        if (!l.contains(NECROSIS)) l.add(NECROSIS);
         return l;
     }
+
+    /** A little necrosis (round 15): what a mutation landing in the Necrosis slot adds to its steps: rad res +10 % [mine, EXAMPLE]. */
+    public static final double NECROSIS_RAD = 0.10;
 
     /**
      * THE DIALS a mutation turns (03b §7a, the catalogue: round 13, Marek 11-23, verbatim: *"I think defining all possible effects that
@@ -409,10 +414,15 @@ public final class Data {
         }
     }
 
-    /** A random dial (not {@code notDial}), and for the skill dial a random base skill. */
+    /** How many times the skill dial is in the draw (round 15, Marek, verbatim: *"1 in 24 and then 1 in 18 is still too little chance.
+     *  Please, Either increase heir weight to 6, or divide them into 6 mutations."*): 6 of 29. */
+    public static final int SKILL_WEIGHT = 6;
+
+    /** A random dial (not {@code notDial}), the skill dial {@link #SKILL_WEIGHT} times in the draw; for it a random base skill. */
     static Step step(Random rnd, int sign, int size, String notDial) {
         List<String> l = new ArrayList<>(DIALS);
-        if (notDial != null) l.remove(notDial);
+        for (int i = 1; i < SKILL_WEIGHT; i++) l.add("skill");
+        if (notDial != null) l.removeIf(x -> x.equals(notDial));
         String d = l.get(rnd.nextInt(l.size()));
         String sk = d.equals("skill") ? Rules.SKILLS.get(rnd.nextInt(Rules.SKILLS.size())).name() : "";
         return new Step(d, sign, size, sk);
@@ -420,33 +430,131 @@ public final class Data {
 
     /**
      * How to make a changed gene again (a body's, or a sample in the base's pool, 03b §7a): the gene it came from ("" = the plain human's,
-     * none), its slot, how many mutations hit it and their steps, and for the Necrosis slot the ghoul line's way; {@code name} = its name in
-     * the pool ("" in a body).
+     * none), its slot, how many changes hit it (the mutations, and the ghoul line's touch) and the mutations' steps; for a ghoul's body
+     * ({@code ghoulish}) the ghoul line's way, and {@code turned} when the ghoul's own numbers are its parts (a body turned) rather than its
+     * born genes (one born a ghoul); {@code name} = its name in the pool ("" in a body).
      */
     public static final class Recipe {
         public String name = "", base = "", slot = "";
         public int events;
         public List<Step> steps = new ArrayList<>();
         public List<String> ghoul = new ArrayList<>();
+        public boolean ghoulish, turned;
 
         public Recipe() {}
 
-        public Recipe(String base, String slot, int events, List<Step> steps, List<String> ghoul) {
+        public Recipe(String base, String slot, int events, List<Step> steps, List<String> ghoul, boolean ghoulish, boolean turned) {
             this.base = base == null ? "" : base; this.slot = slot; this.events = events; this.steps = new ArrayList<>(steps);
-            this.ghoul = new ArrayList<>(ghoul);
+            this.ghoul = new ArrayList<>(ghoul); this.ghoulish = ghoulish; this.turned = turned;
         }
 
+        public Recipe copy() { return new Recipe(base, slot, events, steps, ghoul, ghoulish, turned); }
+
         /** What it is made of (two recipes with one key make the same gene). */
-        public String key() { return base + "|" + slot + "|" + events + "|" + steps + "|" + ghoul; }
+        public String key() { return base + "|" + slot + "|" + events + "|" + steps + "|" + ghoul + "|" + ghoulish + "|" + turned; }
 
         /** The gene it makes (under its pool name when it has one), or null when its parts are gone from the data. */
         public Gene build() {
             Gene b = base.isEmpty() ? null : gene(base);
             if (!base.isEmpty() && b == null) return null;
-            Gene g = slot.equals(NECROSIS) ? ghoulVariant(b != null ? b : GENES.get("Ghoul"), ghoul) : variant(b, slot, events, steps);
-            return g == null || name.isEmpty() || g.name().equals(name) ? g
-                    : remake(g, name, g.real(), g.text(), g.load(), g.mods(), g.other());
+            Gene g;
+            if (slot.equals(NECROSIS)) {
+                Gene core = ghoulish ? ghoulVariant(b != null ? b : GENES.get("Ghoul"), ghoul) : b;
+                g = steps.isEmpty() ? core : littleNecrosis(variant(core, NECROSIS, events, steps), events);
+            } else {
+                g = variant(b, slot, events, steps);
+                Part p = ghoulish ? ghoulParts(ghoul, turned).get(slot) : null;
+                if (p != null) g = withPart(g, p, (b == null ? slot : b.name()) + " M" + Math.max(1, events));
+            }
+            if (g == null) return null;
+            return name.isEmpty() || g.name().equals(name) ? g : remake(g, name, g.real(), g.text(), g.load(), g.mods(), g.other());
         }
+    }
+
+    /** A little necrosis (round 15): a mutation in the Necrosis slot adds {@link #NECROSIS_RAD} rad res to its steps, each time. */
+    static Gene littleNecrosis(Gene g, int events) {
+        return new Gene(g.name(), g.slot(), g.tier(), g.load(), g.real(), g.text() + "; a little necrosis: rad res +" + Math.round(100 * NECROSIS_RAD * events)
+                + " %", g.rule(), false, g.mods(), g.food(), g.water(), g.sleep(), g.pain(), g.skills(), g.poison(), g.rad() + NECROSIS_RAD * events, g.iso(),
+                g.dt(), g.hp(), g.other(), g.family(), g.adult(), g.dr(), g.melee(), g.senses(), g.window(), g.heal(), g.bleed(), g.fall(), g.sun(),
+                g.atDeath(), g.huge(), g.aptitude());
+    }
+
+    /** What the ghoul line puts into one of the body's slots (03b §7b, the lean Necrosis, round 15): attribute changes and other numbers. */
+    public record Part(int[] mods, Map<String, Double> other, List<String> said) {}
+
+    /**
+     * THE LEAN NECROSIS (03b §7b; round 15, Marek 11-23, verbatim: *"Is the lean Necrosis split above fine? - seems so. I presume that every
+     * ghouls gene is now the mutation of current gene instead of their replacement."*): the ghoul line's numbers in the body's slots, each a
+     * change of the gene there. {@code turned}: the ghoul's own numbers too (S −2 Muscle, P +3 Eyes, I +3 Mind, A −4 and HP −5 Frame, poison
+     * +10 % Immunity); one born a ghoul has them in its born genes. The stages: each stage's number is its total against the base ghoul, so a
+     * later stage replaces an earlier one's (C in Look −2, −4, −5); a WALKED stage adds its help and gift, a jumped one only its harm (round 9).
+     */
+    public static Map<String, Part> ghoulParts(List<String> path, boolean turned) {
+        Map<String, int[]> mods = new LinkedHashMap<>();
+        Map<String, Map<String, Double>> oth = new LinkedHashMap<>();
+        Map<String, List<String>> said = new LinkedHashMap<>();
+        java.util.function.BiConsumer<String, Object[]> mod = (slot, a) -> {
+            mods.computeIfAbsent(slot, x -> new int[7])[(Integer) a[0]] += (Integer) a[1];
+            said.computeIfAbsent(slot, x -> new ArrayList<>()).add(Rules.SPECIAL[(Integer) a[0]].substring(0, 1) + " " + ((Integer) a[1] > 0 ? "+" : "−")
+                    + Math.abs((Integer) a[1]));
+        };
+        java.util.function.BiConsumer<String, Object[]> put = (slot, a) -> {
+            oth.computeIfAbsent(slot, x -> new LinkedHashMap<>()).merge((String) a[0], (Double) a[1], Double::sum);
+            said.computeIfAbsent(slot, x -> new ArrayList<>()).add((String) a[2]);
+        };
+        if (turned) {
+            mod.accept("Muscle", new Object[]{Rules.S, -2});
+            mod.accept("Eyes", new Object[]{Rules.P, 3});
+            mod.accept("Mind", new Object[]{Rules.I, 3});
+            mod.accept("Frame", new Object[]{Rules.A, -4});
+            put.accept("Frame", new Object[]{"hp_max", -5.0, "HP −5"});
+            put.accept("Immunity", new Object[]{"poison_res", 10.0, "poison and disease +10 %"});
+        }
+        if (path != null && !path.isEmpty()) {
+            Integer[] set = new Integer[7];
+            int last = Arrays.asList(Rules.GHOUL_STAGES).indexOf(path.get(path.size() - 1));
+            for (int k = 0; k <= last; k++) {
+                String st = Rules.GHOUL_STAGES[k];
+                boolean walked = path.contains(st);
+                switch (st) {
+                    case "leathered" -> {
+                        set[Rules.E] = -1; set[Rules.C] = -2;
+                        put.accept("Skin", new Object[]{"skill:Sneak", -10.0, "the smell, Sneak −10"});
+                        if (walked) {
+                            put.accept("Skin", new Object[]{"dt", 3.0, "the hide, DT +3"});
+                            put.accept("Immunity", new Object[]{"poison_res", 10.0, "the hide's gift, poison +10 %"});
+                        }
+                    }
+                    case "husk" -> {
+                        set[Rules.C] = -4; set[Rules.I] = -2;
+                        put.accept("Metabolism", new Object[]{"healing_half", 1.0, "healing × ½"});
+                        if (walked) put.accept("Pain", new Object[]{"pain_gain", -0.25, "the dried nerves, Pain gained × ¾"});
+                    }
+                    case "glowing" -> {
+                        set[Rules.I] = -5; set[Rules.C] = -5; set[Rules.E] = 2; set[Rules.A] = 2;
+                        put.accept("Eyes", new Object[]{"senses", 1.0, "its own light, the dark halved"});
+                    }
+                    default -> { }
+                }
+            }
+            String[] home = {"Muscle", "Eyes", "Metabolism", "Look", "Mind", "Frame", null};   // S P E C I A L: where each attribute lives
+            for (int i = 0; i < 7; i++) if (set[i] != null && set[i] != 0 && home[i] != null) mod.accept(home[i], new Object[]{i, set[i]});
+        }
+        Map<String, Part> out = new LinkedHashMap<>();
+        for (String slot : said.keySet())
+            out.put(slot, new Part(mods.getOrDefault(slot, new int[7]), oth.getOrDefault(slot, new LinkedHashMap<>()), said.get(slot)));
+        return out;
+    }
+
+    /** A gene with a ghoul part laid into it (the gene's own numbers kept, as a mutation of it). */
+    static Gene withPart(Gene g, Part p, String name) {
+        int[] m = g.mods().clone();
+        for (int i = 0; i < 7; i++) m[i] += p.mods()[i];
+        Map<String, Double> other = new LinkedHashMap<>(g.other());
+        p.other().forEach((k, v) -> other.merge(k, v, Double::sum));
+        other.values().removeIf(v -> Math.abs(v) < 1e-9);
+        return remake(g, name, "a mutation of " + g.name() + " (the ghoul line)", (g.text().isEmpty() ? g.real() : g.text())
+                + "; the ghoul line: " + String.join(", ", p.said()), g.load(), m, other);
     }
 
     /** An empty gene: the plain human's in a slot (nothing of its own). */
@@ -518,7 +626,8 @@ public final class Data {
     }
 
     /**
-     * The ghoul line's stage as a variant of the Necrosis slot's gene (03b §7b; 09b round 12: the ghoul is a mutation, its stages too): the
+     * The ghoul line's stage as a variant of the Necrosis slot's gene, ONLY ITS RADIATION SIDE since round 15 (the lean Necrosis; the rest
+     * in the body's slots, {@link #ghoulParts}); before (03b §7b; 09b round 12: the ghoul is a mutation, its stages too): the
      * Ghoul gene + the stage's numbers by the way the body went. Each stage's numbers are its totals against the base ghoul (Marek's, round 7),
      * a later stage's replace an earlier one's; a stage WALKED gives all its numbers and its small gift, a stage JUMPED only its harm (round 9,
      * Marek 11-23: *"the ghoul missing the benefites of previous stages, only gaining the maluses"*). The smell's Sneak −10, the rad
@@ -526,8 +635,7 @@ public final class Data {
      */
     public static Gene ghoulVariant(Gene ghoul, List<String> path) {
         if (ghoul == null || path == null || path.isEmpty()) return ghoul;
-        Integer[] set = new Integer[7];
-        Map<String, Double> o = new LinkedHashMap<>();
+        double rr = 0;   // round 15, the lean Necrosis: only the radiation side here (leathered 75 %, husk 90 %, glowing back to the ghoul's own 40 %)
         int last = Arrays.asList(Rules.GHOUL_STAGES).indexOf(path.get(path.size() - 1));
         List<String> jumped = new ArrayList<>();
         for (int k = 0; k <= last; k++) {
@@ -535,29 +643,19 @@ public final class Data {
             boolean walked = path.contains(st);
             if (!walked) jumped.add(st);
             switch (st) {
-                case "leathered" -> {   // harm: E −1, C −2, the smell; help: the hide DT +3, rad res 75 %; gift: the hide keeps out bites and germs
-                    set[Rules.E] = -1; set[Rules.C] = -2; o.put("skill:Sneak", -10.0);
-                    if (walked) { o.put("dt", 3.0); o.put("rad_res", 35.0); o.put("poison_res", 10.0); }
-                }
-                case "husk" -> {   // harm: C −4, I −2, healing ×½; help: rad res 90 %; gift: the dried nerves, Pain gained ×¾
-                    set[Rules.C] = -4; set[Rules.I] = -2; o.put("healing_half", 1.0);
-                    if (walked) { o.put("rad_res", 50.0); o.put("pain_gain", -0.25); }
-                }
-                case "glowing" -> {   // the end: I −5, C −5, E +2, A +2; the body open to rads again (the ghoul's own 40 %); gift: its own light
-                    set[Rules.I] = -5; set[Rules.C] = -5; set[Rules.E] = 2; set[Rules.A] = 2; o.put("rad_res", 0.0); o.put("senses", 1.0);
-                }
+                case "leathered" -> { if (walked) rr = 35; }
+                case "husk" -> { if (walked) rr = 50; }
+                case "glowing" -> rr = 0;
                 default -> { }
             }
         }
-        int[] m = ghoul.mods().clone();
-        for (int i = 0; i < 7; i++) if (set[i] != null) m[i] += set[i];
         Map<String, Double> other = new LinkedHashMap<>(ghoul.other());
-        o.forEach((k, v) -> other.merge(k, v, Double::sum));
-        other.values().removeIf(v -> Math.abs(v) < 1e-9);
+        if (rr != 0) other.merge("rad_res", rr, Double::sum);
         String name = ghoul.name() + " · " + String.join(" · ", path) + (jumped.isEmpty() ? "" : " (jumped " + String.join(", ", jumped) + ")");
         String text = ghoul.text() + "; the ghoul line: " + String.join(" → ", path)
-                + (jumped.isEmpty() ? "" : " (jumped " + String.join(", ", jumped) + ": only its harm)") + " (03b §7b)";
-        return remake(ghoul, name, "the ghoul line's " + path.get(path.size() - 1) + " (fiction)", text, ghoul.load(), m, other);
+                + (jumped.isEmpty() ? "" : " (jumped " + String.join(", ", jumped) + ": only its harm)") + (rr != 0 ? ", rad res +" + Math.round(rr) + " %" : "")
+                + " (03b §7b)";
+        return remake(ghoul, name, "the ghoul line's " + path.get(path.size() - 1) + " (fiction)", text, ghoul.load(), ghoul.mods().clone(), other);
     }
     public static final List<JsonObject> ITEMS = new ArrayList<>();
     /** The workbook's cell notes (`data/notes.json`), by tab and the cell's own text: the skills' and the stats' descriptions. */

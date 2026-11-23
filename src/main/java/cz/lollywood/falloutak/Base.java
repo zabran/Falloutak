@@ -459,7 +459,7 @@ final class Base {
         List<String> added = new ArrayList<>();
         for (Data.Recipe r : recipes) {
             if (knows(r)) continue;
-            Data.Recipe p = new Data.Recipe(r.base, r.slot, r.events, r.steps, r.ghoul);
+            Data.Recipe p = r.copy();
             Data.Gene g = p.build();
             if (g == null || Data.GENES.containsKey(g.name())) continue;
             String name = g.name();

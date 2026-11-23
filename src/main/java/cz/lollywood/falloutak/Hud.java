@@ -42,6 +42,9 @@ public final class Hud {
             float speed = gmSpeed ? Math.max(0.2f, p.getWalkSpeed()) : switch (c.loadTier()) { case 0 -> 0.2f; case 1, 2 -> 0.1f; default -> 0f; };
             if (Math.abs(p.getWalkSpeed() - speed) > 1e-4) Battle.cosmetic(() -> p.setWalkSpeed(speed));
             c.submerged = headInWater(p);   // the air is read from the world; Oxygen moves only with game time (03b §3c)
+            // the sun (round 15): the day by the game clock, nothing over the head, no storm in the world
+            c.inSun = !c.night() && !p.getWorld().hasStorm() && p.getGameMode() != org.bukkit.GameMode.CREATIVE
+                    && p.getGameMode() != org.bukkit.GameMode.SPECTATOR && Anomalies.openSky(p.getWorld(), p.getLocation());
             c.nearRads = glowNear(p);       // 03b §7b, round 9: the glowing ones near are radiation sources
             pl.zones.apply(c, p);           // the gas zone his eyes are in (Marek 11-18: localized)
             pl.anomalies.apply(p, c);       // the anomaly his body is in (09c, round 9)
@@ -171,6 +174,8 @@ public final class Hud {
         if (floor > 0 && c.survival.get(Rules.Stat.PAIN) < floor) c.survival.put(Rules.Stat.PAIN, floor);
         String stageHp = c.stageHour(stages0);   // the stages' HP Current (an hour; radiation's once) and HP Max (04, RULED 11-15)
         if (stageHp != null) c.news.add(stageHp);
+        String sun = c.sunHour();   // the sun on a body that cannot bear it (round 15)
+        if (sun != null) c.news.add(sun);
         String crisis = c.crisis(java.util.concurrent.ThreadLocalRandom.current());   // 03b §7b: the crisis at 1 000 rads (round 7)
         if (crisis != null) c.news.add(crisis);
         c.glowHour();                                                                // 03b §7b: the glowing one sheds (round 9)

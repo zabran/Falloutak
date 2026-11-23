@@ -49,17 +49,19 @@ class RoundElevenTest extends MockGame {
     void aTurnedGhoulKeepsItsGenesBesideTheGhoulGene() {
         // round 12 (Marek 11-23: "It is supposed to be a mutation."): the template and its genes stay, the Ghoul gene fills its own slot
         Character c = Part3Test.of("Survivor", 5, 5, 5, 5, 5, 6, 5);
-        double p0 = c.baseTpl().poisonRes();
+        double p0 = c.other("poison_res");
         String s = c.turnGhoul();
         assertTrue(s.contains("the template (Survivor) and its genes stay"), s);
         assertEquals("Survivor", c.baseTpl().name());
         assertTrue(c.keptGenes.isEmpty(), "no more kept genes: they never left");
-        assertTrue(c.baseTpl().genes().stream().anyMatch(g -> g.name().equals("Broad HLA")));
+        // round 15: the ghoul's numbers are a MUTATION of the gene there (Marek: "every ghouls gene is now the mutation of current gene")
+        assertTrue(c.baseTpl().genes().stream().anyMatch(g -> g.name().equals("Broad HLA M1")));
         assertEquals("Ghoul", c.necrosisGene().name());
-        assertEquals(p0 + 0.10, c.baseTpl().poisonRes(), 1e-9, "the ghoul's +10 % on the Survivor's own");
+        assertEquals(p0 + 10, c.other("poison_res"), 1e-9, "the ghoul's +10 % on the Survivor's own");
         Character h = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
         h.turnGhoul();
-        assertEquals(java.util.List.of("Ghoul"), h.baseTpl().genes().stream().map(Data.Gene::name).toList(), "a human: the Ghoul gene alone");
+        assertEquals(java.util.List.of("Muscle M1", "Eyes M1", "Mind M1", "Frame M1", "Immunity M1", "Ghoul"),
+                h.baseTpl().genes().stream().map(Data.Gene::name).toList(), "a human: the lean Necrosis and the plain slots changed");
     }
 
     // ------------------------------------------------------------------ jams

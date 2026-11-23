@@ -621,7 +621,7 @@ public final class Battle implements Listener {
                 List<Integer> each = new ArrayList<>();
                 for (int i = 0; i < hits; i++) {
                     double base = (w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + (w.melee() ? Rules.meleeBonus(me) : 0)) * Combat.conditionDamage(cond(s, w))
-                            * perkDamage(c, w, tg);
+                            * perkDamage(c, w, tg) * (w.melee() ? Rules.meleeFactor(c.tpl().bonusDamage()) : 1);   // round 15: the body's melee damage
                     int dmg = Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, tg != null ? tg.dt : 0, tg != null ? tg.dr : 0, fx.bypass());
                     each.add(dmg);
                     total += dmg;

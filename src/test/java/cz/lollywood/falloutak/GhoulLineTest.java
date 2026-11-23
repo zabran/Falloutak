@@ -229,12 +229,12 @@ class GhoulLineTest {
         String out = h.mutate(100, Part3Test.fixed(0.5, 30));
         assertTrue(out.contains("the body turns GHOUL: the Ghoul gene fills the Necrosis slot"), out);
         assertEquals("Human", h.template, "09b round 12: the template stays, the ghoul is a gene");
-        assertEquals("Ghoul", h.necrosisGene().name());
+        assertTrue(h.necrosisGene().name().startsWith("Ghoul"), "the Ghoul gene (this bad mutation itself landed in Necrosis: Ghoul M1)");
         assertEquals(s0 - 2, h.attr(Rules.S, true));
         assertEquals(p0 + 3, h.attr(Rules.P, true));
         assertEquals(1, h.attr(Rules.A, true), "A 2 − 4 kept at 1");
         assertTrue(out.contains("Agility kept at 1"), out);
-        assertEquals(40, 100 * h.baseTpl().radRes(), 1e-9);
+        assertEquals(50, 100 * h.baseTpl().radRes(), 1e-9, "the ghoul's 40 % + 10 %: this bad mutation itself landed in Necrosis (round 15)");
         // and the ghoul's next very bad result moves it along the line
         h.survival.put(Rules.Stat.RADS, 500.0);
         assertTrue(h.mutate(500, Part3Test.fixed(0.5, 1)).contains("THE GHOUL LINE"));

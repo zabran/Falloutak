@@ -120,6 +120,10 @@ public final class Character {
      *  should show for its last hit (a throw, a lightning); out under the Black Rain. */
     public transient String anomaly = "", anomalyZone = "", anomalyFx = "";
     public transient boolean anomalyCentre, rainExposed;
+    /** Out in bright sun now (set each second by the HUD: the day by the game clock, nothing over the head, no storm). */
+    public transient boolean inSun;
+    /** Game hours in bright sun in a row (the sun's harm, 03b §2d: a template's or a gene's {@code sun}). */
+    public double sunHours;
     /** Hours toward the next loss of a negative healing rate (Fatal Radiation Poisoning, 11-19). */
     public double sickHours = 0;
 
@@ -396,17 +400,27 @@ public final class Character {
     private List<Data.Recipe> recipes(Data.Template born) {
         Map<String, List<Mutated>> bySlot = new LinkedHashMap<>();
         for (Mutated m : mutated) if (m.steps != null && !m.steps.isEmpty()) bySlot.computeIfAbsent(m.slot, x -> new ArrayList<>()).add(m);
+        boolean ghoul = isGhoul();
+        List<String> path = ghoulPath == null ? List.of() : ghoulPath;
+        boolean turned = ghoul && geneIn(born, Data.NECROSIS) == null;   // turned: the ghoul's own numbers are parts; born: its genes
+        Set<String> slots = new LinkedHashSet<>(bySlot.keySet());
+        if (ghoul) slots.addAll(Data.ghoulParts(path, turned).keySet());
         List<Data.Recipe> l = new ArrayList<>();
-        bySlot.forEach((slot, ms) -> {
+        for (String slot : slots) {
+            if (slot.equals(Data.NECROSIS)) continue;
+            List<Mutated> ms = bySlot.getOrDefault(slot, List.of());
+            boolean part = ghoul && Data.ghoulParts(path, turned).containsKey(slot);
             Data.Gene b = geneIn(born, slot);
             List<Data.Step> steps = new ArrayList<>();
             for (Mutated m : ms) steps.addAll(m.steps);
-            l.add(new Data.Recipe(b == null ? "" : b.name(), slot, ms.size(), steps, List.of()));
-        });
-        if (isGhoul()) {
-            Data.Gene own = geneIn(born, Data.NECROSIS);
-            List<String> path = ghoulPath == null ? List.of() : ghoulPath;
-            if (own == null || !path.isEmpty()) l.add(new Data.Recipe(own != null ? own.name() : "Ghoul", Data.NECROSIS, 0, List.of(), path));
+            l.add(new Data.Recipe(b == null ? "" : b.name(), slot, ms.size() + (part ? 1 : 0), steps, path, part, turned));
+        }
+        List<Mutated> nec = bySlot.getOrDefault(Data.NECROSIS, List.of());
+        Data.Gene own = geneIn(born, Data.NECROSIS);
+        if (ghoul && (own == null || !path.isEmpty() || !nec.isEmpty()) || !ghoul && !nec.isEmpty()) {
+            List<Data.Step> steps = new ArrayList<>();
+            for (Mutated m : nec) steps.addAll(m.steps);
+            l.add(new Data.Recipe(own != null ? own.name() : ghoul ? "Ghoul" : "", Data.NECROSIS, nec.size(), steps, path, ghoul, turned));
         }
         return l;
     }
@@ -1417,10 +1431,10 @@ public final class Character {
         if (g == null) return "the body turns GHOUL (no Ghoul gene in the data: the GM sets it)";
         if (born.family().equals("synthetic")) return "a synthetic body cannot turn ghoul";
         if (isGhoul()) return "already a ghoul";
-        int[] body = baseTpl().mods();
+        int[] body = baseTpl().mods(), gm = gt != null ? gt.mods() : g.mods();   // the ghoul's whole numbers (the Necrosis gene and its parts)
         List<String> kept = new ArrayList<>();
         for (int i = 0; i < 7; i++)
-            if (base[i] + body[i] + g.mods()[i] < 1) { base[i] = 1 - body[i] - g.mods()[i]; kept.add(Rules.SPECIAL[i] + " kept at 1"); }
+            if (base[i] + body[i] + gm[i] < 1) { base[i] = 1 - body[i] - gm[i]; kept.add(Rules.SPECIAL[i] + " kept at 1"); }
         necrosis = true;
         bodyTpl = null;
         int rate0 = templatePerkRate;
@@ -1430,8 +1444,9 @@ public final class Character {
         ghoulPath.clear();
         crisisRolled = false;
         if (hp > hpMax()) hp = hpMax();
-        return "the body turns GHOUL: the Ghoul gene fills the Necrosis slot (03b §7b: S −2, P +3, I +3, A −4, L +3, HP −5, poison +10 %, "
-                + "rad res +40 %); the template (" + born.name() + ") and its genes stay"
+        return "the body turns GHOUL: the Ghoul gene fills the Necrosis slot (03b §7b: rad res +40 %, L +3) and the ghoul's other numbers change "
+                + "the genes of Muscle (S −2), Eyes (P +3), Mind (I +3), Frame (A −4, HP −5) and Immunity (poison +10 %); the template (" + born.name()
+                + ") and its genes stay"
                 + (templatePerkRate != rate0 ? "; a perk every " + templatePerkRate + " levels now (was " + rate0 + ")" : "")
                 + (kept.isEmpty() ? "" : "; " + String.join(", ", kept))
                 + (barred.isEmpty() ? "" : "; a ghoul's body bars " + String.join(", ", barred) + ": the GM decides");
@@ -1867,6 +1882,22 @@ public final class Character {
         double res = Math.max(0, Math.min(100, resistances()[2])) / 100;
         double p = survival.getOrDefault(Rules.Stat.POISON, 0.0) + v * (1 - res);
         survival.put(Rules.Stat.POISON, Math.min(max(Rules.Stat.POISON), p));
+    }
+
+    /**
+     * An hour of the SUN on a body that cannot bear it (03b §2d, RULED for the dhampir, the coldvein and the vampire; a mutation's sun dial,
+     * 03b §7a; wired round 15, Marek: *"the sun and melee damage - what is the issue here?"*): {@code pain} (the sun hurts) = Pain 10 for each
+     * hour in bright sun [each hour mine]; {@code hp} (the sun burns, protoporphyria) = Pain 5 an hour, and after 2 hours 1 HP an hour.
+     * Out of the sun the count starts again. Returns the news, or null.
+     */
+    public String sunHour() {
+        String kind = tpl().sun();
+        if (kind.isEmpty() || !inSun || dead) { sunHours = 0; return null; }
+        sunHours += 1;
+        if (kind.equals("pain")) { addPain(10); return "the sun hurts: Pain 10 (an hour in bright sun)"; }
+        addPain(5);
+        if (sunHours > 2) { hp -= 1; return "the sun burns: Pain 5 and 1 HP (" + Math.round(sunHours) + " hours in bright sun)"; }
+        return "the sun burns: Pain 5 (" + Math.round(sunHours) + " hours in bright sun; from the third, 1 HP an hour too)";
     }
 
     void addPain(double v) {

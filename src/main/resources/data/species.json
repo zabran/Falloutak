@@ -45,8 +45,12 @@
    "isolation": 0,
    "bonus_damage": 0,
    "forbidden_traits": [
+    "Brittle Bones",
     "Bruiser",
+    "Circus Freak",
     "Fast Metabolism",
+    "Garrakg Returnz",
+    "Gifted",
     "Heavy Handed"
    ],
    "notes": "becomes so by radiation, not chosen at creation (03b §2a)",
@@ -56,19 +60,72 @@
      "slot": "Necrosis",
      "tier": "T3",
      "load": 0,
-     "text": "S -2, P +3, I +3, A -4, L +3, HP -5, poison and disease +10 %, rad +40 %: the ghoul's body, made by radiation (03b §7b; the ghoul line's stages are its variants)",
+     "text": "rad +40 %, L +3: the ghoul's necrotic, radiation-hardened cells (03b §7b; the stages' radiation are its variants)",
      "free": false,
      "real": "the ghoul's necrotic, radiation-hardened cells (fiction)",
      "mods": {
-      "strength": -2,
-      "perception": 3,
-      "intelligence": 3,
-      "agility": -4,
       "luck": 3
      },
-     "hp": -5,
-     "poison": 0.1,
      "rad": 0.4
+    },
+    {
+     "name": "Ghoul muscle",
+     "slot": "Muscle",
+     "tier": "T3",
+     "load": 0,
+     "text": "S -2: the ghoul's wasted muscle (03b §7b)",
+     "free": false,
+     "real": "fiction",
+     "mods": {
+      "strength": -2
+     }
+    },
+    {
+     "name": "Ghoul eyes",
+     "slot": "Eyes",
+     "tier": "T3",
+     "load": 0,
+     "text": "P +3: the ghoul's sharpened senses (03b §7b)",
+     "free": false,
+     "real": "fiction",
+     "mods": {
+      "perception": 3
+     }
+    },
+    {
+     "name": "Ghoul mind",
+     "slot": "Mind",
+     "tier": "T3",
+     "load": 0,
+     "text": "I +3: the ghoul's long-lived mind (03b §7b)",
+     "free": false,
+     "real": "fiction",
+     "mods": {
+      "intelligence": 3
+     }
+    },
+    {
+     "name": "Ghoul frame",
+     "slot": "Frame",
+     "tier": "T3",
+     "load": 0,
+     "text": "A -4, HP -5: the ghoul's stiff, fragile frame (03b §7b)",
+     "free": false,
+     "real": "fiction",
+     "mods": {
+      "agility": -4
+     },
+     "hp": -5
+    },
+    {
+     "name": "Ghoul immunity",
+     "slot": "Immunity",
+     "tier": "T3",
+     "load": 0,
+     "text": "poison and disease +10 %: the ghoul's hardened tissue (03b §7b)",
+     "free": false,
+     "real": "fiction",
+     "poison": 0.1
     }
    ]
   },

@@ -89,6 +89,9 @@ public final class Rules {
         return r <= 1.5 + 1e-9 ? 1 : r <= 2 + 1e-9 ? 2 : 3;
     }
     public static int meleeBonus(int[] a) { return Math.max(a[S] - 5, 1); }
+
+    /** The body's melee damage (a template's bonus damage, the workbook's Species column; a mutation's melee dial, 03b §7a): x (1 + it), never below 0. */
+    public static double meleeFactor(double bonus) { return Math.max(0, 1 + bonus); }
     /** Ruled 11-13: the workbook counted Medicine twice; the /20 term is Survival. */
     public static int healingRate(int[] a, double medicine, double survival) {
         return (int) Math.floor(Math.max(a[E] / 3.0 + medicine / 50 + survival / 20, 1));
