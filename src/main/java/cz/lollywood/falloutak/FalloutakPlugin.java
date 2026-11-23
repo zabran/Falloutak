@@ -84,6 +84,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         anomalies = new Anomalies(this);
         saves = new Saves(this);
         base = new Base(getDataFolder().toPath());
+        Travel.load(getDataFolder().toPath());   // part 9d: the world map's travel and its encounter roll
         production = Production.load(getDataFolder().toPath());
         base.knownMaker = production::makesNamed;   // 0.60.0: a named item is open when a recipe the base knows makes it
         Items.KEY = new org.bukkit.NamespacedKey(this, "fo_thing");
@@ -105,6 +106,13 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         if (anCmd != null) anCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? Menus.anomalyCommand(p, a) : "Players only."); return true; });
         var rainCmd = getCommand("blackrain");   // the Black Rain, the surge (round 9; GMs)
         if (rainCmd != null) rainCmd.setExecutor((s, c, l, a) -> { s.sendMessage(s instanceof Player p ? Menus.rainCommand(p, a) : "Players only."); return true; });
+        var travelCmd = getCommand("travel");   // part 9d (11-23): the party's journey on the world map, a roll every 4 hours
+        if (travelCmd != null) travelCmd.setExecutor((s, c, l, a) -> {
+            if (!(s instanceof Player p)) { s.sendMessage("Players only."); return true; }
+            String r = Travel.command(this, p, a);
+            if (r != null) Menus.say(p, r);
+            return true;
+        });
         var mapsCmd = getCommand("maps");
         if (mapsCmd != null) mapsCmd.setExecutor((s, c, l, a) -> { s.sendMessage(Maps.command(s, a)); return true; });
         var gameCmd = getCommand("game");   // round 11: save and load a character with its inventory, leave the game and come back

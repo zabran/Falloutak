@@ -246,6 +246,7 @@ final class Menus {
         if (c.perksDue() > 0 && !c.dead) b.add(btn("Pick a perk (" + c.perksDue() + ")", "a perk level: the perks whose gate you meet", x -> perkPick(x, c, null)));
         if (!pl.production.hauls.containsKey(p.getUniqueId().toString()))
             b.add(btn("The last-minute haul", "day D, the prologue: grab ONE haul for the base on the way down into the shelter (once)", Hauls::page));
+        b.add(btn("Travel (the world map)", "the party's journey to a place: a roll every 4 hours on the way (part 9d)", x -> Travel.menu(pl, x)));
         b.add(btn("Groups", "the base's people: each group's level, its points to spend (any player levels them up), lessons", Menus::groups));
         b.add(btn("Production", "the base's buildings, their jobs and crews (part 7): any player runs them", Works::main));
         b.add(btn("My sheet", "your character sheet", x -> SheetView.open(x, c, SheetGui.Page.OVERVIEW)));

@@ -3,6 +3,21 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.74.0 (2026-11-23): part 9d - world-map travel with the encounter roll.**
+- **Travel** (*Actions → Travel (the world map)*, or `/travel`): the party (you and the players within 50 blocks) walks from place to
+  place on Arag's Czechia, sector by sector (16 x 16 blocks): the speed by the terrain (30 / 20 / 10 km in 8 hours on a road / in the
+  open / in forest or ruins), x (1 + the best Survival / 100) like Fallout 1's Outdoorsman, halved when anyone is overloaded; at most 8
+  hours of marching a day unless they push on; the game time passes for everyone (survival runs), outside the base.
+- **A roll every 4 hours of travel** on the sectors walked: the area's bases (the raider groups' seats and hidden camps, the small bands,
+  the patrols, the traders) and the creatures' lairs give each sector its table by the gas model of ecology; every encounter type (a
+  fight, a talk, a trade, a sight); **spotting** by the party's best Survival (Fallout 2's, at most 95): a hostile one seen in time can
+  be **gone round** (each PC its kill XP) or fought, one not seen is an ambush.
+- **The GM:** the area's table (who is there, by share and type), the season, `/travel here <place>`, `/travel clear [km]` (the raider
+  bases near the party gone).
+- **The map's data** (`worldmap.json`, from LollyWood-Lore `_tools/fallout_danger_sim.py --export`) lives only in the server's plugin
+  folder, never in this repository: the camps are hidden from the players. The tests use a made-up map, and the plugin's rates equal the
+  simulation's on it.
+
 **Version 0.59.0 (2026-11-21): part 9 round 4 - a world unloads.**
 - **`/maps unload <world>`** (GMs, also from the console): whoever is in the world goes back to where he stood before his
   jump (or to the main world's spawn), the world is saved and unloaded, so its folder can be edited, replaced or deleted while
