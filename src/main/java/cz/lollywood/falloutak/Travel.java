@@ -72,6 +72,10 @@ final class Travel {
     /** The most meetings one window puts into one scene; the battle map grows with them (09d round 3) [EXAMPLE, mine]. */
     static final int AT_ONCE = 8;
     static final List<Integer> cleared = new ArrayList<>();
+    /** The weekly tick (`09d` §6, round 3: *"the weekly tick inside the plugin"*), its state file, and the game day it last ran to. */
+    static Tick tick;
+    static Path tickFile;
+    static int tickDay = Integer.MIN_VALUE;
     static final double STEP_KM = 0.2, WINDOW_H = 4, MARCH_H = 8, PARTY_BLOCKS = 50;
 
     // ------------------------------------------------------------------ state
@@ -79,19 +83,27 @@ final class Travel {
         file = dataFolder.resolve("travel.json");
         map = WorldMap.load(dataFolder.resolve("worldmap.json"));
         pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); dest = ""; cleared.clear();
+        tickFile = dataFolder.resolve("worldmap-state.json");
+        tick = map != null && map.tick != null ? Tick.load(map, tickFile, new Random()) : null;
+        tickDay = Integer.MIN_VALUE;
         if (Files.isRegularFile(file)) {
             try {
                 JsonObject o = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
                 pi = o.get("i").getAsDouble(); pj = o.get("j").getAsDouble(); season = o.get("season").getAsInt();
                 marched = o.get("marched").getAsDouble(); marchDay = o.get("marchDay").getAsInt();
                 if (o.has("cleared")) o.getAsJsonArray("cleared").forEach(e -> cleared.add(e.getAsInt()));
+                if (o.has("tickDay")) tickDay = o.get("tickDay").getAsInt();
             } catch (IOException | RuntimeException e) { /* a broken file: start again at the start */ }
         }
         applyCleared();
         start();
     }
 
-    static void use(WorldMap m) { map = m; pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); cleared.clear(); start(); }
+    static void use(WorldMap m) {
+        map = m; pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); cleared.clear();
+        tick = m != null && m.tick != null ? new Tick(m, new Random(1)) : null; tickFile = null; tickDay = Integer.MIN_VALUE;
+        start();
+    }
 
     /** The party starts at Jihlava (the shelter's town), else the map's first place. */
     static void start() {
@@ -111,7 +123,7 @@ final class Travel {
     }
 
     static void applyCleared() {
-        if (map == null) return;
+        if (map == null || tick != null) return;   // with the tick, the state file holds the bases as they are
         for (int k : cleared) if (k >= 0 && k < map.bases.size()) map.bases.get(k).cleared = true;
     }
 
@@ -120,6 +132,7 @@ final class Travel {
         JsonObject o = new JsonObject();
         o.addProperty("i", pi); o.addProperty("j", pj); o.addProperty("season", season); o.addProperty("marched", marched);
         o.addProperty("marchDay", marchDay);
+        o.addProperty("tickDay", tickDay);
         o.add("cleared", new Gson().toJsonTree(cleared));
         try { Files.createDirectories(file.getParent()); Files.writeString(file, o.toString(), StandardCharsets.UTF_8); }
         catch (IOException e) { /* the next save tries again */ }
@@ -249,6 +262,8 @@ final class Travel {
             if (r != null) news.add(c.name + ": " + r);
         }
         if (lead.day() != marchDay) { marchDay = lead.day(); marched = 0; }
+        String weeks = catchUp(lead.day());
+        if (!weeks.isEmpty()) tellGm("travel: " + weeks);
         marched += wk.hours();
         double fi = pi, fj = pj;
         pi = wk.i(); pj = wk.j();
@@ -384,9 +399,35 @@ final class Travel {
         return l;
     }
 
-    /** The GM clears every raider base within {@code km} of the party (a fight won there); held ground is the plugin's tick's, later. */
+    /** The weeks the game has passed since the tick last ran: one step each (the first call only sets the day). */
+    static String catchUp(int day) {
+        if (tick == null) return "";
+        if (tickDay == Integer.MIN_VALUE) { tickDay = day; save(); return ""; }
+        int n = 0;
+        while (day - tickDay >= 7 && n < 520) { tick.step(); tickDay += 7; n++; }
+        if (n == 0) return "";
+        if (tickFile != null) tick.save(tickFile);
+        save();
+        return n + " week(s) of the world's tick: " + tick.summary();
+    }
+
+    /** The GM holds the ground within {@code km} of the party (a guard post): no camp moves or splits into it. */
+    static String hold(double km) {
+        if (tick == null) return "! no tick on this world map (an older export)";
+        int n = tick.hold(pi, pj, km);
+        if (tickFile != null) tick.save(tickFile);
+        return String.format(Locale.ROOT, "%d sectors within %.1f km held: no camp moves or splits into them", n, km);
+    }
+
+    /** The GM clears every raider base within {@code km} of the party (a fight won there): the tick's own clear when there is one. */
     static String clear(double km) {
         if (map == null) return "! no world map";
+        if (tick != null) {
+            double[] r = tick.clear(pi, pj, km);
+            if (tickFile != null) tick.save(tickFile);
+            return String.format(Locale.ROOT, "%d raider bases (%.0f fighters) within %.1f km cleared; the region's raiders stay that much fewer, and a group "
+                    + "with no base left leaves its ground to whoever moves in (the tick)", (int) r[0], r[1], km);
+        }
         int n = 0;
         double f = 0;
         for (int k = 0; k < map.bases.size(); k++) {
@@ -431,7 +472,15 @@ final class Travel {
                 return "The party is now " + where();
             }
             case "clear" -> { return clear(a.length > 1 ? Double.parseDouble(a[1]) : 3); }
-            default -> { return "/travel [where|to|push|round|ambush|hunt|on|map] · GM: table|season <s>|here <place>|clear [km]"; }
+            case "hold" -> { return hold(a.length > 1 ? Double.parseDouble(a[1]) : 3); }
+            case "tick" -> {
+                if (tick == null) return "! no tick on this world map (an older export)";
+                int n = a.length > 1 ? Integer.parseInt(a[1]) : 1;
+                for (int k = 0; k < n; k++) tick.step();
+                if (tickFile != null) tick.save(tickFile);
+                return tick.summary();
+            }
+            default -> { return "/travel [where|to|push|round|ambush|hunt|on|map] · GM: table|season <s>|here <place>|clear [km]|hold [km]|tick [weeks]"; }
         }
     }
 
@@ -493,6 +542,11 @@ final class Travel {
             b.add(btn("GM: the area's table", "who is here, by share and type (the hidden camps' too)", x -> { say(x, String.join("\n", table())); menu(pl, x); }));
             b.add(btn("GM: season " + WorldMap.SEASONS[season], "the next season", x -> { season = (season + 1) % 4; save(); menu(pl, x); }));
             b.add(btn("GM: clear 3 km", "every raider base within 3 km of the party is gone (a fight won there)", x -> { say(x, clear(3)); menu(pl, x); }));
+            if (tick != null) {
+                b.add(btn("GM: hold 3 km", "a guard post: no camp moves or splits into the ground within 3 km", x -> { say(x, hold(3)); menu(pl, x); }));
+                b.add(btn("GM: a week of the tick", "the camps move, grow, split and join, the creatures breed and die (09d §6)", x -> {
+                    tick.step(); if (tickFile != null) tick.save(tickFile); say(x, tick.summary()); menu(pl, x); }));
+            }
         }
         Menus.menu(p, "Travel: the world map", lines, b, Menus::actions);
     }

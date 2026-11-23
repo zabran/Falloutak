@@ -72,7 +72,7 @@ final class MapView {
     static void place() { place(world()); }
 
     /** The token where the party is, if the world map's world is loaded (the GM moved the party). */
-    static void moved() { World w = Bukkit.getWorld(WORLD); if (w != null) place(w); }
+    static void moved() { if (Bukkit.getServer() == null) return; World w = Bukkit.getWorld(WORLD); if (w != null) place(w); }
 
     private static void place(World w) {
         if (w == null || Travel.map == null || Double.isNaN(Travel.pi)) return;

@@ -38,19 +38,48 @@ final class WorldMap {
     record Kind(String key, String name, double day, double night, double hostile, double[] season, String peace, double group,
                 double range, double hp, int party) {}
 
-    /** A base or a lair; a base can be cleared (the players or a group took it). */
+    /** A base or a lair; a base can be cleared (the players or a group took it). The weekly tick ({@link Tick}) moves, grows, splits and
+     *  joins them, so where they are and how many is theirs to change. */
     static final class Src {
-        final String key, kind, group, type;
-        final int i, j;
-        final double fighters, animals, party, reach;
+        final String key, group, type;
+        String kind;
+        int i, j;
+        double fighters, animals, party, reach;
         final boolean hidden, lair;
         boolean cleared;
+        /** The tick's: a seat's fighters at the start, the week it last moved, a lair's cap and whether it is a lone boss. */
+        double start, cap;
+        int moved = -99;
+        boolean boss, gone;
         Src(String key, String kind, String group, String type, int i, int j, double fighters, double animals, double party, double reach,
             boolean hidden, boolean lair) {
             this.key = key; this.kind = kind; this.group = group; this.type = type; this.i = i; this.j = j; this.fighters = fighters;
-            this.animals = animals; this.party = party; this.reach = reach; this.hidden = hidden; this.lair = lair;
+            this.animals = animals; this.party = party; this.reach = reach; this.hidden = hidden; this.lair = lair; this.start = fighters;
+        }
+        Src copy() {
+            Src c = new Src(key, kind, group, type, i, j, fighters, animals, party, reach, hidden, lair);
+            c.cleared = cleared; c.start = start; c.cap = cap; c.moved = moved; c.boss = boss;
+            return c;
         }
     }
+
+    /** The weekly tick's data (`fallout_danger_sim.py --export`'s "tick"): absent in an older export. */
+    static final class TickData {
+        double startYear, grow, starve, loss, moveBelow, opportunity, k, hunt, campableScale, bandableScale, habScale;
+        int moveEvery, campMin, campMax, bandMin, bandMax;
+        double[][] record, alive;
+        final java.util.Set<String> ghouls = new java.util.HashSet<>();
+        final List<String> groups = new ArrayList<>();
+        /** A creature's habitats (weights), group, births (week, growth), winter loss, dispersal (km). */
+        record Creature(Map<String, Double> hab, double group, int birthWeek, double growth, double winterLoss, double disp) {}
+        final Map<String, Creature> creatures = new LinkedHashMap<>();
+        int[] pi, pj;
+        double[] pop;
+        byte[] own, campable, bandable;
+        final Map<String, byte[]> hab = new LinkedHashMap<>();
+    }
+
+    TickData tick;
 
     record Place(String name, int i, int j) {}
 
@@ -106,15 +135,21 @@ final class WorldMap {
             JsonObject b = e.getAsJsonObject();
             String kind = b.get("kind").getAsString(), group = b.get("group").getAsString(), type = b.get("type").getAsString();
             String key = kind.equals("band") ? "bands" : type + ":" + group;
-            bases.add(new Src(key, kind, group, type, b.get("i").getAsInt(), b.get("j").getAsInt(), b.get("fighters").getAsDouble(), 0,
-                    b.get("party").getAsDouble(), b.get("reach").getAsDouble(), b.get("hidden").getAsBoolean(), false));
+            Src sb = new Src(key, kind, group, type, b.get("i").getAsInt(), b.get("j").getAsInt(), b.get("fighters").getAsDouble(), 0,
+                    b.get("party").getAsDouble(), b.get("reach").getAsDouble(), b.get("hidden").getAsBoolean(), false);
+            if (b.has("start")) sb.start = b.get("start").getAsDouble();
+            if (b.has("moved")) sb.moved = b.get("moved").getAsInt();
+            bases.add(sb);
         }
         for (JsonElement e : o.getAsJsonArray("lairs")) {
             JsonObject l = e.getAsJsonObject();
             String kind = l.get("kind").getAsString();
             Kind k = kinds.get("creature:" + kind);
-            lairs.add(new Src("creature:" + kind, kind, "", "creature", l.get("i").getAsInt(), l.get("j").getAsInt(), 0, l.get("animals").getAsDouble(),
-                    k == null ? 1 : k.group(), k == null ? 1 : k.range(), true, true));
+            Src sl = new Src("creature:" + kind, kind, "", "creature", l.get("i").getAsInt(), l.get("j").getAsInt(), 0, l.get("animals").getAsDouble(),
+                    k == null ? 1 : k.group(), k == null ? 1 : k.range(), true, true);
+            if (l.has("boss")) sl.boss = l.get("boss").getAsBoolean();
+            if (l.has("cap")) sl.cap = l.get("cap").getAsDouble();
+            lairs.add(sl);
         }
         for (JsonElement e : o.getAsJsonArray("places")) {
             JsonObject p = e.getAsJsonObject();
@@ -123,6 +158,44 @@ final class WorldMap {
         double rs = 0;
         for (int k = 0; k < w * h; k++) if (ground[k] <= 1) rs += road16[k] / 16.0;
         roadSum = rs;
+        if (o.has("tick")) tick = readTick(o.getAsJsonObject("tick"));
+    }
+
+    private static double[][] pairs(JsonArray a) {
+        double[][] r = new double[a.size()][2];
+        for (int k = 0; k < a.size(); k++) { r[k][0] = a.get(k).getAsJsonArray().get(0).getAsDouble(); r[k][1] = a.get(k).getAsJsonArray().get(1).getAsDouble(); }
+        return r;
+    }
+
+    private static TickData readTick(JsonObject t) {
+        TickData d = new TickData();
+        Base64.Decoder b64 = Base64.getDecoder();
+        d.startYear = t.get("startYear").getAsDouble(); d.grow = t.get("grow").getAsDouble(); d.starve = t.get("starve").getAsDouble();
+        d.loss = t.get("loss").getAsDouble(); d.moveBelow = t.get("moveBelow").getAsDouble(); d.opportunity = t.get("opportunity").getAsDouble();
+        d.moveEvery = t.get("moveEvery").getAsInt(); d.k = t.get("k").getAsDouble(); d.hunt = t.get("hunt").getAsDouble();
+        d.campMin = t.getAsJsonArray("camp").get(0).getAsInt(); d.campMax = t.getAsJsonArray("camp").get(1).getAsInt();
+        d.bandMin = t.getAsJsonArray("band").get(0).getAsInt(); d.bandMax = t.getAsJsonArray("band").get(1).getAsInt();
+        d.record = pairs(t.getAsJsonArray("record")); d.alive = pairs(t.getAsJsonArray("alive"));
+        t.getAsJsonArray("ghouls").forEach(e -> d.ghouls.add(e.getAsString()));
+        t.getAsJsonArray("groups").forEach(e -> d.groups.add(e.getAsString()));
+        for (Map.Entry<String, JsonElement> e : t.getAsJsonObject("creatures").entrySet()) {
+            JsonObject c = e.getValue().getAsJsonObject();
+            Map<String, Double> hab = new LinkedHashMap<>();
+            for (Map.Entry<String, JsonElement> h : c.getAsJsonObject("hab").entrySet()) hab.put(h.getKey(), h.getValue().getAsDouble());
+            JsonArray bi = c.getAsJsonArray("births");
+            d.creatures.put(e.getKey(), new TickData.Creature(hab, c.get("group").getAsDouble(), bi.get(0).getAsInt(), bi.get(1).getAsDouble(),
+                    c.get("winterLoss").getAsDouble(), c.get("disp").getAsDouble()));
+        }
+        JsonObject pp = t.getAsJsonObject("people");
+        JsonArray ai = pp.getAsJsonArray("i"), aj = pp.getAsJsonArray("j"), ap = pp.getAsJsonArray("pop");
+        d.pi = new int[ai.size()]; d.pj = new int[ai.size()]; d.pop = new double[ai.size()];
+        for (int k = 0; k < ai.size(); k++) { d.pi[k] = ai.get(k).getAsInt(); d.pj[k] = aj.get(k).getAsInt(); d.pop[k] = ap.get(k).getAsDouble(); }
+        d.own = b64.decode(t.get("own").getAsString());
+        d.campable = b64.decode(t.get("campable").getAsString()); d.campableScale = t.get("campableScale").getAsDouble();
+        d.bandable = b64.decode(t.get("bandable").getAsString()); d.bandableScale = t.get("bandableScale").getAsDouble();
+        d.habScale = t.get("habScale").getAsDouble();
+        for (Map.Entry<String, JsonElement> h : t.getAsJsonObject("hab").entrySet()) d.hab.put(h.getKey(), b64.decode(h.getValue().getAsString()));
+        return d;
     }
 
     static WorldMap read(Reader r) { return new WorldMap(JsonParser.parseReader(r).getAsJsonObject()); }

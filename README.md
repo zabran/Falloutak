@@ -3,6 +3,19 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.78.0 (2026-11-23): part 9d round 3 - the weekly tick in the plugin.**
+- **The world moves as the game's weeks pass:** the simulation's weekly tick (LollyWood-Lore `_tools/fallout_danger_sim.py`) ported
+  line by line: each base fed by the villages in its reach grows or starves, the region's raiders follow the run of record, hungry
+  hidden camps and bands move to better ground in their group's, seats send out new camps, big ones split, small ones join a mate;
+  the creatures breed in spring, die in winter and by crowding, are hunted near the living, found new lairs. Its food step equals the
+  simulation's to 1e-15 on the real map (1e-9 on the made-up one in the tests); a year runs in about 1.4 s.
+- It runs **after every journey** for the weeks that have passed (the party leader's game days); the moved bases and lairs are kept in
+  the plugin's folder (`worldmap-state.json`, never in this repository).
+- **The GM:** `/travel tick [weeks]` (and *GM: a week of the tick*), `/travel hold [km]` (a guard post: no camp moves or splits into
+  that ground), `/travel clear [km]` now the tick's (the region's raiders stay that much fewer; a group with no base left leaves its
+  ground to whoever moves in).
+- The world map's data needs the new `--export` (with its "tick" block); an older one works without the tick.
+
 **Version 0.77.0 (2026-11-23): part 9d round 3 - your own gear in a fight.**
 - A fight on a battle map takes **what you carry**: your first two weapons (part 7's 42 weapon designs, each with battle numbers in
   `data/weapons.json`, EXAMPLE in Fallout 2's scale; none = your fists) in the hands at their own condition, loaded from your rounds of
