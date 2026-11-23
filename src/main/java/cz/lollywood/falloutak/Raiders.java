@@ -54,12 +54,138 @@ final class Raiders {
             if (f.pending.isEmpty()) {
                 if (!it.hasNext()) { if (f.task != null) f.task.cancel(); f.task = null; done.run(); return; }
                 UUID u = it.next();
-                Player p = pick(f, u, ps);
-                if (p != null) plan(p, b.state(p), b.pl.character(p), u);
+                Object prey = prey(f, u, ps);
+                if (prey instanceof Player p) plan(p, b.state(p), b.pl.character(p), u);
+                else if (prey instanceof UUID v) cross(f, u, v, ps.get(0));
                 return;
             }
             f.pending.poll().run();
         }, TICKS, TICKS);
+    }
+
+    /**
+     * Whom a danger goes for (09d round 3: *"dangers should also attack each other"*): the nearest it can shoot or reach from where it
+     * stands, else the nearest, among the players and the figures of the OTHER groups on the map (a patrol and a caravan leave each other
+     * be; a hunted animal that is not hostile only runs from the players). A Player or a figure's UUID.
+     */
+    Object prey(Battle.Fight f, UUID u, List<Player> ps) {
+        Battle.Target t = f.targets.get(u);
+        Entity e = b.pl.getServer().getEntity(u);
+        Player near = pick(f, u, ps);
+        if (t == null || t.flees || !(e instanceof LivingEntity le)) return near;
+        Location at = le.getLocation();
+        Object best = near, bestNow = null;
+        double bd = near == null || !near.getWorld().equals(at.getWorld()) ? Double.MAX_VALUE : near.getLocation().distanceSquared(at), bn = Double.MAX_VALUE;
+        if (near != null && near.getWorld().equals(at.getWorld()) && (t.melee ? Math.sqrt(bd) <= t.reach + 1.0
+                : canShoot(at.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), near))) { bestNow = near; bn = bd; }
+        for (UUID v : f.dummies) {
+            Battle.Target o = f.targets.get(v);
+            if (v.equals(u) || o == null || o.group == t.group || !o.inFight() || (t.peaceable && o.peaceable)) continue;
+            Entity oe = b.pl.getServer().getEntity(v);
+            if (!(oe instanceof LivingEntity ol) || !ol.getWorld().equals(at.getWorld())) continue;
+            double d = ol.getLocation().distanceSquared(at);
+            if (d < bd) { bd = d; best = v; }
+            boolean now = t.melee ? Math.sqrt(d) <= t.reach + 1.0 : canShootAt(at.getWorld(), at, le.getEyeHeight(), ol);
+            if (now && d < bn) { bn = d; bestNow = v; }
+        }
+        return bestNow != null ? bestNow : best;
+    }
+
+    /** From this spot: the other figure within the gun's range and no block between the two eyes. */
+    private static boolean canShootAt(World w, Location at, double eyeH, LivingEntity v) {
+        Location eye = new Location(w, at.getBlockX() + 0.5, at.getBlockY() + eyeH, at.getBlockZ() + 0.5);
+        Vector to = v.getEyeLocation().toVector().subtract(eye.toVector());
+        double d = to.length();
+        if (d > Battle.SMG.range || d < 1e-6) return d < 1e-6;
+        return w.rayTraceBlocks(eye, to.normalize(), d, FluidCollisionMode.NEVER, true) == null;
+    }
+
+    /**
+     * One danger's turn against another (09d round 3) [the form mine, EXAMPLE]: a creature walks to within its reach and attacks while
+     * its AP last; a gunner walks to a spot with a shot and fires (the raider's pistol). The rolls are the ones the players face (the
+     * victim's AC, DT, DR); the hit is the victim's, never the party's (its kill XP is nobody's). Told to everyone in the fight.
+     */
+    private void cross(Battle.Fight f, UUID u, UUID v, Player any) {
+        Battle.Target t = f.targets.get(u), o = f.targets.get(v);
+        Entity e = b.pl.getServer().getEntity(u), oe = b.pl.getServer().getEntity(v);
+        if (t == null || o == null || !(e instanceof LivingEntity le) || !(oe instanceof LivingEntity ol)) return;
+        Deque<Runnable> q = f.pending;
+        if (t.dead || t.dying() || t.out || t.escaped) return;
+        t.ap = Rules.ap(t.a) - t.apLoss;
+        t.apLoss = 0;
+        if (t.lostTurn) { t.lostTurn = false; return; }
+        if (t.down) { t.ap -= 3; t.down = false; }
+        if (!t.melee && (t.broken || t.dropped || t.jammed || Combat.broken(t.gunHealth))) return;
+        Location at = le.getLocation();
+        World w = at.getWorld();
+        Path.P start = new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ());
+        Battle.State any0 = b.state(any);
+        Set<Path.P> taken = any0 == null ? new HashSet<>() : taken(any0, u, any);
+        Path.World world = new Path.World() {
+            public boolean canStand(int x, int y, int z) {
+                Block fb = w.getBlockAt(x, y, z);
+                return fb.isPassable() && fb.getRelative(0, 1, 0).isPassable() && fb.getRelative(0, -1, 0).getType().isSolid() && !taken.contains(new Path.P(x, y, z));
+            }
+            public boolean free(int x, int y, int z) { return w.getBlockAt(x, y, z).isPassable(); }
+        };
+        int cost = t.melee ? t.attackAp : SHOT_AP;
+        Path.Goal there = t.melee ? (x, y, z) -> new Location(w, x + 0.5, y, z + 0.5).distance(ol.getLocation()) <= t.reach + 0.75
+                : (x, y, z) -> canShootAt(w, new Location(w, x, y, z), le.getEyeHeight(), ol);
+        if (!there.done(start.x(), start.y(), start.z())) {
+            List<Path.P> path = Path.find(world, start, there, SEARCH);
+            if (path == null) return;
+            double per = Rules.stepAp(0, t.legCrippled ? 1 : 0, false);
+            int steps = Math.min(path.size(), (int) Math.floor(t.ap / per + 1e-9));
+            if (Math.ceil(path.size() * per - 1e-9) <= t.ap - cost) steps = path.size();
+            for (int i = 0; i < steps; i++) {
+                Path.P to = path.get(i);
+                q.add(() -> { Location l = new Location(w, to.x() + 0.5, to.y(), to.z() + 0.5); l.setDirection(ol.getLocation().toVector().subtract(l.toVector()).setY(0)); le.teleport(l); Sfx.at(l, "step"); });
+            }
+            t.ap -= (int) Math.ceil(steps * per - 1e-9);
+            if (steps < path.size()) { final int n = steps; q.add(() -> b.tell(f, t.name + " moves " + n + " block(s) toward " + o.name + ".", NamedTextColor.GRAY)); return; }
+        }
+        int n = Math.max(0, t.ap / cost);
+        if (!t.melee) n = Math.min(n, t.ammo);
+        for (int k = 0; k < n; k++) q.add(() -> strike(f, le, t, ol, o));
+        t.ap -= n * cost;
+    }
+
+    /** One attack of a danger on another. */
+    private void strike(Battle.Fight f, LivingEntity le, Battle.Target t, LivingEntity ol, Battle.Target o) {
+        if (t.dead || t.dying() || t.down || t.out || o.dead || o.escaped || ol.isDead()) return;
+        Location face = le.getLocation().clone();
+        face.setDirection(ol.getLocation().toVector().subtract(face.toVector()).setY(0));
+        le.teleport(face);
+        Combat.Shot sh = new Combat.Shot();
+        sh.melee = t.melee;
+        sh.skill = t.skill;
+        sh.blocks = Math.max(1, (int) Math.round(le.getEyeLocation().distance(ol.getEyeLocation())));
+        sh.range = t.melee ? t.reach + 1 : Battle.SMG.range;
+        sh.perception = t.a[Rules.P];
+        sh.strength = t.a[Rules.S];
+        sh.part = Rules.Part.TORSO;
+        sh.lightLevel = ol.getEyeLocation().getBlock().getLightLevel();
+        sh.targetAc = o.ac + (o.stance == 1 ? 2 : 0);
+        sh.targetDown = o.lying();
+        Combat.ToHit th = Combat.toHit(sh);
+        Combat.Roll r = Combat.roll(th.chance(), Rules.critChance(t.a, 0), 0, t.a[Rules.L], 0, false, b.d100);
+        if (!t.melee) { t.ammo--; t.gunHealth = Math.max(1, t.gunHealth - Combat.WEAR_PER_ROUND); Sfx.at(le.getEyeLocation(), "pistol.single"); }
+        else Creatures.play(le, t.attack.equals("gore") ? "gore" : "lunge");
+        StringBuilder log = new StringBuilder(t.name).append(t.melee ? " attacks " : " fires at ").append(o.name).append(" (to hit ").append(th.chance()).append(" %, rolled ").append(r.d100()).append("): ");
+        if (!r.hit()) { log.append("miss."); b.tell(f, log.toString(), NamedTextColor.GRAY); return; }
+        int deg = r.crit() ? r.degree() : 0;
+        Combat.CritEffects fx = Combat.critEffects(Rules.Part.TORSO, deg, o.a);
+        double mult = Combat.critMultiplier(Rules.Part.TORSO, deg);
+        double base = t.melee ? t.minDmg + b.rnd.nextInt(t.maxDmg - t.minDmg + 1)
+                : (Battle.SMG.minDmg + b.rnd.nextInt(Battle.SMG.maxDmg - Battle.SMG.minDmg + 1)) * Combat.conditionDamage(t.gunHealth / Battle.SMG.maxHealth);
+        int dmg = t.melee ? Combat.damage(base, mult, 0, 0, o.dt, o.dr, fx.bypass())
+                : Combat.damage(base, mult, Battle.SMG.ammoDamage, Battle.SMG.ammoPenetration, o.dt, o.dr, fx.bypass());
+        log.append(r.crit() ? "CRIT, " : "hit, ").append(dmg).append(" HP.");
+        boolean touched = o.touched;
+        b.hurt(ol, o, dmg, fx, r.crit(), deg, log);
+        o.touched = touched;   // not the party's doing
+        o.byParty = false;
+        b.tell(f, log.toString(), NamedTextColor.GRAY);
     }
 
     /** Whom an enemy goes for: the nearest player he can shoot (a gun) or reach (a creature) from where he stands, else the nearest. */

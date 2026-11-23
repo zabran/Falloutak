@@ -3,6 +3,24 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.76.0 (2026-11-23): part 9d round 3 - talks, trade, the map's edge, the dangers' own fights, food from a hunt.**
+- **Going round** a group seen in time pays **only the Survival check's XP** (Fallout's 100 − the chance it had, at least 10) to the
+  party's scout; **resolved without killing on the battle map** = the full kill XP.
+- **Talk to them** (the people: raiders, bands, patrols, traders), the third choice for a group seen first: the speaker's Rhetorics
+  +20 (seen first) −20 (they came to fight); Negotiator retries once; talked down = their full kill XP, a failed talk = the battle
+  map, they go for their guns first, you keep your cover.
+- **The peaceful meetings as menus:** raiders and bands want a **toll** (goods worth 10 a head, at what they would pay; or talk your
+  way out at Rhetorics −10; or refuse and fight); patrols bring **news** (the nearest raider base within 15 km, hidden camps too);
+  traders **barter** (their wares of tier I-II; an item worth 10 x 3^(tier−1) x rarity; your Economy sets the spread; sold goods are
+  credit, no change given). EXAMPLE numbers: trade and money are their own part, not ruled yet.
+- **Up to eight groups at once**; the battle map grows with them (48, 64 or 80 blocks).
+- **A player leaves the battle map at its edge** and goes back; when the whole party gets away alive, every group it never touched
+  was slipped past: their full kill XP.
+- **The dangers attack each other** (a patrol and a caravan leave each other be): each goes for the nearest player or figure of
+  another group; what another danger kills pays no XP.
+- **Food from a hunt:** the players who hold the field take the dead creatures' raw meat (a portion 0.5 kg; a boar 30 kg = 60
+  portions) and hides; the Hunter perk doubles both; what does not fit is left behind.
+
 **Version 0.75.0 (2026-11-23): part 9d round 2 - the ambush, the hunt, the battle maps and the world map in Minecraft.**
 - **The scene:** every meeting of the 4-hour window comes at once (Poisson on the window's hazard, at least one, at most four; the same
   kind and type as one bigger group), on one battle map.

@@ -133,6 +133,15 @@ public final class Battle implements Listener {
         String attack = "bite";
         /** The battle map's ground (null in the demo): a running animal at its edge is gone. */
         org.bukkit.util.BoundingBox field;
+        /** Its group on the battle map (09d round 3: *"dangers should also attack each other"*): figures of other groups are its prey,
+         *  but a patrol and a caravan (peaceable) leave each other be. */
+        int group;
+        boolean peaceable;
+        /** The party hurt it (touched) / the last hit was the party's (its kill XP is the party's: Fallout 2 pays the player's kills). */
+        boolean touched, byParty;
+        /** What its body gives the party that holds the field (09d round 3: food from a hunt): raw meat in kg, raw hides. */
+        double meatKg;
+        int hides;
         double gunHealth = SMG.maxHealth;
         boolean dropped, broken, moved, steadied, lostTurn;
         /** Lying on the ground (knocked down or out, dying): the prone +4 AC and +20 to be hit within reach. */
@@ -149,6 +158,7 @@ public final class Battle implements Listener {
         /** The Battle tab's raider (the demo's). */
         Target(String name) { this(name, 30, 5, 2, 0.2, new int[]{5, 6, 3, 5, 5, 4, 5}, 50); }
         Target(String name, int hpMax, int ac, int dt, double dr, int[] a, int skill) {
+            this.byParty = true;   // the demo's raiders fall only to the player
             this.name = name; this.hpMax = hpMax; this.ac = ac; this.dt = dt; this.dr = dr; this.a = a.clone(); this.skill = skill;
             this.hp = hpMax; this.blood = 4.0 * hpMax;
         }
@@ -236,6 +246,13 @@ public final class Battle implements Listener {
         boolean demo = true;
         /** How the enemies are named ("the raiders", "the enemies"). */
         String them = "the raiders";
+        /** Everyone who took part; the battle map's ground (a player at its edge gets away); who got away, who died; the XP settled. */
+        final List<UUID> members = new ArrayList<>();
+        org.bukkit.util.BoundingBox field;
+        final Set<UUID> fled = new HashSet<>(), died = new HashSet<>();
+        boolean settled;
+        /** What each player still on the field when it ended takes home (meat, hides), given when his inventory is back. */
+        final Map<UUID, List<ItemStack>> spoils = new HashMap<>();
         /** Each player leaving (the arena sends him back), and the fight's end (the last one out). */
         java.util.function.Consumer<Player> onLeave = q -> { };
         Runnable onEnd = () -> { };
@@ -244,7 +261,7 @@ public final class Battle implements Listener {
     }
 
     final FalloutakPlugin pl;
-    private final Raiders raiders;
+    final Raiders raiders;
     private final NamespacedKey key;
     private final Map<UUID, State> states = new HashMap<>();
     final Random rnd = new Random();
@@ -328,6 +345,7 @@ public final class Battle implements Listener {
         s.pending = f.pending;
         s.round = f.round;
         if (!f.players.contains(p.getUniqueId())) f.players.add(p.getUniqueId());
+        if (!f.members.contains(p.getUniqueId())) f.members.add(p.getUniqueId());
         s.sceneRound = pl.zones.round;
         s.saved = p.getInventory().getContents().clone();
         ItemStack[] worn = p.getInventory().getArmorContents().clone();
@@ -403,6 +421,7 @@ public final class Battle implements Listener {
         if (last) {
             if (f.task != null) { f.task.cancel(); f.task = null; }
             f.pending.clear();
+            if (!f.settled) settle(f, f.died.isEmpty() && f.fled.containsAll(f.members));   // all got away = slipped past
         }
         if (s.burning) p.setVisualFire(false);
         if (s.gunfire && roofed(p)) {   // 03b §3c: a gunfight indoors without ear protection rings the ears for an hour
@@ -413,6 +432,12 @@ public final class Battle implements Listener {
         for (Zones.Zone z : s.clouds) pl.zones.remove(z);
         p.getInventory().setContents(s.saved);
         p.sendMessage(Component.text((f.them.equals("the raiders") ? "Battle demo over" : "The fight is over") + "; your inventory is back.", NamedTextColor.AQUA));
+        List<ItemStack> got = f.spoils.remove(p.getUniqueId());
+        if (got != null && !got.isEmpty()) {
+            int left = 0;
+            for (ItemStack it : got) for (ItemStack rest : p.getInventory().addItem(it).values()) left += rest.getAmount();
+            p.sendMessage(Component.text("You take " + Arena.spoilsText(got) + (left > 0 ? " (" + left + " left behind: no room)" : "") + ".", NamedTextColor.GOLD));
+        }
         f.onLeave.accept(p);
         if (last) {
             for (UUID u : f.dummies) { Entity e = pl.getServer().getEntity(u); if (e != null) e.remove(); }
@@ -823,6 +848,7 @@ public final class Battle implements Listener {
 
     /** Damage, the crit's effects and the wound on a target dummy; its name shows the state. */
     void hurt(LivingEntity e, Target t, int dmg, Combat.CritEffects fx, boolean crit, int deg, StringBuilder log) {
+        t.touched = true; t.byParty = true;   // a danger's own hit puts both back (Raiders.cross)
         t.hp -= dmg;
         if (fx.knockedDown()) t.down = true;
         if (fx.knockedOut()) { t.out = true; t.outRounds = 1; }
@@ -898,10 +924,7 @@ public final class Battle implements Listener {
             Sfx.to(q, "combat.end");
             q.sendMessage(Component.text(text, NamedTextColor.GREEN));
         }
-        // part 6 (06b §5.4.1, RULED 11-20): every enemy beaten gives his kill XP, 3.1 × HP^1.09, to the team (one that got away none)
-        List<Double> hps = new ArrayList<>();
-        for (Target t : f.targets.values()) if (!t.escaped) hps.add((double) t.hpMax);
-        if (pl.roster != null && !hps.isEmpty()) pl.roster.killAward(ps, hps, f.them + " beaten");
+        settle(f, false);
         for (Player q : ps) { State sq = states.get(q.getUniqueId()); if (sq != null) show(q, sq, pl.character(q), "the fight is over"); }
         pl.getServer().getScheduler().runTaskLater(pl, () -> {
             for (Player q : ps) if (inBattle(q) && states.get(q.getUniqueId()).fight == f) stop(q);
@@ -951,6 +974,7 @@ public final class Battle implements Listener {
             stop(p);
             return;
         }
+        s.fight.died.add(p.getUniqueId());
         if (players(s.fight).size() <= 1) {
             if (s.fight.task != null) { s.fight.task.cancel(); s.fight.task = null; }
             s.fight.pending.clear();
@@ -1458,6 +1482,60 @@ public final class Battle implements Listener {
         }
     }
 
+    /**
+     * The fight's XP and spoils, once (06b §3 and §5.4.1; 09d round 3): every enemy THE PARTY beat gives his kill XP, 3.1 x HP^1.09, to
+     * the team (one beaten by another danger, or that got away, none: Fallout 2 pays the player's kills); when the whole party got away
+     * at the edge alive, every group it never touched was SLIPPED PAST = resolved without killing on the battle map = its full kill XP
+     * (Marek 11-23: *"When you resolve the encounter non-lethaly on the battle map, you get the full kill XP."*); a group fought and left
+     * pays nothing more. The players on the field at the end take the dead creatures' meat and hides (09d round 3: food from a hunt).
+     */
+    void settle(Fight f, boolean slippedPast) {
+        if (f.settled) return;
+        f.settled = true;
+        List<Player> team = new ArrayList<>();
+        for (UUID u : f.members) { Player q = pl.getServer().getPlayer(u); if (q != null) team.add(q); }
+        List<Double> hps = new ArrayList<>();
+        Map<Integer, Boolean> groupTouched = new HashMap<>(), groupStanding = new HashMap<>();
+        for (Target t : f.targets.values()) {
+            groupTouched.merge(t.group, t.touched, Boolean::logicalOr);
+            groupStanding.merge(t.group, t.inFight(), Boolean::logicalOr);
+        }
+        int slipped = 0;
+        for (Target t : f.targets.values()) {
+            if (t.escaped) continue;
+            boolean beaten = !t.inFight();
+            if (beaten && t.byParty) hps.add((double) t.hpMax);
+            else if (slippedPast && !t.flees && !groupTouched.getOrDefault(t.group, false) && groupStanding.getOrDefault(t.group, false)) { hps.add((double) t.hpMax); slipped++; }
+        }
+        if (pl.roster != null && !hps.isEmpty() && !team.isEmpty()) {
+            String r = pl.roster.killAward(team, hps, slipped > 0 ? "an encounter slipped past on the battle map" : f.them + " beaten");
+            for (Player q : team) q.sendMessage(Component.text((slipped > 0 ? "Slipped past " + slipped + " unharmed: their full kill XP. " : "") + r, NamedTextColor.GREEN));
+        }
+        if (slippedPast) return;   // whoever left the field left the carcasses
+        List<Player> here = players(f);
+        if (here.isEmpty()) return;
+        double kg = 0;
+        int hides = 0;
+        for (Target t : f.targets.values()) if (!t.escaped && (t.dead || t.dying()) && t.melee) { kg += t.meatKg; hides += t.hides; }
+        boolean hunter = false;
+        for (Player q : here) if (pl.character(q).hasPerk("Hunter")) hunter = true;   // 02c: double meat and hides from creatures
+        if (hunter) { kg *= 2; hides *= 2; }
+        int portions = (int) Math.round(kg * 2);   // a food portion is 0.5 kg (Items' weights)
+        if (portions + hides == 0) return;
+        for (int k = 0; k < here.size(); k++) {
+            int mine = portions / here.size() + (k < portions % here.size() ? 1 : 0), hide = hides / here.size() + (k < hides % here.size() ? 1 : 0);
+            List<ItemStack> l = new ArrayList<>();
+            if (mine > 0) l.addAll(Arena.stacks(Items.storeId("Food", 1, 1, "Raw meat"), mine));
+            if (hide > 0) l.addAll(Arena.stacks(Items.storeId("Textile", 1, 1, "Raw hide"), hide));
+            f.spoils.put(here.get(k).getUniqueId(), l);
+        }
+    }
+
+    /** A player at the battle map's edge gets away (09d round 3: *"get out of the map by going to the edge (just like hunted animals)"*). */
+    static boolean atEdge(org.bukkit.util.BoundingBox f, Location l) {
+        return f != null && (l.getBlockX() <= f.getMinX() + 1 || l.getBlockX() >= f.getMaxX() - 2 || l.getBlockZ() <= f.getMinZ() + 1 || l.getBlockZ() >= f.getMaxZ() - 2);
+    }
+
     /** Ends the player's turn as the clock does (the tests, and the menus). */
     void endTurnFor(Player p) { State s = states.get(p.getUniqueId()); if (s != null) endTurn(p, s, pl.character(p)); }
 
@@ -1655,6 +1733,21 @@ public final class Battle implements Listener {
         }
         setAp(s, c, to);
         show(p, s, c, null);
+        if (s.fight != null && !s.fight.over && atEdge(s.fight.field, to)) {
+            Fight f = s.fight;
+            f.fled.add(p.getUniqueId());
+            tell(f, p.getName() + " gets away at the edge of the map.", NamedTextColor.YELLOW);
+            pl.getServer().getScheduler().runTask(pl, () -> { if (inBattle(p) && states.get(p.getUniqueId()).fight == f) stop(p); });
+        }
+    }
+
+    /** The same from a test: the player steps onto the map's edge (as onMove after a paid step). */
+    boolean leaveAtEdge(Player p) {
+        State s = states.get(p.getUniqueId());
+        if (s == null || s.fight == null || s.fight.field == null || s.fight.over) return false;
+        s.fight.fled.add(p.getUniqueId());
+        stop(p);
+        return true;
     }
 
     @EventHandler

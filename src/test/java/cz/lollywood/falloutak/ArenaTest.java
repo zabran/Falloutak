@@ -28,7 +28,7 @@ class ArenaTest extends MockGame {
     void map() { Arena.use = world; Travel.use(WorldMapTest.fixture()); Travel.here("Roadside"); }
 
     @AfterEach
-    void noMap() { Arena.use = null; Arena.current = null; Travel.map = null; Travel.file = null; Travel.scene.clear(); }
+    void noMap() { Arena.use = null; Arena.current = null; Travel.map = null; Travel.file = null; Travel.scene.clear(); Talks.dice = null; Talks.tradingWith = null; }
 
     // ------------------------------------------------------------------ the scene
     @Test
@@ -82,7 +82,7 @@ class ArenaTest extends MockGame {
             for (List<Arena.Spot> l : List.of(a.cover(), a.open(), a.far(), a.ring())) {
                 for (Arena.Spot s : l) {
                     assertTrue(Arena.standing(world, s.x(), s.y(), s.z()), t + ": " + s + " is a standing spot");
-                    assertTrue(s.x() >= a.x0() && s.x() < a.x0() + Arena.SIZE && s.z() >= a.z0() && s.z() < a.z0() + Arena.SIZE, t + ": inside");
+                    assertTrue(s.x() >= a.x0() && s.x() < a.x0() + a.size() && s.z() >= a.z0() && s.z() < a.z0() + a.size(), t + ": inside");
                     for (Arena.Spot o : l) if (o != s) assertFalse(Math.abs(o.x() - s.x()) <= 1 && Math.abs(o.z() - s.z()) <= 1, t + ": nobody next to another");
                 }
             }
@@ -105,8 +105,8 @@ class ArenaTest extends MockGame {
 
     private static int count(World w, Arena.Layout a, String part) {
         int n = 0;
-        for (int x = a.x0(); x < a.x0() + Arena.SIZE; x++)
-            for (int z = a.z0(); z < a.z0() + Arena.SIZE; z++)
+        for (int x = a.x0(); x < a.x0() + a.size(); x++)
+            for (int z = a.z0(); z < a.z0() + a.size(); z++)
                 for (int y = Arena.Y - 1; y < Arena.Y + 8; y++) if (w.getBlockAt(x, y, z).getType().name().contains(part)) n++;
         return n;
     }
@@ -268,7 +268,7 @@ class ArenaTest extends MockGame {
         assertTrue(g.get(1).flees());
         assertTrue(Travel.battleMap(plugin, a, Arena.Mode.HUNT).startsWith("!"), "a hunt waits for the hostile ones");
         long xp0 = plugin.character(a).xp;
-        assertEquals("You go round them unseen.", Travel.goRound(plugin, a));
+        assertTrue(Travel.goRound(plugin, a).startsWith("You go round them unseen"));
         assertTrue(plugin.character(a).xp > xp0);
         assertEquals(1, Travel.scene.size(), "the boar is still there");
         assertTrue(Travel.battleMap(plugin, a, Arena.Mode.HUNT).startsWith("THE HUNT"));

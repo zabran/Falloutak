@@ -35,7 +35,8 @@ import static cz.lollywood.falloutak.Menus.tellGm;
  *   <li><b>a roll every 4 hours of travel</b> (`09` §3.3, RULED) on the sectors walked: any encounter = 1 − e^(−meetings), placed where it
  *   fell, of every type (round 1): a FIGHT, a TALK, a TRADE or a SIGHT;</li>
  *   <li><b>spotting = Fallout 2's</b> with Survival (RULED): d100 below the party's best (at most 95) sees it in time; a hostile one seen
- *   can be GONE ROUND (each PC its kill XP, `06b`) or AMBUSHED (09d round 2, Marek 11-23: *"would it be possible to give players the
+ *   can be GONE ROUND (only the Survival check's XP, 100 − the chance, to the scout: 06b §3, restated by Marek 11-23), TALKED TO (the
+ *   people: a bonus for the first sight, {@link Talks}) or AMBUSHED (09d round 2, Marek 11-23: *"would it be possible to give players the
  *   option to ambush them instead"*: on the battle map, the party acts first); one not seen is an ambush ON THE PARTY, they act
  *   first;</li>
  *   <li><b>every meeting of the window at once</b> (09d round 2: *"I think it would be possible to have more encounters at once at one
@@ -68,8 +69,8 @@ final class Travel {
     static final List<Met> scene = new ArrayList<>();
     static String sceneTerrain = "field";
     static String dest = "";
-    /** The most meetings one window puts into one scene [EXAMPLE, mine]. */
-    static final int AT_ONCE = 4;
+    /** The most meetings one window puts into one scene; the battle map grows with them (09d round 3) [EXAMPLE, mine]. */
+    static final int AT_ONCE = 8;
     static final List<Integer> cleared = new ArrayList<>();
     static final double STEP_KM = 0.2, WINDOW_H = 4, MARCH_H = 8, PARTY_BLOCKS = 50;
 
@@ -294,22 +295,32 @@ final class Travel {
         for (Met m : scene)
             l.add((m.hostile() ? (m.seen ? "SPOTTED IN TIME: " : "AMBUSH! ") : m.hunt ? "HUNTED: " : "ENCOUNTER: ") + m.e.text() + ".");
         if (ambushed()) l.add("They act first: to the battle map (" + sceneTerrain + ").");
-        else if (anyHostile()) l.add("Go round them (each of you their kill XP) or ambush them (on the battle map, you act first).");
+        else if (anyHostile()) l.add("Go round them (the Survival check's XP), talk to them (you saw them first: a bonus), or ambush them (on the battle map, you act first).");
         for (Met m : scene) if (m.e.type().equals("sight")) { l.add("A sight can be hunted (the menu)."); break; }
         return String.join("\n", l);
     }
 
-    /** Going round the hostile ones, all seen in time: each PC their kill XP (`06b`, RULED); the peaceful ones stay in the scene. */
+    /**
+     * Going round the hostile ones, all seen in time: ONLY THE SURVIVAL CHECK'S XP (Marek 11-23, `09d` round 3: *"When you dodge encounter
+     * on the world map, you only get the Survival check XP, just like in Fallout."*): Fallout 2's 100 − the chance it had, at least 10
+     * (06b §2), to the scout (the party's best Survival); the peaceful ones stay in the scene.
+     */
     static String goRound(FalloutakPlugin pl, Player p) {
         if (!anyHostile() || ambushed()) return "! nothing seen in time to go round";
-        List<Double> hps = new ArrayList<>();
         List<String> what = new ArrayList<>();
-        for (Met m : scene) if (m.hostile()) { for (int k = 0; k < m.e.count(); k++) hps.add(m.e.kind().hp()); what.add(m.e.text()); }
-        String r = pl.roster.killAward(party(p), hps, "an encounter avoided");
+        for (Met m : scene) if (m.hostile()) what.add(m.e.text());
+        Player scout = p;
+        double bs = -1;
+        for (Player q : party(p)) { double v = pl.character(q).skill("Survival"); if (v > bs) { bs = v; scout = q; } }
+        long xp = dodgeXp(bs);
+        String r = pl.roster.award(scout, xp, "an encounter dodged (the Survival check)");
         tellGm("travel: went round " + String.join(", ", what) + ". " + r);
         scene.removeIf(Met::hostile);
-        return "You go round them unseen.";
+        return "You go round them unseen: " + scout.getName() + "'s Survival check, " + xp + " XP.";
     }
+
+    /** Fallout 2's XP for an encounter dodged: 100 − the chance it had (the best Survival, at most 95), at least 10. */
+    static long dodgeXp(double bestSurvival) { return Math.max(10, 100 - Math.round(Math.min(95, Math.max(0, bestSurvival)))); }
 
     /** The scene's groups for the battle map: every hostile one, and the hunted animals (which run unless they are the hostile kind). */
     static List<Arena.Group> groups(boolean hunted) {
@@ -444,10 +455,18 @@ final class Travel {
                         m.hostile() ? NamedTextColor.RED : m.hunt ? NamedTextColor.GOLD : NamedTextColor.YELLOW));
             if (ambushed()) b.add(btn("To the battle map: they act first", "an ambush on you (" + sceneTerrain + "): every hostile group of the scene", x -> { say(x, battleMap(pl, x, Arena.Mode.AMBUSHED)); }));
             else if (anyHostile()) {
-                b.add(btn("Go round them", "unseen: each of you gets their kill XP (06b)", x -> { say(x, goRound(pl, x)); menu(pl, x); }));
+                b.add(btn("Go round them", "unseen: only the Survival check's XP, to your scout (06b §3)", x -> { say(x, goRound(pl, x)); menu(pl, x); }));
+                for (Met m : scene) if (m.hostile() && Talks.talks(m.e.kind()))
+                    b.add(btn("Talk to " + m.e.kind().name(), "you saw them first: Rhetorics " + Battle.sign(Talks.SEEN_FIRST + Talks.HOSTILE)
+                            + " (+20 the first sight, −20 they came to fight); talked down = their full kill XP, failed = the fight, they first",
+                            x -> { say(x, Talks.parley(pl, x, m)); if (!pl.battle.inBattle(x)) menu(pl, x); }));
                 b.add(btn("Ambush them", "the battle map (" + sceneTerrain + "): you in cover, YOU act first" + (anyHunted() ? "; the hunted animals too" : ""),
                         x -> { say(x, battleMap(pl, x, Arena.Mode.AMBUSH)); }));
             }
+            for (Met m : scene) if (m.e.type().equals("talk") || m.e.type().equals("trade"))
+                b.add(btn((m.e.type().equals("trade") ? "Trade with " : "Talk with ") + m.e.kind().name(),
+                        m.e.type().equals("trade") ? "barter: their wares for your goods" : Talks.raiderKind(m.e.kind()) ? "they want a toll" : "news of the roads",
+                        x -> Talks.talkMenu(pl, x, m)));
             for (Met m : scene) if (m.e.type().equals("sight"))
                 b.add(btn((m.hunt ? "Do not hunt: " : "Hunt: ") + m.e.kind().name(), "a sight turned into a hunt: it runs unless it is the hostile kind"
                         + (anyHostile() ? " (it joins the ambush)" : ""), x -> { m.hunt = !m.hunt; menu(pl, x); }));
