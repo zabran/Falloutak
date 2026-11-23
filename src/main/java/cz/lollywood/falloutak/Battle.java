@@ -132,6 +132,11 @@ public final class Battle implements Listener {
         boolean lying() { return down || out || dying(); }
         /** What he is, for Nemesis (`data/foes.json`): the demo's raiders are Raiders. */
         String kind = "Raiders";
+        /** The anomalies (09c, round 10: *"raiders walking into anomalies - it should happen and they should get affected by the
+         *  anomaly."*): the ones he has noticed (he walks round them) or missed; AP lost next turn (the lightning, the cold); held this turn. */
+        final Set<String> noticed = new HashSet<>(), missed = new HashSet<>();
+        int apLoss;
+        boolean held, frozen;
         Target(String name) { this.name = name; }
         boolean dying() { return !dead && hp <= 0; }
         String label() {
@@ -479,7 +484,7 @@ public final class Battle implements Listener {
         Location eye = p.getEyeLocation();
         Vector dir = eye.getDirection();
         RayTraceResult r = p.getWorld().rayTrace(eye, dir, range, FluidCollisionMode.NEVER, true, 0.3,
-                e -> e instanceof LivingEntity le && !(e instanceof Player) && !le.isDead());
+                e -> e instanceof LivingEntity le && !(e instanceof Player) && !le.isDead() && Anomalies.seenBy(e, p));   // another's mirage figure is not there for him
         if (r == null || !(r.getHitEntity() instanceof LivingEntity t)) return null;
         Location f = t.getLocation();
         double ox = eye.getX() - f.getX(), oz = eye.getZ() - f.getZ();
@@ -523,6 +528,9 @@ public final class Battle implements Listener {
             return;
         }
         if (a.part() == null) { Sfx.to(p, "ap.lacking"); show(p, s, c, "the crosshair is beside " + who(a.target()) + ": aim at the body"); return; }
+        if (pl.anomalies.hidden(a.target().getLocation(), p.getLocation())) {   // 09c §2: unseen from outside a blind spot (only area attacks reach him)
+            Sfx.to(p, "ap.lacking"); show(p, s, c, "you cannot see him: he is inside a blind spot (only a grenade's blast reaches him)"); return;
+        }
         if (!w.melee() && s.ammo.get("smg") < m.ammo()) { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, "not enough ammo for " + m.name()); return; }
         if (s.broken.contains(w.name)) { show(p, s, c, "the " + w.name + " is destroyed (a critical failure)"); return; }
         if (s.dropped.contains(w.name)) {   // a critical failure dropped it: picking it up is an action [2 AP mine]
@@ -550,7 +558,11 @@ public final class Battle implements Listener {
         th.terms().forEach((k, v) -> log.append(" ").append(k.equals("skill") ? w.skill + " " + v : sign(v) + " " + k));
         log.append(". Rolled ").append(r.d100()).append(r.d100() >= 100 ? " (a 100 always misses)" : "").append(": ");
         String result;
-        if (r.critFail()) {
+        if (Anomalies.figure(a.target())) {   // 09c §2, round 10: a mirage's figure; the shot or the blow is spent on nothing
+            log.append("it goes through ").append(who(a.target())).append(": NOTHING IS THERE (a figure of the mirage).");
+            result = (w.melee() ? "a blow" : "a shot") + " at nothing: the mirage";
+            pl.anomalies.dissolve(a.target());
+        } else if (r.critFail()) {
             Combat.Failure f = Combat.critFailure(r.degree(), Combat.fireWeapon(w.damageType));
             String what = f.names().isEmpty() ? "nothing worse than a miss" : String.join(", ", f.names());
             log.append("CRITICAL FAILURE (degree ").append(r.degree()).append("): ").append(what).append(".");
@@ -695,7 +707,7 @@ public final class Battle implements Listener {
         Vector dir = to.clone().normalize();
         int n = 0;
         for (Entity e : p.getWorld().getNearbyEntities(eye.clone().add(to.clone().multiply(0.5)), len / 2 + 1, len / 2 + 1, len / 2 + 1)) {
-            if (e.equals(p) || e.equals(a.target()) || !(e instanceof LivingEntity le) || le.isDead()) continue;
+            if (e.equals(p) || e.equals(a.target()) || !(e instanceof LivingEntity le) || le.isDead() || Anomalies.figure(e)) continue;
             RayTraceResult hit = e.getBoundingBox().rayTrace(eye.toVector(), dir, len - 0.3);
             if (hit != null) n++;
         }

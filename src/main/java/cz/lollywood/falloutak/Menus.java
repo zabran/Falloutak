@@ -1259,9 +1259,11 @@ final class Menus {
         }
         b.add(btn("Give me an artifact", "the twelve of 09c §3", x -> pick(x, "The artifact", "It acts from the hotbar.", new ArrayList<>(Anomalies.ARTIFACTS.keySet()),
                 n -> n, n -> Anomalies.ARTIFACTS.get(n).text(), (y, n) -> { say(y, anomalyCommand(y, new String[]{"give", n})); anomalyMenu(y); }, Menus::anomalyMenu)));
-        b.add(btn("The Black Rain: the warning", "the signs: the radios wake, the ravens flee, the sky darkens", x -> { say(x, rainCommand(x, new String[]{"warn"})); anomalyMenu(x); }));
-        b.add(btn("The Black Rain: the storm, " + Anomalies.RAIN_ROUNDS + " rounds", "out under the sky: rads and the acid each round; then the fields move",
+        b.add(btn("The Black Rain: " + Anomalies.WARN_SECONDS + " s of warning, then " + Anomalies.RAIN_ROUNDS + " rounds",
+                "the signs and a countdown for the players to find a roof (round 10), then out under the sky rads and the acid each round; then the fields move",
                 x -> { say(x, rainCommand(x, new String[]{"start"})); anomalyMenu(x); }));
+        b.add(btn("The Black Rain: an open warning", "only the signs: the radios wake, the ravens flee, the sky darkens; you start it", x -> { say(x, rainCommand(x, new String[]{"warn"})); anomalyMenu(x); }));
+        b.add(btn("The Black Rain: break it now", "no warning", x -> { say(x, rainCommand(x, new String[]{"start", String.valueOf(Anomalies.RAIN_ROUNDS), "0"})); anomalyMenu(x); }));
         b.add(btn("The Black Rain: stop it now", "the fields move, new artifacts in half of them", x -> { say(x, rainCommand(x, new String[]{"stop"})); anomalyMenu(x); }));
         long n = pl.zones.list.stream().filter(z -> !z.anomaly.isEmpty()).count();
         menu(g, "Anomalies", List.of(line(n + " anomal" + (n == 1 ? "y" : "ies") + " in the worlds; the Black Rain: "
@@ -1330,16 +1332,22 @@ final class Menus {
         }
     }
 
-    /** /blackrain (GMs): warn · start [rounds] · stop (09c §5, round 9: the surge as the Black Rain). */
+    /** /blackrain (GMs): warn · start [rounds] [warning seconds] · stop (09c §5, round 9: the surge as the Black Rain; round 10: the
+     *  storm comes after a warning, a minute by default, 0 = at once). */
     static String rainCommand(Player g, String[] a) {
         if (!g.hasPermission("falloutak.gm")) return "GMs only.";
         String sub = a.length == 0 ? "" : a[0].toLowerCase(Locale.ROOT);
-        return switch (sub) {
-            case "warn" -> pl.anomalies.warn(g.getWorld());
-            case "start" -> pl.anomalies.start(g.getWorld(), a.length > 1 ? Integer.parseInt(a[1]) : Anomalies.RAIN_ROUNDS);
-            case "stop" -> pl.anomalies.stop();
-            default -> "/blackrain warn | start [rounds] | stop";
-        };
+        try {
+            return switch (sub) {
+                case "warn" -> pl.anomalies.warn(g.getWorld());
+                case "start" -> pl.anomalies.start(g.getWorld(), a.length > 1 ? Integer.parseInt(a[1]) : Anomalies.RAIN_ROUNDS,
+                        a.length > 2 ? Integer.parseInt(a[2]) : Anomalies.WARN_SECONDS);
+                case "stop" -> pl.anomalies.stop();
+                default -> "/blackrain warn | start [rounds] [warning seconds, 0 = at once] | stop";
+            };
+        } catch (NumberFormatException e) {
+            return "/blackrain start [rounds] [warning seconds]: whole numbers";
+        }
     }
 
     /** Picks a gas, then its strength. */

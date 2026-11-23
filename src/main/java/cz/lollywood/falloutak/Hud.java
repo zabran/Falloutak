@@ -56,6 +56,7 @@ public final class Hud {
                         .append(Component.text(" · Rads " + Math.round(rads), NamedTextColor.YELLOW))
                         .append(Component.text(c.bleeding > 0 ? " · BLEEDING " + SheetGui.f(c.bleeding) + " Blood/round" : "", NamedTextColor.DARK_RED))
                         .append(Component.text(det, NamedTextColor.LIGHT_PURPLE))
+                        .append(Component.text(pl.anomalies.rainNote(p, c), NamedTextColor.DARK_RED))   // the Black Rain's countdown (round 10)
                         .append(Component.text(demo.contains(p.getUniqueId()) ? "  [demo clock: 1 s = 1 h]" : "", NamedTextColor.DARK_GRAY)));
             }
             Battle.cosmetic(() -> sidebar(p, c));   // the look only (the test server lacks parts of the scoreboard)

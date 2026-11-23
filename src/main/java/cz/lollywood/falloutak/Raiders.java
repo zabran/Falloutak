@@ -11,6 +11,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
@@ -63,8 +65,27 @@ final class Raiders {
         Deque<Runnable> q = s.pending;
         if (t.dying()) { q.add(() -> say(p, t.name + " lies dying.")); return; }
         t.ap = Rules.ap(t.a) + b.pl.zones.penaltyAt(le.getEyeLocation())[2];   // riot gas AP −2 (03b §3c; a raider has no mask)
+        t.ap -= t.apLoss;   // the lightning's or the cold's AP lost last round (09c §2)
+        t.apLoss = 0;
         t.moved = false;
         t.steadied = false;
+        t.held = false;
+        t.frozen = false;
+        // the anomaly he stands in acts on his body each round, whatever he does (09c §2; round 10)
+        Zones.Zone az = b.pl.anomalies.at(le.getLocation().add(0, 0.5, 0));
+        String inZone = az == null ? "" : az.id;
+        if (az != null) {
+            Anomalies.Kind k = Anomalies.KINDS.get(az.anomaly);
+            boolean centre = az.centre(le.getWorld()).distanceSquared(le.getLocation().add(0, 0.5, 0)) <= 2.25;
+            String what;
+            if (k.recharge() > 0 && b.pl.zones.round < az.spentUntil) what = "the " + k.name() + " is spent: nothing this round";
+            else {
+                if (k.recharge() > 0) az.spentUntil = b.pl.zones.round + k.recharge() + 1;
+                what = hit(le, t, az, centre);
+            }
+            q.add(() -> say(p, t.name + " in " + k.name() + ": " + what + "."));
+            if (t.dead || t.dying() || t.frozen) return;
+        }
         if (t.lostTurn) { t.lostTurn = false; q.add(() -> say(p, t.name + " loses this turn (a critical failure).")); return; }
         if (t.out) {
             if (--t.outRounds < 0) { t.out = false; q.add(() -> { say(p, t.name + " comes to (the turn spent; he still lies)."); b.label(le, t); }); }
@@ -76,6 +97,8 @@ final class Raiders {
             t.down = false;
             q.add(() -> { say(p, t.name + " gets up (3 AP)."); b.label(le, t); });
         }
+        // the mirage and the echo: his head (round 10: "Raiders inside could get insanity effect")
+        if (az != null && (az.anomaly.equals("mirage") || az.anomaly.equals("echo")) && episode(p, s, c, le, t, Anomalies.KINDS.get(az.anomaly).name())) return;
         if (t.dropped) {
             if (t.ap < 2) { q.add(() -> say(p, t.name + " reaches for his dropped gun.")); return; }
             t.ap -= 2;
@@ -85,18 +108,24 @@ final class Raiders {
         if (t.broken) { q.add(() -> say(p, t.name + "'s gun is destroyed: he has nothing to fight with.")); return; }
         if (Combat.broken(t.gunHealth)) { q.add(() -> say(p, t.name + "'s gun is broken: he has nothing to fight with.")); return; }
         if (t.ammo <= 0 && t.ap >= 2) { t.ap -= 2; t.ammo = Battle.SMG.magazine; q.add(() -> { say(p, t.name + " reloads (2 AP)."); Entity re = b.pl.getServer().getEntity(u); if (re != null) Sfx.at(re.getLocation(), "pistol.reload"); }); }
+        if (b.pl.anomalies.hidden(p.getLocation(), le.getLocation())) {   // the player inside a blind spot: unseen (09c §2)
+            q.add(() -> say(p, t.name + " cannot see you (a blind spot hides you): he waits."));
+            return;
+        }
 
         Location at = le.getLocation();
         World w = at.getWorld();
         Path.P start = new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ());
         double eyeH = le.getEyeHeight();
-        if (!canShoot(w, start, eyeH, p)) {
+        if (t.held) q.add(() -> say(p, t.name + " is held where he stands: he cannot move."));
+        else if (!canShoot(w, start, eyeH, p)) {
             Set<Path.P> taken = taken(s, u, p);
+            notice(le, t);   // the tells he sees: he walks round those, into the others
             Path.World world = new Path.World() {
                 public boolean canStand(int x, int y, int z) {
                     Block f = w.getBlockAt(x, y, z);
                     return f.isPassable() && f.getRelative(0, 1, 0).isPassable() && f.getRelative(0, -1, 0).getType().isSolid()
-                            && !taken.contains(new Path.P(x, y, z));
+                            && !taken.contains(new Path.P(x, y, z)) && !avoids(t, inZone, w, x, y, z);
                 }
                 public boolean free(int x, int y, int z) { return w.getBlockAt(x, y, z).isPassable(); }
             };
@@ -107,6 +136,13 @@ final class Raiders {
             int steps = (int) Math.floor(t.ap / per + 1e-9);
             if (Math.ceil(path.size() * per - 1e-9) <= t.ap - SHOT_AP) steps = path.size();
             steps = Math.max(0, Math.min(steps, path.size()));
+            // an anomaly he has not noticed on his way: he walks into it and his move ends there (09c §1.7, round 10)
+            Zones.Zone into = null;
+            for (int i = 0; i < steps && into == null; i++) {
+                Path.P cell = path.get(i);
+                Zones.Zone z2 = b.pl.anomalies.at(new Location(w, cell.x() + 0.5, cell.y() + 0.5, cell.z() + 0.5));
+                if (z2 != null && !z2.id.equals(inZone)) { into = z2; steps = i + 1; }
+            }
             for (int i = 0; i < steps; i++) {
                 Path.P to = path.get(i);
                 q.add(() -> moveTo(le, to, p));
@@ -115,7 +151,13 @@ final class Raiders {
                 t.ap -= (int) Math.ceil(steps * per - 1e-9);
                 t.moved = true;
                 final int n = steps;
-                q.add(() -> say(p, t.name + " moves " + n + " block(s)" + (n < path.size() ? ", toward a shot at you" : "") + "."));
+                final boolean walkedIn = into != null;
+                q.add(() -> say(p, t.name + " moves " + n + " block(s)" + (n < path.size() && !walkedIn ? ", toward a shot at you" : "") + "."));
+            }
+            if (into != null) {
+                final Zones.Zone ez = into;
+                final Path.P back = steps >= 2 ? path.get(steps - 2) : start;
+                q.add(() -> say(p, t.name + " walks into an anomaly: " + enter(le, t, ez, back, p) + "."));
             }
         }
         if (t.moved && t.ap >= SHOT_AP + 1) { t.ap -= 1; t.steadied = true; q.add(() -> say(p, t.name + " steadies himself (1 AP).")); }
@@ -126,6 +168,188 @@ final class Raiders {
             t.ap -= 2;
             q.add(() -> { if (!t.dead && !t.down && b.inBattle(p)) { t.stance = 1; say(p, t.name + " crouches (2 AP: AC +2, his shots +5)."); b.label(le, t); } });
         }
+    }
+
+    // ------------------------------------------------------------------ the anomalies (09c; round 10)
+    /*
+     * Marek 11-23, `09b` round 10, verbatim: *"raiders walking into anomalies - it should happen and they should get affected by the
+     * anomaly."* · *"Raiders inside could get insanity effect."* A raider sees an anomaly's tell as a person would in a fight (09c §1.2,
+     * §1.7): d100 ≤ 10 × his Perception, once an anomaly a fight; the blind spot never. He walks round the ones he noticed and into the
+     * others, and his move ends there; walking in, its first hit (Lucky Escape 2 × Luck % jerks him back); at the start of each of his
+     * turns inside, its round. His body has no sheet: Normal damage through his DT and DR, the rest whole; no Pain, Hypothermia or thirst
+     * [the raider's forms mine, EXAMPLE; the dice 09c §2's].
+     */
+    /** The tells he sees, among the anomalies within his search. */
+    void notice(LivingEntity le, Battle.Target t) {
+        Location me = le.getLocation();
+        for (Zones.Zone z : b.pl.zones.list) {
+            if (z.anomaly.isEmpty() || !z.world.equals(me.getWorld().getName()) || t.noticed.contains(z.id) || t.missed.contains(z.id)) continue;
+            if (z.centre(me.getWorld()).distanceSquared(me) > SEARCH * SEARCH) continue;
+            boolean saw = !z.anomaly.equals("blind") && 1 + b.rnd.nextInt(100) <= 10 * t.a[Rules.P];
+            (saw ? t.noticed : t.missed).add(z.id);
+        }
+    }
+
+    /** A cell inside an anomaly he noticed (and is not already in): he will not step there. */
+    boolean avoids(Battle.Target t, String inZone, World w, int x, int y, int z) {
+        if (t.noticed.isEmpty()) return false;
+        Zones.Zone a = b.pl.anomalies.at(new Location(w, x + 0.5, y + 0.5, z + 0.5));
+        return a != null && !a.id.equals(inZone) && t.noticed.contains(a.id);
+    }
+
+    /** Walking in (09c §1.5): Lucky Escape at 2 × Luck % (he jerks back to where he came from), else its first hit. */
+    String enter(LivingEntity le, Battle.Target t, Zones.Zone z, Path.P back, Player p) {
+        Anomalies.Kind k = Anomalies.KINDS.get(z.anomaly);
+        if (t.dead) return k.name();
+        int d = 1 + b.rnd.nextInt(100), luck = t.a[Rules.L];
+        if ((k.hurts() || k.recharge() > 0) && d <= 2 * luck) {
+            moveTo(le, back, p);
+            return k.name() + ", LUCKY ESCAPE (d100 " + d + " ≤ 2 × Luck " + luck + "): he jerks back out of it";
+        }
+        boolean centre = z.centre(le.getWorld()).distanceSquared(le.getLocation().add(0, 0.5, 0)) <= 2.25;
+        if (k.recharge() > 0) {
+            if (b.pl.zones.round < z.spentUntil) return k.name() + " (spent: nothing happens)";
+            z.spentUntil = b.pl.zones.round + k.recharge() + 1;
+        }
+        return k.name() + ": " + hit(le, t, z, centre);
+    }
+
+    private int harm(LivingEntity le, Battle.Target t, int raw, boolean normal, StringBuilder log) {
+        int dmg = normal ? Combat.damage(raw, 1, 0, 0, t.dt, t.dr, false) : raw;
+        b.hurt(le, t, dmg, Combat.critEffects(Rules.Part.TORSO, 0, t.a), false, 0, log);
+        return dmg;
+    }
+
+    /** What an anomaly does to a raider's body, once (09c §2's dice). Returns what happened. */
+    String hit(LivingEntity le, Battle.Target t, Zones.Zone z, boolean centre) {
+        Random rnd = b.rnd;
+        StringBuilder log = new StringBuilder();
+        Location mid = z.centre(le.getWorld());
+        String what = switch (z.anomaly) {
+            case "throw" -> {
+                int d = harm(le, t, Anomalies.dice(rnd, 3, 10), true, log);
+                if (!t.dead) { t.down = true; t.stance = 0; b.knockback(mid, le, Anomalies.dice(rnd, 2, 6), log); b.label(le, t); }
+                yield "the throw hurls him, " + d + " HP, knocked down";
+            }
+            case "pull" -> {
+                if (!centre) {
+                    Vector to = mid.toVector().subtract(le.getLocation().toVector()).setY(0);
+                    if (to.lengthSquared() > 1e-6) {
+                        Location l = le.getLocation().add(to.normalize());
+                        if (l.getBlock().isPassable() && l.clone().add(0, 1, 0).getBlock().isPassable()) le.teleport(l);
+                    }
+                    int d = 1 + rnd.nextInt(100), need = 10 * t.a[Rules.S];
+                    t.held = d > need;
+                    yield "the pull drags him a block toward its heart; " + (t.held ? "held (Strength, d100 " + d + " > " + need + ")" : "he tears free (Strength, d100 " + d + " ≤ " + need + ")");
+                }
+                t.held = true;
+                yield "crushed at the pull's heart, " + harm(le, t, Anomalies.dice(rnd, 2, 10), true, log) + " HP";
+            }
+            case "lightning" -> {
+                Battle.cosmetic(() -> le.getWorld().strikeLightningEffect(le.getLocation()));
+                t.apLoss = 4;
+                yield "lightning, " + harm(le, t, Anomalies.dice(rnd, 4, 8), false, log) + " HP, AP −4 next turn";
+            }
+            case "heat" -> "the heat, " + harm(le, t, Anomalies.dice(rnd, 2, 10), false, log) + " HP";
+            case "acid" -> "the acid fog on his skin, " + harm(le, t, 2 * Anomalies.dice(rnd, 1, 6), false, log) + " HP";
+            case "time" -> {
+                t.frozen = true;
+                if (t.bleeding > 0) { t.hp = -t.a[Rules.E] - 1; t.dead = true; b.label(le, t); yield "six hours pass for his body in a round: he bleeds out, dead"; }
+                yield "six hours pass for his body in a round: he stands frozen";
+            }
+            case "cold" -> { t.apLoss = Math.max(t.apLoss, 2); yield "the cold numbs him, AP −2 next turn"; }
+            case "growth" -> {
+                int d = 1 + rnd.nextInt(100);
+                if (d <= t.skill) yield "he tears free of the growth (Athletics " + t.skill + ", d100 " + d + ")";
+                t.held = true;
+                yield "held by the growth (d100 " + d + "): the thorns, " + harm(le, t, Anomalies.dice(rnd, 1, 6), true, log) + " HP";
+            }
+            case "lift" -> {
+                t.held = true;
+                Battle.cosmetic(() -> le.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 40, 0, false, false)));
+                yield "the lift raises him, he hangs and cannot move";
+            }
+            case "magnet" -> "the magnet tugs at his gun: −30 to hit from inside";
+            case "blind" -> "blind inside, unseen from outside";
+            case "radio" -> "his radio wakes and blares";
+            case "echo" -> "day D's voices all round him";
+            case "mirage" -> "figures move round him that are not there";
+            default -> "";
+        };
+        return what + (log.length() == 0 ? "" : " (" + log.toString().trim() + ")");
+    }
+
+    /**
+     * His head in the mirage or the echo (round 10: *"Raiders inside could get insanity effect"*): at the start of his turn d100 ≤ 10 ×
+     * Perception − 20 keeps it (the PCs' −20); else one of the glowing one's episodes (03b §7b), for this turn [the use mine, EXAMPLE].
+     * Returns true when his turn is spent.
+     */
+    private boolean episode(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t, String where) {
+        Deque<Runnable> q = s.pending;
+        int need = 10 * t.a[Rules.P] - 20, d = 1 + b.rnd.nextInt(100);
+        if (d <= need) { q.add(() -> say(p, t.name + " keeps his head in " + where + " (Perception, d100 " + d + " ≤ " + need + ").")); return false; }
+        String head = t.name + " loses his head in " + where + " (Perception, d100 " + d + " > " + need + "): ";
+        switch (b.rnd.nextInt(6)) {
+            case 0 -> q.add(() -> say(p, head + "he freezes, staring at nothing (his turn lost)."));
+            case 1 -> {   // flees: up to 4 blocks straight away from the player
+                Vector away = le.getLocation().toVector().subtract(p.getLocation().toVector()).setY(0);
+                if (away.lengthSquared() < 1e-6) away = new Vector(1, 0, 0);
+                away.normalize();
+                Location from = le.getLocation();
+                int n = 0;
+                for (int i = 1; i <= 4; i++) {
+                    Location l = from.clone().add(away.clone().multiply(i));
+                    Block f = l.getBlock();
+                    if (!f.isPassable() || !f.getRelative(0, 1, 0).isPassable() || !f.getRelative(0, -1, 0).getType().isSolid()) break;
+                    Path.P to = new Path.P(l.getBlockX(), l.getBlockY(), l.getBlockZ());
+                    q.add(() -> moveTo(le, to, p));
+                    n++;
+                }
+                final int fled = n;
+                q.add(() -> say(p, head + "he flees from what he sees" + (fled > 0 ? ", " + fled + " block(s)" : ", but has nowhere to go") + "."));
+            }
+            case 2 -> q.add(() -> turnOn(p, s, c, le, t, head));
+            case 3 -> q.add(() -> say(p, head + "he shouts and babbles at the voices (his turn lost; everyone hears where he is)."));
+            case 4 -> {
+                int n = Math.min(t.ap / SHOT_AP, t.ammo);
+                t.ammo -= n;
+                q.add(() -> { say(p, head + (n > 0 ? "he empties " + n + " shot(s) into figures that are not there." : "he aims at figures that are not there.")); if (n > 0) Sfx.at(le.getLocation(), "pistol.burst"); });
+            }
+            default -> {
+                t.out = true;
+                t.outRounds = 0;
+                q.add(() -> { say(p, head + "a vision takes him: he drops, out cold (the next turn spent coming to)."); b.label(le, t); });
+            }
+        }
+        return true;
+    }
+
+    /** The episode's "attacks the nearest, friend or foe": the nearest other raider he can shoot at, if nearer than the player. */
+    private void turnOn(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t, String head) {
+        LivingEntity best = null;
+        Battle.Target bt = null;
+        double bd = le.getLocation().distanceSquared(p.getLocation());
+        for (UUID o : s.dummies) {
+            Battle.Target ot = s.targets.get(o);
+            Entity oe = b.pl.getServer().getEntity(o);
+            if (ot == null || ot == t || ot.dead || !(oe instanceof LivingEntity ole)) continue;
+            double dd = le.getLocation().distanceSquared(ole.getLocation());
+            if (dd < bd && dd <= Battle.SMG.range * Battle.SMG.range) { bd = dd; best = ole; bt = ot; }
+        }
+        if (best == null) { say(p, head + "he turns on the nearest: you."); shoot(p, s, c, le, t); return; }
+        if (t.ammo <= 0) { say(p, head + "he turns on " + bt.name + ", but his gun is empty."); return; }
+        t.ammo--;
+        Sfx.at(le.getLocation(), "pistol.single");
+        int d = 1 + b.rnd.nextInt(100);
+        StringBuilder log = new StringBuilder(head + "he turns his gun on " + bt.name + " (d100 " + d + " vs his " + t.skill + "): ");
+        if (d > t.skill) log.append("a miss.");
+        else {
+            Battle.Weapon w = Battle.SMG;
+            int dmg = Combat.damage(w.minDmg + b.rnd.nextInt(w.maxDmg - w.minDmg + 1), 1, w.ammoDamage, w.ammoPenetration, bt.dt, bt.dr, false);
+            log.append(dmg).append(" HP.");
+            b.hurt(best, bt, dmg, Combat.critEffects(Rules.Part.TORSO, 0, bt.a), false, 0, log);
+        }
+        say(p, log.toString());
     }
 
     /** Where the others stand (the player, the other raiders): nobody walks into them. */
@@ -166,7 +390,7 @@ final class Raiders {
         Vector dir = to.clone().normalize();
         int n = 0;
         for (Entity e : eye.getWorld().getNearbyEntities(eye.clone().add(to.clone().multiply(0.5)), len / 2 + 1, len / 2 + 1, len / 2 + 1)) {
-            if (e.equals(shooter) || e.equals(target) || !(e instanceof LivingEntity le) || le.isDead()) continue;
+            if (e.equals(shooter) || e.equals(target) || !(e instanceof LivingEntity le) || le.isDead() || Anomalies.figure(e)) continue;
             if (e.getBoundingBox().rayTrace(eye.toVector(), dir, len - 0.3) != null) n++;
         }
         return n;
@@ -174,9 +398,10 @@ final class Raiders {
 
     /** One shot at the player, by the rules the player shoots by. */
     private void shoot(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t) {
-        if (!b.inBattle(p) || t.dead || t.dying() || t.down || t.out || t.dropped || t.broken || Combat.broken(t.gunHealth) || t.ammo <= 0) return;
+        if (!b.inBattle(p) || t.dead || t.dying() || t.down || t.out || t.frozen || t.dropped || t.broken || Combat.broken(t.gunHealth) || t.ammo <= 0) return;
         Location at = le.getLocation();
-        if (!canShoot(le.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), p)) {
+        if (!canShoot(le.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), p)
+                || b.pl.anomalies.hidden(p.getLocation(), at)) {
             say(p, t.name + " has lost sight of you.");
             return;
         }
@@ -195,6 +420,13 @@ final class Raiders {
         sh.weaponPerk = w.perk;
         sh.blind = t.blind;
         if (gas[1] != 0) { Zones.Zone z = b.pl.zones.at(eye); sh.extra.put(z != null ? z.gas : "gas", gas[1]); }
+        Zones.Zone az = b.pl.anomalies.at(at.clone().add(0, 0.5, 0));   // the anomaly he shoots from (09c §2, round 10)
+        if (az != null) switch (az.anomaly) {
+            case "magnet" -> sh.extra.put("the magnet", -30);
+            case "blind" -> sh.blind = true;
+            case "echo" -> sh.skill -= 10;
+            default -> { }
+        }
         Battle.veil(b.pl.zones, eye, p.getEyeLocation(), sh, false);   // the Trhač's pollen hides the player from him too
         sh.part = Rules.Part.TORSO;
         sh.lightLevel = p.getEyeLocation().getBlock().getLightLevel();

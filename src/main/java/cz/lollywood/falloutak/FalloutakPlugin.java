@@ -117,7 +117,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
     }
 
     @Override
-    public void onDisable() { battle.stopAll(); saveAll(); }
+    public void onDisable() { battle.stopAll(); anomalies.clearAllFigures(); saveAll(); }
 
     /** /sounds: Fallout 2's sounds (the player's own private pack) or Minecraft's, a man's or a woman's body, a test, the list. */
     String soundsCommand(Player p, String[] a) {

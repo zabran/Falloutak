@@ -132,6 +132,12 @@ final class Sfx {
         if (p != null) play(p, p.getLocation(), key);
     }
 
+    /** Heard by one player only, from a place (the echo's voices round him, 09c §2, round 10). */
+    static void toAt(Player p, Location l, String key) {
+        row(key);
+        if (p != null && l != null) play(p, l, key);
+    }
+
     private static void play(Player p, Location l, String key) {
         Row r = row(key);
         if (recorder != null) recorder.accept(key, p);

@@ -8,7 +8,21 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.entity.Ageable;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Hoglin;
+import org.bukkit.entity.Husk;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Pillager;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Ravager;
+import org.bukkit.entity.Spider;
+import org.bukkit.entity.Villager;
+import org.bukkit.entity.Vindicator;
+import org.bukkit.entity.WanderingTrader;
+import org.bukkit.entity.Witch;
+import org.bukkit.entity.Zombie;
+import org.bukkit.entity.ZombieVillager;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -119,6 +133,7 @@ final class Anomalies {
         String before = c.anomalyZone;
         c.anomalyZone = z == null ? "" : z.id;
         c.anomaly = z == null ? "" : z.anomaly;
+        if (z == null || !z.anomaly.equals("mirage")) clearFigures(p);
         if (z == null) {
             c.effects.removeIf(e -> e.slot().equals("anomaly"));
             return;
@@ -130,7 +145,7 @@ final class Anomalies {
         if (in == null) c.effects.removeIf(e -> e.slot().equals("anomaly")); else c.add(in);
         physical(p, c, z);
         if (!z.id.equals(before)) {
-            String s = enter(c, z, pl.zones.round, rnd);
+            String s = z.anomaly.equals("mirage") ? mirageEnter(p, c, z) : enter(c, z, pl.zones.round, rnd);
             p.sendMessage(Component.text(s, NamedTextColor.LIGHT_PURPLE));
             pl.zones.save();
         }
@@ -141,6 +156,7 @@ final class Anomalies {
             z.artifact = "";
             pl.zones.save();
         }
+        if (z.anomaly.equals("mirage")) mirage(p, z);
     }
 
     /** What a kind does to the sheet while one is inside (one effect in the slot "anomaly"), or null. */
@@ -177,7 +193,7 @@ final class Anomalies {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0, false, false));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 30, 0, false, false));
             }
-            case "echo" -> { if (!c.deaf()) p.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 0, false, false)); }
+            case "echo" -> { if (!c.deaf()) { p.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 0, false, false)); echo(p, c); } }
             default -> { }
         }
         String fx = c.anomalyFx;
@@ -261,7 +277,7 @@ final class Anomalies {
                 c.survival.put(Rules.Stat.PAIN, Math.min(100, c.survival.getOrDefault(Rules.Stat.PAIN, 0.0) + 5));
                 return "held by the growth (Athletics, d100 " + d + "): the thorns " + h + ", Pain +5; spores: one disease roll (the GM; a blade cuts free, 4 AP; fire clears it)";
             }
-            case "mirage" -> { return "the mirage: a Perception check (−20) sees through it; else shots at it are wasted and the way chosen is wrong (the GM)"; }
+            case "mirage" -> { return "the mirage: a Perception check (−20) sees through it; else its figures show, monsters and people that are not there, and shots at them are wasted"; }
             case "radio" -> { return "the radio ghost: electronics play loud (Sneak −30 until switched off); a fusion microcell loses a shot a round; an implant switches off on 1 of d6; robots an Intelligence check"; }
             case "magnet" -> { return "the magnet: firearms −30 to hit and jam on 1-2 of d6; a metal weapon pulled from the hand (a Strength check a round); power armour stuck (moving AP ×2)"; }
             case "blind" -> { return "the blind spot: blind inside, unseen from outside (only area attacks reach you)"; }
@@ -412,6 +428,168 @@ final class Anomalies {
         c.belt(names, still);
     }
 
+    // ------------------------------------------------------------------ the mirage and the echo (round 10)
+    /*
+     * Marek 11-23, `09b` round 10, verbatim: *"the mirage - I think monsters and other people would work there. The audio halucination
+     * should also play sounds. Raiders inside could get insanity effect."* The mirage's figures are mobs only their viewer sees (hidden from
+     * everyone else, no AI, silent, harmless): a shot at one is spent on nothing (Battle), reaching one dissolves it. The echo (the audio
+     * hallucination) plays day D's sounds round its listener. The raiders' insanity: {@link Raiders}. [the figures, the sounds and their
+     * rates mine, EXAMPLE]
+     */
+    static final String FIGURE = "fk_mirage_figure";
+    /** Monsters and people (Marek's), as the server has them: a ghoul, a husk, the Trhač (a hoglin), a giant spider, a beast; a raider,
+     *  a survivor, a brute, an old woman, a ghoul villager, a trader. */
+    static final List<Class<? extends Mob>> MONSTERS = List.of(Zombie.class, Husk.class, Hoglin.class, Spider.class, Ravager.class),
+            PEOPLE = List.of(Pillager.class, Villager.class, Vindicator.class, Witch.class, ZombieVillager.class, WanderingTrader.class);
+    /** At most this many figures at once for one viewer; each lasts at most {@link #FIGURE_TICKS}. */
+    static final int FIGURES = 3, FIGURE_TICKS = 400;
+    /** Each viewer's figures. */
+    final Map<UUID, List<UUID>> figures = new HashMap<>();
+    /** The mirages a player has seen through (zone ids): no figures for him there. */
+    final Map<UUID, Set<String>> seenThrough = new HashMap<>();
+
+    /** A mirage's figure (round 10). */
+    static boolean figure(Entity e) { return e != null && e.getScoreboardTags().contains(FIGURE); }
+
+    /** Whether {@code p} can see (and so aim at) {@code e}: anything but another viewer's figure. */
+    static boolean seenBy(Entity e, Player p) { return !figure(e) || e.getScoreboardTags().contains(FIGURE + ":" + p.getUniqueId()); }
+
+    /**
+     * Walking into the mirage (09c §2): a Perception check (−20; d100 ≤ 10 × P − 20 [the check's form mine]) sees through it and he is told
+     * so; a failed one is NOT told (the figures are the test): only the GMs near hear it.
+     */
+    String mirageEnter(Player p, Character c, Zones.Zone z) {
+        int per = c.attr(Rules.P, false), need = 10 * per - 20, d = 1 + rnd.nextInt(100);
+        Set<String> seen = seenThrough.computeIfAbsent(p.getUniqueId(), u -> new HashSet<>());
+        if (d <= need) {
+            seen.add(z.id);
+            return "AN ANOMALY: " + KINDS.get("mirage").name() + " (" + KINDS.get("mirage").tell() + "). You see through it (Perception, d100 "
+                    + d + " ≤ " + need + "): whatever moves here is not there.";
+        }
+        seen.remove(z.id);
+        for (Player g : p.getWorld().getPlayers())
+            if (g != p && g.hasPermission("falloutak.gm") && g.getLocation().distanceSquared(p.getLocation()) <= 64 * 64)
+                g.sendMessage(Component.text(p.getName() + " is in a mirage and did not see through it (Perception, d100 " + d + " > " + need
+                        + "): he sees its figures, monsters and people that are not there.", NamedTextColor.LIGHT_PURPLE));
+        return "Something moves at the edge of your sight.";
+    }
+
+    /** Each second in a mirage he has not seen through: up to {@link #FIGURES} figures at 5-9 blocks; monsters come at him, people stare;
+     *  one he reaches dissolves; each is gone after 20 s. */
+    void mirage(Player p, Zones.Zone z) {
+        if (seenThrough.getOrDefault(p.getUniqueId(), Set.of()).contains(z.id)) { clearFigures(p); return; }
+        List<UUID> mine = figures.computeIfAbsent(p.getUniqueId(), u -> new ArrayList<>());
+        Location me = p.getLocation();
+        for (Iterator<UUID> it = mine.iterator(); it.hasNext(); ) {
+            Entity e = Bukkit.getEntity(it.next());
+            if (e == null || e.isDead() || !e.getWorld().equals(me.getWorld()) || e.getTicksLived() > FIGURE_TICKS || e.getLocation().distanceSquared(me) < 4) {
+                if (e != null) e.remove();
+                it.remove();
+                continue;
+            }
+            Location at = e.getLocation();
+            Vector to = me.toVector().subtract(at.toVector()).setY(0);
+            if (MONSTERS.stream().anyMatch(k -> k.isInstance(e)) && to.lengthSquared() > 1e-6) at.add(to.clone().normalize().multiply(0.4));
+            at.setDirection(to.lengthSquared() > 1e-6 ? to : new Vector(1, 0, 0));
+            e.teleport(at);
+            if (rnd.nextInt(4) == 0) { Sound s = voice(e); Battle.cosmetic(() -> p.playSound(e.getLocation(), s, 0.9f, 1f)); }
+        }
+        if (mine.size() < FIGURES && rnd.nextInt(3) == 0) {
+            double ang = rnd.nextDouble() * 2 * Math.PI, d = 5 + rnd.nextDouble() * 4;
+            int x = (int) Math.floor(me.getX() + Math.cos(ang) * d), zz = (int) Math.floor(me.getZ() + Math.sin(ang) * d);
+            Location l = new Location(me.getWorld(), x + 0.5, ground(me.getWorld(), x, zz, me.getBlockY()) + 1, zz + 0.5);
+            l.setDirection(me.toVector().subtract(l.toVector()).setY(0));
+            List<Class<? extends Mob>> pool = rnd.nextBoolean() ? MONSTERS : PEOPLE;
+            spawnFigure(p, l, pool.get(rnd.nextInt(pool.size())));
+        }
+    }
+
+    /** A figure of the mirage for one viewer, or null where the server will not spawn that mob. */
+    <T extends Mob> T spawnFigure(Player viewer, Location l, Class<T> cls) {
+        try {
+            T f = l.getWorld().spawn(l, cls, e -> {   // its tags first: the viewer's figures are known by them
+                e.addScoreboardTag(FIGURE);
+                e.addScoreboardTag(FIGURE + ":" + viewer.getUniqueId());
+                Battle.cosmetic(() -> e.setVisibleByDefault(false));   // only its viewer sees it
+                Battle.cosmetic(() -> e.setAI(false));
+                Battle.cosmetic(() -> e.setSilent(true));
+                Battle.cosmetic(() -> e.setInvulnerable(true));
+                Battle.cosmetic(() -> e.setCollidable(false));
+                Battle.cosmetic(() -> e.setPersistent(false));
+                Battle.cosmetic(() -> e.setRemoveWhenFarAway(true));
+                Battle.cosmetic(() -> { if (e instanceof Hoglin h) h.setImmuneToZombification(true); });
+                Battle.cosmetic(() -> { if (e instanceof Ageable a) a.setAdult(); });
+            });
+            Battle.cosmetic(() -> viewer.showEntity(pl, f));
+            figures.computeIfAbsent(viewer.getUniqueId(), u -> new ArrayList<>()).add(f.getUniqueId());
+            return f;
+        } catch (RuntimeException ex) {
+            return null;   // a mob the server will not spawn here
+        }
+    }
+
+    /** What a figure sounds like (to its viewer only). */
+    static Sound voice(Entity e) {
+        if (e instanceof Husk) return Sound.ENTITY_HUSK_AMBIENT;
+        if (e instanceof ZombieVillager) return Sound.ENTITY_ZOMBIE_VILLAGER_AMBIENT;
+        if (e instanceof Zombie) return Sound.ENTITY_ZOMBIE_AMBIENT;
+        if (e instanceof Hoglin) return Sound.ENTITY_HOGLIN_ANGRY;
+        if (e instanceof Spider) return Sound.ENTITY_SPIDER_AMBIENT;
+        if (e instanceof Ravager) return Sound.ENTITY_RAVAGER_ROAR;
+        if (e instanceof Pillager) return Sound.ENTITY_PILLAGER_AMBIENT;
+        if (e instanceof Vindicator) return Sound.ENTITY_VINDICATOR_AMBIENT;
+        if (e instanceof Witch) return Sound.ENTITY_WITCH_AMBIENT;
+        if (e instanceof WanderingTrader) return Sound.ENTITY_WANDERING_TRADER_AMBIENT;
+        return Sound.ENTITY_VILLAGER_AMBIENT;
+    }
+
+    /** His figures vanish (he left the mirage, saw through it, or went away). */
+    void clearFigures(Player p) {
+        List<UUID> mine = figures.remove(p.getUniqueId());
+        if (mine != null) for (UUID u : mine) { Entity e = Bukkit.getEntity(u); if (e != null) e.remove(); }
+    }
+
+    /** A figure shot at or struck dissolves. */
+    void dissolve(Entity e) {
+        for (List<UUID> l : figures.values()) l.remove(e.getUniqueId());
+        e.remove();
+    }
+
+    /** Every figure gone (the plugin stops). */
+    void clearAllFigures() {
+        for (UUID v : new ArrayList<>(figures.keySet())) {
+            List<UUID> mine = figures.remove(v);
+            for (UUID u : mine) { Entity e = Bukkit.getEntity(u); if (e != null) e.remove(); }
+        }
+    }
+
+    /** The echo's sounds (round 10: *"The audio halucination should also play sounds."*): about one every 3 seconds, from 3-8 blocks
+     *  round him, to him alone: day D's siren and bells, voices, a crowd, cries, gunfire, steps behind him, far blasts [the list mine]. */
+    static final String[] ECHO_KEYS = {"pistol.burst", "pistol.single", "step", "hurt.male", "dying.male"};
+    static final Sound[] ECHO_SOUNDS = {Sound.EVENT_RAID_HORN, Sound.BLOCK_BELL_USE, Sound.ENTITY_VILLAGER_AMBIENT, Sound.ENTITY_VILLAGER_NO,
+            Sound.ENTITY_PILLAGER_AMBIENT, Sound.ENTITY_WITCH_CELEBRATE, Sound.ENTITY_ZOMBIE_VILLAGER_AMBIENT, Sound.ENTITY_GENERIC_EXPLODE,
+            Sound.AMBIENT_CAVE};
+
+    void echo(Player p, Character c) {
+        if (rnd.nextInt(3) != 0) return;
+        Location me = p.getLocation();
+        double ang = rnd.nextDouble() * 2 * Math.PI, d = 3 + rnd.nextDouble() * 5;
+        Location at = me.clone().add(Math.cos(ang) * d, rnd.nextDouble() * 2, Math.sin(ang) * d);
+        int k = rnd.nextInt(ECHO_KEYS.length + ECHO_SOUNDS.length);
+        if (k < ECHO_KEYS.length) Battle.cosmetic(() -> Sfx.toAt(p, at, ECHO_KEYS[k]));
+        else {
+            Sound s = ECHO_SOUNDS[k - ECHO_KEYS.length];
+            float vol = s == Sound.ENTITY_GENERIC_EXPLODE ? 0.25f : s == Sound.EVENT_RAID_HORN ? 0.5f : 0.9f;
+            Battle.cosmetic(() -> p.playSound(at, s, vol, 0.8f + rnd.nextFloat() * 0.3f));
+        }
+    }
+
+    /** Someone at {@code target} is unseen from {@code from}: he is in a blind spot that {@code from} is not in (09c §2). */
+    boolean hidden(Location target, Location from) {
+        Zones.Zone z = at(target.clone().add(0, 0.5, 0));
+        return z != null && z.anomaly.equals("blind") && !z.contains(from.clone().add(0, 0.5, 0));
+    }
+
     // ------------------------------------------------------------------ the GM's
     /** A field (09c §1.1): {@code n} anomalies of mixed kinds within {@code radius} blocks of him on the ground, 1-3 artifacts in them. */
     List<Zones.Zone> field(Player g, int radius, int n) {
@@ -459,18 +637,58 @@ final class Anomalies {
             "The sky in the west turns brown-black; the wind drops; a smell of soot and burnt oil.",
             "The first black drops fall, oily on the skin. FIND A ROOF."};
 
-    /** The GM's warning: the signs in that world (09c §5's: the radio ghost, the ravens fleeing), before the storm breaks. */
+    /**
+     * The warning before the storm breaks by itself (Marek 11-23, round 10, verbatim: *"The Black Rain's numbers - yes, but it should first
+     * give some warning time before it starts, so that players can find somewhere to hide."*) [the length mine, EXAMPLE]: {@link
+     * #WARN_SECONDS} of real time (the players walk in real time), and while anyone in that world is in rounds, also {@link #WARN_ROUNDS}
+     * of the scene's rounds (a fight's minute), so a fight is not caught out by the clock.
+     */
+    static final int WARN_SECONDS = 60, WARN_ROUNDS = 10;
+    /** The countdown's length in seconds (0 = the GM's open warning, no countdown); the scene's round when it began; the storm's rounds. */
+    int warnFor = 0, rainRounds = RAIN_ROUNDS;
+    long warnRound = 0;
+    private int signShown = -1;
+
+    /** The GM's open warning: the signs in that world (09c §5's: the radio ghost, the ravens fleeing); he starts the storm himself. */
     String warn(World w) {
+        if (rainPhase != 1) { rainTicks = 0; signShown = -1; warnRound = pl.zones.round; }
         rainPhase = 1;
         rainWorld = w.getName();
-        rainTicks = 0;
+        warnFor = 0;
         Battle.cosmetic(() -> w.setStorm(true));
         return "The Black Rain is coming to " + w.getName() + ": the signs show every few seconds; start the storm when you like.";
     }
 
+    /**
+     * The storm (09c §5), after a warning of {@code warnSeconds} (round 10; 0 = it breaks at once): the signs come through the warning, the
+     * players see the countdown, then it breaks by itself for {@code rounds}. Started during an open warning, the time already warned counts.
+     */
+    String start(World w, int rounds, int warnSeconds) {
+        if (warnSeconds <= 0) return breakStorm(w, rounds);
+        if (rainPhase != 1) { rainTicks = 0; signShown = -1; warnRound = pl.zones.round; }
+        rainPhase = 1;
+        rainWorld = w.getName();
+        warnFor = Math.max(rainTicks + 1, warnSeconds);
+        rainRounds = Math.max(1, rounds);
+        Battle.cosmetic(() -> w.setStorm(true));
+        return "The Black Rain is coming to " + w.getName() + ": " + (warnFor - rainTicks) + " s of warning (and " + WARN_ROUNDS
+                + " rounds for anyone in rounds), then " + rainRounds + " rounds of it. The players see the countdown.";
+    }
+
+    /** The storm breaks at once. */
+    String start(World w, int rounds) { return breakStorm(w, rounds); }
+
+    /** What the action bar says of the rain to a player in its world: the countdown, or the storm over him. */
+    String rainNote(Player p, Character c) {
+        if (rainPhase == 0 || !p.getWorld().getName().equals(rainWorld)) return "";
+        if (rainPhase == 1) return warnFor > 0 ? " · THE BLACK RAIN in " + Math.max(0, warnFor - rainTicks) + " s: find a roof" : "";
+        return c.rainExposed && !c.wearing.contains("Hazard suit") ? " · IN THE BLACK RAIN: get under a roof" : "";
+    }
+
     /** The storm breaks for {@code rounds} of the scene's rounds (a fight's, or the GM's Pass time for everyone). */
-    String start(World w, int rounds) {
+    private String breakStorm(World w, int rounds) {
         rainPhase = 2;
+        warnFor = 0;
         rainWorld = w.getName();
         rainEnd = pl.zones.round + Math.max(1, rounds);
         Battle.cosmetic(() -> { w.setStorm(true); w.setThundering(true); });
@@ -510,11 +728,19 @@ final class Anomalies {
         if (w == null) { rainPhase = 0; return; }
         rainTicks++;
         if (rainPhase == 1) {
-            if (rainTicks % 6 != 1) return;
-            String line = WARNINGS[Math.min(WARNINGS.length - 1, rainTicks / 6)];
-            for (Player p : w.getPlayers()) {
-                p.sendMessage(Component.text(line, NamedTextColor.GRAY));
-                Battle.cosmetic(() -> p.playSound(p.getLocation(), rainTicks / 6 == 1 ? Sound.ENTITY_BAT_TAKEOFF : Sound.BLOCK_BEACON_AMBIENT, 0.8f, 0.6f));
+            // the signs: every 6 s in an open warning; spread over a countdown (the last one in its final quarter)
+            int sign = warnFor > 0 ? Math.min(WARNINGS.length - 1, (rainTicks - 1) * WARNINGS.length / warnFor) : (rainTicks - 1) / 6;
+            if (sign != signShown && (warnFor > 0 || (rainTicks - 1) % 6 == 0)) {
+                signShown = sign;
+                String line = WARNINGS[Math.min(WARNINGS.length - 1, sign)];
+                for (Player p : w.getPlayers()) {
+                    p.sendMessage(Component.text(line, NamedTextColor.GRAY));
+                    Battle.cosmetic(() -> p.playSound(p.getLocation(), sign == 1 ? Sound.ENTITY_BAT_TAKEOFF : Sound.BLOCK_BEACON_AMBIENT, 0.8f, 0.6f));
+                }
+            }
+            if (warnFor > 0 && rainTicks >= warnFor && (!anyInRounds(w) || pl.zones.round >= warnRound + WARN_ROUNDS)) {
+                String s = breakStorm(w, rainRounds);
+                for (Player p : Bukkit.getOnlinePlayers()) if (p.hasPermission("falloutak.gm")) p.sendMessage(Component.text(s, NamedTextColor.GOLD));
             }
             return;
         }
@@ -535,6 +761,11 @@ final class Anomalies {
             Battle.cosmetic(() -> p.spawnParticle(Particle.DUST, l.clone().add(0, 2, 0), 12, 3, 2, 3, 0.0, new Particle.DustOptions(Color.fromRGB(20, 18, 16), 1.6f)));
             if (rnd.nextInt(12) == 0) Battle.cosmetic(() -> p.playSound(l, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.4f, 0.7f));
         }
+    }
+
+    private boolean anyInRounds(World w) {
+        for (Player p : w.getPlayers()) if (pl.battle.inBattle(p)) return true;
+        return false;
     }
 
     /** A round out in the Black Rain ({@link Hud#round}): rads and the acid on the skin, unless the hazard suit keeps it off. */

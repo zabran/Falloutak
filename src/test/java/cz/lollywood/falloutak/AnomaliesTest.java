@@ -204,7 +204,7 @@ class AnomaliesTest extends MockGame {
         plugin.character(roofed);
         Zones.Zone z = plugin.zones.anomaly(new Location(world, 30.5, 5, 30.5), 2, "heat");
         double x0 = z.x1, z0 = z.z1;
-        assertTrue(Menus.rainCommand(gm, new String[]{"start", "3"}).startsWith("The Black Rain falls"));
+        assertTrue(Menus.rainCommand(gm, new String[]{"start", "3", "0"}).startsWith("The Black Rain falls"));
         plugin.anomalies.rainTick();
         assertTrue(plugin.character(out).rainExposed);
         assertFalse(plugin.character(roofed).rainExposed);
