@@ -1098,8 +1098,9 @@ final class Menus {
         b.add(btn("Add rads", "a dose of 1-100 rads (a slider), through his Rad resistance", x -> addRads(x, o)));
         if (o.player() != null) {
             List<String> prem = new ArrayList<>();
-            for (Data.Template t : Data.TEMPLATES.values()) if (t.premium()) prem.add(t.name());
-            b.add(btn("Grant a premium template", "his CoS points: /sheet create offers it", x -> pick(x, "Premium template for " + o.name(), "Paid from his CoS points.",
+            for (Data.Template t : Data.TEMPLATES.values()) if (t.premium() || t.faction()) prem.add(t.name());
+            b.add(btn("Grant a premium or faction template", "his CoS points, or he joined their faction: /sheet create offers it",
+                    x -> pick(x, "Template for " + o.name(), "A premium one is paid from his CoS points; a people's one (the Mývaloid) opens when he joins their faction.",
                     prem, t -> "★ " + t, Menus::templateTip, (y, t) -> { if (!c.unlocked.contains(t)) c.unlocked.add(t); say(y, "granted: " + t); gmOn(y, o); }, back)));
         }
         b.add(btn("Pass time", "his clock, or everyone's (a tick in the form)", x -> passTime(x, o)));
@@ -1306,7 +1307,7 @@ final class Menus {
         List<Ui.In> in = new ArrayList<>();
         for (Rules.Stat st : SETTABLE) {
             double max = c.max(st), v = Math.max(0, Math.min(max, c.survival.getOrDefault(st, 0.0)));
-            String stage = Rules.stage(st, st == Rules.Stat.PAIN ? c.painFelt() : v, max);
+            String stage = c.stageOf(st, st == Rules.Stat.PAIN ? c.painFelt() : v, max);
             String n = st.name().charAt(0) + st.name().substring(1).toLowerCase(Locale.ROOT);
             in.add(Ui.In.numberRange(st.name(), Component.text(n + " (max " + Math.round(max) + (stage == null ? ", fine" : ", now " + stage) + ")"),
                     0, (float) Math.max(1, Math.round(max))).step(1f).initial((float) Math.round(v)).width(300).build());

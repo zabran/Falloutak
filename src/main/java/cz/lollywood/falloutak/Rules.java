@@ -271,7 +271,7 @@ public final class Rules {
 
     /** 0 = fine, 1 minor ... 4 deadly or worse: the colour of the sidebar line. */
     public static int level(String stage) {
-        if (stage == null) return 0;
+        if (stage == null || stage.endsWith("(glowing)")) return 0;   // the glowing one's bonus (03b §7b, round 9)
         if (stage.startsWith("Minor")) return 1;
         if (stage.startsWith("Advanced")) return 2;
         if (stage.startsWith("Critical")) return 3;
@@ -541,6 +541,30 @@ public final class Rules {
     public static int ghoulSteps(int score) { return score > 0 ? 0 : 1 + (score <= -20 ? 1 : 0) + (score <= -40 ? 1 : 0); }
 
     public static final String[] GHOUL_STAGES = {"leathered", "husk", "glowing"};
+
+    /*
+     * THE GLOWING ONE'S RADS (03b §7b, `09b` round 9, Marek 11-23, verbatim: *""A glowing ghoul is healed by the radiation around it (10
+     * rads = 1 HP) and keeps none" - it should still be irradiated, up to 1000 rads, but it no longer has illness from radiation, instead
+     * gaining a bonus effect, and it sheds the radiation to increase healing rate (4 rads per +1 rate for single rest). The instant healing
+     * would be too strong."* · *"it is a radiation source and is losing rads. Which is why they cannot surviive outside hot area for
+     * extended duration. They have negative healing rate and only increase it with rads."*): it gathers the place's rads (its body open
+     * again: only the ghoul's own resistance), up to {@link #GLOW_CAP}; it sheds {@link #GLOW_SHED} of what it holds every hour [mine,
+     * EXAMPLE], and what it sheds reaches everyone within {@link #GLOW_REACH} blocks; its healing rate is {@link #GLOW_BASE_RATE} [mine,
+     * EXAMPLE] + 1 for every 4 rads shed in the 8 hours (Marek's 4), halved when positive (the husk's healing ×½ it carries).
+     */
+    public static final int GLOW_CAP = 1000, GLOW_BASE_RATE = -2, GLOW_RADS_PER_RATE = 4;
+    public static final double GLOW_SHED = 0.01, GLOW_REACH = 5;
+
+    /** The glowing one's bonus in place of radiation sickness (round 9) [the steps and numbers mine, EXAMPLE]. */
+    public static String glowStage(double rads) {
+        return rads < 300 ? null : rads < 600 ? "Charged (glowing)" : rads < GLOW_CAP ? "Bright (glowing)" : "Blazing (glowing)";
+    }
+
+    /** The glowing one's healing rate for 8 hours in which it shed {@code shed} rads (round 9); {@code half}: the husk's ×½. */
+    public static int glowRate(double shed, boolean half) {
+        int r = GLOW_BASE_RATE + (int) Math.floor(shed / GLOW_RADS_PER_RATE + 1e-9);
+        return r > 0 && half ? r / 2 : r;
+    }
 
     /** The glowing one's episode of insanity (03b §7b, round 8: *"Episodes of insanity - agreed."*): d100 ≤ 20 − Luck. */
     public static boolean episode(int d100, int luck) { return d100 <= 20 - luck; }

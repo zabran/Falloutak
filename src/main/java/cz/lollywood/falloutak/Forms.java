@@ -158,7 +158,7 @@ public final class Forms {
 
     /**
      * The templates this player may pick (03b §2b): the basic ones ("pc"), the premium ones bought for him or unlocked for his
-     * group; the GM (falloutak.gm) sees every one, for NPCs and group members.
+     * group, a people's own (the Mývaloid) once he joined their faction (`09b` §4, round 8-9); the GM (falloutak.gm) sees every one.
      */
     static List<Data.Template> choices(Player p, FalloutakPlugin pl, Character draft) {
         boolean gm = p.hasPermission("falloutak.gm");
@@ -169,7 +169,7 @@ public final class Forms {
         }
         List<Data.Template> l = new ArrayList<>();
         for (Data.Template t : Data.TEMPLATES.values())
-            if (gm || t.who().equals("pc") || (t.premium() && open.contains(t.name()))) l.add(t);
+            if (gm || t.who().equals("pc") || ((t.premium() || t.faction()) && open.contains(t.name()))) l.add(t);
         return l;
     }
 

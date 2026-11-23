@@ -287,7 +287,7 @@ public final class SheetView {
         if (!tp.notes().isEmpty()) how.append("\n").append(tp.notes());
         Table t = new Table(W).minWidths(LABEL + 60, 80).title("Template", "03b §2, for life")
                 .row(tip(how.toString(), null), c(c.template + " (" + tp.family() + ")", NamedTextColor.GOLD),
-                        c(tp.premium() ? "premium, CoS " + tp.cosPoints() : tp.who().equals("pc") ? "basic" : tp.who(), HOW), NONE);
+                        c(tp.premium() ? "premium, CoS " + tp.cosPoints() : tp.faction() ? "a people's, opened by joining them" : tp.who().equals("pc") ? "basic" : tp.who(), HOW), NONE);
         Data.Template born = c.baseTpl();
         if (!born.genes().isEmpty()) {
             t.title("Genes", "one a slot · load " + (born.load() >= 0 ? "+" : "") + born.load() + " · food × " + f(tp.foodFactor()) + " (03c)");
@@ -350,7 +350,7 @@ public final class SheetView {
         boolean noPain = c.ignoresPain();
         for (Rules.Stat st : Rules.Stat.values()) {
             double v = c.survival.get(st), m = c.max(st);
-            String sg = Rules.stage(st, v, m);
+            String sg = c.stageOf(st, v, m);
             double h = Rules.hourly(st, c.survival.get(Rules.Stat.HYPERTHERMIA), c.sleeping, c.locationRads);
             String eff = sg == null ? "" : Data.effectText(sg);
             if (st == Rules.Stat.PAIN && sg != null && noPain) eff += "\nIGNORED: Survival " + f(Math.round(c.painCheckSurvival())) + " ≥ Pain " + f(Math.round(v));

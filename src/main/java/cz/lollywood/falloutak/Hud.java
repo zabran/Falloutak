@@ -33,6 +33,7 @@ public final class Hud {
             Character c = pl.characters.get(p.getUniqueId());
             if (c == null) continue;
             c.submerged = headInWater(p);   // the air is read from the world; Oxygen moves only with game time (03b §3c)
+            c.nearRads = glowNear(p);       // 03b §7b, round 9: the glowing ones near are radiation sources
             pl.zones.apply(c, p);           // the gas zone his eyes are in (Marek 11-18: localized)
             Map<String, Integer> carry = Items.carried(p);   // what he wears (05c), the big gas mask with the filters he carries
             c.setArmour(Items.readArmour(p), carry.containsKey("gear:Gas filter"), carry.containsKey("gear:CO filter"));
@@ -54,6 +55,21 @@ public final class Hud {
             Battle.cosmetic(() -> sidebar(p, c));   // the look only (the test server lacks parts of the scoreboard)
             senses(p, c);
         }
+    }
+
+    /**
+     * What the glowing ones within {@link Rules#GLOW_REACH} blocks shed an hour (03b §7b, `09b` round 9, Marek 11-23: *"it is a radiation
+     * source and is losing rads"*): the players and the NPC figurants near, not himself.
+     */
+    double glowNear(Player p) {
+        double s = 0, r = Rules.GLOW_REACH;
+        for (org.bukkit.entity.Entity e : p.getNearbyEntities(r, r, r)) {
+            if (e.equals(p) || e.getLocation().distanceSquared(p.getLocation()) > r * r) continue;
+            String npc = Items.npcName(e);
+            Character g = e instanceof Player q ? pl.characters.get(q.getUniqueId()) : npc == null ? null : pl.npc(npc);
+            if (g != null) s += g.shedRate();
+        }
+        return s;
     }
 
     /**
@@ -130,7 +146,7 @@ public final class Hud {
         for (Rules.Stat st : Rules.Stat.values()) d[st.ordinal()] = c.hourly(st);
         for (Rules.Stat st : Rules.Stat.values()) {
             double v = c.survival.get(st) + d[st.ordinal()];
-            c.survival.put(st, Math.max(0, Math.min(st == Rules.Stat.RADS ? 2000 : c.max(st), v)));
+            c.survival.put(st, Math.max(0, Math.min(st == Rules.Stat.RADS ? (c.glowing() ? Rules.GLOW_CAP : 2000) : c.max(st), v)));
         }
         // the note on Pain: "When over 75, it lowers to 75 after hour of resting" (resting = asleep here)
         if (c.sleeping && c.survival.get(Rules.Stat.PAIN) > 75) c.survival.put(Rules.Stat.PAIN, 75.0);
@@ -140,7 +156,7 @@ public final class Hud {
         if (stageHp != null) c.news.add(stageHp);
         String crisis = c.crisis(java.util.concurrent.ThreadLocalRandom.current());   // 03b §7b: the crisis at 1 000 rads (round 7)
         if (crisis != null) c.news.add(crisis);
-        c.radiationHeals();                                                          // 03b §7b: the glowing one (round 8)
+        c.glowHour();                                                                // 03b §7b: the glowing one sheds (round 9)
         if (Math.round(c.clock) % 24 == 0) {                                         // 03b §7b: the day's episode roll (round 8)
             String ep = c.episode(java.util.concurrent.ThreadLocalRandom.current(), false);
             if (ep != null) c.news.add(ep);
@@ -183,6 +199,7 @@ public final class Hud {
             }
             return;
         }
+        if (c.glowing()) { glowHeal(c); return; }
         int rate = c.healingRate();
         if (rate < 0) {   // Fatal Radiation Poisoning (Marek 11-19): the body loses the rate every 8 hours, resting or not
             c.restHours = 0;
@@ -203,6 +220,26 @@ public final class Hud {
         c.hp = Math.min(c.hpMax(), c.hp + Math.max(1, (int) Math.round(rate * f)));
     }
 
+    /**
+     * The glowing one's 8 hours (03b §7b, `09b` round 9, Marek 11-23: *"it sheds the radiation to increase healing rate (4 rads per +1
+     * rate for single rest)"* · *"They have negative healing rate and only increase it with rads."*): every 8 hours of its own clock the
+     * rate is {@link Rules#glowRate} of what it shed in them; below 0 it loses that many HP, resting or not; above 0 it heals that many
+     * if the 8 hours were rest (asleep, not bleeding).
+     */
+    static void glowHeal(Character c) {
+        c.sickHours = 0;
+        if (c.sleeping && c.bleeding <= 0) c.restHours += 1; else c.restHours = 0;
+        c.glowHours += 1;
+        if (c.glowHours < 8) return;
+        int rate = Rules.glowRate(c.glowShed, c.other("healing_half") > 0);
+        boolean rested = c.restHours >= 8;
+        c.glowHours = 0;
+        c.glowShed = 0;
+        c.restHours = 0;
+        if (rate < 0) c.news.add("the glowing one is running down (too few rads shed): HP " + rate + c.drain(-rate));
+        else if (rate > 0 && rested) c.hp = Math.min(c.hpMax(), c.hp + rate);
+    }
+
     private void sidebar(Player p, Character c) {
         Scoreboard sb = boards.computeIfAbsent(p.getUniqueId(), u -> Bukkit.getScoreboardManager().getNewScoreboard());
         if (p.getScoreboard() != sb) p.setScoreboard(sb);
@@ -218,7 +255,7 @@ public final class Hud {
         int line = 20, shown = 0;
         for (Rules.Stat st : Rules.Stat.values()) {
             double v = c.survival.get(st), m = c.max(st);
-            String sg = Rules.stage(st, v, m);
+            String sg = c.stageOf(st, v, m);
             if (sg == null && !all) continue;
             var score = o.getScore("l" + line);
             score.setScore(line--);

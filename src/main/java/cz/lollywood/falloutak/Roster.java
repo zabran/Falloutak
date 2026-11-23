@@ -514,9 +514,10 @@ final class Roster implements CommandExecutor {
                     return;
                 }
                 Data.Template t = Data.find(Data.TEMPLATES, rest(a, 2));
-                if (t == null || !t.premium()) { say(s, "Not a premium template: " + rest(a, 2), NamedTextColor.RED); return; }
+                if (t == null || !(t.premium() || t.faction())) { say(s, "Not a premium or faction template: " + rest(a, 2), NamedTextColor.RED); return; }
                 if (!c.unlocked.contains(t.name())) c.unlocked.add(t.name());
-                say(s, t.name() + " unlocked for " + who.getName() + " (" + t.cosPoints() + " CoS points): /sheet create offers it.", NamedTextColor.GREEN);
+                say(s, t.name() + " unlocked for " + who.getName() + (t.faction() ? " (he joined their faction)" : " (" + t.cosPoints() + " CoS points)")
+                        + ": /sheet create offers it.", NamedTextColor.GREEN);
             }
             default -> say(s, "/group [list] · add <name> · xp <name> <amount> · spend <group> · unlock <group> <template> · grant <player> <template> · join <player> <group>", NamedTextColor.GRAY);
         }

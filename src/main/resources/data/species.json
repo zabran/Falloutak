@@ -480,10 +480,10 @@
      "free": true,
      "real": "a diverse immune set",
      "poison": 0.15,
-     "family": "immunity",
      "other": {
       "allergy": 1.0
-     }
+     },
+     "family": "immunity"
     },
     {
      "name": "Healthy liver",
@@ -498,7 +498,10 @@
    "forbidden_traits": [
     "Garrakg Returnz"
    ],
-   "notes": "the playstyle: cold, disease, bad food; genes Arctic fat-burner, Broad HLA, Healthy liver (03c §6), load +6"
+   "notes": "the playstyle: cold, disease, bad food; genes Arctic fat-burner, Broad HLA, Healthy liver (03c §6), load +6",
+   "other": {
+    "allergy": 1.0
+   }
   },
   {
    "name": "Golden Blood",
@@ -543,10 +546,10 @@
      "free": true,
      "real": "a diverse immune set",
      "poison": 0.15,
-     "family": "immunity",
      "other": {
       "allergy": 1.0
-     }
+     },
+     "family": "immunity"
     },
     {
      "name": "Healthy liver",
@@ -572,7 +575,10 @@
     "Garrakg Returnz",
     "Medical Marvel"
    ],
-   "notes": "the playstyle: the Survivor with Rh-null blood: tougher, but nobody can save him; genes Arctic fat-burner, Broad HLA, Healthy liver, Rh-null (03c §6), load +6"
+   "notes": "the playstyle: the Survivor with Rh-null blood: tougher, but nobody can save him; genes Arctic fat-burner, Broad HLA, Healthy liver, Rh-null (03c §6), load +6",
+   "other": {
+    "allergy": 1.0
+   }
   },
   {
    "name": "Watchman",
@@ -1985,6 +1991,122 @@
     "Garrakg Returnz",
     "Medical Marvel"
    ]
+  },
+  {
+   "name": "Mývaloid",
+   "family": "beast",
+   "who": "faction",
+   "hp_bonus": 8,
+   "perk_rate": 3,
+   "attribute_modifier": 1,
+   "strength_modifier": -3,
+   "perception_modifier": 3,
+   "endurance_modifier": -1,
+   "charisma_modifier": -3,
+   "intelligence_modifier": 0,
+   "agility_modifier": 4,
+   "luck_modifier": 1,
+   "skill_point_bonus": 5,
+   "damage_resistance": 0,
+   "damage_threshold": 0,
+   "poison_resistance": 0.5,
+   "rad_resistance": 0.2,
+   "isolation": 0,
+   "bonus_damage": 0,
+   "senses": "dark halved",
+   "forbidden_traits": [
+    "Brittle Bones",
+    "Circus Freak",
+    "Garrakg Returnz",
+    "Small Frame"
+   ],
+   "notes": "the Pirates' uplift of raccoons (09b §4): a child's size (carry x1/2, no two-handed heavy weapons, every armour refitted); clever paws: +20 to opening locks and to stealing; eats anything; a little speech; LOCKED until the player joins their faction",
+   "genes": [
+    {
+     "name": "Raccoon frame",
+     "slot": "Frame",
+     "tier": "T3",
+     "load": 0,
+     "text": "S -3, E -1, A +3, HP -7: a child's size: carry x1/2, no two-handed heavy weapons, every armour refitted (the Mývaloid's)",
+     "free": false,
+     "mods": {
+      "strength": -3,
+      "endurance": -1,
+      "agility": 3
+     },
+     "hp": -7,
+     "adult": false
+    },
+    {
+     "name": "Tapetum",
+     "slot": "Eyes",
+     "tier": "T3",
+     "load": 10,
+     "text": "P +1, the dark halved, no glare (the elf's)",
+     "free": false,
+     "real": "cats' and dogs' reflective layer",
+     "mods": {
+      "perception": 1
+     },
+     "senses": 1
+    },
+    {
+     "name": "Big ears",
+     "slot": "Ears and nose",
+     "tier": "T3",
+     "load": 10,
+     "text": "P +1 (the elf's)",
+     "free": false,
+     "mods": {
+      "perception": 1
+     }
+    },
+    {
+     "name": "Clever paws",
+     "slot": "ORGAN",
+     "tier": "T3",
+     "load": 10,
+     "text": "P +1, A +1: feeling fingertips; +20 to opening locks and to stealing (the Mývaloid's)",
+     "free": false,
+     "real": "a raccoon's forepaws fill a large share of its sensory cortex",
+     "mods": {
+      "perception": 1,
+      "agility": 1
+     },
+     "adult": false
+    },
+    {
+     "name": "Garbage gut",
+     "slot": "Immunity",
+     "tier": "T3",
+     "load": 10,
+     "text": "poison and disease +50 %: it eats anything (the Mývaloid's)",
+     "free": false,
+     "poison": 0.5
+    },
+    {
+     "name": "Dsup",
+     "slot": "Radiation",
+     "tier": "T3",
+     "load": 10,
+     "text": "rad +20 %",
+     "free": false,
+     "real": "a tardigrade protein: ~40 % less X-ray damage in human cells (Hashimoto et al. 2016)",
+     "rad": 0.2
+    },
+    {
+     "name": "Masked face",
+     "slot": "Look",
+     "tier": "T3",
+     "load": -5,
+     "text": "C -3: a masked animal face and a little speech (the Mývaloid's)",
+     "free": false,
+     "mods": {
+      "charisma": -3
+     }
+    }
+   ],
+   "rest": "L +1"
   },
   {
    "name": "Fallen Angel",

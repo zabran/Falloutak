@@ -123,7 +123,7 @@ public final class SheetGui implements InventoryHolder {
                 t("EXAMPLE: nothing carried yet", NamedTextColor.DARK_GRAY)), false));
         List<Component> cond = new ArrayList<>();
         for (Rules.Stat st : Rules.Stat.values()) {
-            String sg = Rules.stage(st, c.survival.get(st), c.max(st));
+            String sg = c.stageOf(st, c.survival.get(st), c.max(st));
             if (sg != null) cond.add(t(sg, color(Rules.level(sg))));
         }
         for (Character.Effect e : c.effects) if (!e.permanent()) cond.add(t(e.name() + ", " + SheetView.hours(e.hoursLeft()) + " left", NamedTextColor.LIGHT_PURPLE));
@@ -187,7 +187,7 @@ public final class SheetGui implements InventoryHolder {
 
     private ItemStack survivalPane(Rules.Stat st) {
         double v = c.survival.get(st), m = c.max(st);
-        String sg = Rules.stage(st, v, m);
+        String sg = c.stageOf(st, v, m);
         int lv = Rules.level(sg);
         Material[] panes = {Material.LIME_STAINED_GLASS_PANE, Material.YELLOW_STAINED_GLASS_PANE, Material.ORANGE_STAINED_GLASS_PANE,
                 Material.RED_STAINED_GLASS_PANE, Material.BLACK_STAINED_GLASS_PANE};

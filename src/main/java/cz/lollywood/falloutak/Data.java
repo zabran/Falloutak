@@ -32,6 +32,9 @@ public final class Data {
                            List<String> forbiddenTraits, String needs, String notes, double painGain, boolean genome, double sleepFactor,
                            List<Gene> genes, Map<String, Double> other) {
         public boolean premium() { return "premium".equals(who); }
+        /** A people's template, LOCKED until the player joins their faction (`09b` §4, Marek 11-23: the Mývalové *"will be locked to
+         *  players unless they join their faction."*). */
+        public boolean faction() { return "faction".equals(who); }
         /** The genes' load (03c §1): the food factor already holds it. */
         public int load() { int s = 0; for (Gene g : genes) s += g.load(); return s; }
         public boolean fixedAttr(int i) { return fixed[i] >= 0; }
@@ -385,6 +388,14 @@ public final class Data {
         EFFECTS.putIfAbsent("Critical Hypoxia", new EffectRow("Critical Hypoxia", "under 25 % Oxygen", Rules.HYPOXIA.get("Critical Hypoxia"), Map.of()));
         EFFECTS.putIfAbsent("Deadly Hypoxia", new EffectRow("Deadly Hypoxia", "Oxygen 0: unconscious, the heart stops after E minutes",
                 Rules.HYPOXIA.get("Deadly Hypoxia"), Map.of()));
+        // the glowing one's bonus in place of radiation sickness (03b §7b, `09b` round 9, Marek 11-23: "it no longer has illness from
+        // radiation, instead gaining a bonus effect") [the steps and numbers mine, EXAMPLE]
+        EFFECTS.putIfAbsent("Charged (glowing)", new EffectRow("Charged (glowing)", "a glowing ghoul at 300-599 rads: S +1",
+                new int[]{1, 0, 0, 0, 0, 0, 0}, Map.of()));
+        EFFECTS.putIfAbsent("Bright (glowing)", new EffectRow("Bright (glowing)", "a glowing ghoul at 600-999 rads: S +1, E +1",
+                new int[]{1, 0, 1, 0, 0, 0, 0}, Map.of()));
+        EFFECTS.putIfAbsent("Blazing (glowing)", new EffectRow("Blazing (glowing)", "a glowing ghoul full, at 1 000 rads: S +2, E +1, AP +1",
+                new int[]{2, 0, 1, 0, 0, 0, 0}, Map.of("ap", 1.0)));
         for (JsonElement e : rows("traits")) {
             JsonObject o = e.getAsJsonObject();
             String name = o.get("name").getAsString();

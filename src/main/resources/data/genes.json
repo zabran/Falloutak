@@ -126,10 +126,10 @@
    "free": true,
    "real": "a diverse immune set",
    "poison": 0.15,
-   "family": "immunity",
    "other": {
     "allergy": 1.0
-   }
+   },
+   "family": "immunity"
   },
   {
    "name": "Non-secretor",
@@ -972,10 +972,10 @@
    "free": false,
    "real": "RimWorld's",
    "poison": 0.3,
-   "family": "immunity",
    "other": {
     "allergy": 1.0
-   }
+   },
+   "family": "immunity"
   },
   {
    "name": "Perfect immunity",
@@ -1945,6 +1945,55 @@
    "load": 0,
    "text": "a soft glow in the dark: C +1 or -1 by taste, Sneak -20 % in the dark",
    "free": false
+  },
+  {
+   "name": "Raccoon frame",
+   "slot": "Frame",
+   "tier": "T3",
+   "load": 0,
+   "text": "S -3, E -1, A +3, HP -7: a child's size: carry x1/2, no two-handed heavy weapons, every armour refitted (the Mývaloid's)",
+   "free": false,
+   "mods": {
+    "strength": -3,
+    "endurance": -1,
+    "agility": 3
+   },
+   "hp": -7,
+   "adult": false
+  },
+  {
+   "name": "Clever paws",
+   "slot": "ORGAN",
+   "tier": "T3",
+   "load": 10,
+   "text": "P +1, A +1: feeling fingertips; +20 to opening locks and to stealing (the Mývaloid's)",
+   "free": false,
+   "real": "a raccoon's forepaws fill a large share of its sensory cortex",
+   "mods": {
+    "perception": 1,
+    "agility": 1
+   },
+   "adult": false
+  },
+  {
+   "name": "Garbage gut",
+   "slot": "Immunity",
+   "tier": "T3",
+   "load": 10,
+   "text": "poison and disease +50 %: it eats anything (the Mývaloid's)",
+   "free": false,
+   "poison": 0.5
+  },
+  {
+   "name": "Masked face",
+   "slot": "Look",
+   "tier": "T3",
+   "load": -5,
+   "text": "C -3: a masked animal face and a little speech (the Mývaloid's)",
+   "free": false,
+   "mods": {
+    "charisma": -3
+   }
   },
   {
    "name": "Wild instinct",

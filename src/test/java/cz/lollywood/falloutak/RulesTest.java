@@ -169,7 +169,7 @@ class RulesTest {
 
     @Test
     void workbookData() {
-        assertEquals(27, Data.TEMPLATES.size());   // part 3: the workbook's seven + the eight basic gene templates (03c §6, Golden Blood since round 8) + the ten premium + the Fallen Angel and her graced form (03f §2)
+        assertEquals(28, Data.TEMPLATES.size());   // part 3: the workbook's seven + the eight basic gene templates (03c §6, Golden Blood since round 8) + the ten premium + the Fallen Angel and her graced form (03f §2) + the Mývaloid (09b round 9, locked behind their faction)
         assertEquals(39, Data.TEMPLATES.get("Ghoul").attributePoints());
         assertEquals(0, Data.EFFECTS.get("Paralyzed by Pain").mods()[Rules.A]);   // Marek 11-19: AP −99 instead of Agility −99
         assertEquals(-99, Data.EFFECTS.get("Paralyzed by Pain").other().get("ap"), 1e-9);

@@ -111,8 +111,11 @@ public final class Character {
     public boolean crisisRolled = false;
     /** The ghoul line this body went through (03b §7b): "leathered", "husk", "glowing" in order; a jump skips the stages between. */
     public List<String> ghoulPath = new ArrayList<>();
-    /** The glowing one's healing by radiation carried between hours (10 rads = 1 HP). */
-    public double radHealCarry = 0;
+    /** The glowing one (03b §7b, round 9): the rads it shed in this 8-hour block (+1 healing a 4), and the hours of the block. */
+    public double glowShed = 0;
+    public int glowHours = 0;
+    /** What the glowing ones near shed an hour onto this body (read from the world each second: players and figurants within 5 blocks). */
+    public transient double nearRads = 0;
     /** Hours toward the next loss of a negative healing rate (Fatal Radiation Poisoning, 11-19). */
     public double sickHours = 0;
 
@@ -667,10 +670,16 @@ public final class Character {
             Double v = survival.get(st);
             if (v == null) continue;
             if (st == Rules.Stat.SLEEP && other("sleep_stage_off") > 0) continue;   // caffeine, amphetamine: the debt stays
-            String s = Rules.stage(st, st == Rules.Stat.PAIN ? painFelt() : v, max(st));
+            String s = stageOf(st, st == Rules.Stat.PAIN ? painFelt() : v, max(st));
             if (s != null) l.add(s);
         }
         return l;
+    }
+
+    /** A stat's stage for THIS body: a glowing ghoul's rads give its bonus, never radiation sickness (03b §7b, round 9). */
+    public String stageOf(Rules.Stat st, double v, double max) {
+        if (st == Rules.Stat.RADS && glowing()) return Rules.glowStage(v);
+        return Rules.stage(st, v, max);
     }
 
     public int[] attrs(boolean permanentOnly) {
@@ -725,6 +734,7 @@ public final class Character {
      * ({@link Hud#heal}); every other stage stops at 0. The vampire's +3 when fed is shown, not counted.
      */
     public int healingRate() {
+        if (glowing()) return Rules.glowRate(shedRate() * 8, other("healing_half") > 0);   // round 9: by the rads it sheds (shown: at this rate)
         double[] sk = skills();
         int raw = Rules.healingRate(attrs(false), sk[Rules.skillIndex("Medicine")], sk[Rules.skillIndex("Survival")]) + tpl().healingRate()
                 + (int) Math.round(other("healing_rate") + stageOther("healing_rate")) - Production.hygieneHealing(unwashedDays);
@@ -877,7 +887,7 @@ public final class Character {
             case WATER -> power ? 0 : h * t.waterFactor();
             case FOOD -> h * t.foodFactor();   // a synthetic body: its power
             case SLEEP -> h < 0 ? h * t.sleepFactor() : h;   // the need (DEC2: x0.75); a synthetic body: its memory, cleaned like sleep
-            case RADS -> other("rads_heal") > 0 ? 0 : locationRads * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");
+            case RADS -> (locationRads + nearRads) * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");   // + the glowing ones near (round 9)
             case BLOOD -> inArrest() ? 0 : h;   // no circulation, no new blood [mine]
             default -> h;
         };
@@ -1168,16 +1178,45 @@ public final class Character {
 
     /**
      * What a mutation's result means for the ghoul line (03b §7, RULED 11-22: *"the third mutation, if it rolls bad or very bad, turns the
-     * person into a ghoul." - seems fine.*; §7b, round 7: a ghoul's very bad result = the next stage): told, the GM sets it (the stages
-     * are not templates in the plugin yet).
+     * person into a ghoul." - seems fine.*; §7b, round 7: a ghoul's very bad result = the next stage). Since 0.64.0 the sheet turns the
+     * body itself (`09b` round 9, Marek 11-23: *""a human turning into a ghoul (you set the template)" - what exactly is needed? Cannot we
+     * just use the ghoul template that we already have?"*): {@link #turnGhoul}.
      */
     String ghoulLine(String cat, int score, Random rnd) {
         long n = effects.stream().filter(e -> "mutation".equals(e.source())).count();
         boolean ghoul = "Ghoul".equals(baseTpl().name());
         if (!ghoul && n >= 3 && (cat.equals("bad") || cat.equals("very bad")))
-            return " → mutation " + n + ", " + cat + ": the body turns GHOUL (03b §7; the GM sets the template)";
+            return " → mutation " + n + ", " + cat + ": " + turnGhoul();
         if (ghoul && cat.equals("very bad")) return ghoulAdvance(Rules.ghoulSteps(score), rnd);
         return "";
+    }
+
+    /**
+     * The body turns GHOUL (03b §7, round 9): the Ghoul template (`species.json`, §2a) takes the old one's place; what the player built
+     * stays (his points, skills, traits, perks, mutations and therapies). An attribute the ghoul's modifier would take below 1 is kept
+     * at 1 [mine]; a trait the ghoul template bars stays until the GM removes it [mine]. A synthetic body never turns. Returns the news.
+     */
+    public String turnGhoul() {
+        Data.Template old = baseTpl(), g = Data.TEMPLATES.get("Ghoul");
+        if (g == null) return "the body turns GHOUL (no Ghoul template in the data: the GM sets it)";
+        if (old.family().equals("synthetic")) return "a synthetic body cannot turn ghoul";
+        if (old.name().equals("Ghoul")) return "already a ghoul";
+        template = g.name();
+        customTpl = null;
+        templateHp = g.hp();
+        templateSkillPoints = g.skillPoints();
+        templatePerkRate = g.perkRate();
+        List<String> kept = new ArrayList<>();
+        for (int i = 0; i < 7; i++)
+            if (base[i] + g.mods()[i] < 1) { base[i] = 1 - g.mods()[i]; kept.add(Rules.SPECIAL[i] + " kept at 1"); }
+        List<String> barred = new ArrayList<>();
+        for (Feat t : traits) if (g.forbiddenTraits().contains(t.name())) barred.add(t.name());
+        ghoulPath.clear();
+        crisisRolled = false;
+        if (hp > hpMax()) hp = hpMax();
+        return "the body turns GHOUL: the template is now Ghoul (was " + old.name() + "; 03b §2a: S −2, P +3, I +3, A −4, L +3, rad res 40 %)"
+                + (kept.isEmpty() ? "" : "; " + String.join(", ", kept))
+                + (barred.isEmpty() ? "" : "; the ghoul template bars " + String.join(", ", barred) + ": the GM decides");
     }
 
     public String ghoulStage() { return ghoulPath == null || ghoulPath.isEmpty() ? "" : ghoulPath.get(ghoulPath.size() - 1); }
@@ -1200,26 +1239,49 @@ public final class Character {
         String from = at == 0 ? "ghoul" : ghoulStage();
         ghoulPath.add(Rules.GHOUL_STAGES[to - 1]);
         add(ghoulEffect());
-        if (survival.getOrDefault(Rules.Stat.RADS, 0.0) > 0 && glowing()) survival.put(Rules.Stat.RADS, 0.0);   // it keeps none
+        if (glowing()) {   // round 9: it keeps its rads, up to the cap; no crisis any more
+            survival.put(Rules.Stat.RADS, Math.min(Rules.GLOW_CAP, survival.getOrDefault(Rules.Stat.RADS, 0.0)));
+            crisisRolled = false;
+        }
         String s = " → THE GHOUL LINE: " + from + " → " + ghoulStage() + (to - at > 1 ? " (a jump of " + (to - at) + " stages)" : "") + " (03b §7b)";
         return to == 3 ? s + "; " + madness(rnd) : s;
     }
 
-    /** The line's totals against the base ghoul by the path (03b §7b; the smell's Sneak −10 and the rad resistances mine, EXAMPLE). */
+    /**
+     * The line's totals against the base ghoul by the path (03b §7b). Each stage's numbers are its totals against the base ghoul, a later
+     * stage's replace an earlier one's. Round 9 (Marek 11-23, verbatim: *"please, make jumping the stages more punishing - the ghoul
+     * missing the benefites of previous stages, only gaining the maluses. Maybe add some more tiny benefits for each stage that can gt
+     * collected in this way."*): a stage WALKED gives all its numbers and its small gift; a stage JUMPED gives only its harm. The smell's
+     * Sneak −10, the rad resistances and the gifts mine, EXAMPLE.
+     */
     Effect ghoulEffect() {
         Integer[] set = new Integer[7];
         Map<String, Double> o = new LinkedHashMap<>();
-        for (String st : ghoulPath) {
+        int last = java.util.Arrays.asList(Rules.GHOUL_STAGES).indexOf(ghoulStage());
+        List<String> jumped = new ArrayList<>();
+        for (int k = 0; k <= last; k++) {
+            String st = Rules.GHOUL_STAGES[k];
+            boolean walked = ghoulPath.contains(st);
+            if (!walked) jumped.add(st);
             switch (st) {
-                case "leathered" -> { set[Rules.E] = -1; set[Rules.C] = -2; o.put("dt", 3.0); o.put("rad_res", 35.0); o.put("skill:Sneak", -10.0); }
-                case "husk" -> { set[Rules.C] = -4; set[Rules.I] = -2; o.put("healing_half", 1.0); o.put("rad_res", 50.0); }
-                case "glowing" -> { set[Rules.I] = -5; set[Rules.C] = -5; set[Rules.E] = 2; set[Rules.A] = 2; o.put("rad_res", 60.0); o.put("rads_heal", 1.0); }
+                case "leathered" -> {   // harm: E −1, C −2, the smell; help: the hide DT +3, rad res 75 %; gift: the hide keeps out bites and germs
+                    set[Rules.E] = -1; set[Rules.C] = -2; o.put("skill:Sneak", -10.0);
+                    if (walked) { o.put("dt", 3.0); o.put("rad_res", 35.0); o.put("poison_res", 10.0); }
+                }
+                case "husk" -> {   // harm: C −4, I −2, healing ×½; help: rad res 90 %; gift: the dried nerves, Pain gained ×¾
+                    set[Rules.C] = -4; set[Rules.I] = -2; o.put("healing_half", 1.0);
+                    if (walked) { o.put("rad_res", 50.0); o.put("pain_gain", -0.25); }
+                }
+                case "glowing" -> {   // the end: I −5, C −5, E +2, A +2; the body open to rads again (the ghoul's own 40 %); gift: its own light
+                    set[Rules.I] = -5; set[Rules.C] = -5; set[Rules.E] = 2; set[Rules.A] = 2; o.put("rad_res", 0.0); o.put("senses", 1.0);
+                }
                 default -> { }
             }
         }
         int[] m = new int[7];
         for (int i = 0; i < 7; i++) m[i] = set[i] == null ? 0 : set[i];
-        return new Effect("Ghoul line: " + String.join(" → ", ghoulPath), "ghoul line", "ghoul line", true, m, o, 0, null, 100);
+        String path = String.join(" → ", ghoulPath) + (jumped.isEmpty() ? "" : " (jumped " + String.join(", ", jumped) + ": only its harm)");
+        return new Effect("Ghoul line: " + path, "ghoul line", "ghoul line", true, m, o, 0, null, 100);
     }
 
     static final String[][] ILLNESSES = {
@@ -1257,17 +1319,19 @@ public final class Character {
                 + (fight ? len + " round" + (len > 1 ? "s" : "") : len * 10 + " minutes");
     }
 
-    /** The glowing one's hour (03b §7b): the place's rads heal it, 10 rads = 1 HP, and it keeps none. Returns the HP gained. */
-    public int radiationHeals() {
-        if (other("rads_heal") <= 0) return 0;
-        survival.put(Rules.Stat.RADS, 0.0);
-        if (dead) return 0;
-        double g = locationRads / 10 + radHealCarry;
-        int add = (int) g;
-        radHealCarry = g - add;
-        int before = hp;
-        hp = Math.min(hpMax(), hp + add);
-        return hp - before;
+    /** What a glowing one sheds an hour now (03b §7b, round 9): {@link Rules#GLOW_SHED} of the rads it holds; 0 for anyone else. */
+    public double shedRate() { return glowing() && !dead ? survival.getOrDefault(Rules.Stat.RADS, 0.0) * Rules.GLOW_SHED : 0; }
+
+    /**
+     * The glowing one's hour (03b §7b, round 9): it sheds {@link #shedRate()} (a radiation source: the rads leave it, onto everyone within
+     * 5 blocks), and what it sheds counts toward its healing ({@link Hud#heal}: +1 a 4 rads in the 8 hours). Returns the rads shed.
+     */
+    public double glowHour() {
+        double s = shedRate();
+        if (s <= 0) return 0;
+        survival.put(Rules.Stat.RADS, Math.max(0, survival.getOrDefault(Rules.Stat.RADS, 0.0) - s));
+        glowShed += s;
+        return s;
     }
 
     /**
@@ -1277,6 +1341,7 @@ public final class Character {
      * below 1 000 the next stay rolls again. Returns the news, or null.
      */
     public String crisis(Random rnd) {
+        if (glowing()) { crisisRolled = false; return null; }   // round 9: its rads are its life, held at 1 000 at most
         double held = survival.getOrDefault(Rules.Stat.RADS, 0.0);
         if (held < Rules.CRISIS_RADS) { crisisRolled = false; return null; }
         if (crisisRolled || dead) return null;
