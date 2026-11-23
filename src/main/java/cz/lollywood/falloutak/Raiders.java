@@ -721,7 +721,10 @@ final class Raiders {
                 return;
             }
             double want = now + Math.max(2, can);
-            List<Path.P> path = Path.find(world, start, (x, y, z) -> edge(t, x, z) || nearest(s, p, new Location(w, x + 0.5, y, z + 0.5)) >= want, SEARCH);
+            List<Path.P> path = Path.find(world, start, (x, y, z) -> {   // away: the edge only where it is farther from them than now
+                double d = nearest(s, p, new Location(w, x + 0.5, y, z + 0.5));
+                return d >= want || edge(t, x, z) && d > now;
+            }, SEARCH);
             if (path == null) path = Path.find(world, start, (x, y, z) -> nearest(s, p, new Location(w, x + 0.5, y, z + 0.5)) > now + 1, SEARCH);
             if (path == null || path.isEmpty()) { q.add(() -> say(p, t.name + " is cornered.")); return; }
             int steps = Math.min(can, path.size());

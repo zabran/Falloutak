@@ -49,8 +49,8 @@ import java.util.UUID;
  *   far enough.</li>
  *   <li><b>AMBUSHED</b> (not spotted): the party in the open in the middle, the enemies round it 9-14 blocks away; THEY ACT FIRST.</li>
  * </ul>
- * The kit and a death in it are still the battle demo's (the battle reads no real inventory yet). [The arenas' looks, sizes and spots
- * mine, EXAMPLE; Arag's builders can replace them.]
+ * Each player fights with HIS OWN GEAR (09d round 3; {@link Battle#ownKit}), and a death in it is real. [The arenas' looks, sizes and
+ * spots mine, EXAMPLE; Arag's builders can replace them.]
  */
 final class Arena {
     private Arena() {}
@@ -421,6 +421,7 @@ final class Arena {
         World w = world();
         Layout lay = build(w, terrain, seed, sizeFor(groups.size()));
         Battle.Fight f = new Battle.Fight("the enemies");
+        f.demo = false;
         f.enemiesFirst = mode == Mode.AMBUSHED || mode == Mode.PARLEY;
         f.field = lay.box();
         current = f;
@@ -481,7 +482,7 @@ final class Arena {
             if (mode == Mode.AMBUSHED) at.setDirection(theirs.isEmpty() ? at.getDirection() : theirs.get(0).at(w).toVector().subtract(at.toVector()).setY(0));
             q.teleport(at);
             Character c = pl.character(q);
-            pl.battle.join(q, c, f);
+            pl.battle.join(q, c, f, true);   // his own gear (09d round 3), and a death in it is real
             q.sendMessage(Component.text(intro + " Left click AT AN ENEMY = fire, right click = mode, shift = stance, the clock = end your turn; when every one "
                     + "of you has ended his, it is their turn. Walk to the map's edge to get away; the dangers also fight each other.", NamedTextColor.AQUA));
         }

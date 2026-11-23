@@ -3,6 +3,17 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.77.0 (2026-11-23): part 9d round 3 - your own gear in a fight.**
+- A fight on a battle map takes **what you carry**: your first two weapons (part 7's 42 weapon designs, each with battle numbers in
+  `data/weapons.json`, EXAMPLE in Fallout 2's scale; none = your fists) in the hands at their own condition, loaded from your rounds of
+  their category (a power cell = 10 shots of an energy weapon; a thrown weapon = how many you carry); your Stimpaks, frag, pipe and fire
+  grenades and riot gas grenades as the quick items with their counts; your pack stays your inventory.
+- Reloading takes your own rounds (none left: empty); a rocket bursts where it lands; a thrown weapon is picked up again if you hold the
+  field, else lost.
+- Afterwards **what you used is gone** (rounds, cells, Stimpaks, grenades) and **your weapons keep the wear** (a destroyed one is gone).
+- **A death on a battle map is real** (the others can still save you, part 3's revival); `/sheet battle` stays the demo.
+- Signature Weapon can now pick any of the weapons.
+
 **Version 0.76.0 (2026-11-23): part 9d round 3 - talks, trade, the map's edge, the dangers' own fights, food from a hunt.**
 - **Going round** a group seen in time pays **only the Survival check's XP** (Fallout's 100 − the chance it had, at least 10) to the
   party's scout; **resolved without killing on the battle map** = the full kill XP.

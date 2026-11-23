@@ -31,7 +31,7 @@ abstract class MockGame {
         @Override public BlockMock getBlockAt(int x, int y, int z) {
             long k = (((long) x & 0x3FFFFFF) << 38) | (((long) z & 0x3FFFFFF) << 12) | ((long) y & 0xFFF);
             return blocks.computeIfAbsent(k, q -> new BlockMock(y < 4 ? Material.STONE : Material.AIR, new Location(this, x, y, z)) {
-                @Override public boolean isPassable() { return getType().isAir(); }
+                @Override public boolean isPassable() { return !getType().isSolid(); }   // grass, crops, ferns: walked through, as in the game
             });
         }
         @Override public BlockMock getBlockAt(Location l) { return getBlockAt(l.getBlockX(), l.getBlockY(), l.getBlockZ()); }

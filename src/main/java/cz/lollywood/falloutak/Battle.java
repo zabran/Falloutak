@@ -53,6 +53,11 @@ public final class Battle implements Listener {
         double ammoDamage = 0, ammoPenetration = 0;   // the workbook's ammo columns: damage modifier, penetration
         /** FNV's item health; the condition = health / this. [EXAMPLE until the workbook has a column] */
         double maxHealth = 100;
+        /** The hotbar item's tag ("smg", "knife", "w:<design>"), the rounds' category it loads (own gear), thrown (each attack throws
+         *  one you carry), a rocket's blast where it lands (09d round 3: the party's own gear, `data/weapons.json`). */
+        String tag = "", ammoKind = "";
+        boolean thrown, wears = true;
+        int blastMin, blastMax;
         Weapon(String name, String skill, int magazine, int range, boolean twoHanded, Mode... modes) {
             this.name = name; this.skill = skill; this.magazine = magazine; this.range = range; this.twoHanded = twoHanded; this.modes = List.of(modes);
         }
@@ -81,6 +86,7 @@ public final class Battle implements Listener {
         w.ammo = "10mm JHP";
         w.ammoDamage = am != null ? am.get("damage_modifier").getAsDouble() : 0.6;
         w.ammoPenetration = am != null ? am.get("penetraction").getAsDouble() : -0.2;
+        w.tag = "smg";
         return w;
     }
     /** A knife reaches the next block (Fallout's adjacent hex): 2 blocks from the eye. */
@@ -91,12 +97,66 @@ public final class Battle implements Listener {
         Weapon k = new Weapon("Combat knife", "Knives", 0, 2, false,
                 new Mode("Swing", 3, 0, 0, false), new Mode("Thrust", 4, 10, 0, false), new Mode("Aimed", 4, 0, 0, true));
         k.minDmg = 3; k.maxDmg = 10; k.minStrength = 2;
+        k.tag = "knife";
         return k;
+    }
+
+    /** Part 7's weapon designs in the battle (`data/weapons.json`, EXAMPLE numbers), by name; "Fists" = the bare hands. */
+    static final Map<String, Weapon> GEAR = loadGear();
+
+    private static Map<String, Weapon> loadGear() {
+        Map<String, Weapon> m = new LinkedHashMap<>();
+        try (java.io.InputStream in = Battle.class.getResourceAsStream("/data/weapons.json")) {
+            if (in == null) return m;
+            for (com.google.gson.JsonElement e : com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8))
+                    .getAsJsonObject().getAsJsonArray("rows")) {
+                com.google.gson.JsonObject o = e.getAsJsonObject();
+                String name = o.get("name").getAsString(), skill = o.get("skill").getAsString();
+                Weapon w;
+                if (o.has("workbook") && o.get("workbook").getAsBoolean()) {
+                    Weapon b = pistol();
+                    w = new Weapon(b.name, b.skill, b.magazine, b.range, b.twoHanded, b.modes.toArray(new Mode[0]));
+                    w.minDmg = b.minDmg; w.maxDmg = b.maxDmg; w.minStrength = b.minStrength; w.perk = b.perk; w.damageType = b.damageType;
+                    w.ammo = b.ammo; w.ammoDamage = b.ammoDamage; w.ammoPenetration = b.ammoPenetration;
+                } else {
+                    int ap = o.get("ap").getAsInt(), range = o.get("range").getAsInt(), burst = o.has("burst") ? o.get("burst").getAsInt() : 0;
+                    boolean thrown = o.has("thrown") && o.get("thrown").getAsBoolean();
+                    int mag = thrown ? 99 : o.has("magazine") ? o.get("magazine").getAsInt() : 0;
+                    boolean two = o.has("hands") && o.get("hands").getAsInt() == 2;
+                    List<Mode> modes = new ArrayList<>();
+                    if (mag == 0) { modes.add(new Mode("Swing", ap, 0, 0, false)); modes.add(new Mode("Thrust", ap + 1, 10, 0, false)); modes.add(new Mode("Aimed", ap + 1, 0, 0, true)); }
+                    else if (thrown) { modes.add(new Mode("Throw", ap, 0, 1, false)); modes.add(new Mode("Aimed throw", ap + 1, 0, 1, true)); }
+                    else {
+                        modes.add(new Mode("Single", ap, 0, 1, false));
+                        if (burst > 1) modes.add(new Mode("Burst (" + burst + ")", ap + 1, 0, burst, false));
+                        modes.add(new Mode("Aimed", ap + 1, 0, 1, true));
+                    }
+                    w = new Weapon(name, skill, mag, range, two, modes.toArray(new Mode[0]));
+                    w.minDmg = o.get("min").getAsInt(); w.maxDmg = o.get("max").getAsInt();
+                    w.minStrength = o.has("str") ? o.get("str").getAsInt() : 0;
+                    w.damageType = o.has("type") ? o.get("type").getAsString() : "Normal";
+                    w.perk = o.has("perk") ? o.get("perk").getAsString() : "";
+                    w.thrown = thrown;
+                    if (o.has("blast")) { w.blastMin = o.getAsJsonArray("blast").get(0).getAsInt(); w.blastMax = o.getAsJsonArray("blast").get(1).getAsInt(); }
+                }
+                w.ammoKind = o.has("ammo") ? o.get("ammo").getAsString() : "";
+                double hp = o.has("health") ? o.get("health").getAsDouble() : 100;
+                w.wears = hp > 0 && !w.thrown;
+                w.maxHealth = hp > 0 ? hp : 1000;
+                w.tag = "w:" + name;
+                m.put(name, w);
+            }
+        } catch (java.io.IOException ex) { throw new IllegalStateException("data/weapons.json: " + ex.getMessage(), ex); }
+        return m;
     }
 
     // ------------------------------------------------------------------ the bound perks the battle runs (02c; Marek 11-20)
     /** The weapons the plugin knows: Signature Weapon's choices (more come with part 7's items). */
-    static List<Weapon> weapons() { return List.of(SMG, KNIFE); }
+    static List<Weapon> weapons() {
+        List<Weapon> l = new ArrayList<>(List.of(SMG, KNIFE));
+        for (Weapon w : GEAR.values()) if (!w.name.equals(SMG.name) && !w.name.equals("Fists") && !w.name.equals(KNIFE.name)) l.add(w);
+        return l;
+    }
     /** Signature Weapon on this weapon (02c): +15 to hit, one crit degree better, it never breaks (wear or a critical failure). */
     static boolean signature(Character c, Weapon w) { return c.hasPerk("Signature Weapon: " + w.name); }
     /** Weapon Master on this weapon's family (02c): its attacks −1 AP (at least 1) and +25 % damage. */
@@ -193,6 +253,11 @@ public final class Battle implements Listener {
         final Map<String, Integer> mode = new HashMap<>(), ammo = new HashMap<>();
         /** The fight he is in, and its enemies (shared with the other players in it). */
         Fight fight;
+        /** HIS OWN GEAR (a fight on a battle map, 09d round 3): the rounds he carries by category, what he used (rounds by category,
+         *  "stim", "grenade", "gasgren", "thrown:<name>"), how many quick items he has, and each kit weapon's item in his inventory. */
+        boolean own;
+        final Map<String, Integer> reserve = new HashMap<>(), used = new HashMap<>(), quick = new HashMap<>();
+        final Map<String, String> source = new HashMap<>();
         List<UUID> dummies = new ArrayList<>();
         Map<UUID, Target> targets = new HashMap<>();
         final Set<String> dropped = new HashSet<>(), broken = new HashSet<>();
@@ -335,8 +400,11 @@ public final class Battle implements Listener {
     /** A line to everyone in the fight. */
     void tell(Fight f, String text, NamedTextColor colour) { for (Player q : players(f)) q.sendMessage(Component.text(text, colour)); }
 
-    /** Puts a player into a fight with the battle's kit (the demo's: the workbook's pistol, a knife, the quick items). */
-    State join(Player p, Character c, Fight f) {
+    /** Puts a player into a fight with the demo's kit (the workbook's pistol, a knife, the quick items). */
+    State join(Player p, Character c, Fight f) { return join(p, c, f, false); }
+
+    /** The same with HIS OWN GEAR (a battle map, 09d round 3): {@link #ownKit}. */
+    State join(Player p, Character c, Fight f, boolean own) {
         if (inEnv(p)) stop(p);
         State s = new State();
         s.fight = f;
@@ -348,9 +416,14 @@ public final class Battle implements Listener {
         if (!f.members.contains(p.getUniqueId())) f.members.add(p.getUniqueId());
         s.sceneRound = pl.zones.round;
         s.saved = p.getInventory().getContents().clone();
-        ItemStack[] worn = p.getInventory().getArmorContents().clone();
-        p.getInventory().clear();
-        p.getInventory().setArmorContents(worn);   // the armour stays on in the demo (05c)
+        for (int i = 0; i < s.saved.length; i++) if (s.saved[i] != null) s.saved[i] = s.saved[i].clone();
+        s.own = own;
+        if (own) { for (int i = 0; i < 9; i++) p.getInventory().setItem(i, null); }   // his pack stays his; the hotbar is the battle's
+        else {
+            ItemStack[] worn = p.getInventory().getArmorContents().clone();
+            p.getInventory().clear();
+            p.getInventory().setArmorContents(worn);   // the armour stays on in the demo (05c)
+        }
         s.ap = s.apAtAnchor = c.apMax();
         s.legs.add(new Leg(0, p.getLocation().toBlockLocation()));
         s.ammo.put("smg", SMG.magazine);
@@ -362,6 +435,7 @@ public final class Battle implements Listener {
         String episode = c.episode(java.util.concurrent.ThreadLocalRandom.current(), true);   // 03b §7b: at the start of each fight (round 8)
         if (episode != null) p.sendMessage(Component.text(episode, NamedTextColor.LIGHT_PURPLE));
         var inv = p.getInventory();
+        if (own) { ownKit(p, s); return s; }
         inv.setItem(0, tagged(Material.IRON_HORSE_ARMOR, "smg", SMG.name, "right hand · the workbook's weapon: 5-12 Normal, range " + SMG.range + ", Accurate",
                 "right click: next mode (single, burst, aimed)", "aimed: the body part under your crosshair", "left click at an enemy: fire"));
         inv.setItem(1, tagged(Material.IRON_SWORD, "knife", KNIFE.name, "left hand · reach: the next block", "F or scroll: the other hand (0 AP)"));
@@ -381,6 +455,127 @@ public final class Battle implements Listener {
                 "Fallout: New Vegas: +10 to +30 % condition by your repair skill (Crafting)"));
         inv.setHeldItemSlot(0);
         return s;
+    }
+
+    // ------------------------------------------------------------------ his own gear (09d round 3: "your own gear in fights")
+    /** The rounds' categories (part 7's designs) and what a power cell holds [EXAMPLE]. */
+    static final Set<String> ROUNDS = Set.of("Pistol rounds", "Rifle rounds", "Shotgun shells", "Heavy rounds", "Arrows", "Rockets");
+    static final int CELL_SHOTS = 10;
+
+    /**
+     * The battle's hotbar from what he carries [the form mine]: his first two weapons (part 7's designs with a row in
+     * `data/weapons.json`; none = his fists) in the hands at their own condition, loaded from the rounds he carries of their category
+     * (a power cell = {@value #CELL_SHOTS} shots of an energy weapon; a thrown weapon = how many he carries); his Stimpaks, frag, pipe and
+     * fire grenades, riot gas grenades as the quick items with their counts; his pack (the rest of the inventory) as it is.
+     */
+    void ownKit(Player p, State s) {
+        List<Weapon> hands = new ArrayList<>();
+        Map<String, Integer> thrown = new HashMap<>();
+        for (ItemStack it : s.saved) {
+            String id = Items.id(it);
+            if (id == null) continue;
+            int n = it.getAmount();
+            if (id.equals("gear:Stimpak")) { s.quick.merge("stim", n, Integer::sum); continue; }
+            String[] th = Items.thing(id);
+            if (th != null && th[0].equals("Power")) { s.reserve.merge("Power", n * CELL_SHOTS, Integer::sum); continue; }
+            Production.Design d = Items.made(id);
+            if (d == null) continue;
+            if (ROUNDS.contains(d.category)) { s.reserve.merge(d.category, n, Integer::sum); continue; }
+            switch (d.name) {
+                case "Frag grenade", "Pipe grenade", "Fire bottle" -> { s.quick.merge("grenade", n, Integer::sum); continue; }
+                case "Riot gas grenade" -> { s.quick.merge("gasgren", n, Integer::sum); continue; }
+                default -> { }
+            }
+            Weapon w = GEAR.get(d.name);
+            if (w == null || w.name.equals("Fists")) continue;
+            if (w.thrown) thrown.merge(w.name, n, Integer::sum);
+            if (!hands.contains(w) && hands.size() < 2) {
+                hands.add(w);
+                s.source.put(w.tag, id);
+                if (w.wears) s.health.put(w.name, Items.madeCondition(it) / 100.0 * w.maxHealth);
+            }
+        }
+        Weapon fists = GEAR.get("Fists");
+        while (hands.size() < 2) hands.add(fists);
+        var inv = p.getInventory();
+        for (int k = 0; k < 2; k++) {
+            Weapon w = hands.get(k);
+            if (w.thrown) s.ammo.put(w.tag, thrown.getOrDefault(w.name, 0));
+            else if (!w.melee()) reload(s, w);
+            Material m = w == fists ? Material.LEATHER : w.melee() || w.thrown ? Material.IRON_SWORD : Material.IRON_HORSE_ARMOR;
+            String what = w.minDmg + "-" + w.maxDmg + " " + w.damageType + (w.melee() ? ", reach " + (w.range - 1) : w.thrown ? ", thrown, " + ammoOf(s, w) + " carried"
+                    : ", range " + w.range + ", " + w.magazine + " a load of " + w.ammoKind + " (" + ammoOf(s, w) + " in, " + s.reserve.getOrDefault(w.ammoKind, 0) + " more)")
+                    + (w.blastMax > 0 ? ", bursts " + w.blastMin + "-" + w.blastMax : "");
+            inv.setItem(k, tagged(m, w.tag, w.name, (k == 0 ? "right hand" : "left hand") + " · your own · " + w.skill + " · " + what,
+                    "right click: next mode · left click at an enemy: attack", "F or scroll: the other hand (0 AP)"));
+        }
+        quick(inv, s, 2, "stim", Material.HONEY_BOTTLE, "Stimpak", "2 AP: right click, on yourself");
+        quick(inv, s, 3, "grenade", Material.FIRE_CHARGE, "Grenade", "4 AP: right click throws it (3 × Strength, at most 15) · Grenades");
+        inv.setItem(4, tagged(Material.GRAY_STAINED_GLASS_PANE, "locked", "no flare", "none carried"));
+        quick(inv, s, 5, "gasgren", Material.SLIME_BALL, "Riot gas grenade", "4 AP: right click throws it");
+        for (int i = 6; i < 8; i++) inv.setItem(i, tagged(Material.GRAY_STAINED_GLASS_PANE, "locked", "no quick slot", "a belt or bandolier gives more quick slots"));
+        inv.setItem(8, tagged(Material.CLOCK, "end", "End turn", "click: end your turn; when everyone has, it is theirs"));
+        inv.setHeldItemSlot(0);
+        s.kits = 0;
+        show(p, s, pl.character(p), null);
+    }
+
+    private void quick(org.bukkit.inventory.PlayerInventory inv, State s, int slot, String id, Material m, String name, String how) {
+        int n = s.quick.getOrDefault(id, 0);
+        inv.setItem(slot, n > 0 ? tagged(m, id, name + " x" + n, "quick item (belt): " + how, "your own") : tagged(Material.GRAY_STAINED_GLASS_PANE, "locked", "no " + name, "none carried"));
+    }
+
+    /**
+     * After a fight with his own gear: what he used is gone from the inventory he gets back (rounds by category, the lowest tier first;
+     * power cells by the shots; Stimpaks; grenades), his weapons keep the condition they ended with (a destroyed one is gone), a thrown
+     * weapon is picked up again if he held the field to the end, else it is lost.
+     */
+    void settleGear(Player p, State s) {
+        Fight f = s.fight;
+        boolean held = f.over && !f.fled.contains(p.getUniqueId()) && !f.died.contains(p.getUniqueId());
+        for (Map.Entry<String, Integer> u : s.used.entrySet()) {
+            String k = u.getKey();
+            int n = u.getValue();
+            if (n <= 0) continue;
+            switch (k) {
+                case "stim" -> removeIds(p, id -> id.equals("gear:Stimpak"), n);
+                case "grenade" -> removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && (d.name.equals("Frag grenade") || d.name.equals("Pipe grenade") || d.name.equals("Fire bottle")); }, n);
+                case "gasgren" -> removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.name.equals("Riot gas grenade"); }, n);
+                case "Power" -> removeIds(p, id -> { String[] t = Items.thing(id); return t != null && t[0].equals("Power"); }, (n + CELL_SHOTS - 1) / CELL_SHOTS);
+                default -> {
+                    if (k.startsWith("thrown:")) { if (!held) { String name = k.substring(7); removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.name.equals(name); }, n); } }
+                    else removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.category.equals(k); }, n);
+                }
+            }
+        }
+        for (Map.Entry<String, String> e : s.source.entrySet()) {
+            Weapon w = weapon(e.getKey());
+            Production.Design d = Items.made(e.getValue());
+            if (w == null || d == null) continue;
+            if (s.broken.contains(w.name)) { removeIds(p, id -> id.equals(e.getValue()), 1); p.sendMessage(Component.text("Your " + w.name + " is destroyed.", NamedTextColor.RED)); continue; }
+            if (!w.wears || !s.health.containsKey(w.name)) continue;
+            double cond = Math.max(0, Math.min(100, s.health.get(w.name) / w.maxHealth * 100));
+            if (removeIds(p, id -> id.equals(e.getValue()), 1) > 0)
+                for (ItemStack rest : p.getInventory().addItem(Items.made(d, 1, cond)).values()) p.getWorld().dropItem(p.getLocation(), rest);
+        }
+    }
+
+    /** Removes up to n items whose id matches, the lowest tier first. */
+    static int removeIds(Player p, java.util.function.Predicate<String> match, int n) {
+        var inv = p.getInventory();
+        List<Integer> slots = new ArrayList<>();
+        for (int i = 0; i < inv.getSize(); i++) { String id = Items.id(inv.getItem(i)); if (id != null && match.test(id)) slots.add(i); }
+        slots.sort(Comparator.comparingInt(i -> { Production.Design d = Items.made(Items.id(inv.getItem(i))); return d == null ? 0 : d.tier; }));
+        int took = 0;
+        for (int i : slots) {
+            if (took >= n) break;
+            ItemStack it = inv.getItem(i);
+            int k = Math.min(n - took, it.getAmount());
+            if (k >= it.getAmount()) inv.setItem(i, null);
+            else { ItemStack less = it.clone(); less.setAmount(it.getAmount() - k); inv.setItem(i, less); }
+            took += k;
+        }
+        return took;
     }
 
     /** A still raider to aim at, {@code dist} blocks ahead on the nearest standing spot, facing the player; removed when the demo stops. */
@@ -431,7 +626,8 @@ public final class Battle implements Listener {
         p.hideBossBar(s.bar);
         for (Zones.Zone z : s.clouds) pl.zones.remove(z);
         p.getInventory().setContents(s.saved);
-        p.sendMessage(Component.text((f.them.equals("the raiders") ? "Battle demo over" : "The fight is over") + "; your inventory is back.", NamedTextColor.AQUA));
+        if (s.own) settleGear(p, s);
+        p.sendMessage(Component.text((f.them.equals("the raiders") ? "Battle demo over" : "The fight is over") + (s.own ? "; your gear is as the fight left it." : "; your inventory is back."), NamedTextColor.AQUA));
         List<ItemStack> got = f.spoils.remove(p.getUniqueId());
         if (got != null && !got.isEmpty()) {
             int left = 0;
@@ -464,7 +660,24 @@ public final class Battle implements Listener {
         return v == null ? "" : v;
     }
 
-    private Weapon weapon(String id) { return switch (id) { case "smg" -> SMG; case "knife" -> KNIFE; default -> null; }; }
+    private Weapon weapon(String id) {
+        if (id == null) return null;
+        return switch (id) { case "smg" -> SMG; case "knife" -> KNIFE; default -> id.startsWith("w:") ? GEAR.get(id.substring(2)) : null; };
+    }
+
+    /** The rounds in the weapon now. */
+    static int ammoOf(State s, Weapon w) { return s.ammo.getOrDefault(w.tag, 0); }
+
+    /** Loads the weapon: the demo's from nothing; his own from the rounds he carries of its category (a thrown weapon never reloads). */
+    static boolean reload(State s, Weapon w) {
+        if (!s.own) { s.ammo.put(w.tag, w.magazine); return true; }
+        if (w.thrown) return false;
+        int have = s.reserve.getOrDefault(w.ammoKind, 0), n = Math.min(w.magazine - ammoOf(s, w), have);
+        if (n <= 0) return false;
+        s.reserve.put(w.ammoKind, have - n);
+        s.ammo.put(w.tag, ammoOf(s, w) + n);
+        return true;
+    }
 
     private static boolean quickItem(String id) { return id.equals("stim") || id.equals("grenade") || id.equals("gasgren") || id.equals("flare"); }
 
@@ -552,7 +765,7 @@ public final class Battle implements Listener {
             bar = Component.text(w.name + ": " + m.name() + " · " + apOf(c, w, m) + " AP", NamedTextColor.WHITE)
                     .append(Component.text(m.toHit() != 0 ? " · to hit " + sign(m.toHit()) : "", NamedTextColor.YELLOW))
                     .append(Component.text(pen != 0 ? " · moved " + pen + " (steady: 1 AP)" : "", NamedTextColor.RED))
-                    .append(Component.text(!w.melee() ? " · ammo " + s.ammo.get("smg") + "/" + w.magazine : "", NamedTextColor.GRAY))
+                    .append(Component.text(!w.melee() ? (w.thrown ? " · " + ammoOf(s, w) + " to throw" : " · ammo " + ammoOf(s, w) + "/" + w.magazine + (s.own ? " (+" + s.reserve.getOrDefault(w.ammoKind, 0) + ")" : "")) : "", NamedTextColor.GRAY))
                     .append(Component.text(s.jammed.contains(w.name) ? " · JAMMED (fire: clear it, " + apOf(c, w, m) + " AP)" : "", NamedTextColor.RED))
                     .append(Component.text(" · cond " + Math.round(cond(s, w) * 100) + " %" + (Combat.broken(health(s, w)) ? " BROKEN" : ""),
                             cond(s, w) >= 0.75 ? NamedTextColor.GRAY : NamedTextColor.GOLD))
@@ -647,7 +860,7 @@ public final class Battle implements Listener {
         if (pl.anomalies.hidden(a.target().getLocation(), p.getLocation())) {   // 09c §2: unseen from outside a blind spot (only area attacks reach him)
             Sfx.to(p, "ap.lacking"); show(p, s, c, "you cannot see him: he is inside a blind spot (only a grenade's blast reaches him)"); return;
         }
-        if (!w.melee() && s.ammo.get("smg") < m.ammo()) { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, "not enough ammo for " + m.name()); return; }
+        if (!w.melee() && ammoOf(s, w) < m.ammo()) { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, w.thrown ? "none left to throw" : "not enough ammo for " + m.name() + (s.own ? " (" + s.reserve.getOrDefault(w.ammoKind, 0) + " " + w.ammoKind + " left)" : "")); return; }
         if (s.broken.contains(w.name)) { show(p, s, c, "the " + w.name + " is destroyed (a critical failure)"); return; }
         if (s.dropped.contains(w.name)) {   // a critical failure dropped it: picking it up is an action [2 AP mine]
             if (pay(p, s, c, 2, "picking the weapon up")) { Sfx.at(p.getLocation(), "weapon.pickup"); s.dropped.remove(w.name); show(p, s, c, "picked the " + w.name + " up again (2 AP)"); }
@@ -701,6 +914,13 @@ public final class Battle implements Listener {
             critFailure(p, s, c, w, f, log);
             Sfx.at(p.getLocation(), "crit.fail");
             Narrator.fumble(p.getLocation(), f, c.female);
+        } else if (w.blastMax > 0) {   // a rocket: it explodes where it lands (on him if it hit, 1-3 blocks off if it missed)
+            Location boom = a.target().getLocation().toBlockLocation();
+            if (!r.hit()) boom.add(rnd.nextInt(5) - 2, 0, rnd.nextInt(5) - 2);
+            log.append(r.hit() ? (r.crit() ? "CRITICAL HIT" : "HIT") + ": it bursts on him." : "MISS: it bursts beside him.");
+            result = r.hit() ? "the rocket hit" : "the rocket missed";
+            explode(p, s, c, boom, r.hit() ? a.target() : null, r.crit() ? perkDegree(c, w, r.degree()) : 0, log, w.blastMin, w.blastMax);
+            if (!inBattle(p)) { p.sendMessage(Component.text(log.toString(), NamedTextColor.GRAY)); return; }
         } else {
             int hits;
             String spray = "";
@@ -754,15 +974,16 @@ public final class Battle implements Listener {
         }
         if (!w.melee()) {
             double h = health(s, w);
-            if (!Combat.broken(h) && !signature(c, w)) {   // FNV: 0.2 item health a round fired; a Signature Weapon never breaks
+            if (w.wears && !Combat.broken(h) && !signature(c, w)) {   // FNV: 0.2 item health a round fired; a Signature Weapon never breaks
                 s.health.put(w.name, Math.max(1, h - Combat.WEAR_PER_ROUND * spent));
                 if (Combat.broken(health(s, w))) log.append(" The ").append(w.name).append(" breaks from wear (its last health point): /sheet repair.");
             }
-            s.ammo.put("smg", Math.max(0, s.ammo.get("smg") - spent));
+            s.ammo.put(w.tag, Math.max(0, ammoOf(s, w) - spent));
+            if (s.own) s.used.merge(w.thrown ? "thrown:" + w.name : w.ammoKind, spent, Integer::sum);
             if (jamRound > 0) { log.append(" THE GUN JAMS after ").append(shots).append(" round(s), the next one lost (firing again tries to clear it)."); result += " · JAMMED"; }
-            if (s.ammo.get("smg") <= 0 && !s.broken.contains(w.name)) {   // reload automatic when out of ammo (Marek 11-14), 2 AP (Fallout 2)
-                if (s.ap >= 2) { s.ap -= 2; s.apAtAnchor = s.ap; s.ammo.put("smg", w.magazine); log.append(" Reloaded automatically (2 AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
-                else log.append(" Empty: reloads when you have 2 AP (or after the battle).");
+            if (ammoOf(s, w) <= 0 && !s.broken.contains(w.name) && !w.thrown) {   // reload automatic when out of ammo (Marek 11-14), 2 AP (Fallout 2)
+                if (s.ap >= 2 && (!s.own || s.reserve.getOrDefault(w.ammoKind, 0) > 0)) { s.ap -= 2; s.apAtAnchor = s.ap; reload(s, w); log.append(" Reloaded automatically (2 AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
+                else log.append(s.own && s.reserve.getOrDefault(w.ammoKind, 0) <= 0 ? " Empty, and no " + w.ammoKind + " left." : " Empty: reloads when you have 2 AP (or after the battle).");
             }
             s.gunfire = true;
             Rules.Gas here = c.gasHere();
@@ -982,12 +1203,14 @@ public final class Battle implements Listener {
         p.sendMessage(Component.text((outright ? "FINAL DEATH: killed outright (the head or most of the body destroyed)."
                 : (c.arrestCause.isEmpty() ? "CLINICAL DEATH (below −" + c.attrs(false)[Rules.E] + " HP): " : "CLINICAL DEATH (" + c.arrestCause + ", HP kept): ")
                 + clinical(c))
-                + (s.fight.them.equals("the raiders") ? " The demo ends" : " The fight ends for you (its kit is still the demo's)") + "; your character is restored as it began.", NamedTextColor.DARK_RED));
-        c.hp = s.hp0;
-        c.bleeding = s.bleeding0;
-        c.brokenLegs = s.legs0;
-        c.survival.putAll(s.survival0);
-        c.arrestAt = -1; c.arrestCause = ""; c.cprFrom = -1; c.oxygenZeroAt = -1;
+                + (s.fight.demo ? " The demo ends; your character is restored as it began." : " The fight ends for you: it is real (your own gear): the others can still save you (part 3's revival)."), NamedTextColor.DARK_RED));
+        if (s.fight.demo) {
+            c.hp = s.hp0;
+            c.bleeding = s.bleeding0;
+            c.brokenLegs = s.legs0;
+            c.survival.putAll(s.survival0);
+            c.arrestAt = -1; c.arrestCause = ""; c.cprFrom = -1; c.oxygenZeroAt = -1;
+        }
         stop(p);
     }
 
@@ -1011,7 +1234,7 @@ public final class Battle implements Listener {
      * the amount EXAMPLE), the fire only from a fire weapon (Marek 11-14; Fallout 2's flamers' row).
      */
     private void critFailure(Player p, State s, Character c, Weapon w, Combat.Failure f, StringBuilder log) {
-        if (f.losesAmmo() && !w.melee()) { s.ammo.put("smg", 0); log.append(" The magazine is empty."); }
+        if (f.losesAmmo() && !w.melee() && !w.thrown) { if (s.own) s.used.merge(w.ammoKind, ammoOf(s, w), Integer::sum); s.ammo.put(w.tag, 0); log.append(" The magazine is empty."); }
         if (f.dropsWeapon()) { Sfx.at(p.getLocation(), "weapon.drop"); s.dropped.add(w.name); log.append(" Left click again to pick it up (2 AP)."); }
         if ((f.weaponDamaged() || f.weaponDestroyed()) && signature(c, w)) log.append(" Your Signature Weapon takes no harm.");
         else if (f.weaponDamaged()) {
@@ -1310,6 +1533,10 @@ public final class Battle implements Listener {
 
     /** The burst: everyone within 2 blocks whom no block shields (a line from the burst to his middle) takes 20-35, less DT and DR. */
     private void explode(Player p, State s, Character c, Location boom, LivingEntity direct, int critDegree, StringBuilder log) {
+        explode(p, s, c, boom, direct, critDegree, log, Combat.GRENADE_MIN, Combat.GRENADE_MAX);
+    }
+
+    private void explode(Player p, State s, Character c, Location boom, LivingEntity direct, int critDegree, StringBuilder log, int dmgMin, int dmgMax) {
         org.bukkit.World w = boom.getWorld();
         w.spawnParticle(org.bukkit.Particle.EXPLOSION, boom.clone().add(0, 0.5, 0), 1);
         Sfx.at(boom, "explosion");
@@ -1323,7 +1550,7 @@ public final class Battle implements Listener {
             if (dist > r + 0.5 && !le.equals(direct)) continue;
             Vector to = mid.toVector().subtract(centre.toVector());
             if (to.lengthSquared() > 1e-6 && w.rayTraceBlocks(centre, to.clone().normalize(), to.length(), FluidCollisionMode.NEVER, true) != null) continue;
-            int base = Combat.GRENADE_MIN + rnd.nextInt(Combat.GRENADE_MAX - Combat.GRENADE_MIN + 1);
+            int base = dmgMin + rnd.nextInt(dmgMax - dmgMin + 1);
             boolean isDirect = le.equals(direct);
             Target t = s.targets.get(le.getUniqueId());
             Combat.CritEffects fx = Combat.critEffects(Rules.Part.TORSO, isDirect ? critDegree : 0, t != null ? t.a : new int[]{5, 5, 5, 5, 5, 5, 5});
@@ -1381,6 +1608,24 @@ public final class Battle implements Listener {
 
     /** A quick item by right click, wherever the crosshair is (at an enemy too). */
     private void useItem(Player p, State s, Character c, String id) {
+        if (s.own && (id.equals("stim") || id.equals("grenade") || id.equals("gasgren"))) {
+            if (s.quick.getOrDefault(id, 0) <= 0) { show(p, s, c, "none left"); return; }
+            int ap0 = s.ap;
+            useItemNow(p, s, c, id);
+            if (s.ap < ap0 || !inBattle(p)) {   // used: one fewer
+                s.quick.merge(id, -1, Integer::sum);
+                s.used.merge(id, 1, Integer::sum);
+                if (inBattle(p) && s.quick.getOrDefault(id, 0) <= 0) {
+                    for (int i = 0; i < 9; i++) if (id.equals(id(p.getInventory().getItem(i))))
+                        p.getInventory().setItem(i, tagged(Material.GRAY_STAINED_GLASS_PANE, "locked", "none left", "used up in this fight"));
+                }
+            }
+            return;
+        }
+        useItemNow(p, s, c, id);
+    }
+
+    private void useItemNow(Player p, State s, Character c, String id) {
         switch (id) {
             case "stim" -> {
                 if (!pay(p, s, c, 2, "the Stimpak")) return;
