@@ -140,6 +140,11 @@ public final class Hud {
         if (stageHp != null) c.news.add(stageHp);
         String crisis = c.crisis(java.util.concurrent.ThreadLocalRandom.current());   // 03b §7b: the crisis at 1 000 rads (round 7)
         if (crisis != null) c.news.add(crisis);
+        c.radiationHeals();                                                          // 03b §7b: the glowing one (round 8)
+        if (Math.round(c.clock) % 24 == 0) {                                         // 03b §7b: the day's episode roll (round 8)
+            String ep = c.episode(java.util.concurrent.ThreadLocalRandom.current(), false);
+            if (ep != null) c.news.add(ep);
+        }
         heal(c);
         c.radiationRolls(rads0, c.survival.getOrDefault(Rules.Stat.RADS, 0.0), java.util.concurrent.ThreadLocalRandom.current());   // 03d §5
         c.therapyHour();   // 03d §2, §10

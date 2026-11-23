@@ -251,6 +251,8 @@ public final class Battle implements Listener {
         Sfx.to(p, "combat.start");
         p.showBossBar(s.bar);
         states.put(p.getUniqueId(), s);
+        String episode = c.episode(java.util.concurrent.ThreadLocalRandom.current(), true);   // 03b §7b: at the start of each fight (round 8)
+        if (episode != null) p.sendMessage(Component.text(episode, NamedTextColor.LIGHT_PURPLE));
         var inv = p.getInventory();
         inv.setItem(0, tagged(Material.IRON_HORSE_ARMOR, "smg", SMG.name, "right hand · the workbook's weapon: 5-12 Normal, range " + SMG.range + ", Accurate",
                 "right click: next mode (single, burst, aimed)", "aimed: the body part under your crosshair", "left click at an enemy: fire"));

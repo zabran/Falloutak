@@ -532,6 +532,19 @@ public final class Rules {
 
     public static boolean crisisLives(int score) { return score > CRISIS_AT; }
 
+    /**
+     * THE GHOUL LINE (03b §7b, Marek 11-23, round 8: *"I have seen in more as paralel evolutions, so that you could jump "stages". But
+     * yes, it makes sense that when evolving slowly through leathered ghoul, you get the +3 DT."* · *"Should the plugin apply the three
+     * stages itself - yes."*): how far a ghoul's very bad result moves it: one stage, two at −20 or less, three at −40 or less [mine,
+     * EXAMPLE]; 0 for any other result.
+     */
+    public static int ghoulSteps(int score) { return score > 0 ? 0 : 1 + (score <= -20 ? 1 : 0) + (score <= -40 ? 1 : 0); }
+
+    public static final String[] GHOUL_STAGES = {"leathered", "husk", "glowing"};
+
+    /** The glowing one's episode of insanity (03b §7b, round 8: *"Episodes of insanity - agreed."*): d100 ≤ 20 − Luck. */
+    public static boolean episode(int d100, int luck) { return d100 <= 20 - luck; }
+
     /** 0 or less very bad, 1-50 bad, 51-80 neutral, 81+ good. */
     public static String mutationCategory(int score) { return score <= 0 ? "very bad" : score <= 50 ? "bad" : score <= 80 ? "neutral" : "good"; }
 

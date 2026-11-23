@@ -86,7 +86,7 @@ class CrisisTest {
         assertTrue(c.mutate(100, Part3Test.fixed(0.5, 30)).contains("turns GHOUL"), "the 3rd, bad");
         Character g = Part3Test.of("Ghoul", 5, 5, 5, 5, 5, 6, 5);
         g.survival.put(Rules.Stat.RADS, 2000.0);
-        assertTrue(g.mutate(500, Part3Test.fixed(0.5, 1)).contains("next stage of the ghoul line"), "a ghoul's very bad result");
+        assertTrue(g.mutate(500, Part3Test.fixed(0.5, 1)).contains("THE GHOUL LINE: ghoul → husk"), "a ghoul's very bad result");
         assertFalse(g.mutate(100, Part3Test.fixed(0.5, 60)).contains("ghoul line"));
     }
 }

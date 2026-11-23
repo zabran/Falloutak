@@ -109,6 +109,10 @@ public final class Character {
     public double restHours = 0, mendHours = 0, lastMutation = -1e9;
     /** The crisis was rolled for this stay at 1 000 rads or more (03b §7b); cleared when the rads fall below 1 000. */
     public boolean crisisRolled = false;
+    /** The ghoul line this body went through (03b §7b): "leathered", "husk", "glowing" in order; a jump skips the stages between. */
+    public List<String> ghoulPath = new ArrayList<>();
+    /** The glowing one's healing by radiation carried between hours (10 rads = 1 HP). */
+    public double radHealCarry = 0;
     /** Hours toward the next loss of a negative healing rate (Fatal Radiation Poisoning, 11-19). */
     public double sickHours = 0;
 
@@ -724,6 +728,7 @@ public final class Character {
         double[] sk = skills();
         int raw = Rules.healingRate(attrs(false), sk[Rules.skillIndex("Medicine")], sk[Rules.skillIndex("Survival")]) + tpl().healingRate()
                 + (int) Math.round(other("healing_rate") + stageOther("healing_rate")) - Production.hygieneHealing(unwashedDays);
+        if (raw > 0 && other("healing_half") > 0) raw /= 2;   // the husk's, carried by a glowing one that went through it (03b §7b)
         return raw < 0 && stages().contains(FATAL_RADIATION) ? raw : Math.max(0, raw);
     }
 
@@ -872,7 +877,7 @@ public final class Character {
             case WATER -> power ? 0 : h * t.waterFactor();
             case FOOD -> h * t.foodFactor();   // a synthetic body: its power
             case SLEEP -> h < 0 ? h * t.sleepFactor() : h;   // the need (DEC2: x0.75); a synthetic body: its memory, cleaned like sleep
-            case RADS -> locationRads * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");
+            case RADS -> other("rads_heal") > 0 ? 0 : locationRads * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");
             case BLOOD -> inArrest() ? 0 : h;   // no circulation, no new blood [mine]
             default -> h;
         };
@@ -1158,7 +1163,7 @@ public final class Character {
         if (m.randomAttr() != 0) { int i = rnd.nextInt(7); mods[i] += m.randomAttr(); extra = " (" + Rules.SPECIAL[i] + ")"; }
         add(new Effect("Mutation: " + m.name() + extra, "mutation", "", true, mods, new LinkedHashMap<>(m.other()), 0, null, 100));
         return "d100 " + d + " + (Luck − 5) × 4 − 10 a 100 rads above the first = " + score + ": " + cat.toUpperCase(Locale.ROOT) + " → " + m.name()
-                + extra + (m.notes().isEmpty() ? "" : " (" + m.notes() + ")") + "; " + rads + " rads expelled" + ghoulLine(cat);
+                + extra + (m.notes().isEmpty() ? "" : " (" + m.notes() + ")") + "; " + rads + " rads expelled" + ghoulLine(cat, score, rnd);
     }
 
     /**
@@ -1166,14 +1171,103 @@ public final class Character {
      * person into a ghoul." - seems fine.*; §7b, round 7: a ghoul's very bad result = the next stage): told, the GM sets it (the stages
      * are not templates in the plugin yet).
      */
-    String ghoulLine(String cat) {
+    String ghoulLine(String cat, int score, Random rnd) {
         long n = effects.stream().filter(e -> "mutation".equals(e.source())).count();
         boolean ghoul = "Ghoul".equals(baseTpl().name());
         if (!ghoul && n >= 3 && (cat.equals("bad") || cat.equals("very bad")))
             return " → mutation " + n + ", " + cat + ": the body turns GHOUL (03b §7; the GM sets the template)";
-        if (ghoul && cat.equals("very bad"))
-            return " → a ghoul's very bad result: the next stage of the ghoul line (03b §7b: leathered, husk, glowing; the GM sets it)";
+        if (ghoul && cat.equals("very bad")) return ghoulAdvance(Rules.ghoulSteps(score), rnd);
         return "";
+    }
+
+    public String ghoulStage() { return ghoulPath == null || ghoulPath.isEmpty() ? "" : ghoulPath.get(ghoulPath.size() - 1); }
+
+    public boolean glowing() { return "glowing".equals(ghoulStage()); }
+
+    /**
+     * Moves a ghoul {@code steps} stages along the line (03b §7b, round 8) and puts the line's ONE effect in its slot: each stage's
+     * numbers are its totals against the base ghoul (Marek's, round 7), a later stage's numbers replace an earlier one's, and what a stage
+     * passed through gave and no later one gives anew carries on (the leathered hide's DT +3; *"when evolving slowly through leathered
+     * ghoul, you get the +3 DT"*); a jump skips the stages between. Reaching glowing gives a mental illness; a glowing one's further very
+     * bad result gives one more. Returns the news.
+     */
+    public String ghoulAdvance(int steps, Random rnd) {
+        if (ghoulPath == null) ghoulPath = new ArrayList<>();
+        if (steps <= 0 || !"Ghoul".equals(baseTpl().name())) return "";
+        int at = ghoulPath.isEmpty() ? 0 : java.util.Arrays.asList(Rules.GHOUL_STAGES).indexOf(ghoulStage()) + 1;
+        if (at >= 3) return " → already glowing: " + madness(rnd);
+        int to = Math.min(3, at + steps);
+        String from = at == 0 ? "ghoul" : ghoulStage();
+        ghoulPath.add(Rules.GHOUL_STAGES[to - 1]);
+        add(ghoulEffect());
+        if (survival.getOrDefault(Rules.Stat.RADS, 0.0) > 0 && glowing()) survival.put(Rules.Stat.RADS, 0.0);   // it keeps none
+        String s = " → THE GHOUL LINE: " + from + " → " + ghoulStage() + (to - at > 1 ? " (a jump of " + (to - at) + " stages)" : "") + " (03b §7b)";
+        return to == 3 ? s + "; " + madness(rnd) : s;
+    }
+
+    /** The line's totals against the base ghoul by the path (03b §7b; the smell's Sneak −10 and the rad resistances mine, EXAMPLE). */
+    Effect ghoulEffect() {
+        Integer[] set = new Integer[7];
+        Map<String, Double> o = new LinkedHashMap<>();
+        for (String st : ghoulPath) {
+            switch (st) {
+                case "leathered" -> { set[Rules.E] = -1; set[Rules.C] = -2; o.put("dt", 3.0); o.put("rad_res", 35.0); o.put("skill:Sneak", -10.0); }
+                case "husk" -> { set[Rules.C] = -4; set[Rules.I] = -2; o.put("healing_half", 1.0); o.put("rad_res", 50.0); }
+                case "glowing" -> { set[Rules.I] = -5; set[Rules.C] = -5; set[Rules.E] = 2; set[Rules.A] = 2; o.put("rad_res", 60.0); o.put("rads_heal", 1.0); }
+                default -> { }
+            }
+        }
+        int[] m = new int[7];
+        for (int i = 0; i < 7; i++) m[i] = set[i] == null ? 0 : set[i];
+        return new Effect("Ghoul line: " + String.join(" → ", ghoulPath), "ghoul line", "ghoul line", true, m, o, 0, null, 100);
+    }
+
+    static final String[][] ILLNESSES = {
+            {"paranoia", "trusts nobody: Charisma checks with strangers −20"},
+            {"the voices", "Perception −10 in quiet; the GM may give it one false order a session"},
+            {"the fixed idea", "one thing it must gather, guard or reach"},
+            {"the old life", "it lives on day D's eve: talks to the dead, keeps its pre-war habits"},
+            {"the swings", "a week high, a week low: Agility and Intelligence ±1 by the week (the GM)"},
+            {"a fear", "of the dark, of clean ground or of being touched: a Pain check to face it"}};
+
+    /** One more mental illness for a glowing one (03b §7b, d6; one not held yet) [the list mine, EXAMPLE]. */
+    String madness(Random rnd) {
+        List<String[]> free = new ArrayList<>();
+        for (String[] il : ILLNESSES)
+            if (effects.stream().noneMatch(e -> e.name().startsWith("Glowing mind: " + il[0]))) free.add(il);
+        if (free.isEmpty()) return "every illness of the list already";
+        String[] il = free.get(rnd.nextInt(free.size()));
+        add(new Effect("Glowing mind: " + il[0] + " (" + il[1] + ")", "glowing mind", "", true, new int[7], new LinkedHashMap<>(), 0, null, 100));
+        return "a mental illness: " + il[0] + " (" + il[1] + ")";
+    }
+
+    static final String[] EPISODES = {"freezes (AP 0)", "flees", "attacks the nearest, friend or foe", "shouts and babbles (it gives the party away)",
+            "walks to the hottest place near", "is taken by a vision (unconscious)"};
+
+    /**
+     * The glowing one's episode of insanity (03b §7b, round 8: *"Episodes of insanity - agreed."*): each game day and at the start of each
+     * fight, d100 ≤ 20 − Luck; d6 rounds in a fight, d6 × 10 minutes out of one; d6 what it does. Returns the news, or null.
+     */
+    public String episode(Random rnd, boolean fight) {
+        if (!glowing() || dead) return null;
+        int d = 1 + rnd.nextInt(100), luck = attr(Rules.L, true);
+        if (!Rules.episode(d, luck)) return null;
+        int k = rnd.nextInt(6), len = 1 + rnd.nextInt(6);
+        return "AN EPISODE OF INSANITY (d100 " + d + " ≤ 20 − Luck " + luck + "): " + name + " " + EPISODES[k] + " for "
+                + (fight ? len + " round" + (len > 1 ? "s" : "") : len * 10 + " minutes");
+    }
+
+    /** The glowing one's hour (03b §7b): the place's rads heal it, 10 rads = 1 HP, and it keeps none. Returns the HP gained. */
+    public int radiationHeals() {
+        if (other("rads_heal") <= 0) return 0;
+        survival.put(Rules.Stat.RADS, 0.0);
+        if (dead) return 0;
+        double g = locationRads / 10 + radHealCarry;
+        int add = (int) g;
+        radHealCarry = g - add;
+        int before = hp;
+        hp = Math.min(hpMax(), hp + add);
+        return hp - before;
     }
 
     /**

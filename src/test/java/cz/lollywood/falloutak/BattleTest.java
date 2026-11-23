@@ -129,6 +129,10 @@ class BattleTest extends MockGame {
             // and his gun whole: a long fight wears it out (0.2 a round, ~395 rounds) or a fumble destroys it, and the demo never ends
             s.health.clear();
             s.broken.clear();
+            // and his eyes and arms: a raider's crit can blind him or cripple his arm, and then he hardly hits in 100 rounds (the
+            // flake of 11-23, one run in ~10)
+            s.blind = false;
+            s.armCrippled = false;
         }
         assertTrue(s.over || s.targets.values().stream().noneMatch(Battle::canFight), "the fight ends when no raider can fight (deaths " + deaths + ")");
         // part 6: each raider beaten gives his kill XP (3.1 x 30^1.09 = 126) to the one player
