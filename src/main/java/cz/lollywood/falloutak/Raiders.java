@@ -38,24 +38,57 @@ final class Raiders {
     static final long TICKS = 6;
     static final int SEARCH = 40;
 
-    /** Runs every raider's turn, then {@code done}; stops early if the player dies or the demo ends. */
-    void run(Player p, Battle.State s, Character c, Runnable done) {
-        List<UUID> order = new ArrayList<>(s.dummies);
-        order.sort(Comparator.comparingInt((UUID u) -> { Battle.Target t = s.targets.get(u); return t == null ? 0 : -2 * t.a[Rules.P]; }));
+    /**
+     * Runs every enemy's turn in Sequence order (2 x PE, Fallout 2), each at the player he picks (09d round 2: the whole party on the
+     * battle map): the nearest he can shoot from where he stands, else the nearest; then {@code done}. Stops early if no player is left
+     * or the fight is over.
+     */
+    void run(Battle.Fight f, Runnable done) {
+        List<UUID> order = new ArrayList<>(f.dummies);
+        order.sort(Comparator.comparingInt((UUID u) -> { Battle.Target t = f.targets.get(u); return t == null ? 0 : -2 * t.a[Rules.P]; }));
         Iterator<UUID> it = order.iterator();
-        s.pending.clear();
-        s.task = b.pl.getServer().getScheduler().runTaskTimer(b.pl, () -> {
-            if (!p.isOnline() || !b.inBattle(p)) { s.task.cancel(); return; }
-            if (s.pending.isEmpty()) {
-                if (!it.hasNext()) { s.task.cancel(); s.task = null; done.run(); return; }
-                plan(p, s, c, it.next());
+        f.pending.clear();
+        f.task = b.pl.getServer().getScheduler().runTaskTimer(b.pl, () -> {
+            List<Player> ps = b.players(f);
+            if (ps.isEmpty() || f.over) { if (f.task != null) f.task.cancel(); f.task = null; return; }
+            if (f.pending.isEmpty()) {
+                if (!it.hasNext()) { if (f.task != null) f.task.cancel(); f.task = null; done.run(); return; }
+                UUID u = it.next();
+                Player p = pick(f, u, ps);
+                if (p != null) plan(p, b.state(p), b.pl.character(p), u);
                 return;
             }
-            s.pending.poll().run();
+            f.pending.poll().run();
         }, TICKS, TICKS);
     }
 
-    private void say(Player p, String text) { p.sendMessage(Component.text(text, NamedTextColor.RED)); }
+    /** Whom an enemy goes for: the nearest player he can shoot (a gun) or reach (a creature) from where he stands, else the nearest. */
+    Player pick(Battle.Fight f, UUID u, List<Player> ps) {
+        Entity e = b.pl.getServer().getEntity(u);
+        Battle.Target t = f.targets.get(u);
+        if (!(e instanceof LivingEntity le) || t == null) return ps.isEmpty() ? null : ps.get(0);
+        Location at = le.getLocation();
+        Player best = null, bestNow = null;
+        double bd = Double.MAX_VALUE, bn = Double.MAX_VALUE;
+        for (Player q : ps) {
+            if (b.pl.character(q).dead || !q.getWorld().equals(at.getWorld())) continue;
+            double d = q.getLocation().distanceSquared(at);
+            if (d < bd) { bd = d; best = q; }
+            boolean now = t.melee ? Math.sqrt(d) <= t.reach + 1.0
+                    : canShoot(at.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), q);
+            if (now && d < bn) { bn = d; bestNow = q; }
+        }
+        return bestNow != null ? bestNow : best;
+    }
+
+    /** A line of the enemies' turn: the player it is about reads it as it is, the others with his name for "you". */
+    private void say(Player p, String text) {
+        p.sendMessage(Component.text(text, NamedTextColor.RED));
+        Battle.Fight f = b.fightOf(p);
+        if (f == null) return;
+        String them = text.replaceAll("\\byour\\b", p.getName() + "'s").replaceAll("\\byou\\b", p.getName());
+        for (Player q : b.players(f)) if (!q.equals(p)) q.sendMessage(Component.text(them, NamedTextColor.RED));
+    }
 
     /** Works out one raider's turn and queues its steps. */
     private void plan(Player p, Battle.State s, Character c, UUID u) {
@@ -99,6 +132,7 @@ final class Raiders {
         }
         // the mirage and the echo: his head (round 10: "Raiders inside could get insanity effect")
         if (az != null && (az.anomaly.equals("mirage") || az.anomaly.equals("echo")) && episode(p, s, c, le, t, Anomalies.KINDS.get(az.anomaly).name())) return;
+        if (t.melee) { beast(p, s, c, le, t, u, inZone); return; }
         if (t.dropped) {
             if (t.ap < 2) { q.add(() -> say(p, t.name + " reaches for his dropped gun.")); return; }
             t.ap -= 2;
@@ -363,8 +397,10 @@ final class Raiders {
     /** Where the others stand (the player, the other raiders): nobody walks into them. */
     private Set<Path.P> taken(Battle.State s, UUID me, Player p) {
         Set<Path.P> l = new HashSet<>();
-        Location pl = p.getLocation();
-        l.add(new Path.P(pl.getBlockX(), pl.getBlockY(), pl.getBlockZ()));
+        for (Player q : s.fight == null ? List.of(p) : b.players(s.fight)) {
+            Location pl = q.getLocation();
+            l.add(new Path.P(pl.getBlockX(), pl.getBlockY(), pl.getBlockZ()));
+        }
         for (UUID o : s.dummies) {
             if (o.equals(me)) continue;
             Entity e = b.pl.getServer().getEntity(o);
@@ -500,6 +536,172 @@ final class Raiders {
             if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female, p);   // he hears "you..."
         }
         p.sendMessage(Component.text(log.toString(), NamedTextColor.RED));
+        others(p, t.name + " fires at " + p.getName() + ": " + result.replace(" you", " " + p.getName()) + ".");
+        if (b.inBattle(p)) b.show(p, s, c, result);
+    }
+
+    private void others(Player p, String text) {
+        Battle.Fight f = b.fightOf(p);
+        if (f != null) for (Player q : b.players(f)) if (!q.equals(p)) q.sendMessage(Component.text(text, NamedTextColor.RED));
+    }
+
+    // ------------------------------------------------------------------ the creatures (09d round 2: the world map's encounters)
+    /** At the battle map's edge, or this far from every player, a hunted animal is gone (it got away) [EXAMPLE, mine]. */
+    static final int GONE = 40;
+
+    /** Within a block of the battle map's edge. */
+    static boolean edge(Battle.Target t, int x, int z) {
+        var f = t.field;
+        return f != null && (x <= f.getMinX() + 1 || x >= f.getMaxX() - 2 || z <= f.getMinZ() + 1 || z >= f.getMaxZ() - 2);
+    }
+
+    /** The distance to the nearest player of the fight. */
+    private double nearest(Battle.State s, Player p, Location at) {
+        double d = Double.MAX_VALUE;
+        for (Player q : s.fight == null ? List.of(p) : b.players(s.fight))
+            if (q.getWorld().equals(at.getWorld())) d = Math.min(d, q.getLocation().distance(at));
+        return d;
+    }
+
+    /**
+     * A creature's turn [the form mine, EXAMPLE, after Fallout 2's simplest AI]: a HUNTED one that is not hostile runs from the party
+     * and is gone once {@link #GONE} blocks from everyone; a hostile one walks to the nearest spot within its reach of the player and
+     * attacks while its AP last (its attack's AP each), keeping the AP for one attack when the walk allows it.
+     */
+    private void beast(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t, UUID u, String inZone) {
+        Deque<Runnable> q = s.pending;
+        if (b.pl.anomalies.hidden(p.getLocation(), le.getLocation())) { q.add(() -> say(p, t.name + " cannot find you (a blind spot hides you).")); return; }
+        if (t.held) { q.add(() -> say(p, t.name + " is held where it stands.")); return; }
+        Location at = le.getLocation();
+        World w = at.getWorld();
+        Path.P start = new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ());
+        Set<Path.P> taken = taken(s, u, p);
+        notice(le, t);
+        Path.World world = new Path.World() {
+            public boolean canStand(int x, int y, int z) {
+                Block f = w.getBlockAt(x, y, z);
+                return f.isPassable() && f.getRelative(0, 1, 0).isPassable() && f.getRelative(0, -1, 0).getType().isSolid()
+                        && !taken.contains(new Path.P(x, y, z)) && !avoids(t, inZone, w, x, y, z);
+            }
+            public boolean free(int x, int y, int z) { return w.getBlockAt(x, y, z).isPassable(); }
+        };
+        double per = Rules.stepAp(0, t.legCrippled ? 1 : 0, false);
+        int can = (int) Math.floor(t.ap / per + 1e-9);
+        if (t.flees) {
+            double now = nearest(s, p, at);
+            if (now >= GONE - 1e-9 || edge(t, start.x(), start.z())) {
+                t.escaped = true;
+                q.add(() -> { say(p, t.name + " slips away (the edge of the map)."); le.remove(); b.checkOver(p, s, c); });
+                return;
+            }
+            double want = now + Math.max(2, can);
+            List<Path.P> path = Path.find(world, start, (x, y, z) -> edge(t, x, z) || nearest(s, p, new Location(w, x + 0.5, y, z + 0.5)) >= want, SEARCH);
+            if (path == null) path = Path.find(world, start, (x, y, z) -> nearest(s, p, new Location(w, x + 0.5, y, z + 0.5)) > now + 1, SEARCH);
+            if (path == null || path.isEmpty()) { q.add(() -> say(p, t.name + " is cornered.")); return; }
+            int steps = Math.min(can, path.size());
+            for (int i = 0; i < steps; i++) { Path.P to = path.get(i); q.add(() -> away(le, to, p)); }
+            t.ap -= (int) Math.ceil(steps * per - 1e-9);
+            final int n = steps;
+            q.add(() -> {
+                Location l = le.getLocation();
+                if (nearest(s, p, l) >= GONE - 1e-9 || edge(t, l.getBlockX(), l.getBlockZ())) {
+                    t.escaped = true;
+                    say(p, t.name + " runs " + n + " block(s) and GETS AWAY.");
+                    le.remove();
+                    b.checkOver(p, s, c);
+                } else say(p, t.name + " runs " + n + " block(s) away from you.");
+            });
+            return;
+        }
+        if (le.getLocation().distance(p.getLocation()) > t.reach + 1.0) {
+            List<Path.P> path = Path.find(world, start, (x, y, z) -> reaches(new Location(w, x + 0.5, y, z + 0.5), p, t), SEARCH);
+            if (path == null) { q.add(() -> say(p, t.name + " finds no way to you.")); return; }
+            int steps = Math.min(can, path.size());
+            if (Math.ceil(path.size() * per - 1e-9) <= t.ap - t.attackAp) steps = path.size();
+            for (int i = 0; i < steps; i++) { Path.P to = path.get(i); q.add(() -> moveTo(le, to, p)); }
+            if (steps > 0) {
+                t.ap -= (int) Math.ceil(steps * per - 1e-9);
+                t.moved = true;
+                final int n = steps;
+                final boolean there = steps == path.size();
+                q.add(() -> say(p, t.name + " moves " + n + " block(s)" + (there ? " to you" : " toward you") + "."));
+            }
+        }
+        int attacks = Math.max(0, t.ap / t.attackAp);
+        for (int i = 0; i < attacks; i++) q.add(() -> bite(p, s, c, le, t));
+        t.ap -= attacks * t.attackAp;
+    }
+
+    /** From this spot the player is within its reach (a step up or down allowed). */
+    private static boolean reaches(Location from, Player p, Battle.Target t) {
+        Location l = p.getLocation();
+        double dx = l.getX() - from.getX(), dz = l.getZ() - from.getZ();
+        return Math.abs(l.getY() - from.getY()) <= 1.5 && Math.sqrt(dx * dx + dz * dz) <= t.reach + 0.75;
+    }
+
+    private void away(LivingEntity le, Path.P to, Player p) {
+        Location l = new Location(le.getWorld(), to.x() + 0.5, to.y(), to.z() + 0.5);
+        l.setDirection(l.toVector().subtract(p.getLocation().toVector()).setY(0));
+        le.teleport(l);
+        Sfx.at(l, "step");
+    }
+
+    /** A creature's attack on the player by the rules the player hits by (melee: no distance term; a crit's degree on the torso). */
+    private void bite(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t) {
+        if (!b.inBattle(p) || t.dead || t.dying() || t.down || t.out || t.frozen || t.escaped) return;
+        if (!reaches(le.getLocation(), p, t)) { say(p, t.name + " cannot reach you."); return; }
+        Location face = le.getLocation().clone();
+        face.setDirection(p.getLocation().toVector().subtract(face.toVector()).setY(0));
+        le.teleport(face);
+        Combat.Shot sh = new Combat.Shot();
+        sh.melee = true;
+        sh.skill = t.skill;
+        sh.blocks = 1;
+        sh.range = t.reach + 1;
+        int[] gas = b.pl.zones.penaltyAt(le.getEyeLocation());
+        sh.perception = t.a[Rules.P] + gas[0];
+        sh.strength = t.a[Rules.S];
+        sh.blind = t.blind;
+        if (gas[1] != 0) sh.extra.put("gas", gas[1]);
+        sh.part = Rules.Part.TORSO;
+        sh.lightLevel = p.getEyeLocation().getBlock().getLightLevel();
+        sh.targetAc = Rules.ac(c.attrs(false)) + Rules.STANCE_AC[s.stance()] + c.armourAc();
+        sh.targetProne = s.stance() == 2;
+        sh.huge = c.tpl().huge();
+        Combat.ToHit th = Combat.toHit(sh);
+        Combat.Roll r = Combat.roll(th.chance(), Rules.critChance(t.a, 0), 0, t.a[Rules.L], 0, b.jinxed(c), b.d100);
+        Creatures.play(le, t.attack.equals("gore") ? "gore" : "lunge");
+        StringBuilder log = new StringBuilder(t.name).append(" attacks you (").append(t.attack).append(", ").append(t.attackAp).append(" AP). To hit ").append(th.chance()).append(" % =");
+        th.terms().forEach((k, v) -> log.append(" ").append(k.equals("skill") ? "skill " + v : Battle.sign(v) + " " + k));
+        log.append(". Rolled ").append(r.d100()).append(r.d100() >= 100 ? " (a 100 always misses)" : "").append(": ");
+        String result;
+        if (r.critFail()) {
+            t.lostTurn = true;
+            log.append("ITS CRITICAL FAILURE: it stumbles and loses its next turn.");
+            result = t.name + ": critical failure";
+        } else if (!r.hit()) {
+            log.append("MISS.");
+            result = t.name + " missed you";
+            Sfx.at(p.getLocation(), "bullet.miss");
+        } else {
+            int deg = r.crit() ? r.degree() : 0;
+            Combat.CritEffects fx = Combat.critEffects(Rules.Part.TORSO, deg, c.attrs(false));
+            double mult = Combat.critMultiplier(Rules.Part.TORSO, deg);
+            double base = t.minDmg + b.rnd.nextInt(t.maxDmg - t.minDmg + 1);
+            int dmg = Combat.damage(base, mult, 0, 0, c.dtAt(Rules.Part.TORSO, "Normal"), c.drAt(Rules.Part.TORSO, "Normal"), fx.bypass());
+            String wear = c.wearArmour(Rules.Part.TORSO, Combat.damage(base, mult, 0, 0, 0, 0, false));
+            if (!wear.isEmpty()) Items.writeArmour(p, c);
+            log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + SheetGui.f(mult) + ")" : "HIT").append(", ").append(dmg).append(" HP (")
+                    .append(t.minDmg).append("-").append(t.maxDmg).append("; your DT ").append(c.dtAt(Rules.Part.TORSO, "Normal")).append(", DR ")
+                    .append(Math.round(c.drAt(Rules.Part.TORSO, "Normal") * 100)).append(" %).").append(wear);
+            if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
+            result = (r.crit() ? "CRIT on you, " : "hit, ") + dmg + " HP";
+            Sfx.at(p.getLocation(), "knife.flesh");
+            b.hitPlayer(p, s, c, le.getLocation(), dmg, fx, r.crit(), deg, log);
+            if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female, p);
+        }
+        p.sendMessage(Component.text(log.toString(), NamedTextColor.RED));
+        others(p, t.name + " attacks " + p.getName() + ": " + result.replace(" you", " " + p.getName()) + ".");
         if (b.inBattle(p)) b.show(p, s, c, result);
     }
 

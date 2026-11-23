@@ -70,6 +70,8 @@ final class WorldMap {
     }
 
     final int w, h;
+    /** The box's corner in Arag's 1280 x 624 sectors (x, y): where the world map lies on his world (MapView). */
+    final int bx0, by0;
     final double ex, ey, area, mover, outShare, hoursOut, nightSight, traders;
     final byte[] terrain, ground, road16;
     final Map<String, Double> speed = new HashMap<>(), meet = new HashMap<>();
@@ -81,6 +83,8 @@ final class WorldMap {
 
     private WorldMap(JsonObject o) {
         w = o.get("width").getAsInt(); h = o.get("height").getAsInt();
+        bx0 = o.has("box") ? o.getAsJsonArray("box").get(0).getAsInt() : 0;
+        by0 = o.has("box") ? o.getAsJsonArray("box").get(2).getAsInt() : 0;
         JsonArray km = o.getAsJsonArray("sectorKm");
         ex = km.get(0).getAsDouble(); ey = km.get(1).getAsDouble(); area = ex * ey;
         terrain = Base64.getDecoder().decode(o.get("terrain").getAsString());

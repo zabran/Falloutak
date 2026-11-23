@@ -273,7 +273,8 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
 
     @org.bukkit.event.EventHandler
     public void onQuit(org.bukkit.event.player.PlayerQuitEvent e) {
-        if (battle.inBattle(e.getPlayer())) battle.stop(e.getPlayer());
+        if (battle.inBattle(e.getPlayer())) battle.stop(e.getPlayer());   // a battle map sends him back first
+        if (MapView.viewing(e.getPlayer())) MapView.back(e.getPlayer());
         roster.done(e.getPlayer().getUniqueId());
         save(e.getPlayer().getUniqueId());
         characters.remove(e.getPlayer().getUniqueId());

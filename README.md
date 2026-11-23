@@ -3,6 +3,26 @@
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
+**Version 0.75.0 (2026-11-23): part 9d round 2 - the ambush, the hunt, the battle maps and the world map in Minecraft.**
+- **The scene:** every meeting of the 4-hour window comes at once (Poisson on the window's hazard, at least one, at most four; the same
+  kind and type as one bigger group), on one battle map.
+- **Spotted in time:** go round them (the kill XP), or **ambush them** (`/travel ambush`): the party in cover, **the party acts first**.
+  Not spotted: **they act first** (an ambush on the party). **A sight can be hunted** (*Hunt: ...*, `/travel hunt`): the animal runs
+  for the map's edge unless it is the hostile kind; hunted animals join an ambush of the hostile ones in the same scene.
+- **The battle maps** (an arena world, `fo_arena`, made on first use): one 48 x 48 arena a terrain of Arag's map (field, road, forest,
+  town ruin), **built again for every fight from a new seed**: crops, hay, a fence, a ruined shed; asphalt with lane marks, car wrecks,
+  a ditch; spruce, oak and birch, fallen trunks, rocks; ruined houses, rubble, wrecks. The party in cover along the south edge (an
+  ambush, a hunt) or in the open in the middle (ambushed); the enemies far in the north half or all round.
+- **The fight is the whole party's:** one fight, the players' turn AT ONCE (it ends when every one of them has ended his), then the
+  enemies', each at the nearest player he can shoot or reach; every enemy has its own statblock (`data/arena-foes.json`: the raider,
+  the guard, the caravan guard, and the boar, dogs, wolves, Radmie, Trhač, Krtek, ticks, spiders, Ropák, tigers, Jóžin, EXAMPLE
+  numbers), creatures walk up and bite; the kill XP to everyone; each player goes back to where he was. **The kit and a death in it
+  are still the battle demo's.**
+- **The world map in Minecraft:** Arag's Czechia exported again for 1.21.11 (LollyWood-Lore `_tools/wp_export_121.js`) as the world
+  `fo_worldmap` in the server's folder (not in this repository: it is Arag's); *Travel → Look at the world map* (`/travel map`) takes
+  you up over **your party's token** (a red banner, ten blocks tall) flying, the places' names over the ground; the token walks every
+  journey; *Back from the world map* returns you. A sector = 16 x 16 blocks of his map (~28 m a block).
+
 **Version 0.74.0 (2026-11-23): part 9d - world-map travel with the encounter roll.**
 - **Travel** (*Actions → Travel (the world map)*, or `/travel`): the party (you and the players within 50 blocks) walks from place to
   place on Arag's Czechia, sector by sector (16 x 16 blocks): the speed by the terrain (30 / 20 / 10 km in 8 hours on a road / in the

@@ -35,7 +35,13 @@ import static cz.lollywood.falloutak.Menus.tellGm;
  *   <li><b>a roll every 4 hours of travel</b> (`09` §3.3, RULED) on the sectors walked: any encounter = 1 − e^(−meetings), placed where it
  *   fell, of every type (round 1): a FIGHT, a TALK, a TRADE or a SIGHT;</li>
  *   <li><b>spotting = Fallout 2's</b> with Survival (RULED): d100 below the party's best (at most 95) sees it in time; a hostile one seen
- *   can be GONE ROUND (each PC its kill XP, `06b`) or fought; one not seen is an ambush, they act first (the GM runs the fight).</li>
+ *   can be GONE ROUND (each PC its kill XP, `06b`) or AMBUSHED (09d round 2, Marek 11-23: *"would it be possible to give players the
+ *   option to ambush them instead"*: on the battle map, the party acts first); one not seen is an ambush ON THE PARTY, they act
+ *   first;</li>
+ *   <li><b>every meeting of the window at once</b> (09d round 2: *"I think it would be possible to have more encounters at once at one
+ *   battle map. And sight can be turned to hunt, if players want to."*): the count by Poisson on the window's hazard (at least one, at
+ *   most {@link #AT_ONCE}), all of them one scene on one battle map ({@link Arena}, the terrain where they met); a SIGHT can be HUNTED
+ *   (the animal runs unless it is the hostile kind).</li>
  * </ul>
  * The GM sees the area's table (who is there, by share and type), sets the season, puts the party at a place and clears bases.
  */
@@ -49,10 +55,21 @@ final class Travel {
     static int season = 3;
     static double marched;
     static int marchDay = Integer.MIN_VALUE;
-    /** An encounter that stopped the journey, and where they were going. */
-    static WorldMap.Encounter pending;
-    static boolean pendingSeen;
+    /** One meeting of the scene: what, whether it was seen in time, whether the party hunts it (a sight). */
+    static final class Met {
+        final WorldMap.Encounter e;
+        final boolean seen;
+        boolean hunt;
+        Met(WorldMap.Encounter e, boolean seen) { this.e = e; this.seen = seen; }
+        boolean hostile() { return e.type().equals("fight"); }
+    }
+
+    /** The scene that stopped the journey (every meeting of that window), the terrain where they met, and where they were going. */
+    static final List<Met> scene = new ArrayList<>();
+    static String sceneTerrain = "field";
     static String dest = "";
+    /** The most meetings one window puts into one scene [EXAMPLE, mine]. */
+    static final int AT_ONCE = 4;
     static final List<Integer> cleared = new ArrayList<>();
     static final double STEP_KM = 0.2, WINDOW_H = 4, MARCH_H = 8, PARTY_BLOCKS = 50;
 
@@ -60,7 +77,7 @@ final class Travel {
     static void load(Path dataFolder) {
         file = dataFolder.resolve("travel.json");
         map = WorldMap.load(dataFolder.resolve("worldmap.json"));
-        pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; pending = null; dest = ""; cleared.clear();
+        pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); dest = ""; cleared.clear();
         if (Files.isRegularFile(file)) {
             try {
                 JsonObject o = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
@@ -73,7 +90,7 @@ final class Travel {
         start();
     }
 
-    static void use(WorldMap m) { map = m; pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; pending = null; cleared.clear(); start(); }
+    static void use(WorldMap m) { map = m; pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); cleared.clear(); start(); }
 
     /** The party starts at Jihlava (the shelter's town), else the map's first place. */
     static void start() {
@@ -87,7 +104,8 @@ final class Travel {
     static boolean here(String name) {
         WorldMap.Place q = map == null ? null : map.place(name);
         if (q == null) return false;
-        pi = q.i() + 0.5; pj = q.j() + 0.5; pending = null; save();
+        pi = q.i() + 0.5; pj = q.j() + 0.5; scene.clear(); save();
+        MapView.moved();
         return true;
     }
 
@@ -139,7 +157,33 @@ final class Travel {
 
     // ------------------------------------------------------------------ the journey
     /** The result of a walk: where it stopped, the hours, the encounter if one came, and why it stopped. */
-    record Walk(double i, double j, double hours, double km, WorldMap.Encounter enc, String why) {}
+    record Walk(double i, double j, double hours, double km, WorldMap.Encounter enc, String why, List<WorldMap.Encounter> encs) {
+        Walk(double i, double j, double hours, double km, WorldMap.Encounter enc, String why) { this(i, j, hours, km, enc, why, enc == null ? List.of() : List.of(enc)); }
+    }
+
+    /** How many met in a window that met someone: Poisson on its hazard, at least one, at most {@link #AT_ONCE}. */
+    static int meetings(double hazard, Random rnd) {
+        double p0 = Math.exp(-hazard), u = p0 + rnd.nextDouble() * (1 - p0), pk = p0, cum = p0;
+        int k = 0;
+        while (cum < u && k < AT_ONCE) { k++; pk *= hazard / k; cum += pk; }
+        return Math.max(1, Math.min(AT_ONCE, k));
+    }
+
+    /** The window's meetings from one table, the same kind and type as one bigger group. */
+    static List<WorldMap.Encounter> drawAll(List<WorldMap.Row> rows, int n, Random rnd) {
+        List<WorldMap.Encounter> l = new ArrayList<>();
+        for (int k = 0; k < n; k++) {
+            WorldMap.Encounter e = WorldMap.draw(rows, rnd);
+            if (e == null) continue;
+            boolean merged = false;
+            for (int m = 0; m < l.size() && !merged; m++) {
+                WorldMap.Encounter o = l.get(m);
+                if (o.kind() == e.kind() && o.type().equals(e.type())) { l.set(m, new WorldMap.Encounter(o.kind(), o.type(), o.count() + e.count())); merged = true; }
+            }
+            if (!merged) l.add(e);
+        }
+        return l;
+    }
 
     /**
      * Walks from (i, j) toward the sector (ti, tj): the steps of {@link #STEP_KM}, each its terrain's time; every 4 hours (and at the
@@ -173,8 +217,8 @@ final class Travel {
                     int[] ec = cell(ei, ej);
                     double eh = at[3];
                     boolean eday = !(((eh % 24) + 24) % 24 >= 18 || ((eh % 24) + 24) % 24 < 6);
-                    WorldMap.Encounter e = WorldMap.draw(map.table(ec[0], ec[1], season, eday), rnd);
-                    return new Walk(ei, ej, at[2], stepKm * (kk + 1), e, "an encounter");
+                    List<WorldMap.Encounter> all = drawAll(map.table(ec[0], ec[1], season, eday), meetings(hazard, rnd), rnd);
+                    return new Walk(ei, ej, at[2], stepKm * (kk + 1), all.isEmpty() ? null : all.get(0), "an encounter", all);
                 }
                 window = 0; hazard = 0; steps.clear();
             }
@@ -186,7 +230,7 @@ final class Travel {
     /** The party sets out (or goes on) to a place. Returns what happened. */
     static String go(FalloutakPlugin pl, Player p, String placeName, boolean push, Random rnd) {
         if (map == null) return "! no world map is loaded (worldmap.json from fallout_danger_sim.py --export in the plugin's folder)";
-        if (pending != null) return "! an encounter waits (" + pending.text() + "): go round it, fight it, or go on (the menu)";
+        if (!scene.isEmpty()) return "! an encounter waits (" + sceneShort() + "): the menu (go round, ambush, hunt, or go on)";
         WorldMap.Place to = map.place(placeName);
         if (to == null) return "! no such place: " + placeName;
         List<Player> ps = party(p);
@@ -205,20 +249,22 @@ final class Travel {
         }
         if (lead.day() != marchDay) { marchDay = lead.day(); marched = 0; }
         marched += wk.hours();
+        double fi = pi, fj = pj;
         pi = wk.i(); pj = wk.j();
+        MapView.walk(pl, fi, fj, pi, pj, (int) Math.min(80, Math.max(10, wk.km() * 4)));   // on Arag's world: 4 ticks a km, 0.5 to 4 s
         dest = to.name();
         StringBuilder out = new StringBuilder(String.format(Locale.ROOT, "%.1f km in %s toward %s: now %s, %s.", wk.km(), Hud.clock(wk.hours() * 60),
                 to.name(), where(), lead.timeText()));
-        if (wk.enc() != null) {
-            pending = wk.enc();
-            boolean fight = pending.type().equals("fight");
+        if (!wk.encs().isEmpty()) {
             double seeAt = Math.min(95, best(cs, "Survival"));
-            pendingSeen = rnd.nextInt(100) < seeAt;
-            out.append("\n").append(fight ? (pendingSeen ? "SPOTTED IN TIME: " : "AMBUSH! ") : "ENCOUNTER: ").append(pending.text())
-                    .append(fight ? (pendingSeen ? ". Go round it (each of you its kill XP) or fight it." : ". They act first: the GM sets the fight.")
-                    : ".");
-            tellGm("travel: " + pending.kind().key() + " (" + pending.type() + ", " + pending.count() + ")" + (fight ? (pendingSeen ? ", spotted" : ", AMBUSH") : "")
-                    + " near " + where() + "; the area's table: /travel table");
+            scene.clear();
+            for (WorldMap.Encounter e : wk.encs()) scene.add(new Met(e, !e.type().equals("fight") || rnd.nextInt(100) < seeAt));
+            int[] c0 = cell(pi, pj);
+            sceneTerrain = map.terrainAt(c0[0], c0[1]);
+            out.append("\n").append(sceneText());
+            List<String> gm = new ArrayList<>();
+            for (Met m : scene) gm.add(m.e.kind().key() + " (" + m.e.type() + ", " + m.e.count() + (m.hostile() ? (m.seen ? ", spotted" : ", AMBUSH") : "") + ")");
+            tellGm("travel: " + String.join(" + ", gm) + " near " + where() + "; the area's table: /travel table");
         } else out.append(" ").append(switch (wk.why()) {
             case "arrived" -> "Arrived.";
             case "8 hours marched today" -> "8 hours marched today: rest, or push on.";
@@ -231,22 +277,78 @@ final class Travel {
         return msg;
     }
 
-    /** Going round a hostile encounter seen in time: each PC its kill XP (`06b`, RULED). */
+    // ------------------------------------------------------------------ the scene
+    static boolean anyHostile() { for (Met m : scene) if (m.hostile()) return true; return false; }
+    /** A hostile group nobody saw in time: they attack first. */
+    static boolean ambushed() { for (Met m : scene) if (m.hostile() && !m.seen) return true; return false; }
+    static boolean anyHunted() { for (Met m : scene) if (m.hunt && !m.hostile()) return true; return false; }
+
+    static String sceneShort() {
+        List<String> l = new ArrayList<>();
+        for (Met m : scene) l.add(m.e.count() + " × " + m.e.kind().name());
+        return String.join(", ", l);
+    }
+
+    static String sceneText() {
+        List<String> l = new ArrayList<>();
+        for (Met m : scene)
+            l.add((m.hostile() ? (m.seen ? "SPOTTED IN TIME: " : "AMBUSH! ") : m.hunt ? "HUNTED: " : "ENCOUNTER: ") + m.e.text() + ".");
+        if (ambushed()) l.add("They act first: to the battle map (" + sceneTerrain + ").");
+        else if (anyHostile()) l.add("Go round them (each of you their kill XP) or ambush them (on the battle map, you act first).");
+        for (Met m : scene) if (m.e.type().equals("sight")) { l.add("A sight can be hunted (the menu)."); break; }
+        return String.join("\n", l);
+    }
+
+    /** Going round the hostile ones, all seen in time: each PC their kill XP (`06b`, RULED); the peaceful ones stay in the scene. */
     static String goRound(FalloutakPlugin pl, Player p) {
-        if (pending == null || !pending.type().equals("fight") || !pendingSeen) return "! nothing seen in time to go round";
+        if (!anyHostile() || ambushed()) return "! nothing seen in time to go round";
         List<Double> hps = new ArrayList<>();
-        for (int k = 0; k < pending.count(); k++) hps.add(pending.kind().hp());
+        List<String> what = new ArrayList<>();
+        for (Met m : scene) if (m.hostile()) { for (int k = 0; k < m.e.count(); k++) hps.add(m.e.kind().hp()); what.add(m.e.text()); }
         String r = pl.roster.killAward(party(p), hps, "an encounter avoided");
-        tellGm("travel: went round " + pending.text() + ". " + r);
-        pending = null;
+        tellGm("travel: went round " + String.join(", ", what) + ". " + r);
+        scene.removeIf(Met::hostile);
         return "You go round them unseen.";
     }
 
-    /** The encounter is played out (a fight, a talk, a trade, a sight): the way is free again. */
+    /** The scene's groups for the battle map: every hostile one, and the hunted animals (which run unless they are the hostile kind). */
+    static List<Arena.Group> groups(boolean hunted) {
+        List<Arena.Group> g = new ArrayList<>();
+        for (Met m : scene) {
+            if (m.hostile()) g.add(new Arena.Group(m.e.kind(), m.e.count(), false));
+            else if (hunted && m.hunt) g.add(new Arena.Group(m.e.kind(), m.e.count(), true));
+        }
+        return g;
+    }
+
+    /**
+     * To the battle map (09d round 2): AMBUSH = the hostile ones were all seen and the party attacks (the hunted animals too), the
+     * party first; AMBUSHED = one was not seen, they act first; HUNT = no hostile one, the hunted animals. The scene's fought and
+     * hunted groups are gone when the fight ends; the others stay.
+     */
+    static String battleMap(FalloutakPlugin pl, Player p, Arena.Mode mode) {
+        if (scene.isEmpty()) return "! no encounter waits";
+        if (mode == Arena.Mode.AMBUSH && (!anyHostile() || ambushed())) return "! nothing hostile seen in time to ambush";
+        if (mode == Arena.Mode.HUNT && (anyHostile() || !anyHunted())) return anyHostile() ? "! the hostile ones first (go round them or ambush them; the hunted join an ambush)" : "! mark what you hunt first";
+        if (mode == Arena.Mode.AMBUSHED && !ambushed()) return "! nobody ambushed you";
+        List<Arena.Group> g = groups(mode != Arena.Mode.AMBUSHED);
+        if (g.isEmpty()) return "! nobody to fight";
+        String r = Arena.fight(pl, party(p), sceneTerrain, g, mode, pl.rnd.nextLong(), Travel::afterFight);
+        if (!r.startsWith("!")) tellGm("travel: " + mode.name().toLowerCase(Locale.ROOT) + " on the " + sceneTerrain + " battle map: " + sceneShort());
+        return r;
+    }
+
+    /** The battle map's fight is over: the fought and hunted groups leave the scene. */
+    static void afterFight() {
+        scene.removeIf(m -> m.hostile() || m.hunt);
+        save();
+    }
+
+    /** The encounter is played out (a talk, a trade, a sight let be, or a fight the GM ran): the way is free again. */
     static String resolved() {
-        if (pending == null) return "! no encounter waits";
-        String t = pending.text();
-        pending = null;
+        if (scene.isEmpty()) return "! no encounter waits";
+        String t = sceneShort();
+        scene.clear();
         return "Done with: " + t;
     }
 
@@ -296,10 +398,16 @@ final class Travel {
                 return go(pl, p, String.join(" ", java.util.Arrays.copyOfRange(a, 1, a.length)), arg.equals("push"), pl.rnd);
             }
             case "round" -> { return goRound(pl, p); }
+            case "ambush" -> { return battleMap(pl, p, ambushed() ? Arena.Mode.AMBUSHED : Arena.Mode.AMBUSH); }
+            case "hunt" -> {
+                for (Met m : scene) if (m.e.type().equals("sight")) m.hunt = true;
+                return anyHostile() ? "The sights are hunted: they join an ambush." : battleMap(pl, p, Arena.Mode.HUNT);
+            }
             case "on" -> { return resolved(); }
+            case "map", "look" -> { return MapView.viewing(p) ? MapView.back(p) : MapView.look(pl, p); }
             default -> { }
         }
-        if (!gm) return "/travel [where|to <place>|push <place>|round|on]";
+        if (!gm) return "/travel [where|to <place>|push <place>|round|ambush|hunt|on|map]";
         switch (arg) {
             case "table" -> { return String.join("\n", table()); }
             case "season" -> {
@@ -312,7 +420,7 @@ final class Travel {
                 return "The party is now " + where();
             }
             case "clear" -> { return clear(a.length > 1 ? Double.parseDouble(a[1]) : 3); }
-            default -> { return "/travel [where|to|push|round|on] · GM: table|season <s>|here <place>|clear [km]"; }
+            default -> { return "/travel [where|to|push|round|ambush|hunt|on|map] · GM: table|season <s>|here <place>|clear [km]"; }
         }
     }
 
@@ -329,12 +437,23 @@ final class Travel {
         if (c.day() != marchDay) { marchDay = c.day(); marched = 0; }
         lines.add(line("The party (you and the players within " + (int) PARTY_BLOCKS + " blocks) is " + where() + ".", NamedTextColor.WHITE));
         lines.add(line(c.timeText() + " · " + WorldMap.SEASONS[season] + " · marched today " + Hud.clock(marched * 60) + " of 8 h", NamedTextColor.GRAY));
-        if (pending != null) {
-            boolean fight = pending.type().equals("fight");
-            lines.add(line((fight ? (pendingSeen ? "Spotted in time: " : "AMBUSH: ") : "Encounter: ") + pending.text(), fight ? NamedTextColor.RED : NamedTextColor.GOLD));
-            if (fight && pendingSeen) b.add(btn("Go round them", "unseen: each of you gets their kill XP (06b)", x -> { say(x, goRound(pl, x)); menu(pl, x); }));
-            b.add(btn(fight ? "It is over (fought)" : "Done (go on)", "the encounter is played out: the way is free", x -> { say(x, resolved()); menu(pl, x); }));
-            if (!dest.isEmpty()) b.add(btn("Then on to " + dest, "after the encounter", x -> { say(x, resolved()); say(x, go(pl, x, dest, false, pl.rnd)); menu(pl, x); }));
+        if (!scene.isEmpty()) {
+            lines.add(line("On the " + sceneTerrain + ":", NamedTextColor.GRAY));
+            for (Met m : scene)
+                lines.add(line((m.hostile() ? (m.seen ? "Spotted in time: " : "AMBUSH: ") : m.hunt ? "Hunted: " : "Encounter: ") + m.e.text(),
+                        m.hostile() ? NamedTextColor.RED : m.hunt ? NamedTextColor.GOLD : NamedTextColor.YELLOW));
+            if (ambushed()) b.add(btn("To the battle map: they act first", "an ambush on you (" + sceneTerrain + "): every hostile group of the scene", x -> { say(x, battleMap(pl, x, Arena.Mode.AMBUSHED)); }));
+            else if (anyHostile()) {
+                b.add(btn("Go round them", "unseen: each of you gets their kill XP (06b)", x -> { say(x, goRound(pl, x)); menu(pl, x); }));
+                b.add(btn("Ambush them", "the battle map (" + sceneTerrain + "): you in cover, YOU act first" + (anyHunted() ? "; the hunted animals too" : ""),
+                        x -> { say(x, battleMap(pl, x, Arena.Mode.AMBUSH)); }));
+            }
+            for (Met m : scene) if (m.e.type().equals("sight"))
+                b.add(btn((m.hunt ? "Do not hunt: " : "Hunt: ") + m.e.kind().name(), "a sight turned into a hunt: it runs unless it is the hostile kind"
+                        + (anyHostile() ? " (it joins the ambush)" : ""), x -> { m.hunt = !m.hunt; menu(pl, x); }));
+            if (!anyHostile() && anyHunted()) b.add(btn("Hunt now", "the battle map (" + sceneTerrain + "): you downwind, you act first", x -> { say(x, battleMap(pl, x, Arena.Mode.HUNT)); }));
+            b.add(btn(anyHostile() ? "It is over (the GM ran it)" : "Done (go on)", "the encounter is played out: the way is free", x -> { say(x, resolved()); menu(pl, x); }));
+            if (!dest.isEmpty() && !anyHostile()) b.add(btn("Then on to " + dest, "after the encounter", x -> { say(x, resolved()); say(x, go(pl, x, dest, false, pl.rnd)); menu(pl, x); }));
         } else {
             List<WorldMap.Place> near = new ArrayList<>(map.places);
             near.sort(Comparator.comparingDouble(q -> map.km(pi, pj, q.i() + 0.5, q.j() + 0.5)));
@@ -349,6 +468,8 @@ final class Travel {
             if (marched >= MARCH_H - 1e-9 && !dest.isEmpty())
                 b.add(btn("Push on to " + dest, "past the day's 8 hours (sleep debt, part 4)", x -> { say(x, go(pl, x, dest, true, pl.rnd)); menu(pl, x); }));
         }
+        if (MapView.viewing(p)) b.add(btn("Back from the world map", "to where you were", x -> { say(x, MapView.back(x)); menu(pl, x); }));
+        else b.add(btn("Look at the world map", "Arag's Czechia, ~28 m a block: up over your party's banner, flying", x -> { say(x, MapView.look(pl, x)); }));
         if (p.hasPermission("falloutak.gm")) {
             b.add(btn("GM: the area's table", "who is here, by share and type (the hidden camps' too)", x -> { say(x, String.join("\n", table())); menu(pl, x); }));
             b.add(btn("GM: season " + WorldMap.SEASONS[season], "the next season", x -> { season = (season + 1) % 4; save(); menu(pl, x); }));

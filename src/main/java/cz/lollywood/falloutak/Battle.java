@@ -116,16 +116,23 @@ public final class Battle implements Listener {
      */
     static final class Target {
         final String name;
-        final int hpMax = 30, ac = 5, dt = 2;
-        final double dr = 0.2;
-        final int[] a = {5, 6, 3, 5, 5, 4, 5};
-        int hp = 30;
-        double blood = 120, bleeding = 0;
+        final int hpMax, ac, dt;
+        final double dr;
+        final int[] a;
+        int hp;
+        double blood, bleeding = 0;
         boolean down, out, blind, armCrippled, legCrippled, dead;
         int outRounds;
         // his own turn (Raiders): AP, his gun, his stance; skill 50 [EXAMPLE: the Battle tab's two shooters' value, he has none]
-        final int skill = 50;
+        final int skill;
         int ap, ammo = SMG.magazine, stance;
+        /** A creature of the world map's encounters (09d round 2): its own attack in melee instead of the gun; a HUNTED one that is not
+         *  hostile runs from the party (and is gone once it is far enough: escaped). */
+        boolean melee, flees, escaped;
+        int minDmg = 5, maxDmg = 12, reach = 1, attackAp = 4;
+        String attack = "bite";
+        /** The battle map's ground (null in the demo): a running animal at its edge is gone. */
+        org.bukkit.util.BoundingBox field;
         double gunHealth = SMG.maxHealth;
         boolean dropped, broken, moved, steadied, lostTurn;
         /** Lying on the ground (knocked down or out, dying): the prone +4 AC and +20 to be hit within reach. */
@@ -139,7 +146,14 @@ public final class Battle implements Listener {
         boolean held, frozen;
         /** His gun jammed (05 §9, round 11): his next turn begins by clearing it. */
         boolean jammed;
-        Target(String name) { this.name = name; }
+        /** The Battle tab's raider (the demo's). */
+        Target(String name) { this(name, 30, 5, 2, 0.2, new int[]{5, 6, 3, 5, 5, 4, 5}, 50); }
+        Target(String name, int hpMax, int ac, int dt, double dr, int[] a, int skill) {
+            this.name = name; this.hpMax = hpMax; this.ac = ac; this.dt = dt; this.dr = dr; this.a = a.clone(); this.skill = skill;
+            this.hp = hpMax; this.blood = 4.0 * hpMax;
+        }
+        /** Can still take part: neither dead, dying, beaten (a raider's gun gone) nor escaped. */
+        boolean inFight() { return !escaped && (melee ? !dead && !dying() : canFight(this)); }
         boolean dying() { return !dead && hp <= 0; }
         String label() {
             List<String> st = new ArrayList<>();
@@ -167,8 +181,10 @@ public final class Battle implements Listener {
         long lastLeft, lastRight, lastShown, lastEventAt;
         String lastBarText = "", lastEvent;
         final Map<String, Integer> mode = new HashMap<>(), ammo = new HashMap<>();
-        final List<UUID> dummies = new ArrayList<>();
-        final Map<UUID, Target> targets = new HashMap<>();
+        /** The fight he is in, and its enemies (shared with the other players in it). */
+        Fight fight;
+        List<UUID> dummies = new ArrayList<>();
+        Map<UUID, Target> targets = new HashMap<>();
         final Set<String> dropped = new HashSet<>(), broken = new HashSet<>();
         /** Each weapon's item health (FNV); missing = new. */
         final Map<String, Double> health = new HashMap<>();
@@ -191,13 +207,40 @@ public final class Battle implements Listener {
         final Set<String> jammed = new HashSet<>();
         int round = 1, lostTurns;
         org.bukkit.scheduler.BukkitTask task;
-        final Deque<Runnable> pending = new ArrayDeque<>();
+        Deque<Runnable> pending = new ArrayDeque<>();
         /** The character as the demo began: given back if he dies in it (it is a demo). */
         int hp0, legs0;
         double bleeding0;
         final EnumMap<Rules.Stat, Double> survival0 = new EnumMap<>(Rules.Stat.class);
         BossBar bar;
         int stance() { return legs.get(legs.size() - 1).stance(); }
+    }
+
+    /**
+     * One fight and everyone in it (09d round 2, the battle maps): the enemies are the fight's, the players each keep their own turn's
+     * state. The order is part 5's (02c §7, the games' own): THE ATTACKER ACTS FIRST, the rest by Sequence; the party's PCs play one
+     * after another, so they play AT ONCE (Marek 11-13: *"PCs that are on the same side ... and play right after one other (no enemy in
+     * between) can play simultanously"*): a round is the party's turn and the enemies' turn, whichever side attacked first; the party's
+     * turn ends when every player in it has ended his. The battle demo is a fight of one player.
+     */
+    static final class Fight {
+        final Map<UUID, Target> targets = new HashMap<>();
+        final List<UUID> dummies = new ArrayList<>();
+        final List<UUID> players = new ArrayList<>();
+        final Set<UUID> done = new HashSet<>();
+        final Deque<Runnable> pending = new ArrayDeque<>();
+        org.bukkit.scheduler.BukkitTask task;
+        int round = 1;
+        boolean over, enemyPhase, enemiesFirst, started;
+        /** The demo restores a character who dies in it; so does a fight on a battle map (its kit is still the demo's). */
+        boolean demo = true;
+        /** How the enemies are named ("the raiders", "the enemies"). */
+        String them = "the raiders";
+        /** Each player leaving (the arena sends him back), and the fight's end (the last one out). */
+        java.util.function.Consumer<Player> onLeave = q -> { };
+        Runnable onEnd = () -> { };
+        Fight() {}
+        Fight(String them) { this.them = them; }
     }
 
     final FalloutakPlugin pl;
@@ -249,8 +292,42 @@ public final class Battle implements Listener {
 
     // ------------------------------------------------------------------ start / stop
     void start(Player p, Character c) {
+        Fight f = new Fight();
+        State s = join(p, c, f);
+        dummy(p, s, 8, "Raider (target dummy)");
+        dummy(p, s, 3, "Raider, close (target dummy)");
+        p.sendMessage(Component.text("Battle demo: right click = mode (single, burst, aimed), left click AT AN ENEMY = fire; the action bar names the "
+                + "body part under your crosshair. Shift = next stance (standing, crouched, prone; back to an earlier one on the same block = refunded). "
+                + "Quick items: right click, at an enemy too. F = other hand, E = the pack, walk to spend AP (walking back refunds it), the clock = "
+                + "end turn: then the raiders take their turn and shoot back. /sheet repair = a repair kit on the weapon in hand. /sheet legs 0-2 breaks legs for the test. /sheet battle again "
+                + "to stop. Round 1: your turn.", NamedTextColor.AQUA));
+        f.started = true;
+        show(p, s, c, null);
+    }
+
+    /** The player's fight, or null. */
+    Fight fightOf(Player p) { State s = states.get(p.getUniqueId()); return s == null ? null : s.fight; }
+
+    /** The players of a fight still in it (online, in the battle). */
+    List<Player> players(Fight f) {
+        List<Player> l = new ArrayList<>();
+        for (UUID u : f.players) { Player q = pl.getServer().getPlayer(u); if (q != null && inBattle(q) && states.get(u).fight == f) l.add(q); }
+        return l;
+    }
+
+    /** A line to everyone in the fight. */
+    void tell(Fight f, String text, NamedTextColor colour) { for (Player q : players(f)) q.sendMessage(Component.text(text, colour)); }
+
+    /** Puts a player into a fight with the battle's kit (the demo's: the workbook's pistol, a knife, the quick items). */
+    State join(Player p, Character c, Fight f) {
         if (inEnv(p)) stop(p);
         State s = new State();
+        s.fight = f;
+        s.targets = f.targets;
+        s.dummies = f.dummies;
+        s.pending = f.pending;
+        s.round = f.round;
+        if (!f.players.contains(p.getUniqueId())) f.players.add(p.getUniqueId());
         s.sceneRound = pl.zones.round;
         s.saved = p.getInventory().getContents().clone();
         ItemStack[] worn = p.getInventory().getArmorContents().clone();
@@ -285,14 +362,7 @@ public final class Battle implements Listener {
         inv.setItem(12, tagged(Material.SHEARS, "kit", "Weapon repair kit x2", "in the pack · /sheet repair: on the weapon in hand, 4 AP",
                 "Fallout: New Vegas: +10 to +30 % condition by your repair skill (Crafting)"));
         inv.setHeldItemSlot(0);
-        dummy(p, s, 8, "Raider (target dummy)");
-        dummy(p, s, 3, "Raider, close (target dummy)");
-        p.sendMessage(Component.text("Battle demo: right click = mode (single, burst, aimed), left click AT AN ENEMY = fire; the action bar names the "
-                + "body part under your crosshair. Shift = next stance (standing, crouched, prone; back to an earlier one on the same block = refunded). "
-                + "Quick items: right click, at an enemy too. F = other hand, E = the pack, walk to spend AP (walking back refunds it), the clock = "
-                + "end turn: then the raiders take their turn and shoot back. /sheet repair = a repair kit on the weapon in hand. /sheet legs 0-2 breaks legs for the test. /sheet battle again "
-                + "to stop. Round 1: your turn.", NamedTextColor.AQUA));
-        show(p, s, c, null);
+        return s;
     }
 
     /** A still raider to aim at, {@code dist} blocks ahead on the nearest standing spot, facing the player; removed when the demo stops. */
@@ -326,8 +396,14 @@ public final class Battle implements Listener {
         State s = states.remove(p.getUniqueId());
         if (s == null) return;
         if (s.env) { p.hideBossBar(s.bar); p.sendMessage(Component.text("The rounds end.", NamedTextColor.AQUA)); return; }
-        if (s.task != null) { s.task.cancel(); s.task = null; }
-        s.pending.clear();
+        Fight f = s.fight;
+        f.players.remove(p.getUniqueId());
+        f.done.remove(p.getUniqueId());
+        boolean last = players(f).isEmpty();
+        if (last) {
+            if (f.task != null) { f.task.cancel(); f.task = null; }
+            f.pending.clear();
+        }
         if (s.burning) p.setVisualFire(false);
         if (s.gunfire && roofed(p)) {   // 03b §3c: a gunfight indoors without ear protection rings the ears for an hour
             String r = pl.character(p).ring(1);
@@ -336,8 +412,12 @@ public final class Battle implements Listener {
         p.hideBossBar(s.bar);
         for (Zones.Zone z : s.clouds) pl.zones.remove(z);
         p.getInventory().setContents(s.saved);
-        for (UUID u : s.dummies) { Entity e = pl.getServer().getEntity(u); if (e != null) e.remove(); }
-        p.sendMessage(Component.text("Battle demo over; your inventory is back.", NamedTextColor.AQUA));
+        p.sendMessage(Component.text((f.them.equals("the raiders") ? "Battle demo over" : "The fight is over") + "; your inventory is back.", NamedTextColor.AQUA));
+        f.onLeave.accept(p);
+        if (last) {
+            for (UUID u : f.dummies) { Entity e = pl.getServer().getEntity(u); if (e != null) e.remove(); }
+            f.onEnd.run();
+        } else if (f.started && !f.over && !f.enemyPhase) partyMaybeDone(f);   // the others need not wait for him
     }
 
     void stopAll() { for (UUID u : new ArrayList<>(states.keySet())) { Player p = pl.getServer().getPlayer(u); if (p != null) stop(p); } }
@@ -430,7 +510,7 @@ public final class Battle implements Listener {
     private Component bar(Player p, State s, Character c) {
         Location at = p.getLocation().toBlockLocation();
         String event = System.currentTimeMillis() - s.lastEventAt < 2500 ? s.lastEvent : null;
-        s.bar.name(Component.text("Round " + s.round + (s.env ? " · " + (s.hold && !c.envHarm() ? s.holdWhy : envWhat(c)).toUpperCase(java.util.Locale.ROOT) : "") + (s.enemyTurn ? " · THE RAIDERS' TURN" : "") + " · HP " + c.hp + " / " + c.hpMax()
+        s.bar.name(Component.text("Round " + s.round + (s.env ? " · " + (s.hold && !c.envHarm() ? s.holdWhy : envWhat(c)).toUpperCase(java.util.Locale.ROOT) : "") + (s.fight == null || s.fight.over ? "" : s.fight.enemyPhase ? " · " + s.fight.them.toUpperCase(java.util.Locale.ROOT) + "' TURN" : s.enemyTurn ? " · WAITING FOR THE OTHERS" : "") + " · HP " + c.hp + " / " + c.hpMax()
                 + " · AP " + s.ap + " / " + c.apMax() + " · " + stanceLine(s, c) + (s.blind ? " · blind" : "")));
         s.bar.progress(Math.max(0f, Math.min(1f, s.ap / (float) Math.max(1, c.apMax()))));
         String id = id(p.getInventory().getItemInMainHand());
@@ -802,21 +882,30 @@ public final class Battle implements Listener {
      */
     boolean checkOver(Player p, State s, Character c) {
         if (s.env) return false;
-        if (s.over) return true;
-        for (Target t : s.targets.values()) if (canFight(t)) return false;
-        s.over = true;
-        s.enemyTurn = true;   // freezes the controls until the end
-        Sfx.to(p, "combat.end");
+        Fight f = s.fight;
+        if (f.over) return true;
+        for (Target t : f.targets.values()) if (t.inFight()) return false;
+        f.over = true;
+        List<Player> ps = players(f);
+        if (!ps.contains(p)) ps.add(p);
         List<String> why = new ArrayList<>();
-        for (Target t : s.targets.values())
-            why.add(t.name + ": " + (t.dead ? "dead" : t.dying() ? "dying" : t.broken ? "gun destroyed" : "gun broken"));
-        p.sendMessage(Component.text("The fight is over: no raider can fight (" + String.join("; ", why) + "). Round " + s.round + ".", NamedTextColor.GREEN));
-        // part 6 (06b §5.4.1, RULED 11-20): every raider beaten gives his kill XP, 3.1 × HP^1.09, to the team (here the one player)
+        for (Target t : f.targets.values())
+            why.add(t.name + ": " + (t.escaped ? "got away" : t.dead ? "dead" : t.dying() ? "dying" : t.broken ? "gun destroyed" : "gun broken"));
+        String text = "The fight is over: " + (f.them.equals("the raiders") ? "no raider" : "no enemy") + " can fight (" + String.join("; ", why) + "). Round " + f.round + ".";
+        for (Player q : ps) {
+            State sq = states.get(q.getUniqueId());
+            if (sq != null) { sq.enemyTurn = true; sq.over = true; }   // freezes the controls until the end
+            Sfx.to(q, "combat.end");
+            q.sendMessage(Component.text(text, NamedTextColor.GREEN));
+        }
+        // part 6 (06b §5.4.1, RULED 11-20): every enemy beaten gives his kill XP, 3.1 × HP^1.09, to the team (one that got away none)
         List<Double> hps = new ArrayList<>();
-        for (Target t : s.targets.values()) hps.add((double) t.hpMax);
-        if (pl.roster != null) pl.roster.killAward(List.of(p), hps, "the raiders beaten");
-        show(p, s, c, "the fight is over");
-        pl.getServer().getScheduler().runTaskLater(pl, () -> { if (inBattle(p) && states.get(p.getUniqueId()) == s) stop(p); }, 40L);
+        for (Target t : f.targets.values()) if (!t.escaped) hps.add((double) t.hpMax);
+        if (pl.roster != null && !hps.isEmpty()) pl.roster.killAward(ps, hps, f.them + " beaten");
+        for (Player q : ps) { State sq = states.get(q.getUniqueId()); if (sq != null) show(q, sq, pl.character(q), "the fight is over"); }
+        pl.getServer().getScheduler().runTaskLater(pl, () -> {
+            for (Player q : ps) if (inBattle(q) && states.get(q.getUniqueId()).fight == f) stop(q);
+        }, 40L);
         return true;
     }
 
@@ -862,12 +951,14 @@ public final class Battle implements Listener {
             stop(p);
             return;
         }
-        if (s.task != null) { s.task.cancel(); s.task = null; }
-        s.pending.clear();
+        if (players(s.fight).size() <= 1) {
+            if (s.fight.task != null) { s.fight.task.cancel(); s.fight.task = null; }
+            s.fight.pending.clear();
+        }
         p.sendMessage(Component.text((outright ? "FINAL DEATH: killed outright (the head or most of the body destroyed)."
                 : (c.arrestCause.isEmpty() ? "CLINICAL DEATH (below −" + c.attrs(false)[Rules.E] + " HP): " : "CLINICAL DEATH (" + c.arrestCause + ", HP kept): ")
                 + clinical(c))
-                + " The demo ends; your character is restored as it began.", NamedTextColor.DARK_RED));
+                + (s.fight.them.equals("the raiders") ? " The demo ends" : " The fight ends for you (its kit is still the demo's)") + "; your character is restored as it began.", NamedTextColor.DARK_RED));
         c.hp = s.hp0;
         c.bleeding = s.bleeding0;
         c.brokenLegs = s.legs0;
@@ -1358,11 +1449,34 @@ public final class Battle implements Listener {
         String body = c.takeNews();
         if (body != null) p.sendMessage(Component.text(body + ".", NamedTextColor.GOLD));
         if (c.inArrest()) { died(p, s, c, false); return; }
+        Fight f = s.fight;
+        f.done.add(p.getUniqueId());
+        s.enemyTurn = true;   // he waits: for the others, then for the enemies
+        if (!partyMaybeDone(f)) {
+            p.sendMessage(Component.text("Your turn is over: waiting for the others.", NamedTextColor.GRAY));
+            show(p, s, c, "waiting for the others");
+        }
+    }
+
+    /** Ends the player's turn as the clock does (the tests, and the menus). */
+    void endTurnFor(Player p) { State s = states.get(p.getUniqueId()); if (s != null) endTurn(p, s, pl.character(p)); }
+
+    /** The party's turn is over once every player in the fight has ended his: then the enemies'. */
+    boolean partyMaybeDone(Fight f) {
+        List<Player> ps = players(f);
+        if (ps.isEmpty()) return false;
+        for (Player q : ps) if (!f.done.contains(q.getUniqueId())) return false;
+        partyDone(f, ps);
+        return true;
+    }
+
+    private void partyDone(Fight f, List<Player> ps) {
+        // the enemies bleed once a round, at the end of the party's turn
         List<String> them = new ArrayList<>();
-        for (var en : s.targets.entrySet()) {
+        for (var en : f.targets.entrySet()) {
             Target t = en.getValue();
             Entity e = pl.getServer().getEntity(en.getKey());
-            if (t.dead || !(e instanceof LivingEntity le)) continue;
+            if (t.dead || t.escaped || !(e instanceof LivingEntity le)) continue;
             if (t.bleeding > 0) {
                 t.blood = Math.max(0, t.blood - t.bleeding);
                 if (t.blood < 0.2 * 4 * t.hpMax) { t.dead = true; them.add(t.name + " bled out (Deadly Anemia: under 20 % Blood)"); }
@@ -1370,20 +1484,42 @@ public final class Battle implements Listener {
             }
             label(le, t);
         }
-        if (!them.isEmpty()) p.sendMessage(Component.text(String.join("; ", them) + ".", NamedTextColor.GRAY));
-        if (checkOver(p, s, c)) return;
-        s.enemyTurn = true;
-        p.sendMessage(Component.text("Round " + s.round + ": the raiders' turn.", NamedTextColor.RED));
-        show(p, s, c, "the raiders' turn");
-        raiders.run(p, s, c, () -> newTurn(p, s, c));
+        if (!them.isEmpty()) tell(f, String.join("; ", them) + ".", NamedTextColor.GRAY);
+        Player q0 = ps.get(0);
+        if (checkOver(q0, states.get(q0.getUniqueId()), pl.character(q0))) return;
+        if (f.enemiesFirst) f.round++;
+        enemyPhase(f, () -> { if (!f.enemiesFirst) f.round++; partyPhase(f); });
+    }
+
+    /** The enemies' turn, each in Sequence order, at the player nearest to him; then {@code then}. */
+    void enemyPhase(Fight f, Runnable then) {
+        f.enemyPhase = true;
+        for (Player q : players(f)) {
+            State sq = states.get(q.getUniqueId());
+            sq.enemyTurn = true;
+            sq.round = f.round;
+            q.sendMessage(Component.text("Round " + f.round + ": " + f.them + "' turn.", NamedTextColor.RED));
+            show(q, sq, pl.character(q), f.them + "' turn");
+        }
+        raiders.run(f, () -> { f.enemyPhase = false; then.run(); });
+    }
+
+    /** The party's turn: every player in the fight at once. */
+    void partyPhase(Fight f) {
+        f.done.clear();
+        List<Player> ps = players(f);
+        if (ps.isEmpty()) return;
+        Player q0 = ps.get(0);
+        if (checkOver(q0, states.get(q0.getUniqueId()), pl.character(q0))) return;
+        for (Player q : ps) newTurn(q, states.get(q.getUniqueId()), pl.character(q));
     }
 
     /** The player's turn again: full AP (none if a crit or a fumble took this turn), the movement counted from here. */
     private void newTurn(Player p, State s, Character c) {
-        if (!inBattle(p) || s.over) return;
+        if (!inBattle(p) || s.fight != null && s.fight.over) return;
         if (checkOver(p, s, c)) return;
         s.enemyTurn = false;
-        s.round++;
+        if (s.fight != null) s.round = s.fight.round; else s.round++;   // the environment's own rounds have no fight
         if (s.burning) { s.burning = false; p.setVisualFire(false); }
         s.steadied = false;
         int st = s.stance();

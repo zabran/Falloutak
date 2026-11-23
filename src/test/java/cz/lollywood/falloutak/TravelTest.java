@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class TravelTest extends MockGame {
 
     @AfterEach
-    void noMap() { Travel.map = null; Travel.file = null; }
+    void noMap() { Travel.map = null; Travel.file = null; Travel.scene.clear(); }
 
     @Test
     void withoutAMapTheMenuSaysWhereItBelongs() {
@@ -32,7 +32,7 @@ class TravelTest extends MockGame {
         Menus.actions(p);
         click("Travel (the world map)");
         assertTrue(page().text().contains("at Westtown"), page().text());
-        Travel.pending = null;
+        Travel.scene.clear();
         String r = Travel.go(plugin, p, "Roadside", false, WorldMapTest.fixed(0.999999));
         assertTrue(r.contains("toward Roadside") && r.contains("Arrived."), r);
         assertTrue(c.now() > t0 + 1, "the journey's hours passed for him: " + t0 + " -> " + c.now());
@@ -48,16 +48,16 @@ class TravelTest extends MockGame {
         Character c = plugin.character(p);
         long xp0 = c.xp;
         String r = Travel.go(plugin, p, "Roadside", false, WorldMapTest.fixed(0.0));   // always met, always spotted (d100 0 < Survival)
-        assertNotNull(Travel.pending, r);
+        assertFalse(Travel.scene.isEmpty(), r);
         // whatever came, make it a hostile one seen in time and go round it
         WorldMap.Kind raider = Travel.map.kinds.get("raiders:pond");
-        Travel.pending = new WorldMap.Encounter(raider, "fight", 8);
-        Travel.pendingSeen = true;
+        Travel.scene.clear();
+        Travel.scene.add(new Travel.Met(new WorldMap.Encounter(raider, "fight", 8), true));
         Menus.actions(p);
         click("Travel (the world map)");
         assertTrue(page().text().contains("Spotted in time"), page().text());
         click("Go round them");
-        assertNull(Travel.pending);
+        assertTrue(Travel.scene.isEmpty());
         assertTrue(c.xp > xp0, "the kill XP of eight raiders: " + xp0 + " -> " + c.xp);
         assertTrue(Travel.go(plugin, p, "Roadside", false, WorldMapTest.fixed(0.999999)).contains("Roadside"));
     }
@@ -66,12 +66,11 @@ class TravelTest extends MockGame {
     void anAmbushCannotBeGoneRound() {
         Travel.use(WorldMapTest.fixture());
         PlayerMock p = player();
-        Travel.pending = new WorldMap.Encounter(Travel.map.kinds.get("raiders:pond"), "fight", 8);
-        Travel.pendingSeen = false;
+        Travel.scene.add(new Travel.Met(new WorldMap.Encounter(Travel.map.kinds.get("raiders:pond"), "fight", 8), false));
         assertTrue(Travel.goRound(plugin, p).startsWith("!"));
         assertTrue(Travel.go(plugin, p, "Roadside", false, WorldMapTest.fixed(0.5)).startsWith("! an encounter waits"));
         assertTrue(Travel.resolved().startsWith("Done with"));
-        assertNull(Travel.pending);
+        assertTrue(Travel.scene.isEmpty());
     }
 
     @Test
