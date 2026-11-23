@@ -70,7 +70,7 @@ final class Items {
                 default -> Material.FEATHER;   // the float
             };
             case "supplies" -> Material.PAPER;
-            case "body" -> k[1].startsWith("Donor organ") ? Material.RABBIT_FOOT : Material.GHAST_TEAR;   // the field's samples (09d round 4)
+            case "body" -> k[1].startsWith("Donor") ? Material.RABBIT_FOOT : Material.GHAST_TEAR;   // the field's samples (09d round 4)
             case "thing" -> thingMaterial(k[1]);
             case "made" -> madeMaterial(k[1]);
             default -> Material.CLOCK;   // the Pip-Boy

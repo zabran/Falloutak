@@ -153,13 +153,16 @@ class EncounterRoundFourTest extends MockGame {
         assertTrue(Loot.treat(plugin, a, raider).contains("stabilise"));
         assertTrue(raider.treated && !raider.dead);
         assertEquals(10, c.xp - xp0, "the check's XP");
-        // the boar: butchered (meat, fat, hide, sinew), a tissue sample and a donor organ
+        // his kidney, with his blood group; a creature's organ is rejected within hours: none
+        assertTrue(Loot.organ(plugin, a, boar).startsWith("!"));
+        Loot.Body other = new Loot.Body(raiderTarget(), new Random(2));
+        assertTrue(Loot.organ(plugin, a, other).contains("blood group " + other.blood), other.blood);
+        // the boar: butchered (meat, fat, hide, sinew), a tissue sample
         assertTrue(Loot.butcher(plugin, a, boar).contains("well"));
         assertTrue(count(a, "Raw meat") > 0 && count(a, "Raw fat") > 0 && count(a, "Raw hide") > 0 && count(a, "Sinew") > 0);
         assertTrue(Loot.sample(plugin, a, boar).contains("tissue sample"));
-        assertTrue(Loot.organ(plugin, a, boar).contains("donor organ"));
         assertEquals(1, count(a, "body:Tissue sample|"));
-        assertEquals(1, count(a, "body:Donor organ|"));
+        assertEquals(1, count(a, "body:Donor kidney|"));
         assertTrue(Loot.butcher(plugin, a, boar).startsWith("!"), "once a body");
         // done badly: half the meat and no hide
         Loot.Body b2 = new Loot.Body(boarTarget(), new Random(1));
@@ -173,6 +176,12 @@ class EncounterRoundFourTest extends MockGame {
         assertFalse(Loot.bodies.isEmpty());
         Travel.go(plugin, a, "Westtown", false, new Random(3));
         assertTrue(Loot.bodies.isEmpty());
+    }
+
+    private static Battle.Target raiderTarget() {
+        Battle.Target t = new Battle.Target("Raider 2");
+        t.foe = "raider"; t.hp = -1;
+        return t;
     }
 
     private static Battle.Target boarTarget() {

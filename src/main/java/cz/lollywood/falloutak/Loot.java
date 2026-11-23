@@ -27,7 +27,8 @@ import static cz.lollywood.falloutak.Menus.tellGm;
  *   <li><b>treat</b> a dying one: a Medicine check; it lives, stabilised (a captive: the GM's to question, recruit as a new group or set
  *   free), else it dies under the hands; or <b>finish it off</b>;</li>
  *   <li><b>a tissue sample</b> (a Medicine check, 15 minutes): the creature's genes for the base's research (gene research is parked);
- *   <b>a donor organ</b> (Medicine −20, an hour): a fresh organ in a cold box (its use waits for Marek's ruling on transplants).</li>
+ *   <b>a donor organ</b> from a person (Medicine −20, an hour): a fresh kidney in a cold box with his blood group (a creature's organ
+ *   is rejected within hours: only a gene-edited pig's works, `03e` §4 T I; its use waits for Marek's ruling on transplants).</li>
  * </ul>
  * A passed check pays its difficulty, at least 10 (06b §2). The field is left when the party sets out again.
  */
@@ -49,11 +50,14 @@ final class Loot {
         final double gunCond;
         final int rounds;
         boolean searched, butchered, treated, sampled, organ;
+        /** A person's blood group (the donor organ's match), drawn by Central Europe's shares [EXAMPLE]. */
+        final String blood;
 
         Body(Battle.Target t, Random rnd) {
             name = t.name; foe = t.foe; person = PEOPLE.contains(t.foe); dead = t.dead; meatKg = t.meatKg; hides = t.hides; hpMax = t.hpMax;
             gunCond = person && !t.broken && !t.melee ? Math.max(1, 100 * t.gunHealth / Battle.SMG.maxHealth) : 0;
             rounds = person && !t.melee ? Math.max(0, t.ammo) + rnd.nextInt(SEARCH_ROUNDS_MAX + 1) : 0;
+            blood = person ? bloodGroup(rnd) : "";
         }
 
         boolean creature() { return !person; }
@@ -67,6 +71,15 @@ final class Loot {
             if (organ) l.add("organ taken");
             return String.join(", ", l);
         }
+    }
+
+    /** Central Europe's blood groups by share (A+ 36, O+ 31, B+ 14, AB+ 6, A− 6, O− 5, B− 1.5, AB− 0.5) [inf, EXAMPLE]. */
+    static String bloodGroup(Random rnd) {
+        String[] g = {"A+", "O+", "B+", "AB+", "A-", "O-", "B-", "AB-"};
+        double[] w = {36, 31, 14, 6, 6, 5, 1.5, 0.5};
+        double u = rnd.nextDouble() * 100, acc = 0;
+        for (int k = 0; k < g.length; k++) { acc += w[k]; if (u < acc) return g[k]; }
+        return "A+";
     }
 
     static final List<Body> bodies = new ArrayList<>();
@@ -116,8 +129,8 @@ final class Loot {
         if (!x.sampled)
             b.add(btn("Take a tissue sample (Medicine " + chance(c, "Medicine", 0) + " %)", "15 minutes: its genes for the base's research",
                     q -> { say(q, sample(pl, q, x)); body(pl, q, x); }));
-        if (!x.organ && !x.treated)
-            b.add(btn("Take a donor organ (Medicine " + chance(c, "Medicine", ORGAN_PENALTY) + " %)", "an hour: a fresh organ in a cold box; failed, it is ruined",
+        if (x.person && !x.organ && !x.treated)
+            b.add(btn("Take a donor organ (Medicine " + chance(c, "Medicine", ORGAN_PENALTY) + " %)", "an hour: a kidney in a cold box, blood group " + x.blood + "; failed, it is ruined",
                     q -> { say(q, organ(pl, q, x)); body(pl, q, x); }));
         b.add(btn("Back to the field", bodies.size() + " bodies", q -> menu(pl, q)));
         Menus.menu(p, "The field: " + x.name, lines, b, q -> menu(pl, q));
@@ -190,14 +203,14 @@ final class Loot {
     }
 
     static String organ(FalloutakPlugin pl, Player p, Body x) {
-        if (x.organ || x.treated) return "! no organ to take";
+        if (!x.person || x.organ || x.treated) return "! no organ to take (a creature's is rejected within hours)";
         x.organ = true;
         x.dead = true;
         Character c = pl.character(p);
         int ch = chance(c, "Medicine", ORGAN_PENALTY), d = rnd(pl).nextInt(100) + 1;
         if (d > ch) return "The organ from " + x.name + " is ruined (Medicine " + ORGAN_PENALTY + ": " + ch + " %, rolled " + d + ")." + spend(c, 60);
-        give(p, List.of(Items.make(bodyId("Donor organ", x), 1)));
-        return "A donor organ from " + x.name + " in a cold box (Medicine " + ORGAN_PENALTY + ": " + ch + " %, rolled " + d + "). "
+        give(p, List.of(Items.make("body:Donor kidney|" + x.blood, 1)));
+        return "A donor organ from " + x.name + ": a kidney, blood group " + x.blood + ", in a cold box (Medicine " + ORGAN_PENALTY + ": " + ch + " %, rolled " + d + "). "
                 + pl.roster.award(p, -ORGAN_PENALTY, "a donor organ (the Medicine check)") + spend(c, 60);
     }
 
