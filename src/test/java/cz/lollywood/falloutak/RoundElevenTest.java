@@ -55,12 +55,12 @@ class RoundElevenTest extends MockGame {
         assertEquals("Survivor", c.baseTpl().name());
         assertTrue(c.keptGenes.isEmpty(), "no more kept genes: they never left");
         // round 15: the ghoul's numbers are a MUTATION of the gene there (Marek: "every ghouls gene is now the mutation of current gene")
-        assertTrue(c.baseTpl().genes().stream().anyMatch(g -> g.name().equals("Broad HLA M1")));
+        assertTrue(c.baseTpl().genes().stream().anyMatch(g -> g.name().equals("Broad HLA G1")), "round 16: the ghoul's G1");
         assertEquals("Ghoul", c.necrosisGene().name());
         assertEquals(p0 + 10, c.other("poison_res"), 1e-9, "the ghoul's +10 % on the Survivor's own");
         Character h = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
         h.turnGhoul();
-        assertEquals(java.util.List.of("Muscle M1", "Eyes M1", "Mind M1", "Frame M1", "Immunity M1", "Ghoul"),
+        assertEquals(java.util.List.of("Muscle G1", "Eyes G1", "Mind G1", "Frame G1", "Immunity G1", "Ghoul"),
                 h.baseTpl().genes().stream().map(Data.Gene::name).toList(), "a human: the lean Necrosis and the plain slots changed");
     }
 

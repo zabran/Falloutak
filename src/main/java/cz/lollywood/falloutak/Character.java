@@ -413,7 +413,7 @@ public final class Character {
             Data.Gene b = geneIn(born, slot);
             List<Data.Step> steps = new ArrayList<>();
             for (Mutated m : ms) steps.addAll(m.steps);
-            l.add(new Data.Recipe(b == null ? "" : b.name(), slot, ms.size() + (part ? 1 : 0), steps, path, part, turned));
+            l.add(new Data.Recipe(b == null ? "" : b.name(), slot, ms.size(), steps, path, part, turned));
         }
         List<Mutated> nec = bySlot.getOrDefault(Data.NECROSIS, List.of());
         Data.Gene own = geneIn(born, Data.NECROSIS);

@@ -40,14 +40,35 @@ class RoundFifteenTest {
         double hla = Data.GENES.get("Broad HLA").poison();
         c.turnGhoul();
         Data.Gene imm = gene(c, "Immunity");
-        assertEquals("Broad HLA M1", imm.name());
+        assertEquals("Broad HLA G1", imm.name(), "round 16: the ghoul's mutations G1-G4");
         assertEquals(hla, imm.poison(), 1e-9, "the gene's own numbers kept");
         assertEquals(10, imm.other().get("poison_res"), 1e-9, "and the ghoul's on top");
-        assertEquals("Muscle M1", gene(c, "Muscle").name(), "a plain slot changed");
+        assertEquals("Muscle G1", gene(c, "Muscle").name(), "a plain slot changed");
         Data.Gene nec = c.necrosisGene();
         assertEquals("Ghoul", nec.name());
         assertEquals(0.4, nec.rad(), 1e-9);
         assertArrayEquals(new int[]{0, 0, 0, 0, 0, 0, 3}, nec.mods(), "the lean Necrosis: rad res and Luck");
+    }
+
+    @Test
+    void theGhoulsMutationsAreNamedG1ToG4() {
+        Character h = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
+        h.turnGhoul();
+        assertEquals("Look", gene(h, "Look") == null ? "Look" : "?", "the ghoul itself touches no Look");
+        String[] want = {"G2", "G3", "G4"};
+        for (String w : want) {
+            h.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
+            assertEquals("Look " + w, gene(h, "Look").name(), "each stage changes Look's Charisma");
+            assertEquals("Muscle G1", gene(h, "Muscle").name(), "only the turn changed it: G1 to the end");
+            assertEquals("Ghoul " + w, h.necrosisGene().name());
+        }
+        assertEquals("Skin G2", gene(h, "Skin").name(), "the hide and the smell are the leathered's: G2");
+        assertEquals("Pain G3", gene(h, "Pain").name());
+        assertEquals("Eyes G4", gene(h, "Eyes").name(), "the glowing one's light");
+        Character b = Part3Test.of("Ghoul", 5, 5, 5, 5, 5, 6, 5);
+        assertEquals("Ghoul mind", gene(b, "Mind").name(), "born: its own genes, unchanged");
+        b.ghoulAdvance(2, Part3Test.fixed(0.5, 1));
+        assertEquals("Ghoul mind G3", gene(b, "Mind").name());
     }
 
     @Test
@@ -121,7 +142,7 @@ class RoundFifteenTest {
         Character g = Part3Test.of("Ghoul", 5, 5, 5, 5, 5, 6, 5);
         g.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
         g.applySteps(Data.NECROSIS, List.of(step("HP max", 1, 1)));
-        assertEquals("Ghoul · leathered M1", g.necrosisGene().name());
+        assertEquals("Ghoul M1 G2", g.necrosisGene().name(), "a mutation's M and the line's G");
         assertEquals(0.4 + 0.10, g.necrosisGene().rad(), 1e-9);
         assertEquals(35, g.necrosisGene().other().get("rad_res"), 1e-9, "the leathered stage's own kept");
     }

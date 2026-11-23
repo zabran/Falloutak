@@ -150,12 +150,13 @@ class RoundTwelveTest {
         h.turnGhoul();
         int dt0 = h.dt();
         h.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
-        assertEquals("Ghoul · leathered", h.necrosisGene().name());
+        assertEquals("Ghoul G2", h.necrosisGene().name());
         assertEquals("Survivor", h.baseTpl().name());
-        assertTrue(names(h.baseTpl()).contains("Broad HLA M1"), "the template's genes stay, changed by the ghoul (round 15)");
+        assertTrue(names(h.baseTpl()).contains("Broad HLA G2"), "the template's genes stay, changed by the ghoul (round 15; G2 leathered, round 16)");
         assertEquals(dt0 + 3, h.dt(), "the leathered hide");
         h.ghoulAdvance(2, Part3Test.fixed(0.5, 1));
-        assertEquals("Ghoul · leathered · glowing (jumped husk)", h.necrosisGene().name());
+        assertEquals("Ghoul G4", h.necrosisGene().name());
+        assertTrue(h.necrosisGene().text().contains("jumped husk"), h.necrosisGene().text());
         assertTrue(h.glowing());
     }
 
@@ -192,8 +193,8 @@ class RoundTwelveTest {
         c.ghoulAdvance(1, Part3Test.fixed(0.5, 1));
         Base b = new Base(dir);
         List<String> added = b.sample(c.recipes());
-        assertEquals(List.of("Eyes M2", "Muscle M1", "Mind M1", "Frame M1", "Immunity M1", "Skin M1", "Metabolism M1", "Look M1", "Ghoul · leathered"), added,
-                "round 15: the ghoul's parts in the body's slots, each its own gene (Eyes: the dark step and the ghoul's P +3)");
+        assertEquals(List.of("Eyes M1 G1", "Muscle G1", "Mind G1", "Frame G1", "Immunity G2", "Skin G2", "Metabolism G2", "Look G2", "Ghoul G2"), added,
+                "round 15: the ghoul's parts in the body's slots, each its own gene (Eyes: the dark step and the ghoul's P +3); round 16: M and G");
         assertTrue(b.sample(c.recipes()).isEmpty(), "known already");
         Character other = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
         other.applySteps("Eyes", List.of(step("Perception", 1)));
@@ -207,12 +208,12 @@ class RoundTwelveTest {
         Data.POOL.clear();
         Base again = new Base(dir);
         assertEquals(b.genePool.keySet(), again.genePool.keySet(), "kept, each made again from its recipe");
-        assertNotNull(Data.gene("Ghoul · leathered"));
+        assertNotNull(Data.gene("Ghoul G2"));
         assertEquals(1, Data.gene("Eyes M1").mods()[Rules.P]);
         assertEquals(-1, Data.gene("Eyes M1b").mods()[Rules.P]);
         Character o = Part3Test.of("Human", 5, 5, 5, 5, 5, 6, 5);
         assertEquals(0, o.senses());
-        String r = o.giveTherapy(Data.gene("Eyes M2"), 100, 1, false, false, new Random(1));
+        String r = o.giveTherapy(Data.gene("Eyes M1 G1"), 100, 1, false, false, new Random(1));
         assertFalse(r.startsWith("!"), r);
         o.therapies.get(0).courseLeft = 0;
         assertEquals(1, o.senses(), "the dark halved, by gene therapy");

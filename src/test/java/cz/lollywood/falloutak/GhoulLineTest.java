@@ -61,7 +61,7 @@ class GhoulLineTest {
         assertEquals(i0 - 5, g.attr(Rules.I, true), "a ghoul's I +3 − 5 = −2 against a human");
         assertEquals(a0 + 2, g.attr(Rules.A, true));
         assertEquals(List.of("leathered", "husk", "glowing"), g.ghoulPath);
-        assertEquals("Ghoul · leathered · husk · glowing", g.necrosisGene().name(), "09b round 12: the stage is the Necrosis gene's variant");
+        assertEquals("Ghoul G4", g.necrosisGene().name(), "the stage is the Necrosis gene's variant; round 16: G1-G4");
         assertTrue(g.effects.stream().noneMatch(e -> "ghoul line".equals(e.source())), "no effect any more");
         assertEquals(1, g.effects.stream().filter(e -> "glowing mind".equals(e.source())).count());
     }
@@ -90,7 +90,8 @@ class GhoulLineTest {
         assertEquals(sn0 - 10, sneak(g), 1e-9, "and the smell");
         assertEquals(c0 - 4, g.attr(Rules.C, true));
         assertEquals(pg0 * 0.75, g.painGain(), 1e-9, "the husk itself was walked: its gift");
-        assertTrue(g.necrosisGene().name().contains("jumped leathered"), g.necrosisGene().name());
+        assertTrue(g.necrosisGene().text().contains("jumped leathered"), g.necrosisGene().text());
+        assertEquals("Ghoul G3", g.necrosisGene().name());
     }
 
     @Test
