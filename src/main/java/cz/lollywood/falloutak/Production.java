@@ -783,11 +783,30 @@ final class Production {
         return "";
     }
 
-    /** Does this building draw its day whether it works or not: the automatic rooms, the kitchen, and a daily one with a job (crops, animals). */
-    static boolean everyDay(Building b) {
+    /** Does this building draw its day whether it works or not: the automatic rooms, the kitchen, a daily one with a job (crops, animals),
+     *  and the pens while the base holds animals. */
+    static boolean everyDay(Building b, Base base) {
         Kind k = b.kind();
-        return k != null && k.daily && (k.automatic || "Kitchen".equals(b.kind) || b.job != null);
+        return k != null && k.daily && (k.automatic || "Kitchen".equals(b.kind) || b.job != null || animalsIn(b, base));
     }
+
+    /**
+     * `09e` round 5 (Marek 11-24, verbatim: *""the pens' animals only drink while a job is running." - means as long as they are in, job
+     * must be running."*): the animals the base holds live in the pens, so a pens building draws its day (10 l, the animals' drink) while
+     * the store holds any livestock, a job running or not.
+     */
+    static boolean animalsIn(Building b, Base base) {
+        if (!"Pens".equals(b.kind) || base == null) return false;
+        for (int t = 1; t <= 4; t++) if (base.count("Livestock", t, 0) > 0) return true;
+        return false;
+    }
+
+    /**
+     * `09e` round 5 (Marek 11-24, verbatim: *"I would say they grow some T2 and some T3 due to black rain. Only food grown in inside is pure
+     * T3."*): the share of a field's Tier II food on clean ground that comes in clean (Tier III); the rest caught the autumn's black rain
+     * (`04b` §5) [the half mine, EXAMPLE].
+     */
+    static double CLEAN_T3 = 0.5;
 
     // ------------------------------------------------------------------ time passes
     /**
@@ -907,7 +926,7 @@ final class Production {
         if (base != null && condensateLeft >= 1 - 1e-9) base.addUnits("Water", 2, 1, (int) Math.floor(condensateLeft + 1e-9));
         condensateLeft = 0;
         for (Building b : buildings)
-            if (everyDay(b) && !charge(b, base)) out.add(b.name + ": no power or water for it today");
+            if (everyDay(b, base) && !charge(b, base)) out.add(b.name + ": no power or water for it today");
     }
 
     /**
@@ -1116,15 +1135,21 @@ final class Production {
         Kind kd = b.kind();
         int cap = kd != null && "product".equals(kd.water_use) && j.water < 5 ? j.water : 5;
         for (Ttr m : r.makes) {
-            double n = m.count;
-            int tier = "Water".equals(m.type) ? m.tier : Math.min(m.tier, cap);   // water made is its own input's, not the room's [mine]
+            double n0 = m.count;
+            int tier0 = "Water".equals(m.type) ? m.tier : Math.min(m.tier, cap);   // water made is its own input's, not the room's [mine]
             // 09e round 4: a field on medium or heavy ground grows only Tier I food (no step, no named crop)
-            boolean hot = "Food".equals(m.type) && "Field".equals(b.kind) && hotGround() && tier > 1;
-            if (hot) tier = 1;
+            boolean hot = "Food".equals(m.type) && "Field".equals(b.kind) && hotGround() && tier0 > 1;
+            if (hot) tier0 = 1;
             // indoors under lamps (a grow room, round 7) out of the nuclear autumn's harvest factor; Good Harvest still the gardener's [mine]
-            if (r.harvest) n *= ("Grow room".equals(b.kind) ? 1 : harvest / 100) * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
-            if ("Chems".equals(m.type) && crew.stream().anyMatch(w -> w.perk("Cook"))) n *= 2;
-            if (salvage(r) && crew.stream().anyMatch(w -> w.perk("Salvager"))) n *= 1.5;
+            if (r.harvest) n0 *= ("Grow room".equals(b.kind) ? 1 : harvest / 100) * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
+            if ("Chems".equals(m.type) && crew.stream().anyMatch(w -> w.perk("Cook"))) n0 *= 2;
+            if (salvage(r) && crew.stream().anyMatch(w -> w.perk("Salvager"))) n0 *= 1.5;
+            // 09e round 5: on clean ground part of a field's Tier II food comes in clean (Tier III), the rest caught the black rain
+            boolean clean = "Food".equals(m.type) && "Field".equals(b.kind) && groundIndex(ground) == 0 && tier0 == 2;
+            double[][] parts = clean ? new double[][]{{3, n0 * CLEAN_T3}, {2, n0 * (1 - CLEAN_T3)}} : new double[][]{{tier0, n0}};
+            for (double[] part : parts) {
+            int tier = (int) part[0];
+            double n = part[1];
             String ck = m.type + "|" + tier;
             double total = n + (j.carry == null ? 0 : j.carry.getOrDefault(ck, 0.0));
             int k = (int) Math.floor(total + 1e-9);
@@ -1137,7 +1162,9 @@ final class Production {
             while (rr > 1 && reserved(m.type, tier, rr, names)) rr--;
             base.addUnits(m.type, tier, rr, k, names);
             Research.made(this, m.type, tier, k, out);   // part 8: the eurekas count what is made
-            made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rr + (hot ? " (" + ground + " ground)" : tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
+            made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rr + (hot ? " (" + ground + " ground)" : clean ? (tier == 3 ? " (clean ground)" : " (the black rain)")
+                    : tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
+            }
         }
         j.water = 5;
         for (Ttr i : r.inputs) if (i.tool) base.wear(i.type, i.tier, Math.max(1, r.hours));   // a tool: 1 % a work hour [EXAMPLE]

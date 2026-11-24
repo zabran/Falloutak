@@ -633,7 +633,9 @@ class ProductionTest {
         Crew farmer = new Crew(worker("F", "Biology", 15));
         pr.start(field, recipe("field-potatoes"), 1, 1, farmer);
         pr.advance(121 * 24, 14 * 24, base, farmer, 0);
-        assertEquals(5, base.count("Food", 2, 1));
+        // on clean ground half comes in Tier III (09e round 5): 2.5 + 2.5, each half's rest carried to the next harvest
+        assertEquals(2, base.count("Food", 2, 1));
+        assertEquals(2, base.count("Food", 3, 1));
         assertEquals(0, base.count("Seeds", 2, 1));                                    // the seed lot: 1 x 50 % = 0
     }
 
