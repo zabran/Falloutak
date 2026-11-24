@@ -336,6 +336,17 @@
     }
    },
    "source": "04 (RULED: as Fallout 2): +50 % rad resistance for 24 h, then +25 % for 48 h"
+  },
+  {
+   "name": "Prussian blue",
+   "chance": 0,
+   "effect": {
+    "hours": 72,
+    "other": {
+     "radaway": 0.5
+    }
+   },
+   "source": "09e round 2: the lower RadAway, (50 + Medicine) / 2 rads out over 3 days, no addiction [numbers mine, EXAMPLE]"
   }
  ]
 }

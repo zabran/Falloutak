@@ -151,6 +151,15 @@ class Part3Test {
         r.dose(Data.CHEMS.get("RadAway"), fixed(0.99, 1));
         for (int i = 0; i < 4; i++) Hud.hour(r);
         assertEquals(400 - 50 - med, r.survival.get(Rules.Stat.RADS), 1e-6);
+        // Prussian blue (09e round 2: the lower RadAway, Chems III R2): half of it over three days, never addictive
+        Character pb = of("Human", 5, 5, 5, 5, 5, 6, 9);
+        pb.survival.put(Rules.Stat.RADS, 400.0);
+        pb.dose(Data.CHEMS.get("Prussian blue"), fixed(0.0, 1));
+        for (int i = 0; i < 24; i++) Hud.hour(pb);
+        assertEquals(400 - (50 + med) / 2 / 3, pb.survival.get(Rules.Stat.RADS), 1e-6, "a third of it in the first day");
+        for (int i = 0; i < 48; i++) Hud.hour(pb);
+        assertEquals(400 - (50 + med) / 2, pb.survival.get(Rules.Stat.RADS), 1e-6);
+        assertFalse(pb.addictions.contains("Prussian blue"));
         // a painkiller lowers the felt Pain (04c §4b)
         Character p = of("Human", 5, 5, 5, 5, 5, 6, 9);
         p.survival.put(Rules.Stat.PAIN, 60.0);

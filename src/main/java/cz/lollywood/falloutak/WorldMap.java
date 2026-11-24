@@ -36,7 +36,7 @@ final class WorldMap {
     static final String[] SEASONS = {"winter", "spring", "summer", "autumn"};
 
     /**
-     * A kind of danger. {@code sneak} = its best Sneak when it tries for stealth, {@code stealth} = the share of its hostile meetings in
+     * A kind of danger. {@code sneak} = a typical member's Sneak (the group's worst is lower: {@link Travel#worstSneak}), {@code stealth} = the share of its hostile meetings in
      * which it does (a raider ambush, a hunting predator), {@code loud} = how much easier it is to see and hear when it does not (a
      * caravan's carts, an engine, a herd) (09d round 5, Marek 11-24: *"the check should go counter to enemy stealth check, if the enemy
      * is trying for stealth. Without stealth, it should instead check how much visible and audible the target is."*) [every number of the

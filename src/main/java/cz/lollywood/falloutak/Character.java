@@ -1310,9 +1310,9 @@ public final class Character {
     Effect stageEffect(Data.Chem ch, int i) {
         Data.Stage s = ch.stage(i);
         Map<String, Double> other = new LinkedHashMap<>(s.other());
-        if (other.containsKey("radaway")) {   // 04 (RULED 11-15): 50 + Medicine rads a dose, out over its hours
-            other.remove("radaway");
-            other.put("rads_per_hour", -(50 + skill("Medicine")) / s.hours());
+        if (other.containsKey("radaway")) {   // 04 (RULED 11-15): 50 + Medicine rads a dose, out over its hours; its value a share
+            double k = other.remove("radaway");   // (09e round 2: Prussian blue, the lower RadAway, ½ of it over three days)
+            other.put("rads_per_hour", -k * (50 + skill("Medicine")) / s.hours());
         }
         int n = nextStage(ch, i);
         int[] mods = s.mods().clone();

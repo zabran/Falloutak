@@ -699,11 +699,17 @@
    "tiers": {
     "I": "home brew, home-grown tobacco",
     "II": "ersatz coffee",
-    "III": "lab chems: Buffout, Mentats, Psycho, Jet",
+    "III": "lab chems: Buffout, Mentats, Psycho, Jet; Prussian blue (R2)",
     "IV": "pre-war pharmacy: Morphine, Ketamine, RadAway"
    },
    "found_only": false,
    "items": [
+    {
+     "name": "Prussian blue",
+     "tier": 3,
+     "rarity": 2,
+     "id": "chem:Prussian blue"
+    },
     {
      "name": "Alcohol",
      "tier": 1,

@@ -383,6 +383,47 @@
    "basic": false
   },
   {
+   "id": "prussian-blue",
+   "name": "Prussian blue",
+   "recipes": [
+    "make-prussian-blue"
+   ],
+   "science": "Chemistry",
+   "tier": 3,
+   "rarity": 2,
+   "points": 1800,
+   "gate": 100,
+   "lab": 2,
+   "lines": [
+    "medicine",
+    "chems"
+   ],
+   "needs": [
+    "workshop-iii"
+   ],
+   "eureka": {
+    "kind": "recipe",
+    "recipes": [
+     "boil-down-potash"
+    ],
+    "count": 5,
+    "text": "Boil down potash 5 times",
+    "model": "— (a way used N times: the rare kind)",
+    "auto": true
+   },
+   "notes": [
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
+   ],
+   "experiment": {
+    "electronics": 2,
+    "machinery": 2
+   },
+   "better": "the lower RadAway, from potash: (50 + Medicine) / 2 rads out over three days, no addiction; in the herds' feed the meat and milk carry 3-10 times less caesium",
+   "parked": false,
+   "basic": true
+  },
+  {
    "id": "herbal-extracts",
    "name": "Herbal extracts",
    "recipes": [

@@ -205,13 +205,17 @@ final class Travel {
     }
 
     /**
-     * The group's own term (09d round 5): SNEAKING, their stealth check against the scout = half their best Sneak; NOT sneaking, how
-     * visible and audible they are: -5 a head over four (at most -30) and the kind's noise (a caravan's carts, a herd) [mine, EXAMPLE].
+     * The group's own term (09d round 5): SNEAKING, their stealth check against the scout = THE WORST SNEAK IN THE GROUP, IN FULL
+     * ({@link #worstSneak}; Marek 11-24: *"it should be full of the worst sneak in group"*); NOT sneaking, how visible and audible they
+     * are: -5 a head over four (at most -30) and the kind's noise (a caravan's carts, a herd) [mine, EXAMPLE].
      */
     static int targetTerm(WorldMap.Kind k, int count, boolean sneaking) {
-        if (sneaking) return k.sneak() / 2;
+        if (sneaking) return worstSneak(k.sneak(), count);
         return -Math.min(30, 5 * Math.max(0, count - 4)) - k.loud();
     }
+
+    /** The clumsiest of a group: the kind's Sneak less 3 a head beyond the first, at most 15 less [mine, EXAMPLE]. */
+    static int worstSneak(int sneak, int count) { return Math.max(0, sneak - Math.min(15, 3 * Math.max(0, count - 1))); }
 
     /** The day's weather: drawn by the season once a day, unless the GM set it. */
     static void dayWeather(int day, Random rnd) {

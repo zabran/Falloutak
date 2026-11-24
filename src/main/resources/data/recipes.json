@@ -1664,21 +1664,21 @@
    "tier": 3,
    "skill": "Biology",
    "min": 40,
-   "hours": 2,
+   "hours": 5,
    "days": 2,
    "known": "research",
    "makes": [
     {
      "type": "Food",
      "tier": 3,
-     "count": 2
+     "count": 6
     }
    ],
    "inputs": [
     {
      "type": "Food",
      "tier": 2,
-     "count": 3,
+     "count": 9,
      "rarity": 2,
      "sets_rarity": false,
      "tool": false,
@@ -1699,7 +1699,7 @@
     {
      "type": "Water",
      "tier": 3,
-     "count": 4,
+     "count": 12,
      "rarity": 0,
      "sets_rarity": false,
      "tool": false,
@@ -1707,7 +1707,7 @@
     }
    ],
    "research": "Rad scrubbing",
-   "better": "leached or potash-grown food soaked two days in brine changed daily: under a tenth of its rads = clean"
+   "better": "leached or potash-grown food soaked two days in brine, the brine reused for the next batch's first soak: under a tenth of its rads = clean"
   },
   {
    "id": "make-cheese-and-butter",
@@ -2285,6 +2285,80 @@
     }
    ],
    "note": "salt in clean water: washing wounds (04c)"
+  },
+  {
+   "id": "make-prussian-blue",
+   "name": "Make Prussian blue",
+   "building": "Workshop",
+   "tier": 3,
+   "skill": "Chemistry",
+   "min": 60,
+   "hours": 6,
+   "days": 2,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Chems",
+     "tier": 3,
+     "count": 2,
+     "rarity": 2,
+     "items": [
+      "Prussian blue"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 2,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Potash"
+     ]
+    },
+    {
+     "type": "Textile",
+     "tier": 1,
+     "count": 1,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Raw hide"
+     ]
+    },
+    {
+     "type": "Metal",
+     "tier": 1,
+     "count": 1,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Scrap metal"
+     ]
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Vinegar"
+     ]
+    }
+   ],
+   "research": "Prussian blue",
+   "better": "the lower RadAway, from potash: (50 + Medicine) / 2 rads out over three days, no addiction; in the herds' feed the meat and milk carry 3-10 times less caesium"
   },
   {
    "id": "willow-bark-extract",

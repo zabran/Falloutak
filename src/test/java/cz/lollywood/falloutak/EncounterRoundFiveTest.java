@@ -55,11 +55,14 @@ class EncounterRoundFiveTest extends MockGame {
         assertEquals(50, Travel.conditions("forest", 23, "fog"), "20 + 20 + 20, at most 50");
         assertEquals(10, Travel.conditions("field", 12, "rain"));
         assertEquals(45, Travel.conditions("town", 5.5, "snow"));
-        // sneaking: their stealth check (half their Sneak); in the open: how visible and audible they are
-        assertEquals(40, Travel.targetTerm(Travel.map.kinds.get("creature:wolves"), 6, true));
+        // sneaking: their stealth check, THE WORST SNEAK IN THE GROUP IN FULL (Marek 11-24, round 6); in the open: how visible and
+        // audible they are
+        assertEquals(65, Travel.targetTerm(Travel.map.kinds.get("creature:wolves"), 6, true), "80 less 3 a head beyond the first, at most 15");
+        assertEquals(80, Travel.targetTerm(Travel.map.kinds.get("creature:wolves"), 1, true), "alone: his own Sneak");
+        assertEquals(74, Travel.worstSneak(80, 3));
         assertEquals(-20, Travel.targetTerm(Travel.map.kinds.get("raiders:pond"), 8, false), "eight of them: four over four, -5 each");
         assertEquals(-30, Travel.targetTerm(Travel.map.kinds.get("raiders:pond"), 20, false), "at most -30");
-        assertEquals(25, Travel.targetTerm(Travel.map.kinds.get("raiders:pond"), 8, true));
+        assertEquals(35, Travel.targetTerm(Travel.map.kinds.get("raiders:pond"), 8, true));
         // the go-round pays each group's check
         PlayerMock a = player();
         Character c = plugin.character(a);
@@ -278,6 +281,10 @@ class EncounterRoundFiveTest extends MockGame {
         assertTrue(brine.inputs.stream().anyMatch(i -> i.type.equals("Food") && i.tier == 2 && i.rarity == 2), "only the step's food");
         assertTrue(brine.inputs.stream().anyMatch(i -> i.items != null && i.items.contains("Salt")), "salt takes it the rest of the way");
         assertEquals(3, cheese.makes.get(0).tier, "the caesium stays in the whey");
+        // 09e round 2 (Marek 11-24: *"please, reuse brine"*): one salt cleans three times the food (6 Food III from 9 Food II R2)
+        assertEquals(6, brine.makes.get(0).count);
+        assertEquals(1, brine.inputs.stream().filter(i -> i.items != null && i.items.contains("Salt")).mapToInt(i -> i.count).sum());
+        assertEquals(9, brine.inputs.stream().filter(i -> i.type.equals("Food")).mapToInt(i -> i.count).sum());
         // a run: Food II R1 leached lands in the Food II R2 row
         Production pr = new Production();
         pr.build("Reactor", 4, "Reactor");
