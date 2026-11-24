@@ -16,10 +16,15 @@ import java.util.StringJoiner;
  * rarity of the food. Also, I would count food in cold and preserved in cool as not spoiling."*).
  * <p>
  * The store keeps ROWS (a tier and a rarity), not named items, so the pace is a row's: each day a share of every Food row, its count /
- * its keeping days (a carry for the parts), steps one tier down; Tier I rots away. Kept food (rarity 2 and up: the keeping recipes, and
- * the step between of `09d`) never spoils in a cool store, and nothing spoils in a cold one. The days [the table RULED; by tier mine]:
- * Tier IV (proper meals) 2 warm / 4 cool, Tier III (fresh clean food) 21 / 180, Tier II ×3 of that (*"T2 staying T2 for quite long"*),
- * Tier I (raw or spoiled) rots away in 3 / 12; kept food 180 warm (Tier II ×3).
+ * its keeping days (a carry for the parts), steps one tier down (to rarity 1: stale food is no longer kept); Tier I rots away. Nothing
+ * spoils in a cold store. The days [the table RULED; by tier mine]: Tier IV (proper meals) 2 warm / 4 cool, Tier III (fresh clean
+ * food) 21 / 180, Tier II ×3 of that (*"T2 staying T2 for quite long"*), Tier I (raw or spoiled) rots away in 3 / 12.
+ * <p>
+ * Round 2 (Marek 11-24, verbatim: *"For T2 food that is irradiated version of T3, lets say that radiation keeps bacteries out (yes,
+ * oversimplified, but we need the complexity in bounds)."* · *"should not most of preserved food be T3? Preserving most T2 food seems
+ * quite useless"* · *"Tins spoil when they shouldn't - higher rarity would resolve it."*): **kept food is Tier III R2** (the keeping
+ * recipes take clean food): never in a cool store, 180 days warm; **Tier II R2 is only the step between** of `09d` (it spoils as
+ * Tier II); **rarity 3 is sealed** (the pre-war tins, Food II R3): it never spoils.
  */
 final class Spoil {
     private Spoil() {}
@@ -28,18 +33,20 @@ final class Spoil {
 
     /** The keeping days of a Food row in a place ("warm", "cool", "cold"); −1 = it does not spoil there. */
     static double days(int tier, int rarity, String place) {
-        if (place.equals("cold")) return -1;
-        boolean kept = rarity >= 2, warm = place.equals("warm");
-        if (kept && !warm) return -1;
-        double d = kept ? KEPT : switch (tier) {
+        if (place.equals("cold") || rarity >= 3) return -1;   // cold; sealed (the pre-war tins)
+        boolean warm = place.equals("warm");
+        if (kept(tier, rarity)) return warm ? KEPT : -1;
+        double d = switch (tier) {
             case 4 -> warm ? 2 : 4;
             case 3, 2 -> warm ? 21 : 180;
             default -> (warm ? 1 : 4) * ROT_T1;
         };
         if (tier == 2) d *= SLOW_T2;
-        if (tier == 1 && kept) d *= ROT_T1;
         return d;
     }
+
+    /** Kept food (round 2): clean food made to keep, Tier III and up at rarity 2. */
+    static boolean kept(int tier, int rarity) { return tier >= 3 && rarity == 2; }
 
     /** The base store's place: the coldest one built (a freezer only on the day it had its power), the shelter itself cool (its
      *  own rooms: the reactor, the filtration, the scrubbers, the dormitories; the kitchen is its food store). */
@@ -75,7 +82,7 @@ final class Spoil {
             if (k <= 0) continue;
             int tier = p.tier, rarity = p.rarity;
             base.takeUnits("Food", tier, rarity, k);
-            if (tier > 1) base.addUnits("Food", tier - 1, rarity, k);
+            if (tier > 1) base.addUnits("Food", tier - 1, 1, k);
             out.add(k + " Food " + Rules.roman(tier) + (rarity > 1 ? " R" + rarity : "") + (tier > 1 ? " → " + Rules.roman(tier - 1) : " rotted away"));
         }
         return out.length() == 0 ? null : "Spoiling (the store keeps " + place + "): " + out;
@@ -101,7 +108,7 @@ final class Spoil {
             if (k <= 0) continue;
             int took = 0;
             for (int i = 0; i < k && Items.take(p, e.getKey()); i++) took++;
-            if (tier > 1 && took > 0) Items.give(p, Items.thingId("Food", tier - 1, rarity, th[3]), took);
+            if (tier > 1 && took > 0) Items.give(p, Items.thingId("Food", tier - 1, 1, th[3]), took);
             out.add(took + " " + (th[3].isEmpty() ? "Food" : th[3]) + (tier > 1 ? " went " + (tier == 2 ? "bad (Tier I)" : "stale (Tier " + Rules.roman(tier - 1) + ")") : " rotted away"));
         }
         return out.length() == 0 ? null : "Your food: " + out;

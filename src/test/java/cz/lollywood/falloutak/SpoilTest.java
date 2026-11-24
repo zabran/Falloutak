@@ -20,8 +20,12 @@ class SpoilTest {
         assertEquals(3, Spoil.days(1, 1, "warm"), 1e-9, "raw or spoiled food rots away");
         assertEquals(2, Spoil.days(4, 1, "warm"), 1e-9);
         assertEquals(-1, Spoil.days(3, 1, "cold"), 1e-9, "nothing spoils in the cold");
-        assertEquals(-1, Spoil.days(2, 2, "cool"), 1e-9, "kept food never spoils in a cool store");
-        assertEquals(540, Spoil.days(2, 2, "warm"), 1e-9);
+        // round 2 (Marek 11-24): kept food is Tier III R2; Tier II R2 is the step between; rarity 3 the sealed tins
+        assertEquals(-1, Spoil.days(3, 2, "cool"), 1e-9, "kept food never spoils in a cool store");
+        assertEquals(180, Spoil.days(3, 2, "warm"), 1e-9);
+        assertEquals(63, Spoil.days(2, 2, "warm"), 1e-9, "the step between spoils as Tier II (the radiation keeps the germs out)");
+        assertEquals(540, Spoil.days(2, 2, "cool"), 1e-9);
+        assertEquals(-1, Spoil.days(2, 3, "warm"), 1e-9, "the pre-war tins never spoil");
     }
 
     @Test
@@ -31,7 +35,7 @@ class SpoilTest {
         Base base = new Base(null);
         base.addUnits("Food", 3, 1, 100);
         base.addUnits("Food", 1, 1, 30);
-        base.addUnits("Food", 2, 2, 40);                                // kept food
+        base.addUnits("Food", 3, 2, 40);                                // kept food
         assertEquals("warm", Spoil.place(pr));
         String s = Spoil.store(pr, base);
         assertTrue(s.contains("4 Food III → II") && s.contains("10 Food I rotted away"), s);
@@ -39,7 +43,7 @@ class SpoilTest {
         assertEquals(4, base.count("Food", 2, 1));
         assertEquals(20, base.count("Food", 1, 1));
         assertEquals(0.762, pr.spoilCarry.get(Base.key("Food", 3, 1)), 1e-3, "the part carried to tomorrow");
-        assertEquals(40, base.count("Food", 2, 2), "40 / 540 a day: nothing yet");
+        assertEquals(40, base.count("Food", 3, 2), "40 / 180 a day: nothing yet");
         // a cellar: cool, the kept food stops; an ice house: cold, nothing spoils
         pr.build("Root cellar", 1, "Cellar");
         assertEquals("cool", Spoil.place(pr));
@@ -76,8 +80,9 @@ class SpoilTest {
         assertEquals(8, smoke.inputs.get(1).count, "1.5 kg of wood a kg of meat");
         assertEquals(15, kiln.inputs.get(1).count, "3 kg of wood a kg");
         for (Production.Recipe r : List.of(salt, kraut, jerky, smoke, pem, kiln)) {
-            assertEquals(2, r.makes.get(0).tier, r.id);
-            assertFalse(Production.reserved("Food", 2, 2, r.makes.get(0).items), r.id + ": its kept food lands in Food II R2");
+            assertEquals(3, r.makes.get(0).tier, r.id);
+            assertEquals(3, r.inputs.get(0).tier, r.id + ": from clean food (round 2)");
+            assertFalse(Production.reserved("Food", 3, 2, r.makes.get(0).items), r.id + ": its kept food lands in Food III R2");
         }
         assertEquals("Root cellar", ProductionTest.recipe("dig-a-root-cellar").builds.kind);
         assertEquals("Ice house", ProductionTest.recipe("build-an-ice-house").builds.kind);

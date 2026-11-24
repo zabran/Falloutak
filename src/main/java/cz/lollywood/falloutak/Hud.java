@@ -50,7 +50,13 @@ public final class Hud {
             pl.anomalies.apply(p, c);       // the anomaly his body is in (09c, round 9)
             pl.anomalies.belt(p, c);        // the artifacts on his belt
             Map<String, Integer> carry = Items.carried(p);   // what he wears (05c), the big gas mask with the filters he carries
-            c.soap = carry.containsKey("thing:Chemicals|2|1|Soap");   // 04b §5: soap × 0.7 on the catching from the sick
+            // 04b §5 (Marek 11-24: washing with soap is a setting): a new bar from his pack when the last one is used up
+            if (c.washSoap && c.soapDays <= 0 && carry.containsKey(Diseases.SOAP_ID) && Items.take(p, Diseases.SOAP_ID)) {
+                c.soapDays += Diseases.SOAP_DAYS;
+                p.sendMessage(net.kyori.adventure.text.Component.text("A new bar of soap (it lasts " + Math.round(Diseases.SOAP_DAYS) + " days).",
+                        net.kyori.adventure.text.format.NamedTextColor.GRAY));
+            }
+            c.soap = c.washSoap && c.soapDays > 0;
             List<Character> near = new ArrayList<>();
             for (Player q : p.getWorld().getPlayers())
                 if (q != p && q.getLocation().distanceSquared(p.getLocation()) <= 64) near.add(pl.character(q));
@@ -162,6 +168,7 @@ public final class Hud {
 
     static void hour(Character c) {
         c.clock += 1;
+        if (c.washSoap && c.soapDays > 0) c.soapDays = Math.max(0, c.soapDays - 1 / 24.0);   // 04b §5: the bar wears down
         if (c.working && !c.sleeping && !c.dead && !c.inArrest() && !c.unconscious()) c.workedHours++;   // 06b §5.4.7
         List<String> stages0 = c.stages();
         double rads0 = c.survival.getOrDefault(Rules.Stat.RADS, 0.0);

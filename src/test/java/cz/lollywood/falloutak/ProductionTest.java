@@ -371,6 +371,7 @@ class ProductionTest {
         Base base = new Base(null);
         base.addUnits("Water", 1, 1, 100);
         base.addUnits("Water", 2, 1, 100);
+        base.addUnits("Food", 3, 1, 300);                                               // Marek 11-24: the people eat 3 portions a day
         List<String> out = pr.advance(1, 0, base, new Crew(), 100);
         // the people drink 200 of the filtration's 400; round 9: they wash with the scrubbers' condensate of the day (100) and the
         // store's Tier II (100), never Tier I unless chosen; the kitchen's 300 l: the filtration's other 200, then the store's best
@@ -497,6 +498,7 @@ class ProductionTest {
         Base base = new Base(null);
         base.addUnits("Water", 1, 1, 40);
         base.addUnits("Food", 1, 1, 2);
+        base.addUnits("Food", 3, 1, 15);                                                // the people's 15 portions, the best first
         base.addUnits("Fuel", 1, 1, 1);
         Crew crew = new Crew(worker("C", "Survival", 30));
         pr.start(k, recipe("cook-wasteland-meat"), 1, 1, crew);

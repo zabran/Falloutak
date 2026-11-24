@@ -197,6 +197,28 @@ final class Menus {
                     : "outside, your own days since a wash count (Dirty from 3, Filthy from 7)", x -> { c.outside = !c.outside; actions(x); }));
             if (c.outside && c.unwashedDays > 0)
                 b.add(btn("Wash (2 l)", washText(), x -> { c.unwashedDays = 0; say(x, "Washed. " + washText()); actions(x); }));
+            // 04b §5 (Marek 11-24: *"washing with soap should be a setting"*): his switch, a bar from the pack every 14 days
+            int bars = carry.getOrDefault(Diseases.SOAP_ID, 0);
+            b.add(btn(c.washSoap ? "Soap: ON" : "Soap: OFF", c.washSoap
+                    ? (c.soapDays > 0 ? "you wash with soap: catching from the sick ×" + Diseases.SOAP + "; this bar " + Math.round(c.soapDays) + " more days"
+                    : "no bar left: carry Soap (Chemicals II) and a new one is taken") + "; " + bars + " in your pack"
+                    : "wash with soap: ×" + Diseases.SOAP + " on catching from the sick (04b §5), a bar lasts " + Math.round(Diseases.SOAP_DAYS) + " days; "
+                    + bars + " in your pack", x -> { c.washSoap = !c.washSoap; actions(x); }));
+            // Marek 11-24: eating and drinking from the pack (in the base the base's daily lot feeds you while the GM passes time)
+            List<String> foods = new ArrayList<>(), waters = new ArrayList<>();
+            for (String id : carry.keySet()) {
+                String[] th = Items.thing(id);
+                if (th == null) continue;
+                if (th[0].equals("Food")) foods.add(id);
+                if (th[0].equals("Water")) waters.add(id);
+            }
+            String noEat = Meals.cannotEat(c), noDrink = Meals.cannotDrink(c);
+            if (!foods.isEmpty() && noEat == null) b.add(btn("Eat", "a portion: Food +" + Math.round(Meals.PORTION) + " (a light meal; "
+                    + "the tier is the harm, 04 §3.9)", x -> eat(x, c, false)));
+            else cannot.add("Eat: " + (noEat != null ? noEat : "you carry no food"));
+            if (!waters.isEmpty() && noDrink == null) b.add(btn("Drink", "a litre: Water +" + Math.round(Meals.LITRE) + " (the tier is the harm, "
+                    + "04 §3.9)", x -> eat(x, c, true)));
+            else cannot.add("Drink: " + (noDrink != null ? noDrink : "you carry no water"));
             if (c.hp < c.hpMax() && carry.containsKey("gear:Stimpak"))
                 b.add(btn("Stimpak (" + carry.get("gear:Stimpak") + ")", "+10 to +20 HP at once (Fallout 2); it does not stop bleeding", x -> { say(x, stimpak(x, c, "you")); actions(x); }));
             for (Map.Entry<String, Integer> e : carry.entrySet()) {
@@ -601,6 +623,31 @@ final class Menus {
     }
 
     /** A disease's actions (04c §7): pick one; antibiotics take a carried Medicine III or IV and the family the medic picks. */
+    /** Marek 11-24: eat a portion or drink a litre of what he carries; each item shows its harm (04 §3.9, 04b §5). */
+    static void eat(Player p, Character c, boolean water) {
+        List<String> ids = new ArrayList<>();
+        Map<String, Integer> carry = Items.carried(p);
+        for (String id : carry.keySet()) {
+            String[] th = Items.thing(id);
+            if (th != null && th[0].equals(water ? "Water" : "Food")) ids.add(id);
+        }
+        ids.sort(java.util.Comparator.comparingInt((String id) -> -Integer.parseInt(Items.thing(id)[1])));
+        pick(p, water ? "Drink a litre" : "Eat a portion", water ? "Tier I: rads and the germs; II: one of them; III clean."
+                        : "Tier I: rads and a roll; II: one harm (rads, or a stale portion's roll); III clean.", ids,
+                id -> { String[] th = Items.thing(id); return (th[3].isEmpty() ? th[0] : th[3]) + " (" + Rules.roman(Integer.parseInt(th[1]))
+                        + (th[2].equals("1") ? "" : " R" + th[2]) + ", " + carry.get(id) + ")"; },
+                id -> { String[] th = Items.thing(id); return Meals.harmText(th[0], Integer.parseInt(th[1]), Integer.parseInt(th[2]), th[3]); },
+                (x, id) -> {
+                    if (!Items.take(x, id)) { say(x, "! it is gone"); actions(x); return; }
+                    String[] th = Items.thing(id);
+                    int tier = Integer.parseInt(th[1]), rarity = Integer.parseInt(th[2]);
+                    String r = water ? Meals.drink(c, tier, th[3], pl.rnd) : Meals.eat(c, tier, rarity, th[3], pl.rnd);
+                    say(x, r);
+                    if (r.contains("CAUGHT")) tellGm(c.name + ": " + r);
+                    actions(x);
+                }, Menus::actions);
+    }
+
     static void treatDisease(Player p, Who o, String name) {
         if (o == null) return;
         Diseases.Disease d = Diseases.ALL.get(name);
@@ -1163,7 +1210,12 @@ final class Menus {
                     String s = (min >= 60 ? (int) (min / 60) + " h " : "") + (min % 60 > 0 ? (int) (min % 60) + " min" : "");
                     for (Who o : all ? everyone() : List.of(only)) {
                         if (o.entity() != null) pl.zones.apply(o.c(), o.entity());   // the gas zone he stands in
+                        // Marek 11-24: in the base its daily lot feeds and waters him (his bar holds while the base fed everyone in full)
+                        boolean inBase = all && !o.c().outside && !pl.production.buildings.isEmpty();
+                        o.c().baseFood = inBase && pl.production.fedFood;
+                        o.c().baseWater = inBase && pl.production.fedWater && Meals.cannotDrink(o.c()) == null;
                         String r = Hud.pass(o.c(), min);
+                        o.c().baseFood = o.c().baseWater = false;
                         if (o.player() != null && o.c().workedHours > 0) {   // downtime work (06b §5.4.7): 1 XP an hour
                             int wh = o.c().workedHours;
                             o.c().workedHours = 0;
@@ -1178,7 +1230,16 @@ final class Menus {
                     if (all) for (String w : pl.roster.work(min / 60)) say(x, w + ".");   // the groups' people work (06 §2.1)
                     if (all) {   // part 7: the buildings' jobs, power and water by the day, upkeep by the week
                         int hurt = (int) pl.roster.pop.people.stream().filter(p -> p.hpMax > 0 && p.hp < p.hpMax).count();
-                        for (String w : pl.production.advance(min / 60, before, pl.base, pl.workforce(), pl.roster.pop.people.size(), hurt)) say(x, w);
+                        List<Who> inBase = pl.production.buildings.isEmpty() ? List.of()
+                                : everyone().stream().filter(o -> !o.c().outside && !o.c().dead).toList();   // they eat and drink there too
+                        for (String w : pl.production.advance(min / 60, before, pl.base, pl.workforce(), pl.roster.pop.people.size() + inBase.size(), hurt)) say(x, w);
+                        for (Who o : inBase)
+                            for (Production.Ration ra : pl.production.rations) {
+                                String m = Meals.baseDay(o.c(), ra, pl.rnd);
+                                if (m == null) continue;
+                                o.tell(m, m.contains("CAUGHT") ? NamedTextColor.RED : NamedTextColor.GRAY);
+                                if (m.contains("CAUGHT")) tellGm(o.name() + ": " + m);
+                            }
                         if (min >= 1440 - 1e-9 || pl.production.unwashed > 0)   // round 9: in the base, the base's lot
                             for (Who o : everyone()) if (!o.c().outside) o.c().unwashedDays = pl.production.unwashed;
                         pl.production.save();

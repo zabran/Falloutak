@@ -1277,7 +1277,7 @@
    "id": "dry-jerky",
    "name": "Dry jerky",
    "building": "Kitchen",
-   "tier": 2,
+   "tier": 3,
    "skill": "Survival",
    "min": 20,
    "hours": 4,
@@ -1286,7 +1286,7 @@
    "makes": [
     {
      "type": "Food",
-     "tier": 2,
+     "tier": 3,
      "count": 10,
      "rarity": 2,
      "items": [
@@ -1297,7 +1297,7 @@
    "inputs": [
     {
      "type": "Food",
-     "tier": 1,
+     "tier": 3,
      "count": 10,
      "rarity": 0,
      "sets_rarity": true,
@@ -1311,7 +1311,7 @@
    "id": "salt-meat-in-brine",
    "name": "Salt meat in brine",
    "building": "Kitchen",
-   "tier": 2,
+   "tier": 3,
    "skill": "Survival",
    "min": 20,
    "hours": 6,
@@ -1320,7 +1320,7 @@
    "makes": [
     {
      "type": "Food",
-     "tier": 2,
+     "tier": 3,
      "count": 20,
      "rarity": 2,
      "items": [
@@ -1331,7 +1331,7 @@
    "inputs": [
     {
      "type": "Food",
-     "tier": 1,
+     "tier": 3,
      "count": 20,
      "rarity": 0,
      "sets_rarity": true,
@@ -1352,7 +1352,7 @@
     },
     {
      "type": "Water",
-     "tier": 2,
+     "tier": 3,
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
@@ -1360,13 +1360,13 @@
      "extra": false
     }
    ],
-   "note": "the brine or the dry cure, salt 7 % of the meat [real]: the herds' meat kept for the winter, the disease roll gone, the rads stay"
+   "note": "the brine or the dry cure, salt 7 % of the meat [real]: clean meat kept for the winter"
   },
   {
    "id": "sauerkraut",
    "name": "Sauerkraut",
    "building": "Kitchen",
-   "tier": 2,
+   "tier": 3,
    "skill": "Survival",
    "min": 15,
    "hours": 10,
@@ -1375,7 +1375,7 @@
    "makes": [
     {
      "type": "Food",
-     "tier": 2,
+     "tier": 3,
      "count": 100,
      "rarity": 2,
      "items": [
@@ -1386,7 +1386,7 @@
    "inputs": [
     {
      "type": "Food",
-     "tier": 1,
+     "tier": 3,
      "count": 100,
      "rarity": 0,
      "sets_rarity": true,
@@ -1412,7 +1412,7 @@
    "id": "hot-smoke-meat",
    "name": "Hot-smoke meat",
    "building": "Kitchen",
-   "tier": 2,
+   "tier": 3,
    "skill": "Survival",
    "min": 20,
    "hours": 3,
@@ -1421,7 +1421,7 @@
    "makes": [
     {
      "type": "Food",
-     "tier": 2,
+     "tier": 3,
      "count": 10,
      "rarity": 2,
      "items": [
@@ -1432,7 +1432,7 @@
    "inputs": [
     {
      "type": "Food",
-     "tier": 1,
+     "tier": 3,
      "count": 10,
      "rarity": 0,
      "sets_rarity": true,
@@ -1455,7 +1455,7 @@
    "id": "make-pemmican",
    "name": "Make pemmican",
    "building": "Kitchen",
-   "tier": 2,
+   "tier": 3,
    "skill": "Survival",
    "min": 25,
    "hours": 5,
@@ -1464,7 +1464,7 @@
    "makes": [
     {
      "type": "Food",
-     "tier": 2,
+     "tier": 3,
      "count": 10,
      "rarity": 2,
      "items": [
@@ -1475,7 +1475,7 @@
    "inputs": [
     {
      "type": "Food",
-     "tier": 1,
+     "tier": 3,
      "count": 10,
      "rarity": 0,
      "sets_rarity": true,
@@ -1509,8 +1509,8 @@
   {
    "id": "kiln-dry-roots",
    "name": "Kiln-dry roots",
-   "building": "Kiln",
-   "tier": 2,
+   "building": "Kitchen",
+   "tier": 3,
    "skill": "Survival",
    "min": 15,
    "hours": 2,
@@ -1519,7 +1519,7 @@
    "makes": [
     {
      "type": "Food",
-     "tier": 2,
+     "tier": 3,
      "count": 10,
      "rarity": 2,
      "items": [
@@ -1530,7 +1530,7 @@
    "inputs": [
     {
      "type": "Food",
-     "tier": 2,
+     "tier": 3,
      "count": 10,
      "rarity": 0,
      "sets_rarity": true,
@@ -1547,7 +1547,7 @@
      "extra": false
     }
    ],
-   "note": "roots, fruit, mushrooms in a kiln or the bread oven's after-heat: 3 kg of wood a kg, the wood is the cost [inf]"
+   "note": "roots, fruit, mushrooms in the bread oven's after-heat (a clean kitchen: Tier III food, round 2): 3 kg of wood a kg, the wood is the cost [inf]"
   },
   {
    "id": "field-potatoes",
@@ -1882,6 +1882,62 @@
    ],
    "research": "Rad scrubbing",
    "better": "leached or potash-grown food soaked two days in brine, the brine reused for the next batch's first soak: under a tenth of its rads = clean"
+  },
+  {
+   "id": "brine-and-cure",
+   "name": "Brine and cure",
+   "building": "Kitchen",
+   "tier": 3,
+   "skill": "Biology",
+   "min": 40,
+   "hours": 5,
+   "days": 7,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 3,
+     "count": 6,
+     "rarity": 2,
+     "items": [
+      "Salted meat"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 9,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 2,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    },
+    {
+     "type": "Water",
+     "tier": 3,
+     "count": 12,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Rad scrubbing",
+   "better": "the brine's soak and the cure at once: clean and kept (Food III R2), for one more Salt"
   },
   {
    "id": "make-cheese-and-butter",

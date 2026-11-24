@@ -271,7 +271,8 @@
    "name": "Rad scrubbing",
    "recipes": [
     "field-potatoes-on-potash",
-    "brine-and-soak"
+    "brine-and-soak",
+    "brine-and-cure"
    ],
    "science": "Biology",
    "tier": 3,

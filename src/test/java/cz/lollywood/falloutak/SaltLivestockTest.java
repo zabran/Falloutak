@@ -112,10 +112,10 @@ class SaltLivestockTest {
     @Test
     void aStoppedJobGivesTheSaltBackToTheSaltRow() {
         Production pr = new Production();
-        Production.Building k = pr.build("Kitchen", 2, "K");
+        Production.Building k = pr.build("Kitchen", 3, "K");
         Base base = new Base(null);
-        base.addUnits("Food", 1, 1, 20);
-        base.addUnits("Water", 2, 1, 1);
+        base.addUnits("Food", 3, 1, 20);
+        base.addUnits("Water", 3, 1, 1);
         base.putThing("Chemicals", 1, 2, "Salt", 1);
         ProductionTest.Crew c = crew("Survival");
         Production.Recipe jerky = ProductionTest.recipe("salt-meat-in-brine");

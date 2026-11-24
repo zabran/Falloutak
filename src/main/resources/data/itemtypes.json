@@ -525,12 +525,6 @@
      "id": ""
     },
     {
-     "name": "Pre-war tins",
-     "tier": 2,
-     "rarity": 1,
-     "id": ""
-    },
-    {
      "name": "Goat milk",
      "tier": 2,
      "rarity": 1,
@@ -555,39 +549,9 @@
      "id": ""
     },
     {
-     "name": "Jerky",
+     "name": "Pre-war tins",
      "tier": 2,
-     "rarity": 2,
-     "id": ""
-    },
-    {
-     "name": "Salted meat",
-     "tier": 2,
-     "rarity": 2,
-     "id": ""
-    },
-    {
-     "name": "Smoked meat",
-     "tier": 2,
-     "rarity": 2,
-     "id": ""
-    },
-    {
-     "name": "Pemmican",
-     "tier": 2,
-     "rarity": 2,
-     "id": ""
-    },
-    {
-     "name": "Sauerkraut",
-     "tier": 2,
-     "rarity": 2,
-     "id": ""
-    },
-    {
-     "name": "Dried roots",
-     "tier": 2,
-     "rarity": 2,
+     "rarity": 3,
      "id": ""
     },
     {
@@ -606,6 +570,42 @@
      "name": "Cheese and butter",
      "tier": 3,
      "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Jerky",
+     "tier": 3,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Salted meat",
+     "tier": 3,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Smoked meat",
+     "tier": 3,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Pemmican",
+     "tier": 3,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Sauerkraut",
+     "tier": 3,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Dried roots",
+     "tier": 3,
+     "rarity": 2,
      "id": ""
     }
    ]

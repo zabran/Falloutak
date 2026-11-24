@@ -50,6 +50,9 @@ final class Diseases {
 
     static final double[] FOOD_IMM = {1, .9, .8, .6, .4, .3}, WATER_IMM = {1, .9, .8, .6, .4}, RAD_IMM = {1, .8, .6, .4, .2, .1};
     static final double TEND = 0.7, ABX_DAYS = 7, SOAP = 0.7, YEAR = 365 * 24;
+    /** A bar of soap lasts a person washing with it this many days [mine, EXAMPLE: a 100 g bar at ~7 g a day]; its item. */
+    static final double SOAP_DAYS = 14;
+    static final String SOAP_ID = "thing:Chemicals|2|1|Soap";
     static final List<String> FAMILIES = List.of("penicillins", "tetracyclines", "sulfa", "chloramphenicol", "ciprofloxacin", "streptomycin");
     /** 04b §5: a wound's infection by its class (a cut, a gunshot or a blast's fragments, a dirty wound or a bite), % [life's anchors]. */
     static final Map<String, Double> WOUND = Map.of("cut", 2.0, "gunshot", 15.0, "dirty", 40.0, "bite", 40.0);
@@ -314,7 +317,9 @@ final class Diseases {
     static String wound(Character c, String cls, Random rnd) {
         if (c.dead) return null;
         StringJoiner j = new StringJoiner("; ");
-        String w = expose(c, "Wound infection", WOUND.getOrDefault(cls, 15.0), false, false, rnd);
+        // round 9 (Marek 11-21: *"it should make infections and wounds/healing worse"*): Filthy (7 days unwashed) doubles the roll
+        double pct = WOUND.getOrDefault(cls, 15.0) * (c.unwashedDays >= 7 ? 2 : 1);
+        String w = expose(c, "Wound infection", pct, false, false, rnd);
         if (w.contains("CAUGHT")) j.add(w);
         if (!cls.equals("cut")) {
             String t = expose(c, "Tetanus", 1, false, false, rnd);

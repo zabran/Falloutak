@@ -66,6 +66,15 @@ public final class Character {
     /** 04b §3b: every rad ever taken (RadAway clears the stage, never this); the last rads seen. The HUD's soap and neighbours (§5). */
     public double lifetimeRads = 0, radsSeen = 0;
     public transient boolean soap = false;
+    /**
+     * Washing with soap (Marek 11-24, verbatim: *""carrying soap cuts it to 70 %" - washing with soap should be a setting, having it in
+     * your pocket does not save you more than "black stone"."*): his own switch (Actions); while it is on he uses a bar every
+     * {@link Diseases#SOAP_DAYS} days from his pack, and only while a bar lasts does it cut the catching from people (04b §5).
+     */
+    public boolean washSoap = false;
+    public double soapDays = 0;
+    /** In the base and fed or watered by its daily lot (the GM's time passing sets them): his own bar does not fall then. */
+    public transient boolean baseFood = false, baseWater = false;
     public transient List<Character> nearby = new ArrayList<>();
     /** 07 §19: the parts of the carried food on their way to the next tier down, by item ({@link Spoil#carried}). */
     public Map<String, Double> spoilCarry = new LinkedHashMap<>();
@@ -1129,8 +1138,8 @@ public final class Character {
         Data.Template t = tpl();
         boolean power = "power".equals(t.needs());
         return switch (st) {
-            case WATER -> power ? 0 : h * t.waterFactor() * (1 + other("water_need"));   // an artifact's price (the ember: x1.25)
-            case FOOD -> h * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
+            case WATER -> power || baseWater ? 0 : h * t.waterFactor() * (1 + other("water_need"));   // an artifact's price (the ember: x1.25)
+            case FOOD -> baseFood && !power ? 0 : h * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
             case SLEEP -> h < 0 ? h * t.sleepFactor() * (1 + other("sleep_need")) : h;   // the need (DEC2: x0.75); a synthetic body: its memory, cleaned like sleep
             case HYPOTHERMIA -> h + other("cold_per_hour");   // the frost pearl's price (09c §3)
             case RADS -> (locationRads + nearRads) * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");   // + the glowing ones near (round 9)

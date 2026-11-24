@@ -196,6 +196,7 @@ class ResearchTest {
         assertEquals(0, Research.theoryLeft(pr, c), 1e-9);
         Production.Building still = pr.build("Still", 2, "Still");
         store.addUnits("Food", 1, 1, 6);
+        store.addUnits("Food", 3, 1, 6);                                                  // the person's meals (Marek 11-24), the best first
         store.addUnits("Fuel", 1, 1, 2);
         pr.seed(seedFor(51, 99));                                                         // a roll over 50: failed
         pr.start(still, Research.jobFor(c, "prototype"), 1, 1, crew);

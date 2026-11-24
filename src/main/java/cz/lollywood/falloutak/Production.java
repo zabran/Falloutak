@@ -129,6 +129,19 @@ final class Production {
     static String UPKEEP_TOOL = "Gear and tools";
     /** The people's own water a day each (round 8): to drink (04 §3.9) and to wash (the cooling order, Tier I first) [EXAMPLE]. */
     static double DRINK = 2, WASH = 2;
+    /** 04 §3.3: a person eats 3 portions a day (a resting day's 24 points = three light meals). */
+    static double MEALS = 3;
+
+    /**
+     * One day of the base's lot (Marek 11-24: *"inside base, we should already have system for water and food usage, so just go based on
+     * that."*), a person's share: the portions eaten by row ("tier|rarity"), the litres drunk by tier (the filtration's as Tier III),
+     * what was needed and got.
+     */
+    record Ration(Map<String, Double> food, double[] water, double foodNeed, double foodGot, double waterNeed, double waterGot) {}
+    /** The days of the last {@link #advance}, in order (the characters in the base take their share of each). */
+    final transient List<Ration> rations = new ArrayList<>();
+    /** Whether the base fed and watered everyone in full on its last day (the characters in it then need nothing more). */
+    boolean fedFood = true, fedWater = true;
     /**
      * A building's wear by its tier (round 6, Marek 11-20, verbatim: *"The buildings must have condition lost in some absolute number -
      * bigger tier, the less maintanance and the longer it lasts abandoned."* · *"players must not be forced out before first year"* ·
@@ -826,6 +839,7 @@ final class Production {
         List<String> out = new ArrayList<>();
         this.people = Math.max(0, people);
         this.wounded = Math.max(0, Math.min(this.people, wounded));
+        rations.clear();
         if (hours <= 0) return out;
         Map<String, Worker> byId = new HashMap<>();
         quartermaster = false;
@@ -901,6 +915,8 @@ final class Production {
         double need = DRINK * Math.max(0, people);   // the people drink first (04 §3.9: 2 l a day)
         waterUsed = Math.min(waterCap(), need);
         double rest = need - waterUsed;
+        double[] drunk = new double[5];
+        drunk[3] = waterUsed;
         if (rest > 1e-9 && !buildings.isEmpty()) {
             // then the store's Water, the best tier first (round 5); what they drank is the GM's for part 4's harm
             StringJoiner drank = new StringJoiner(", ");
@@ -910,6 +926,7 @@ final class Production {
                 if (n <= 0) continue;
                 base.takeUnits("Water", t, 0, n);
                 rest -= n;
+                drunk[t] += n;
                 drank.add(n + " l of Tier " + Rules.roman(t));
                 if (t <= 2) harm = true;
             }
@@ -917,6 +934,35 @@ final class Production {
                     + (drank.length() == 0 ? "nothing" : drank) + " from the store" + (rest > 1e-9 ? ", " + Math.round(rest) + " l short" : "")
                     + (harm ? " (Tier II water = one harm, Tier I both: 04 §3.9)" : ""));
         }
+        // 04 §3.3 (Marek 11-24, above): then they eat, 3 portions a day each from the store: the best tier first (as the water, round 5),
+        // the fresh before the kept and the sealed within a tier, Tier I last (raw or spoiled: eaten only when nothing else is left)
+        // [the order mine]
+        double eat = MEALS * Math.max(0, people), ate = 0;
+        Map<String, Double> food = new LinkedHashMap<>();
+        if (eat > 1e-9 && !buildings.isEmpty() && base != null) {
+            StringJoiner what = new StringJoiner(", ");
+            int left = (int) Math.ceil(eat - 1e-9);
+            boolean harm = false;
+            for (int t : new int[]{4, 3, 2, 1})
+                for (int r = 1; r <= 4 && left > 0; r++) {
+                    int n = Math.min(base.count("Food", t, r), left);
+                    if (n <= 0) continue;
+                    base.takeUnits("Food", t, r, n);
+                    left -= n;
+                    ate += n;
+                    food.merge(t + "|" + r, n / Math.max(1.0, people), Double::sum);
+                    what.add(n + " Food " + Rules.roman(t) + (r > 1 ? " R" + r : ""));
+                    if (t <= 2) harm = true;
+                }
+            out.add("Food: the people ate " + (what.length() == 0 ? "nothing" : what) + " (" + Math.round(eat) + " portions for " + people
+                    + (people == 1 ? " person" : " people") + ")" + (left > 0 ? ", " + left + " portions short" : "")
+                    + (harm ? " (Tier II = one harm, Tier I both: 04 §3.9)" : ""));
+        }
+        for (int t = 1; t <= 4; t++) drunk[t] /= Math.max(1.0, people);
+        double drankAll = need - Math.max(0, rest);
+        rations.add(new Ration(food, drunk, MEALS, people <= 0 ? 0 : ate / people, DRINK, people <= 0 ? 0 : drankAll / people));
+        fedFood = !buildings.isEmpty() && base != null && ate + 1e-9 >= eat;
+        fedWater = !buildings.isEmpty() && rest <= 1e-9;
         // round 9: then they wash (2 l a day each): the wounded first, the players' choice of water; the harm and the shortfall told
         double wash = WASH * Math.max(0, people);
         if (wash > 1e-9 && !buildings.isEmpty()) {
