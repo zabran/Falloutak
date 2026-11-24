@@ -38,7 +38,32 @@
     "IV": "alloy and vibro blades"
    },
    "found_only": false,
-   "items": []
+   "items": [
+    {
+     "name": "Tusks",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Fangs",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Krtek claws",
+     "tier": 1,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Tiger claws",
+     "tier": 1,
+     "rarity": 2,
+     "id": ""
+    }
+   ]
   },
   {
    "name": "Light weapon parts",
@@ -232,6 +257,12 @@
      "id": ""
     },
     {
+     "name": "Spider silk",
+     "tier": 1,
+     "rarity": 2,
+     "id": ""
+    },
+    {
      "name": "Tanned leather",
      "tier": 2,
      "rarity": 1,
@@ -320,7 +351,25 @@
      "id": ""
     },
     {
+     "name": "Potash",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Bones",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
      "name": "Salt",
+     "tier": 1,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Trhač pollen",
      "tier": 1,
      "rarity": 2,
      "id": ""
@@ -354,6 +403,12 @@
      "tier": 2,
      "rarity": 1,
      "id": ""
+    },
+    {
+     "name": "Radmie venom",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
     }
    ]
   },
@@ -373,6 +428,12 @@
      "name": "Firewood",
      "tier": 1,
      "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Ropák oil",
+     "tier": 1,
+     "rarity": 2,
      "id": ""
     },
     {
@@ -446,6 +507,12 @@
      "id": ""
     },
     {
+     "name": "Whey",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
      "name": "Cooked meat",
      "tier": 2,
      "rarity": 1,
@@ -476,6 +543,18 @@
      "id": ""
     },
     {
+     "name": "Leached food",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Potash-grown crops",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
      "name": "Potatoes",
      "tier": 3,
      "rarity": 1,
@@ -483,6 +562,12 @@
     },
     {
      "name": "Mushrooms",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Cheese and butter",
      "tier": 3,
      "rarity": 1,
      "id": ""

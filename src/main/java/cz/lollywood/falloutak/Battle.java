@@ -186,6 +186,16 @@ public final class Battle implements Listener {
         // his own turn (Raiders): AP, his gun, his stance; skill 50 [EXAMPLE: the Battle tab's two shooters' value, he has none]
         final int skill;
         int ap, ammo = SMG.magazine, stance;
+        /** His ranged weapon (09d round 5: the raiders' bows beside the pistols, `data/arena-foes.json`), and the rounds or arrows he
+         *  carries besides the loaded ones (they hoard: Marek 11-24, *"they will hoard it, it is what ensures that they have dominance"*);
+         *  with none left he draws his knife. */
+        Weapon gun = SMG;
+        int reserve = 99;
+        /** The name of the weapon he fights with (the pistol, a bow, a machete), for the search of his body. */
+        String weaponName = SMG.name;
+        /** An ALLY OF CONVENIENCE (09d round 5, Marek 11-24: *"if some other enemy attacks on the same map, it may make the group that does
+         *  not fight already allies of convinience instead"*): he fights the others, never the party; his kill XP is paid (once). */
+        boolean ally, paid;
         /** A creature of the world map's encounters (09d round 2): its own attack in melee instead of the gun; a HUNTED one that is not
          *  hostile runs from the party (and is gone once it is far enough: escaped). */
         boolean melee, flees, escaped;
@@ -240,6 +250,7 @@ public final class Battle implements Listener {
             if (!dead && jammed) st.add("gun jammed");
             if (!dead && broken) st.add("gun destroyed"); else if (!dead && Combat.broken(gunHealth)) st.add("gun broken"); else if (!dead && dropped) st.add("gun dropped");
             if (!dead && bleeding > 0) st.add("bleeding " + SheetGui.f(bleeding));
+            if (!dead && ally) st.add("ALLY");
             return name + " · " + hp + "/" + hpMax + " HP" + (st.isEmpty() ? "" : " · " + String.join(", ", st));
         }
     }
@@ -343,7 +354,8 @@ public final class Battle implements Listener {
     static final class Talk {
         final UUID speaker;
         final String speakerName, who, check;
-        final int failAt;
+        /** The round at whose end it goes wrong (0 = it would end well); the GM can bring it forward (09d round 5). */
+        int failAt;
         Talk(UUID speaker, String speakerName, String who, String check, int failAt) {
             this.speaker = speaker; this.speakerName = speakerName; this.who = who; this.check = check; this.failAt = failAt;
         }
@@ -901,12 +913,13 @@ public final class Battle implements Listener {
             return;
         }
         if (s.fight != null && s.fight.talk != null && s.ap >= apOf(c, w, m)) breakTalk(s.fight, p);
+        if (s.fight != null && s.ap >= apOf(c, w, m)) { Target ta = s.fight.targets.get(a.target().getUniqueId()); if (ta != null && ta.ally) betray(s.fight, ta.group, p); }
         int pen = movePenalty(s, w, at);
         Combat.Shot sh = shot(p, s, c, w, m, a, pen);
         Combat.ToHit th = Combat.toHit(sh);
         if (th.outOfRange()) { Sfx.to(p, "ap.lacking"); show(p, s, c, "out of range (" + w.range + " blocks)"); return; }
         if (!pay(p, s, c, apOf(c, w, m), m.name())) return;
-        Sfx.at(p.getLocation(), w.melee() ? (m.name().startsWith("Thrust") ? "knife.thrust" : "knife.swing") : m.ammo() > 1 ? "pistol.burst" : "pistol.single");
+        Sfx.at(p.getLocation(), w.melee() ? (m.name().startsWith("Thrust") ? "knife.thrust" : "knife.swing") : w.skill.equals("Bows") ? "bow.shot" : m.ammo() > 1 ? "pistol.burst" : "pistol.single");
         int[] me = c.attrs(false);
         double cc = Rules.critChance(me, c.skill("Sneak"));
         int better = c.perks.stream().anyMatch(f -> f.name().equals("Better Criticals")) ? 20 : 0;
@@ -1121,7 +1134,7 @@ public final class Battle implements Listener {
     }
 
     void label(LivingEntity e, Target t) {
-        e.customName(Component.text(t.label(), t.dead ? NamedTextColor.DARK_GRAY : t.dying() ? NamedTextColor.GOLD : NamedTextColor.RED));
+        e.customName(Component.text(t.label(), t.dead ? NamedTextColor.DARK_GRAY : t.dying() ? NamedTextColor.GOLD : t.ally ? NamedTextColor.GREEN : NamedTextColor.RED));
         if (t.dead) { e.setInvulnerable(false); e.setHealth(0); }
     }
 
@@ -1159,7 +1172,7 @@ public final class Battle implements Listener {
         if (s.env) return false;
         Fight f = s.fight;
         if (f.over) return true;
-        for (Target t : f.targets.values()) if (t.inFight()) return false;
+        for (Target t : f.targets.values()) if (t.inFight() && !t.ally) return false;
         f.over = true;
         List<Player> ps = players(f);
         if (!ps.contains(p)) ps.add(p);
@@ -1778,7 +1791,7 @@ public final class Battle implements Listener {
         }
         int slipped = 0, byOthers = 0;
         for (Target t : f.targets.values()) {
-            if (t.escaped) continue;
+            if (t.escaped || t.paid) continue;   // an ally of convenience was paid when he turned (09d round 5)
             boolean beaten = !t.inFight();
             if (beaten) { hps.add((double) t.hpMax); if (!t.byParty) byOthers++; }
             else if (slippedPast && !t.flees && !groupTouched.getOrDefault(t.group, false) && groupStanding.getOrDefault(t.group, false)) { hps.add((double) t.hpMax); slipped++; }
@@ -1887,6 +1900,64 @@ public final class Battle implements Listener {
     void endTalk(Fight f) {
         for (Target t : f.targets.values()) t.talking = false;
         f.talk = null;
+    }
+
+    /**
+     * THE GM's ATTACK (09d round 5, Marek 11-24: *"give there option for GM to trigger the enemy attack first"*): the talk goes wrong at
+     * once; every player's turn ends where it stands, and the talkers act first.
+     */
+    String gmAttack(Fight f) {
+        Talk k = f.talk;
+        if (k == null || f.over) return "! no talk is going on";
+        k.failAt = Math.max(1, f.round);
+        tell(f, "THE GM: the talk breaks off at once. " + k.who + " go for their weapons.", NamedTextColor.RED);
+        for (Player q : players(f)) if (!f.done.contains(q.getUniqueId())) endTurnFor(q);
+        return "The talk breaks off: they act first.";
+    }
+
+    /**
+     * ANOTHER DANGER FALLS ON THE MAP DURING THE TALK (09d round 5): a talk going well (its check passed) makes the talkers ALLIES OF
+     * CONVENIENCE: they turn on the newcomers, never on the party, and the talk counts as resolved without killing (their full kill XP,
+     * once); a talk going wrong is cut short and they stay hostile. {@code attacker} = the newcomers' group.
+     */
+    void allies(Fight f, int attacker) {
+        Talk k = f.talk;
+        if (k == null) return;
+        if (k.failAt > 0) { endTalk(f); tell(f, "Another danger falls on the map: the talk with " + k.who + " is cut short.", NamedTextColor.RED); return; }
+        List<Double> hps = new ArrayList<>();
+        int g = -1;
+        for (var en : f.targets.entrySet()) {
+            Target t = en.getValue();
+            if (!t.talking || t.group == attacker) continue;
+            t.talking = false;
+            t.ally = true;
+            t.paid = true;
+            g = t.group;
+            hps.add((double) t.hpMax);
+            Entity e = pl.getServer().getEntity(en.getKey());
+            if (e instanceof LivingEntity le) label(le, t);
+        }
+        f.talk = null;
+        if (g < 0) return;
+        List<Player> team = new ArrayList<>();
+        for (UUID u : f.members) { Player q = pl.getServer().getPlayer(u); if (q != null) team.add(q); }
+        String r = pl.roster != null && !team.isEmpty() && !hps.isEmpty() ? pl.roster.killAward(team, hps, "allies of convenience on the battle map") : "";
+        tell(f, "ALLIES OF CONVENIENCE: another danger falls on the map, and " + k.who + " (" + k.speakerName + " talked them round) turn their weapons on it. "
+                + "Resolved without killing: their full kill XP. " + r, NamedTextColor.GREEN);
+    }
+
+    /** A player attacks an ally of convenience: the whole group is hostile again (their XP was paid already). */
+    void betray(Fight f, int group, Player p) {
+        boolean any = false;
+        for (var en : f.targets.entrySet()) {
+            Target t = en.getValue();
+            if (t.group != group || !t.ally) continue;
+            t.ally = false;
+            any = true;
+            Entity e = pl.getServer().getEntity(en.getKey());
+            if (e instanceof LivingEntity le) label(le, t);
+        }
+        if (any) tell(f, p.getName() + " attacks the allies: they are enemies again.", NamedTextColor.RED);
     }
 
     /** The enemies' turn, each in Sequence order, at the player nearest to him; then {@code then}. */

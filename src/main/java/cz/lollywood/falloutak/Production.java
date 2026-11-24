@@ -1103,7 +1103,8 @@ final class Production {
             if (j.carry == null) j.carry = new HashMap<>();
             j.carry.put(ck, Math.max(0, total - k));
             if (k <= 0) continue;
-            int rr = rarity;   // 0.60.0: never into a row kept for a named item it does not make (lye at R2 is not salt)
+            // 09d round 5: a step's own rarity (leached or potash-grown food is Food II R2, the step to Tier III); else the marked inputs'
+            int rr = m.rarity > 1 ? m.rarity : rarity;   // 0.60.0: never into a row kept for a named item it does not make (lye at R2 is not salt)
             while (rr > 1 && reserved(m.type, tier, rr, m.items)) rr--;
             base.addUnits(m.type, tier, rr, k, m.items);
             Research.made(this, m.type, tier, k, out);   // part 8: the eurekas count what is made

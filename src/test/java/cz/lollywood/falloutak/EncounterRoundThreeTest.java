@@ -25,7 +25,7 @@ class EncounterRoundThreeTest extends MockGame {
     void map() { Arena.use = world; Travel.use(WorldMapTest.fixture()); Travel.here("Roadside"); }
 
     @AfterEach
-    void noMap() { Arena.use = null; Arena.current = null; Travel.map = null; Travel.file = null; Travel.scene.clear(); Talks.dice = null; Talks.tradingWith = null; Loot.clear(); Loot.dice = null; }
+    void noMap() { Arena.use = null; Arena.current = null; Travel.map = null; Travel.file = null; Travel.scene.clear(); Talks.dice = null; Talks.tradingWith = null; Loot.clear(); }
 
     private static WorldMap.Kind kind(String key) { return Travel.map.kinds.get(key); }
 
@@ -44,7 +44,7 @@ class EncounterRoundThreeTest extends MockGame {
         PlayerMock a = player();
         Character c = plugin.character(a);
         scene("raiders:pond", "fight", 8, true);
-        Travel.sceneDifficulty = 40;   // a forest at night (round 4: the XP = the check's difficulty)
+        Travel.scene.get(0).difficulty = 40;   // a forest at night (round 4: the XP = the check's difficulty; round 5: each group its own)
         long xp0 = c.xp;
         String r = Travel.goRound(plugin, a);
         assertTrue(r.contains("Survival check"), r);
@@ -245,8 +245,8 @@ class EncounterRoundThreeTest extends MockGame {
         assertFalse(plugin.battle.inBattle(a));
         // round 4: each body is butchered from the field's menu (a Survival check: here a sure one)
         assertEquals(2, Loot.bodies.size());
-        Loot.dice = d100(1);
-        for (Loot.Body x : List.copyOf(Loot.bodies)) assertTrue(Loot.butcher(plugin, a, x).contains("well"));
+        plugin.character(a).points[Rules.skillIndex("Survival")] += 200;   // every check a comparison (02c): all of the meat
+        for (Loot.Body x : List.copyOf(Loot.bodies)) assertFalse(Loot.butcher(plugin, a, x).startsWith("!"));
         int meat = 0, hides = 0;
         for (ItemStack it : a.getInventory().getContents()) {
             String id = Items.id(it);
@@ -261,11 +261,11 @@ class EncounterRoundThreeTest extends MockGame {
 
     @Test
     void moreGroupsGetABiggerMap() {
-        assertEquals(80, Arena.sizeFor(3, 25));
-        assertEquals(96, Arena.sizeFor(5, 25));
-        assertEquals(112, Arena.sizeFor(8, 25));
-        Arena.Layout big = Arena.build(world, "field", 9, 112, 20);
-        assertEquals(112, big.size());
+        assertEquals(128, Arena.sizeFor(3, 25));
+        assertEquals(128, Arena.sizeFor(5, 25));
+        assertEquals(160, Arena.sizeFor(8, 25), "six groups or more");
+        Arena.Layout big = Arena.build(world, "field", 9, 160, 20);
+        assertEquals(160, big.size());
         assertFalse(big.far().isEmpty());
         for (Arena.Spot s : big.far()) assertTrue(s.z() - big.z0() >= Arena.coverZ + 18, "at the start distance north of the party's line");
         assertEquals(8, Travel.AT_ONCE);

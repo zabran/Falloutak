@@ -25,7 +25,7 @@ class EncounterRoundFourTest extends MockGame {
     void map() { Arena.use = world; Travel.use(WorldMapTest.fixture()); Travel.here("Roadside"); }
 
     @AfterEach
-    void noMap() { Arena.use = null; Arena.current = null; Travel.map = null; Travel.file = null; Travel.scene.clear(); Talks.dice = null; Talks.tradingWith = null; Loot.clear(); Loot.dice = null; }
+    void noMap() { Arena.use = null; Arena.current = null; Travel.map = null; Travel.file = null; Travel.scene.clear(); Talks.dice = null; Talks.tradingWith = null; Loot.clear(); }
 
     private Travel.Met scene(String key, String type, int count, boolean seen) {
         Travel.Met m = new Travel.Met(new WorldMap.Encounter(Travel.map.kinds.get(key), type, count), seen);
@@ -88,27 +88,30 @@ class EncounterRoundFourTest extends MockGame {
         Talks.parley(plugin, a, m);
         Battle.Fight f = plugin.battle.fightOf(a);
         UUID raider = null, boar = null;
-        for (UUID u : f.dummies) if (f.targets.get(u).melee) boar = u; else raider = u;
+        for (UUID u : f.dummies) if (f.targets.get(u).foe.equals("boar")) boar = u; else raider = u;   // round 5: a raider may fight in melee too
         assertTrue(f.targets.get(raider).talking);
         assertFalse(f.targets.get(boar).talking, "the boar does not talk");
         Entity re = server.getEntity(raider), be = server.getEntity(boar);
         be.teleport(re.getLocation().clone().add(1, 0, 0));
         plugin.battle.endTurnFor(a);   // the talk goes on; the boar's turn: it falls on the raider
         server.getScheduler().performTicks(400);
-        assertNull(f.talk, "the boar fell on the raider: the talk is cut short");
+        assertNull(f.talk, "the boar fell on the raider: the talk is over (round 5: a good talk makes them allies)");
         if (plugin.battle.inBattle(a)) plugin.battle.stop(a);
     }
 
     @Test
-    void theBattleMapIsAtLeast64AndGrowsWithTheReach() {
-        assertEquals(64, Arena.sizeFor(1, 25), "the pistol: the minimum");
-        assertEquals(64, Arena.sizeFor(1, 2), "teeth: the minimum");
-        assertEquals(Arena.ESCAPE + 32 + 14, Arena.sizeFor(1, 40), "the bolt-action rifle: 30 to run, 32 to them, 14 beyond");
+    void theBattleMapIsAlways128WithThePartyNearItsEdge() {
+        // round 5 (Marek 11-24): "use only the 128 sized ones (or bigger) and in case of smaller encounter, place the players near the border"
+        assertEquals(128, Arena.sizeFor(1, 25), "the pistol");
+        assertEquals(128, Arena.sizeFor(1, 2), "teeth");
+        assertEquals(128, Arena.sizeFor(1, 40), "the bolt-action rifle");
+        assertEquals(128, Arena.sizeFor(5, 40));
         assertEquals(Arena.MAX_SIZE, Arena.sizeFor(8, 40));
+        assertEquals(160, Arena.MAX_SIZE);
         assertEquals(20, Arena.startDistance(25));
         assertEquals(12, Arena.startDistance(1));
         assertEquals(40, Arena.startDistance(80));
-        Arena.Layout l = Arena.build(world, "road", 5, 64, 20);
+        Arena.Layout l = Arena.build(world, "road", 5, 128, 20);
         assertEquals(Arena.ESCAPE, Arena.coverZ);
         for (Arena.Spot s : l.cover()) assertTrue(s.z() - l.z0() >= Arena.ESCAPE - 4, "the party's line has " + Arena.ESCAPE + " blocks behind it: " + s);
         for (Arena.Spot s : l.far()) assertTrue(s.z() - l.z0() >= Arena.coverZ + 18 && s.z() - l.z0() <= 60, "them at the start distance: " + s);
@@ -133,7 +136,7 @@ class EncounterRoundFourTest extends MockGame {
         scene("creature:boar", "fight", 1, true);
         Travel.battleMap(plugin, a, Arena.Mode.AMBUSH);
         Battle.Fight f = plugin.battle.fightOf(a);
-        for (Battle.Target t : f.targets.values()) { if (t.melee) t.dead = true; else t.hp = -1; t.byParty = true; t.touched = true; }
+        for (Battle.Target t : f.targets.values()) { if (Loot.PEOPLE.contains(t.foe)) t.hp = -1; else t.dead = true; t.byParty = true; t.touched = true; }
         plugin.battle.checkOver(a, plugin.battle.state(a), plugin.character(a));
         server.getScheduler().performTicks(60);
         assertEquals(2, Loot.bodies.size());
@@ -143,32 +146,34 @@ class EncounterRoundFourTest extends MockGame {
         Loot.Body raider = Loot.bodies.stream().filter(x -> x.person).findFirst().orElseThrow();
         Loot.Body boar = Loot.bodies.stream().filter(x -> !x.person).findFirst().orElseThrow();
         assertFalse(raider.dead, "down and dying");
-        // the raider: his gun and rounds; treated he lives, a captive
+        // the raider: his own weapon (09d round 5: a pistol, a bow or a melee weapon) and what he had left; treated he lives, a captive
         String r = Loot.search(plugin, a, raider);
-        assertTrue(r.contains(Battle.SMG.name), r);
-        assertEquals(1, count(a, Battle.SMG.name));
-        assertTrue(raider.rounds == 0 || count(a, "pistol rounds") == raider.rounds, "his rounds: " + raider.rounds);
-        Loot.dice = d100(1);
+        assertTrue(r.contains(raider.weapon), r);
+        assertEquals(1, count(a, raider.weapon));
+        // every check is a comparison (02c): a Medicine and a Survival far above every need
+        c.points[Rules.skillIndex("Medicine")] += 200;
+        c.points[Rules.skillIndex("Survival")] += 200;
         long xp0 = c.xp;
         assertTrue(Loot.treat(plugin, a, raider).contains("stabilise"));
         assertTrue(raider.treated && !raider.dead);
-        assertEquals(10, c.xp - xp0, "the check's XP");
+        assertEquals(Loot.treatNeed(raider), c.xp - xp0, "the check's XP = its difficulty");
         // his kidney, with his blood group; a creature's organ is rejected within hours: none
         assertTrue(Loot.organ(plugin, a, boar).startsWith("!"));
         Loot.Body other = new Loot.Body(raiderTarget(), new Random(2));
         assertTrue(Loot.organ(plugin, a, other).contains("blood group " + other.blood), other.blood);
         // the boar: butchered (meat, fat, hide, sinew), a tissue sample
-        assertTrue(Loot.butcher(plugin, a, boar).contains("well"));
+        assertFalse(Loot.butcher(plugin, a, boar).startsWith("!"));
         assertTrue(count(a, "Raw meat") > 0 && count(a, "Raw fat") > 0 && count(a, "Raw hide") > 0 && count(a, "Sinew") > 0);
+        assertTrue(count(a, "Tusks") > 0 && count(a, "Bones") > 0, "the boar's parts at this Survival");
         assertTrue(Loot.sample(plugin, a, boar).contains("tissue sample"));
         assertEquals(1, count(a, "body:Tissue sample|"));
-        assertEquals(1, count(a, "body:Donor kidney|"));
+        assertEquals(2, count(a, "body:Donor kidney|"), "both kidneys");
         assertTrue(Loot.butcher(plugin, a, boar).startsWith("!"), "once a body");
-        // done badly: half the meat and no hide
+        // no Survival: half the meat and no hide
         Loot.Body b2 = new Loot.Body(boarTarget(), new Random(1));
-        Loot.dice = d100(100);
+        c.points[Rules.skillIndex("Survival")] -= 400;
         int m0 = count(a, "Raw meat"), h0 = count(a, "Raw hide");
-        assertTrue(Loot.butcher(plugin, a, b2).contains("badly"));
+        assertTrue(Loot.butcher(plugin, a, b2).contains("Lost: the hide"));
         assertEquals((int) Math.round(Arena.FOES.get("boar").meatKg()), count(a, "Raw meat") - m0);
         assertEquals(h0, count(a, "Raw hide"));
         // setting out leaves the field

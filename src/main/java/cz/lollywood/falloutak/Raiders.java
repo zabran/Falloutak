@@ -34,6 +34,22 @@ final class Raiders {
     Raiders(Battle b) { this.b = b; }
 
     static final int SHOT_AP = Battle.SMG.modes.get(0).ap();
+    /** One shot's AP with his weapon (the pistol's 5, a crossbow's 6). */
+    static int shotAp(Battle.Target t) { return t.gun.modes.get(0).ap(); }
+
+    /** The sound of his shot: a bow's or a gun's. */
+    static String shotSound(Battle.Target t) { return t.gun.skill.equals("Bows") ? "bow.shot" : "pistol.single"; }
+
+    /** His hoard is spent (09d round 5): he fights on with his knife, as a melee fighter. */
+    static void drawKnife(Battle.Target t) {
+        t.melee = true;
+        t.minDmg = Battle.KNIFE.minDmg;
+        t.maxDmg = Battle.KNIFE.maxDmg;
+        t.reach = 1;
+        t.attackAp = Battle.KNIFE.modes.get(0).ap();
+        t.attack = "knife";
+    }
+
     /** Ticks between two steps of the enemy turn, so it can be followed. */
     static final long TICKS = 6;
     static final int SEARCH = 40;
@@ -57,6 +73,8 @@ final class Raiders {
                 Battle.Target tu = f.targets.get(u);
                 if (tu != null && tu.talking) return;   // the talk on the battle map (09d round 4): they hold while it lasts
                 Object prey = prey(f, u, ps);
+                if (prey != null && f.talk != null && tu != null && !tu.flees && !tu.ally && tu.inFight()) b.allies(f, tu.group);   // 09d round 5
+                if (tu != null && tu.ally && prey instanceof Player) return;   // an ally of convenience never goes for the party
                 if (prey instanceof Player p) plan(p, b.state(p), b.pl.character(p), u);
                 else if (prey instanceof UUID v) cross(f, u, v, ps.get(0));
                 return;
@@ -73,32 +91,32 @@ final class Raiders {
     Object prey(Battle.Fight f, UUID u, List<Player> ps) {
         Battle.Target t = f.targets.get(u);
         Entity e = b.pl.getServer().getEntity(u);
-        Player near = pick(f, u, ps);
+        Player near = t != null && t.ally ? null : pick(f, u, ps);
         if (t == null || t.flees || !(e instanceof LivingEntity le)) return near;
         Location at = le.getLocation();
         Object best = near, bestNow = null;
         double bd = near == null || !near.getWorld().equals(at.getWorld()) ? Double.MAX_VALUE : near.getLocation().distanceSquared(at), bn = Double.MAX_VALUE;
         if (near != null && near.getWorld().equals(at.getWorld()) && (t.melee ? Math.sqrt(bd) <= t.reach + 1.0
-                : canShoot(at.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), near))) { bestNow = near; bn = bd; }
+                : canShoot(at.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), near, t.gun.range))) { bestNow = near; bn = bd; }
         for (UUID v : f.dummies) {
             Battle.Target o = f.targets.get(v);
-            if (v.equals(u) || o == null || o.group == t.group || !o.inFight() || (t.peaceable && o.peaceable)) continue;
+            if (v.equals(u) || o == null || o.group == t.group || !o.inFight() || (t.peaceable && o.peaceable) || (t.ally && o.ally) || o.talking) continue;
             Entity oe = b.pl.getServer().getEntity(v);
             if (!(oe instanceof LivingEntity ol) || !ol.getWorld().equals(at.getWorld())) continue;
             double d = ol.getLocation().distanceSquared(at);
             if (d < bd) { bd = d; best = v; }
-            boolean now = t.melee ? Math.sqrt(d) <= t.reach + 1.0 : canShootAt(at.getWorld(), at, le.getEyeHeight(), ol);
+            boolean now = t.melee ? Math.sqrt(d) <= t.reach + 1.0 : canShootAt(at.getWorld(), at, le.getEyeHeight(), ol, t.gun.range);
             if (now && d < bn) { bn = d; bestNow = v; }
         }
         return bestNow != null ? bestNow : best;
     }
 
-    /** From this spot: the other figure within the gun's range and no block between the two eyes. */
-    private static boolean canShootAt(World w, Location at, double eyeH, LivingEntity v) {
+    /** From this spot: the other figure within the weapon's range and no block between the two eyes. */
+    private static boolean canShootAt(World w, Location at, double eyeH, LivingEntity v, int range) {
         Location eye = new Location(w, at.getBlockX() + 0.5, at.getBlockY() + eyeH, at.getBlockZ() + 0.5);
         Vector to = v.getEyeLocation().toVector().subtract(eye.toVector());
         double d = to.length();
-        if (d > Battle.SMG.range || d < 1e-6) return d < 1e-6;
+        if (d > range || d < 1e-6) return d < 1e-6;
         return w.rayTraceBlocks(eye, to.normalize(), d, FluidCollisionMode.NEVER, true) == null;
     }
 
@@ -130,9 +148,9 @@ final class Raiders {
             }
             public boolean free(int x, int y, int z) { return w.getBlockAt(x, y, z).isPassable(); }
         };
-        int cost = t.melee ? t.attackAp : SHOT_AP;
+        int cost = t.melee ? t.attackAp : shotAp(t);
         Path.Goal there = t.melee ? (x, y, z) -> new Location(w, x + 0.5, y, z + 0.5).distance(ol.getLocation()) <= t.reach + 0.75
-                : (x, y, z) -> canShootAt(w, new Location(w, x, y, z), le.getEyeHeight(), ol);
+                : (x, y, z) -> canShootAt(w, new Location(w, x, y, z), le.getEyeHeight(), ol, t.gun.range);
         if (!there.done(start.x(), start.y(), start.z())) {
             List<Path.P> path = Path.find(world, start, there, SEARCH);
             if (path == null) return;
@@ -155,7 +173,7 @@ final class Raiders {
     /** One attack of a danger on another. */
     private void strike(Battle.Fight f, LivingEntity le, Battle.Target t, LivingEntity ol, Battle.Target o) {
         if (t.dead || t.dying() || t.down || t.out || o.dead || o.escaped || ol.isDead()) return;
-        if (o.talking && f.talk != null) { b.endTalk(f); b.tell(f, t.name + " falls on " + o.name + ": the talk is cut short.", NamedTextColor.RED); }
+        if (o.talking && f.talk != null) b.allies(f, t.group);   // 09d round 5: allies of convenience, or the talk cut short
         Location face = le.getLocation().clone();
         face.setDirection(ol.getLocation().toVector().subtract(face.toVector()).setY(0));
         le.teleport(face);
@@ -163,7 +181,7 @@ final class Raiders {
         sh.melee = t.melee;
         sh.skill = t.skill;
         sh.blocks = Math.max(1, (int) Math.round(le.getEyeLocation().distance(ol.getEyeLocation())));
-        sh.range = t.melee ? t.reach + 1 : Battle.SMG.range;
+        sh.range = t.melee ? t.reach + 1 : t.gun.range;
         sh.perception = t.a[Rules.P];
         sh.strength = t.a[Rules.S];
         sh.part = Rules.Part.TORSO;
@@ -172,7 +190,7 @@ final class Raiders {
         sh.targetDown = o.lying();
         Combat.ToHit th = Combat.toHit(sh);
         Combat.Roll r = Combat.roll(th.chance(), Rules.critChance(t.a, 0), 0, t.a[Rules.L], 0, false, b.d100);
-        if (!t.melee) { t.ammo--; t.gunHealth = Math.max(1, t.gunHealth - Combat.WEAR_PER_ROUND); Sfx.at(le.getEyeLocation(), "pistol.single"); }
+        if (!t.melee) { t.ammo--; t.gunHealth = Math.max(1, t.gunHealth - Combat.WEAR_PER_ROUND); Sfx.at(le.getEyeLocation(), shotSound(t)); }
         else Creatures.play(le, t.attack.equals("gore") ? "gore" : "lunge");
         StringBuilder log = new StringBuilder(t.name).append(t.melee ? " attacks " : " fires at ").append(o.name).append(" (to hit ").append(th.chance()).append(" %, rolled ").append(r.d100()).append("): ");
         if (!r.hit()) { log.append("miss."); b.tell(f, log.toString(), NamedTextColor.GRAY); return; }
@@ -180,9 +198,9 @@ final class Raiders {
         Combat.CritEffects fx = Combat.critEffects(Rules.Part.TORSO, deg, o.a);
         double mult = Combat.critMultiplier(Rules.Part.TORSO, deg);
         double base = t.melee ? t.minDmg + b.rnd.nextInt(t.maxDmg - t.minDmg + 1)
-                : (Battle.SMG.minDmg + b.rnd.nextInt(Battle.SMG.maxDmg - Battle.SMG.minDmg + 1)) * Combat.conditionDamage(t.gunHealth / Battle.SMG.maxHealth);
+                : (t.gun.minDmg + b.rnd.nextInt(t.gun.maxDmg - t.gun.minDmg + 1)) * Combat.conditionDamage(t.gunHealth / t.gun.maxHealth);
         int dmg = t.melee ? Combat.damage(base, mult, 0, 0, o.dt, o.dr, fx.bypass())
-                : Combat.damage(base, mult, Battle.SMG.ammoDamage, Battle.SMG.ammoPenetration, o.dt, o.dr, fx.bypass());
+                : Combat.damage(base, mult, t.gun.ammoDamage, t.gun.ammoPenetration, o.dt, o.dr, fx.bypass());
         log.append(r.crit() ? "CRIT, " : "hit, ").append(dmg).append(" HP.");
         boolean touched = o.touched;
         b.hurt(ol, o, dmg, fx, r.crit(), deg, log);
@@ -204,7 +222,7 @@ final class Raiders {
             double d = q.getLocation().distanceSquared(at);
             if (d < bd) { bd = d; best = q; }
             boolean now = t.melee ? Math.sqrt(d) <= t.reach + 1.0
-                    : canShoot(at.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), q);
+                    : canShoot(at.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), q, t.gun.range);
             if (now && d < bn) { bn = d; bestNow = q; }
         }
         return bestNow != null ? bestNow : best;
@@ -278,7 +296,19 @@ final class Raiders {
             q.add(() -> say(p, t.name + (ok ? " clears his jammed gun" : " fails to clear his jammed gun") + " (d100 " + d + (ok ? " ≤ " : " > ") + need + ", " + SHOT_AP + " AP)."));
         }
         if (t.jammed) { q.add(() -> say(p, t.name + "'s gun is still jammed.")); return; }
-        if (t.ammo <= 0 && t.ap >= 2) { t.ap -= 2; t.ammo = Battle.SMG.magazine; q.add(() -> { say(p, t.name + " reloads (2 AP)."); Entity re = b.pl.getServer().getEntity(u); if (re != null) Sfx.at(re.getLocation(), "pistol.reload"); }); }
+        if (t.ammo <= 0 && t.reserve <= 0) {   // 09d round 5: his hoard is spent; he draws his knife
+            drawKnife(t);
+            q.add(() -> { say(p, t.name + " is out of " + (t.gun.skill.equals("Bows") ? "arrows" : "rounds") + ": he draws his knife."); b.label(le, t); });
+            beast(p, s, c, le, t, u, inZone);
+            return;
+        }
+        if (t.ammo <= 0 && t.ap >= 2) {
+            t.ap -= 2;
+            int n = Math.min(t.gun.magazine, t.reserve);
+            t.ammo = n;
+            t.reserve -= n;
+            q.add(() -> { say(p, t.name + (t.gun.skill.equals("Bows") ? " nocks an arrow" : " reloads") + " (2 AP)."); Entity re = b.pl.getServer().getEntity(u); if (re != null) Sfx.at(re.getLocation(), "pistol.reload"); });
+        }
         if (b.pl.anomalies.hidden(p.getLocation(), le.getLocation())) {   // the player inside a blind spot: unseen (09c §2)
             q.add(() -> say(p, t.name + " cannot see you (a blind spot hides you): he waits."));
             return;
@@ -289,7 +319,7 @@ final class Raiders {
         Path.P start = new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ());
         double eyeH = le.getEyeHeight();
         if (t.held) q.add(() -> say(p, t.name + " is held where he stands: he cannot move."));
-        else if (!canShoot(w, start, eyeH, p)) {
+        else if (!canShoot(w, start, eyeH, p, t.gun.range)) {
             Set<Path.P> taken = taken(s, u, p);
             notice(le, t);   // the tells he sees: he walks round those, into the others
             Path.World world = new Path.World() {
@@ -300,12 +330,12 @@ final class Raiders {
                 }
                 public boolean free(int x, int y, int z) { return w.getBlockAt(x, y, z).isPassable(); }
             };
-            List<Path.P> path = Path.find(world, start, (x, y, z) -> canShoot(w, new Path.P(x, y, z), eyeH, p), SEARCH);
+            List<Path.P> path = Path.find(world, start, (x, y, z) -> canShoot(w, new Path.P(x, y, z), eyeH, p, t.gun.range), SEARCH);
             if (path == null) { q.add(() -> say(p, t.name + " finds no way to get a shot at you.")); return; }
             if (t.stance == 1) { t.ap -= 2; t.stance = 0; q.add(() -> say(p, t.name + " stands up to move (2 AP).")); }
             double per = Rules.stepAp(t.stance, t.legCrippled ? 1 : 0, false);
             int steps = (int) Math.floor(t.ap / per + 1e-9);
-            if (Math.ceil(path.size() * per - 1e-9) <= t.ap - SHOT_AP) steps = path.size();
+            if (Math.ceil(path.size() * per - 1e-9) <= t.ap - shotAp(t)) steps = path.size();
             steps = Math.max(0, Math.min(steps, path.size()));
             // an anomaly he has not noticed on his way: he walks into it and his move ends there (09c §1.7, round 10)
             Zones.Zone into = null;
@@ -331,10 +361,10 @@ final class Raiders {
                 q.add(() -> say(p, t.name + " walks into an anomaly: " + enter(le, t, ez, back, p) + "."));
             }
         }
-        if (t.moved && t.ap >= SHOT_AP + 1) { t.ap -= 1; t.steadied = true; q.add(() -> say(p, t.name + " steadies himself (1 AP).")); }
-        int shots = Math.min(t.ap / SHOT_AP, t.ammo);
+        if (t.moved && t.ap >= shotAp(t) + 1) { t.ap -= 1; t.steadied = true; q.add(() -> say(p, t.name + " steadies himself (1 AP).")); }
+        int shots = Math.min(t.ap / shotAp(t), t.ammo);
         for (int i = 0; i < shots; i++) q.add(() -> shoot(p, s, c, le, t));
-        t.ap -= shots * SHOT_AP;
+        t.ap -= shots * shotAp(t);
         if (shots > 0 && t.ap >= 2 && t.stance == 0) {
             t.ap -= 2;
             q.add(() -> { if (!t.dead && !t.down && b.inBattle(p)) { t.stance = 1; say(p, t.name + " crouches (2 AP: AC +2, his shots +5)."); b.label(le, t); } });
@@ -482,7 +512,7 @@ final class Raiders {
             case 2 -> q.add(() -> turnOn(p, s, c, le, t, head));
             case 3 -> q.add(() -> say(p, head + "he shouts and babbles at the voices (his turn lost; everyone hears where he is)."));
             case 4 -> {
-                int n = Math.min(t.ap / SHOT_AP, t.ammo);
+                int n = Math.min(t.ap / shotAp(t), t.ammo);
                 t.ammo -= n;
                 q.add(() -> { say(p, head + (n > 0 ? "he empties " + n + " shot(s) into figures that are not there." : "he aims at figures that are not there.")); if (n > 0) Sfx.at(le.getLocation(), "pistol.burst"); });
             }
@@ -505,17 +535,17 @@ final class Raiders {
             Entity oe = b.pl.getServer().getEntity(o);
             if (ot == null || ot == t || ot.dead || !(oe instanceof LivingEntity ole)) continue;
             double dd = le.getLocation().distanceSquared(ole.getLocation());
-            if (dd < bd && dd <= Battle.SMG.range * Battle.SMG.range) { bd = dd; best = ole; bt = ot; }
+            if (dd < bd && dd <= t.gun.range * t.gun.range) { bd = dd; best = ole; bt = ot; }
         }
         if (best == null) { say(p, head + "he turns on the nearest: you."); shoot(p, s, c, le, t); return; }
         if (t.ammo <= 0) { say(p, head + "he turns on " + bt.name + ", but his gun is empty."); return; }
         t.ammo--;
-        Sfx.at(le.getLocation(), "pistol.single");
+        Sfx.at(le.getLocation(), shotSound(t));
         int d = 1 + b.rnd.nextInt(100);
         StringBuilder log = new StringBuilder(head + "he turns his gun on " + bt.name + " (d100 " + d + " vs his " + t.skill + "): ");
         if (d > t.skill) log.append("a miss.");
         else {
-            Battle.Weapon w = Battle.SMG;
+            Battle.Weapon w = t.gun;
             int dmg = Combat.damage(w.minDmg + b.rnd.nextInt(w.maxDmg - w.minDmg + 1), 1, w.ammoDamage, w.ammoPenetration, bt.dt, bt.dr, false);
             log.append(dmg).append(" HP.");
             b.hurt(best, bt, dmg, Combat.critEffects(Rules.Part.TORSO, 0, bt.a), false, 0, log);
@@ -538,12 +568,12 @@ final class Raiders {
         return l;
     }
 
-    /** From this spot: the player within the gun's range and no block between the two eyes. */
-    private static boolean canShoot(World w, Path.P at, double eyeH, Player p) {
+    /** From this spot: the player within the weapon's range and no block between the two eyes. */
+    private static boolean canShoot(World w, Path.P at, double eyeH, Player p, int range) {
         Location eye = new Location(w, at.x() + 0.5, at.y() + eyeH, at.z() + 0.5);
         Vector to = p.getEyeLocation().toVector().subtract(eye.toVector());
         double d = to.length();
-        if (d > Battle.SMG.range || d < 1e-6) return d < 1e-6;
+        if (d > range || d < 1e-6) return d < 1e-6;
         RayTraceResult r = w.rayTraceBlocks(eye, to.normalize(), d, FluidCollisionMode.NEVER, true);
         return r == null;
     }
@@ -573,7 +603,7 @@ final class Raiders {
     private void shoot(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t) {
         if (!b.inBattle(p) || t.dead || t.dying() || t.down || t.out || t.frozen || t.jammed || t.dropped || t.broken || Combat.broken(t.gunHealth) || t.ammo <= 0) return;
         Location at = le.getLocation();
-        if (!canShoot(le.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), p)
+        if (!canShoot(le.getWorld(), new Path.P(at.getBlockX(), at.getBlockY(), at.getBlockZ()), le.getEyeHeight(), p, t.gun.range)
                 || b.pl.anomalies.hidden(p.getLocation(), at)) {
             say(p, t.name + " has lost sight of you.");
             return;
@@ -582,7 +612,7 @@ final class Raiders {
         face.setDirection(p.getLocation().toVector().subtract(at.toVector()).setY(0));
         le.teleport(face);
         Location eye = le.getEyeLocation();
-        Battle.Weapon w = Battle.SMG;
+        Battle.Weapon w = t.gun;
         Combat.Shot sh = new Combat.Shot();
         sh.skill = t.skill;
         sh.blocks = Math.max(1, (int) Math.round(eye.distance(p.getEyeLocation())));
@@ -601,7 +631,7 @@ final class Raiders {
             default -> { }
         }
         // the jam (05 §9, round 11: raiders too, Marek *"yes, 100%"*): his used gun's condition, the magnet's 1-2 of d6
-        if (Combat.jamAt(t.gunHealth / w.maxHealth, 1, b.d100, az != null && az.anomaly.equals("magnet") ? 2 : 0) >= 0) {
+        if (w.skill.equals("Guns") && Combat.jamAt(t.gunHealth / w.maxHealth, 1, b.d100, az != null && az.anomaly.equals("magnet") ? 2 : 0) >= 0) {   // a bow does not jam
             t.jammed = true;
             t.ammo--;
             t.gunHealth = Math.max(1, t.gunHealth - Combat.WEAR_PER_ROUND);
@@ -625,12 +655,12 @@ final class Raiders {
         t.ammo--;
         double cf = Combat.conditionDamage(t.gunHealth / w.maxHealth);
         t.gunHealth = Math.max(1, t.gunHealth - Combat.WEAR_PER_ROUND);
-        Sfx.at(eye, "pistol.single");
+        Sfx.at(eye, shotSound(t));
         Vector dir = p.getEyeLocation().toVector().subtract(eye.toVector());
         double len = dir.length();
         dir.normalize();
         for (double k = 0.6; k < len; k += 0.5) le.getWorld().spawnParticle(Particle.CRIT, eye.clone().add(dir.clone().multiply(k)), 1, 0, 0, 0, 0);
-        StringBuilder log = new StringBuilder(t.name).append(" fires at you, ").append(sh.blocks).append(" blocks (5 AP). To hit ").append(th.chance()).append(" % =");
+        StringBuilder log = new StringBuilder(t.name).append(w.skill.equals("Bows") ? " looses an arrow at you, " : " fires at you, ").append(sh.blocks).append(" blocks (").append(shotAp(t)).append(" AP). To hit ").append(th.chance()).append(" % =");
         th.terms().forEach((k, v) -> log.append(" ").append(k.equals("skill") ? "Guns " + v : Battle.sign(v) + " " + k));
         log.append(". Rolled ").append(r.d100()).append(r.d100() >= 100 ? " (a 100 always misses)" : "").append(": ");
         String result;
@@ -839,7 +869,7 @@ final class Raiders {
 
     /** A raider's critical failure: the sheet's combined list, on him. */
     private void failure(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t, Combat.Failure f, StringBuilder log) {
-        Battle.Weapon w = Battle.SMG;
+        Battle.Weapon w = t.gun;
         if (f.losesAmmo()) { t.ammo = 0; log.append(" His magazine is empty."); }
         if (f.dropsWeapon()) { t.dropped = true; log.append(" He drops his gun."); }
         if (f.weaponDamaged()) {

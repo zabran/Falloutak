@@ -34,8 +34,11 @@ import static cz.lollywood.falloutak.Menus.tellGm;
  *   <li>game time passes for everyone in the party (part 4's survival runs: food, water, sleep), outside the base;</li>
  *   <li><b>a roll every 4 hours of travel</b> (`09` §3.3, RULED) on the sectors walked: any encounter = 1 − e^(−meetings), placed where it
  *   fell, of every type (round 1): a FIGHT, a TALK, a TRADE or a SIGHT;</li>
- *   <li><b>spotting = Fallout 2's</b> with Survival (RULED): d100 below the party's best (at most 95) less the check's difficulty
- *   ({@link #spotDifficulty}) sees it in time; a hostile one seen can be GONE ROUND (only the Survival check's XP = ITS DIFFICULTY, at
+ *   <li><b>spotting = Fallout 2's</b> with Survival (RULED): d100 below the party's best (at most 95) less the check's difficulty, EACH
+ *   GROUP ITS OWN (09d round 5, Marek 11-24: *"based on terrain, weather, daytime and other conditions, the difficulty should should go
+ *   up +50. Also, the check should go counter to enemy stealth check, if the enemy is trying for stealth. Without stealth, it should
+ *   instead check how much visible and audible the target is."*): the conditions ({@link #conditions}, at most +50) and the group's
+ *   stealth or its visibility ({@link #targetTerm}) sees it in time; a hostile one seen can be GONE ROUND (only the Survival check's XP = ITS DIFFICULTY, at
  *   least 10: Marek 11-24, *"unlike in fallout, here it should be basic skill check XP, i.e. as much as was difficulty"*), TALKED TO ON
  *   THE BATTLE MAP (the people: one speaker, a bonus for the first sight, {@link Talks}, {@link Battle.Talk}) or AMBUSHED (09d round 2, Marek 11-23: *"would it be possible to give players the
  *   option to ambush them instead"*: on the battle map, the party acts first); one not seen is an ambush ON THE PARTY, they act
@@ -62,6 +65,9 @@ final class Travel {
         final WorldMap.Encounter e;
         final boolean seen;
         boolean hunt;
+        /** Its spotting check's difficulty (the go-round pays it), and whether it was sneaking (09d round 5). */
+        int difficulty;
+        boolean sneaking;
         Met(WorldMap.Encounter e, boolean seen) { this.e = e; this.seen = seen; }
         boolean hostile() { return e.type().equals("fight"); }
     }
@@ -80,6 +86,15 @@ final class Travel {
     static Path tickFile;
     static int tickDay = Integer.MIN_VALUE;
     static final double STEP_KM = 0.2, WINDOW_H = 4, MARCH_H = 8, PARTY_BLOCKS = 50;
+    /** The day's weather on the world map (09d round 5): drawn each day by the season, unless the GM set it. */
+    static final String[] WEATHER = {"clear", "rain", "fog", "snow", "black rain"};
+    /** The day's weather's shares by season (winter .. autumn) over {@link #WEATHER} [mine, EXAMPLE: Central Europe's in the nuclear autumn]. */
+    static final double[][] WEATHER_SHARE = {{0.45, 0.10, 0.20, 0.25, 0}, {0.55, 0.30, 0.10, 0.05, 0}, {0.65, 0.30, 0.05, 0, 0}, {0.45, 0.30, 0.25, 0, 0}};
+    static String weather = "clear";
+    static boolean weatherSet;
+    static int weatherDay = Integer.MIN_VALUE;
+    /** The conditions' difficulty at most (Marek: *"the difficulty should should go up +50"*). */
+    static final int CONDITIONS_MAX = 50;
 
     // ------------------------------------------------------------------ state
     static void load(Path dataFolder) {
@@ -166,7 +181,48 @@ final class Travel {
      * The spotting check's difficulty in % points (09d round 4: the go-round pays it as its XP, at least 10): night −20, forest or a ruined
      * town −20 (Fallout 2's tile modifier) [the numbers mine, EXAMPLE].
      */
-    static int spotDifficulty(String terrain, boolean day) { return (day ? 0 : 20) + (terrain.equals("forest") || terrain.equals("town") ? 20 : 0); }
+    static int spotDifficulty(String terrain, boolean day) { return conditions(terrain, day ? 12 : 0, "clear"); }
+
+    /** The light: day 0, dusk and dawn (an hour each side) 10, night 20 [mine, EXAMPLE]. */
+    static int light(double hour) {
+        double h = ((hour % 24) + 24) % 24;
+        if (h >= 6 && h < 18) return 0;
+        return (h >= 5 && h < 6) || (h >= 18 && h < 19) ? 10 : 20;
+    }
+
+    /** The weather: rain 10, snow 15, the black rain 15, fog 20 [mine, EXAMPLE]. */
+    static int weatherTerm(String w) {
+        return switch (w) { case "rain" -> 10; case "snow", "black rain" -> 15; case "fog" -> 20; default -> 0; };
+    }
+
+    /**
+     * THE CONDITIONS of a spotting check (09d round 5): the light, the ground (forest or a ruined town 20, Fallout 2's tile modifier) and
+     * the weather, AT MOST {@link #CONDITIONS_MAX} [the terms mine, EXAMPLE].
+     */
+    static int conditions(String terrain, double hour, String weather) {
+        int t = terrain.equals("forest") || terrain.equals("town") ? 20 : 0;
+        return Math.min(CONDITIONS_MAX, light(hour) + t + weatherTerm(weather));
+    }
+
+    /**
+     * The group's own term (09d round 5): SNEAKING, their stealth check against the scout = half their best Sneak; NOT sneaking, how
+     * visible and audible they are: -5 a head over four (at most -30) and the kind's noise (a caravan's carts, a herd) [mine, EXAMPLE].
+     */
+    static int targetTerm(WorldMap.Kind k, int count, boolean sneaking) {
+        if (sneaking) return k.sneak() / 2;
+        return -Math.min(30, 5 * Math.max(0, count - 4)) - k.loud();
+    }
+
+    /** The day's weather: drawn by the season once a day, unless the GM set it. */
+    static void dayWeather(int day, Random rnd) {
+        if (day == weatherDay) return;
+        weatherDay = day;
+        if (weatherSet) return;
+        double u = rnd.nextDouble(), acc = 0;
+        double[] w = WEATHER_SHARE[Math.max(0, Math.min(3, season))];
+        weather = WEATHER[0];
+        for (int k = 0; k < WEATHER.length; k++) { acc += w[k]; if (u < acc) { weather = WEATHER[k]; break; } }
+    }
 
     static int[] cell(double i, double j) { return new int[]{(int) Math.floor(i), (int) Math.floor(j)}; }
 
@@ -284,11 +340,21 @@ final class Travel {
         if (!wk.encs().isEmpty()) {
             int[] c0 = cell(pi, pj);
             sceneTerrain = map.terrainAt(c0[0], c0[1]);
-            double hh = ((lead.hourOfDay() % 24) + 24) % 24;
-            sceneDifficulty = spotDifficulty(sceneTerrain, hh >= 6 && hh < 18);
-            double seeAt = Math.min(95, best(cs, "Survival")) - sceneDifficulty;
+            dayWeather(lead.day(), rnd);
+            int cond = conditions(sceneTerrain, lead.hourOfDay(), weather);
+            double scout = Math.min(95, best(cs, "Survival"));
             scene.clear();
-            for (WorldMap.Encounter e : wk.encs()) scene.add(new Met(e, !e.type().equals("fight") || rnd.nextInt(100) < seeAt));
+            sceneDifficulty = cond;
+            for (WorldMap.Encounter e : wk.encs()) {
+                boolean fight = e.type().equals("fight");
+                boolean sneaking = fight && rnd.nextDouble() < e.kind().stealth();
+                int diff = cond + targetTerm(e.kind(), e.count(), sneaking);
+                Met m = new Met(e, !fight || rnd.nextInt(100) < scout - diff);
+                m.difficulty = diff;
+                m.sneaking = sneaking;
+                scene.add(m);
+                if (fight) sceneDifficulty = Math.max(sceneDifficulty, diff);
+            }
             out.append("\n").append(sceneText());
             List<String> gm = new ArrayList<>();
             for (Met m : scene) gm.add(m.e.kind().key() + " (" + m.e.type() + ", " + m.e.count() + (m.hostile() ? (m.seen ? ", spotted" : ", AMBUSH") : "") + ")");
@@ -320,10 +386,12 @@ final class Travel {
     static String sceneText() {
         List<String> l = new ArrayList<>();
         for (Met m : scene)
-            l.add((m.hostile() ? (m.seen ? "SPOTTED IN TIME: " : "AMBUSH! ") : m.hunt ? "HUNTED: " : "ENCOUNTER: ") + m.e.text() + ".");
+            l.add((m.hostile() ? (m.seen ? "SPOTTED IN TIME: " : "AMBUSH! ") : m.hunt ? "HUNTED: " : "ENCOUNTER: ") + m.e.text()
+                    + (m.hostile() ? " (" + (m.sneaking ? "sneaking" : "in the open") + ", the spotting's difficulty " + m.difficulty + ")" : "") + ".");
+        if (anyHostile()) l.add("The weather: " + weather + "; the ground: " + sceneTerrain + ".");
         if (ambushed()) l.add("They act first: to the battle map (" + sceneTerrain + ").");
-        else if (anyHostile()) l.add("Go round them (the Survival check's XP: its difficulty " + sceneDifficulty + ", at least 10), talk to them on the battle map (you saw them "
-                + "first: a bonus), or ambush them (on the battle map, you act first).");
+        else if (anyHostile()) l.add("Go round them (each group's Survival check pays its difficulty, at least 10: " + goRoundXp() + " XP), talk to them on the battle map "
+                + "(you saw them first: a bonus), or ambush them (on the battle map, you act first).");
         for (Met m : scene) if (m.e.type().equals("sight")) { l.add("A sight can be hunted (the menu)."); break; }
         return String.join("\n", l);
     }
@@ -341,11 +409,21 @@ final class Travel {
         Player scout = p;
         double bs = -1;
         for (Player q : party(p)) { double v = pl.character(q).skill("Survival"); if (v > bs) { bs = v; scout = q; } }
-        long xp = dodgeXp(sceneDifficulty);
-        String r = pl.roster.award(scout, xp, "an encounter dodged (the Survival check, difficulty " + sceneDifficulty + ")");
+        long xp = goRoundXp();
+        String ds = diffs();
+        String r = pl.roster.award(scout, xp, "an encounter dodged (the Survival checks, difficulty " + ds + ")");
         tellGm("travel: went round " + String.join(", ", what) + ". " + r);
         scene.removeIf(Met::hostile);
-        return "You go round them unseen: " + scout.getName() + "'s Survival check (difficulty " + sceneDifficulty + "), " + xp + " XP.";
+        return "You go round them unseen: " + scout.getName() + "'s Survival check" + (ds.contains("+") ? "s" : "") + " (difficulty " + ds + "), " + xp + " XP.";
+    }
+
+    /** The go-round's XP: each hostile group's check pays its difficulty, at least 10 (09d rounds 4-5). */
+    static long goRoundXp() { long x = 0; for (Met m : scene) if (m.hostile()) x += dodgeXp(m.difficulty); return x; }
+
+    private static String diffs() {
+        List<String> l = new ArrayList<>();
+        for (Met m : scene) if (m.hostile()) l.add(String.valueOf(m.difficulty));
+        return String.join(" + ", l);
     }
 
     /** The XP for an encounter dodged: the spotting check's difficulty, at least 10 (06b §2). */
@@ -376,9 +454,24 @@ final class Travel {
         if (mode == Arena.Mode.AMBUSHED && !ambushed()) return "! nobody ambushed you";
         List<Arena.Group> g = groups(mode != Arena.Mode.AMBUSHED);
         if (g.isEmpty()) return "! nobody to fight";
-        String r = Arena.fight(pl, party(p), sceneTerrain, g, mode, pl.rnd.nextLong(), Travel::afterFight, talk, talkKey);
-        if (!r.startsWith("!")) tellGm("travel: " + mode.name().toLowerCase(Locale.ROOT) + " on the " + sceneTerrain + " battle map: " + sceneShort());
+        WorldMap.OnUnique on = map.unique(pi, pj);
+        String r = Arena.fight(pl, party(p), sceneTerrain, g, mode, pl.rnd.nextLong(), Travel::afterFight, talk, talkKey, on, years());
+        if (!r.startsWith("!")) tellGm("travel: " + mode.name().toLowerCase(Locale.ROOT) + (on != null ? " on the unique map " + on.u().name() + " (" + on.x() + ", " + on.z() + ")"
+                : " on the " + sceneTerrain + " battle map") + ": " + sceneShort());
         return r;
+    }
+
+    /** The years since day D now (the tick's clock, else the start point's): the raiders' kit follows it. */
+    static double years() {
+        if (tick != null) return tick.years();
+        return map != null && map.tick != null ? map.tick.startYear : 2;
+    }
+
+    /** The GM makes the talk go wrong NOW (09d round 5, Marek: *"give there option for GM to trigger the enemy attack first"*). */
+    static String gmAttack(FalloutakPlugin pl) {
+        Battle.Fight f = Arena.current;
+        if (f == null || f.over || f.talk == null) return "! no talk is going on on a battle map";
+        return pl.battle.gmAttack(f);
     }
 
     /** The battle map's fight is over: the fought and hunted groups leave the scene. */
@@ -474,11 +567,20 @@ final class Travel {
             }
             case "on" -> { return resolved(); }
             case "map", "look" -> { return MapView.viewing(p) ? MapView.back(p) : MapView.look(pl, p); }
+            case "depots" -> { return depots(); }
             default -> { }
         }
-        if (!gm) return "/travel [where|to <place>|push <place>|round|ambush|hunt|on|map]";
+        if (!gm) return "/travel [where|to <place>|push <place>|round|ambush|hunt|on|map|depots]";
         switch (arg) {
             case "table" -> { return String.join("\n", table()); }
+            case "attack" -> { return gmAttack(pl); }
+            case "weather" -> {
+                if (a.length < 2) return "The weather: " + weather + (weatherSet ? " (set by the GM)" : " (drawn each day)");
+                String w = String.join(" ", java.util.Arrays.copyOfRange(a, 1, a.length)).toLowerCase(Locale.ROOT);
+                if (w.equals("auto")) { weatherSet = false; weatherDay = Integer.MIN_VALUE; return "The weather is drawn each day again."; }
+                for (String x : WEATHER) if (x.startsWith(w)) { weather = x; weatherSet = true; return "The weather: " + x + " (until /travel weather auto)."; }
+                return "! /travel weather clear|rain|fog|snow|black rain|auto";
+            }
             case "season" -> {
                 if (a.length > 1) for (int k = 0; k < 4; k++) if (WorldMap.SEASONS[k].startsWith(a[1].toLowerCase(Locale.ROOT))) season = k;
                 save();
@@ -497,8 +599,19 @@ final class Travel {
                 if (tickFile != null) tick.save(tickFile);
                 return tick.summary();
             }
-            default -> { return "/travel [where|to|push|round|ambush|hunt|on|map] · GM: table|season <s>|here <place>|clear [km]|hold [km]|tick [weeks]"; }
+            default -> { return "/travel [where|to|push|round|ambush|hunt|on|map|depots] · GM: table|season <s>|weather <w>|attack|here <place>|clear [km]|hold [km]|tick [weeks]"; }
         }
+    }
+
+    /** The salt depots the players know of (09d round 5, Marek: *"mark the depots"*): the road maintenance depots, nearest first. */
+    static String depots() {
+        if (map == null) return "! no world map";
+        List<String> l = new ArrayList<>();
+        List<WorldMap.Place> ds = new ArrayList<>();
+        for (WorldMap.Place q : map.places) if (q.depot()) ds.add(q);
+        ds.sort(Comparator.comparingDouble(q -> map.km(pi, pj, q.i() + 0.5, q.j() + 0.5)));
+        for (WorldMap.Place q : ds) l.add(String.format(Locale.ROOT, "%s, %.1f km", q.name(), map.km(pi, pj, q.i() + 0.5, q.j() + 0.5)));
+        return l.isEmpty() ? "No salt depot is marked on this map." : "The road maintenance depots (their winter salt: dissolve, settle and boil it down before eating):\n" + String.join("\n", l);
     }
 
     // ------------------------------------------------------------------ the menu
@@ -513,7 +626,10 @@ final class Travel {
         Character c = pl.character(p);
         if (c.day() != marchDay) { marchDay = c.day(); marched = 0; }
         lines.add(line("The party (you and the players within " + (int) PARTY_BLOCKS + " blocks) is " + where() + ".", NamedTextColor.WHITE));
-        lines.add(line(c.timeText() + " · " + WorldMap.SEASONS[season] + " · marched today " + Hud.clock(marched * 60) + " of 8 h", NamedTextColor.GRAY));
+        dayWeather(c.day(), pl.rnd);
+        lines.add(line(c.timeText() + " · " + WorldMap.SEASONS[season] + ", " + weather + " · marched today " + Hud.clock(marched * 60) + " of 8 h", NamedTextColor.GRAY));
+        if (Arena.current != null && !Arena.current.over && Arena.current.talk != null && p.hasPermission("falloutak.gm"))
+            b.add(btn("GM: they attack now", "the talk on the battle map goes wrong at once: they act first (09d round 5)", x -> { say(x, gmAttack(pl)); }));
         if (!Loot.bodies.isEmpty())
             b.add(btn("The field: " + Loot.bodies.size() + " bod" + (Loot.bodies.size() == 1 ? "y" : "ies"), "search, butcher (Survival), treat or take samples (Medicine)",
                     x -> Loot.menu(pl, x)));
@@ -545,13 +661,13 @@ final class Travel {
         } else {
             List<WorldMap.Place> near = new ArrayList<>(map.places);
             near.sort(Comparator.comparingDouble(q -> map.km(pi, pj, q.i() + 0.5, q.j() + 0.5)));
-            int shown = 0;
+            int shown = 0, depots = 0;
             for (WorldMap.Place q : near) {
                 double d = map.km(pi, pj, q.i() + 0.5, q.j() + 0.5);
                 if (d < 0.5) continue;
-                if (++shown > 14) break;
-                b.add(btn(String.format(Locale.ROOT, "To %s (%.1f km)", q.name(), d), "set out: a roll every 4 hours; at most 8 hours a day",
-                        x -> { say(x, go(pl, x, q.name(), false, pl.rnd)); menu(pl, x); }));
+                if (q.depot() ? ++depots > 3 : ++shown > 14) continue;
+                b.add(btn(String.format(Locale.ROOT, "To %s (%.1f km)", q.name(), d), q.depot() ? "a road maintenance depot: its winter salt (a scavenging target); a roll every 4 hours"
+                        : "set out: a roll every 4 hours; at most 8 hours a day", x -> { say(x, go(pl, x, q.name(), false, pl.rnd)); menu(pl, x); }));
             }
             if (marched >= MARCH_H - 1e-9 && !dest.isEmpty())
                 b.add(btn("Push on to " + dest, "past the day's 8 hours (sleep debt, part 4)", x -> { say(x, go(pl, x, dest, true, pl.rnd)); menu(pl, x); }));

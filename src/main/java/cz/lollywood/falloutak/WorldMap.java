@@ -35,8 +35,19 @@ final class WorldMap {
     static final String[] TERRAIN = {"field", "road", "forest", "town"};
     static final String[] SEASONS = {"winter", "spring", "summer", "autumn"};
 
+    /**
+     * A kind of danger. {@code sneak} = its best Sneak when it tries for stealth, {@code stealth} = the share of its hostile meetings in
+     * which it does (a raider ambush, a hunting predator), {@code loud} = how much easier it is to see and hear when it does not (a
+     * caravan's carts, an engine, a herd) (09d round 5, Marek 11-24: *"the check should go counter to enemy stealth check, if the enemy
+     * is trying for stealth. Without stealth, it should instead check how much visible and audible the target is."*) [every number of the
+     * export's mine, EXAMPLE].
+     */
     record Kind(String key, String name, double day, double night, double hostile, double[] season, String peace, double group,
-                double range, double hp, int party) {}
+                double range, double hp, int party, int sneak, double stealth, int loud) {
+        Kind(String key, String name, double day, double night, double hostile, double[] season, String peace, double group, double range, double hp, int party) {
+            this(key, name, day, night, hostile, season, peace, group, range, hp, party, 0, 0, 0);
+        }
+    }
 
     /** A base or a lair; a base can be cleared (the players or a group took it). The weekly tick ({@link Tick}) moves, grows, splits and
      *  joins them, so where they are and how many is theirs to change. */
@@ -81,7 +92,23 @@ final class WorldMap {
 
     TickData tick;
 
-    record Place(String name, int i, int j) {}
+    /** A place to travel to: a town ({@code kind} "town"), or a road maintenance depot with its winter salt ("depot", 09d round 5: *"mark the
+     *  depots"*), {@code note} the GM's line (its salt, who holds it). */
+    record Place(String name, int i, int j, String kind, String note) {
+        Place(String name, int i, int j) { this(name, i, j, "town", ""); }
+        boolean depot() { return kind.equals("depot"); }
+    }
+
+    /**
+     * A UNIQUE LOCATION MAP (09d round 5, Marek 11-24: *"if it is near/on some unique location map, it should instead happen on the full
+     * unique map"*): a 1:1 world (Jihlava from OpenStreetMap by Arnis) over the sectors (i0..i1, j0..j1), its blocks from a sector by the
+     * export's affine fit (x = x0 + xi i + xj j, z the same), and how near (km) still counts as on it.
+     */
+    record Unique(String name, String world, double i0, double i1, double j0, double j1, double x0, double xi, double xj, double z0, double zi,
+                  double zj, int size, double nearKm) {
+        double x(double i, double j) { return x0 + xi * i + xj * j; }
+        double z(double i, double j) { return z0 + zi * i + zj * j; }
+    }
 
     /** A kind's meetings an hour at a sector: those that are a fight, and the peaceful ones (of its peaceful type). */
     record Row(Kind kind, double fight, double peace) { double all() { return fight + peace; } }
@@ -107,6 +134,7 @@ final class WorldMap {
     final Map<String, Kind> kinds = new LinkedHashMap<>();
     final List<Src> bases = new ArrayList<>(), lairs = new ArrayList<>();
     final List<Place> places = new ArrayList<>();
+    final List<Unique> uniques = new ArrayList<>();
     private final double roadSum;
     private final Map<Double, Double> norms = new HashMap<>();
 
@@ -129,7 +157,8 @@ final class WorldMap {
             kinds.put(e.getKey(), new Kind(e.getKey(), k.get("name").getAsString(), k.get("day").getAsDouble(), k.get("night").getAsDouble(),
                     k.get("hostile").getAsDouble(), new double[]{s.get(0).getAsDouble(), s.get(1).getAsDouble(), s.get(2).getAsDouble(), s.get(3).getAsDouble()},
                     k.get("peace").getAsString(), k.has("group") ? k.get("group").getAsDouble() : 1, k.has("range") ? k.get("range").getAsDouble() : 0,
-                    k.has("hp") ? k.get("hp").getAsDouble() : 30, k.has("party") ? k.get("party").getAsInt() : 1));
+                    k.has("hp") ? k.get("hp").getAsDouble() : 30, k.has("party") ? k.get("party").getAsInt() : 1,
+                    k.has("sneak") ? k.get("sneak").getAsInt() : 0, k.has("stealth") ? k.get("stealth").getAsDouble() : 0, k.has("loud") ? k.get("loud").getAsInt() : 0));
         }
         for (JsonElement e : o.getAsJsonArray("bases")) {
             JsonObject b = e.getAsJsonObject();
@@ -153,7 +182,16 @@ final class WorldMap {
         }
         for (JsonElement e : o.getAsJsonArray("places")) {
             JsonObject p = e.getAsJsonObject();
-            places.add(new Place(p.get("name").getAsString(), p.get("i").getAsInt(), p.get("j").getAsInt()));
+            places.add(new Place(p.get("name").getAsString(), p.get("i").getAsInt(), p.get("j").getAsInt(),
+                    p.has("kind") ? p.get("kind").getAsString() : "town", p.has("note") ? p.get("note").getAsString() : ""));
+        }
+        if (o.has("uniques")) for (JsonElement e : o.getAsJsonArray("uniques")) {
+            JsonObject u = e.getAsJsonObject();
+            JsonArray si = u.getAsJsonArray("i"), sj = u.getAsJsonArray("j"), ax = u.getAsJsonArray("x"), az = u.getAsJsonArray("z");
+            uniques.add(new Unique(u.get("name").getAsString(), u.get("world").getAsString(), si.get(0).getAsDouble(), si.get(1).getAsDouble(),
+                    sj.get(0).getAsDouble(), sj.get(1).getAsDouble(), ax.get(0).getAsDouble(), ax.get(1).getAsDouble(), ax.get(2).getAsDouble(),
+                    az.get(0).getAsDouble(), az.get(1).getAsDouble(), az.get(2).getAsDouble(), u.get("size").getAsInt(),
+                    u.has("nearKm") ? u.get("nearKm").getAsDouble() : 0.5));
         }
         double rs = 0;
         for (int k = 0; k < w * h; k++) if (ground[k] <= 1) rs += road16[k] / 16.0;
@@ -293,12 +331,30 @@ final class WorldMap {
         return new Encounter(k, fight ? "fight" : k.peace(), n);
     }
 
-    /** The nearest place to a sector. */
+    /** The nearest town to a sector (a depot only when there is no town). */
     Place nearest(double i, double j) {
         Place best = null;
         double bd = Double.MAX_VALUE;
-        for (Place p : places) { double d = km(i, j, p.i(), p.j()); if (d < bd) { bd = d; best = p; } }
+        for (Place p : places) { double d = km(i, j, p.i(), p.j()) + (p.depot() ? 1e6 : 0); if (d < bd) { bd = d; best = p; } }
         return best;
+    }
+
+    /**
+     * The unique map a fight at the sector (i, j) happens on (09d round 5): the first whose blocks it lies on, or within its {@code nearKm}
+     * of its edge (then the nearest point inside), else null. Returns the map and the block (x, z) inside it, 64 blocks from its edge.
+     */
+    record OnUnique(Unique u, int x, int z) {}
+
+    OnUnique unique(double i, double j) {
+        for (Unique u : uniques) {
+            double x = u.x(i, j), z = u.z(i, j);
+            double mPerBlock = 0.001;   // a block a metre (Arnis)
+            double out = Math.max(Math.max(-x, x - u.size()), Math.max(-z, z - u.size()));
+            if (out * mPerBlock > u.nearKm()) continue;
+            int m = 64;
+            return new OnUnique(u, (int) Math.round(Math.max(m, Math.min(u.size() - m, x))), (int) Math.round(Math.max(m, Math.min(u.size() - m, z))));
+        }
+        return null;
     }
 
     Place place(String name) {

@@ -40,11 +40,14 @@ import java.util.UUID;
  * round 2, Marek 11-23: *"a battle arena per terrain - lets go for it."* · *"it would be possible to have more encounters at once at one
  * battle map. And sight can be turned to hunt, if players want to."*). An arena world ({@link #WORLD}, empty but for the arenas) holds
  * one arena a terrain of Arag's map (field, road, forest, town ruin), BUILT AGAIN for every fight from a new seed, so no two look
- * the same, AT LEAST 64 x 64 (09d round 4, Marek 11-24: *"You need 30 to run away from enemy, so 60x60 sould be minimum for single
- * encounter. Not to mention that some weapons have quite reach with high anough skill"*): the party stands {@link #ESCAPE} blocks from
- * the edge behind it, the enemies at a distance by the longest reach in the fight, and the map grows with that distance and with the
- * groups ({@link #sizeFor}); the party is moved in, the scene's enemies (every hostile group and every hunted animal of it) stand where the way they met
- * puts them, the fight is the battle's own, and each player goes back to where he was when it ends.
+ * the same, ALWAYS 128 x 128 (09d round 5, Marek 11-24: *"instead of making several battle maps of different sizes, I think it would be
+ * better to use only the 128 sized ones (or bigger) and in case of smaller encounter, place the players near the border. If the border
+ * will be visible, it should be fine."*; 160 for six groups or more, {@link #sizeFor}): the party stands {@link #ESCAPE} blocks from the
+ * edge behind it (round 4: *"You need 30 to run away"*), the enemies at a distance by the longest reach in the fight; the map's edge is
+ * shown to each player as a world border. A fight on or near a UNIQUE LOCATION MAP (Jihlava from OpenStreetMap) happens on that map
+ * itself instead, the same 128 blocks cut out of it round the place (round 5: *"if it is near/on some unique location map, it should
+ * instead happen on the full unique map"*). The party is moved in, the scene's enemies (every hostile group and every hunted animal of
+ * it) stand where the way they met puts them, the fight is the battle's own, and each player goes back to where he was when it ends.
  * <ul>
  *   <li><b>AMBUSH</b> (they were spotted and the party attacks): the party in cover {@link #ESCAPE} blocks from the south edge, the
  *   enemies in the open to the north at the start distance; THE PARTY ACTS FIRST (02c §7: the attacker acts first).</li>
@@ -61,7 +64,7 @@ final class Arena {
     private Arena() {}
 
     static final String WORLD = "fo_arena";
-    static final int SIZE = 64, Y = 64, H = 14, MARGIN = 6, SLOT = 200, ESCAPE = 30, MAX_SIZE = 128;
+    static final int SIZE = 128, Y = 64, H = 14, MARGIN = 6, SLOT = 200, ESCAPE = 30, MAX_SIZE = 160;
     /** The arena being built: its side, the party's line (blocks from the south edge) and the enemies' start distance from it. */
     static int size = SIZE, coverZ = ESCAPE, dist = 20;
     static final String[] TERRAINS = {"field", "road", "forest", "town"};
@@ -73,14 +76,10 @@ final class Arena {
     static int startDistance(int reach) { return Math.max(12, Math.min(40, (int) Math.round(reach * 0.8))); }
 
     /**
-     * The map's side (09d round 4): one group needs the party's {@link #ESCAPE} blocks behind it, the start distance and 14 blocks beyond
-     * the enemies, at least 64; 2-3 groups x 1.25, 4-5 x 1.5, more x 1.75, at most {@link #MAX_SIZE} [the steps mine, EXAMPLE].
+     * The map's side (09d round 5): always {@link #SIZE}, the party near the edge behind it whatever the encounter's size; six groups or
+     * more {@link #MAX_SIZE} [the 160 mine, EXAMPLE].
      */
-    static int sizeFor(int groups, int reach) {
-        int one = Math.max(SIZE, ESCAPE + startDistance(reach) + 14);
-        double k = groups <= 1 ? 1 : groups <= 3 ? 1.25 : groups <= 5 ? 1.5 : 1.75;
-        return Math.min(MAX_SIZE, (int) Math.round(one * k));
-    }
+    static int sizeFor(int groups, int reach) { return groups > 5 ? MAX_SIZE : SIZE; }
 
     /** The longest reach in the fight: the party's guns and bows (their own gear) and the enemies' (a gunner's pistol, a creature's bite). */
     static int reach(List<Player> party, List<Group> groups) {
@@ -92,7 +91,35 @@ final class Arena {
                 if (w != null && !w.melee()) r = Math.max(r, w.range);
             }
         for (Group g : groups) { Foe f = foe(g.kind().key()); if (f != null) r = Math.max(r, f.gun() ? Battle.SMG.range : f.reach()); }
+        for (Group g : groups) if (raiderKind(g.kind().key())) r = Math.max(r, Math.max(Battle.SMG.range, bowRange()));
         return r;
+    }
+
+    private static int bowRange() {
+        int r = 0;
+        Foe b = FOES.get("raider-bow");
+        if (b != null) for (String n : b.weapons()) { Battle.Weapon w = Battle.GEAR.get(n); if (w != null) r = Math.max(r, w.range); }
+        return r;
+    }
+
+    /** A raider kind of the world map (a group's seat or camp, the small bands): their kit is drawn per figure ({@link #kitFor}). */
+    static boolean raiderKind(String key) { return key.equals("bands") || key.startsWith("raiders:"); }
+
+    /**
+     * THE RAIDERS' KIT (09d round 5, Marek 11-24: *"we need more enemies with bows and melee weapons"* · *"smaller band are likely to
+     * actually use bows and melee weapons more. Primers will be the main issue"*): each figure of a raider group draws its statblock, a
+     * pistol, a bow or a melee weapon. A tribe's camps and seats: guns 55 % in year 2, 10 points less each year after (at least 15 %),
+     * the rest bows 55 : melee 45; the small bands: guns 15 % (falling 3 points a year, at least 5 %), bows 45 %, melee the rest
+     * [the shares mine, EXAMPLE; `09e` §2 the ammunition behind them]. Everyone else his kind's own.
+     */
+    static Foe kitFor(String kindKey, double years, Random r) {
+        if (!raiderKind(kindKey)) return foe(kindKey);
+        double gun, bow;
+        if (kindKey.equals("bands")) { gun = Math.max(0.05, 0.15 - 0.03 * Math.max(0, years - 2)); bow = 0.45; }
+        else { gun = Math.max(0.15, Math.min(0.55, 0.55 - 0.1 * Math.max(0, years - 2))); bow = (1 - gun) * 0.55; }
+        double u = r.nextDouble();
+        Foe f = FOES.get(u < gun ? "raider" : u < gun + bow ? "raider-bow" : "raider-melee");
+        return f != null ? f : FOES.get("raider");
     }
 
     /** A count of things on a 48-block arena, scaled to this one's area. */
@@ -101,14 +128,25 @@ final class Arena {
     record Spot(int x, int y, int z) { Location at(World w) { return new Location(w, x + 0.5, y, z + 0.5); } }
 
     /** A built arena: its corner, the party's spots (in cover, in the open) and the enemies' (far, on the ring round the middle). */
-    record Layout(String terrain, int x0, int z0, int size, List<Spot> cover, List<Spot> open, List<Spot> far, List<Spot> ring) {
-        Location centre(World w) { return new Location(w, x0 + size / 2.0, Y, z0 + size / 2.0); }
-        org.bukkit.util.BoundingBox box() { return new org.bukkit.util.BoundingBox(x0, Y - 1, z0, x0 + size, Y + H, z0 + size); }
+    record Layout(String terrain, int x0, int z0, int size, List<Spot> cover, List<Spot> open, List<Spot> far, List<Spot> ring, int y0, int y1) {
+        Layout(String terrain, int x0, int z0, int size, List<Spot> cover, List<Spot> open, List<Spot> far, List<Spot> ring) {
+            this(terrain, x0, z0, size, cover, open, far, ring, Y - 1, Y + H);
+        }
+        Location centre(World w) { return new Location(w, x0 + size / 2.0, y0 + 1, z0 + size / 2.0); }
+        org.bukkit.util.BoundingBox box() { return new org.bukkit.util.BoundingBox(x0, y0, z0, x0 + size, y1, z0 + size); }
     }
 
     /** One enemy's statblock (`data/arena-foes.json`). */
     record Foe(String key, String name, String mob, String creature, double scale, int hp, int ac, int dt, double dr, int[] a, int skill,
-               int minDmg, int maxDmg, int reach, int attackAp, String attack, boolean gun, String nemesis, double meatKg, int hides) {}
+               int minDmg, int maxDmg, int reach, int attackAp, String attack, boolean gun, String nemesis, double meatKg, int hides,
+               List<String> weapons, int reserve, List<Part> parts) {}
+
+    /**
+     * A special part of a creature's body (09d round 5, Marek 11-24: *"How much you get depends on skill and higher skill may give you
+     * harder to get resources"*): what it is (a named item of a store row), the skill and the level it needs, and whether it is FRAGILE
+     * (ruined by a butcher who did not put it first) [mine, EXAMPLE].
+     */
+    record Part(String name, String row, int tier, int rarity, String skill, int need, boolean fragile, int count) {}
 
     static final Map<String, Foe> FOES = loadFoes();
 
@@ -129,10 +167,27 @@ final class Arena {
                         d == null ? 12 : d.get(1).getAsInt(), o.has("reach") ? o.get("reach").getAsInt() : 1,
                         o.has("attack_ap") ? o.get("attack_ap").getAsInt() : 4, o.has("attack") ? o.get("attack").getAsString() : "",
                         o.has("gun") && o.get("gun").getAsBoolean(), o.has("nemesis") ? o.get("nemesis").getAsString() : "",
-                        o.has("meat_kg") ? o.get("meat_kg").getAsDouble() : 0, o.has("hides") ? o.get("hides").getAsInt() : 0));
+                        o.has("meat_kg") ? o.get("meat_kg").getAsDouble() : 0, o.has("hides") ? o.get("hides").getAsInt() : 0,
+                        strings(o, "weapons"), o.has("reserve") ? o.get("reserve").getAsInt() : 99, parts(o)));
             }
         } catch (Exception e) { throw new IllegalStateException("data/arena-foes.json: " + e.getMessage(), e); }
         return m;
+    }
+
+    private static List<String> strings(JsonObject o, String k) {
+        List<String> l = new ArrayList<>();
+        if (o.has(k)) for (JsonElement e : o.getAsJsonArray(k)) l.add(e.getAsString());
+        return l;
+    }
+
+    private static List<Part> parts(JsonObject o) {
+        List<Part> l = new ArrayList<>();
+        if (o.has("parts")) for (JsonElement e : o.getAsJsonArray("parts")) {
+            JsonObject q = e.getAsJsonObject();
+            l.add(new Part(q.get("name").getAsString(), q.get("row").getAsString(), q.get("tier").getAsInt(), q.get("rarity").getAsInt(),
+                    q.get("skill").getAsString(), q.get("need").getAsInt(), q.has("fragile") && q.get("fragile").getAsBoolean(), q.has("count") ? q.get("count").getAsInt() : 1));
+        }
+        return l;
     }
 
     /** The statblock of a world map kind: raiders:* and bands = the raider, patrol:* the guard, traders the caravan's, creature:x its own. */
@@ -456,11 +511,22 @@ final class Arena {
 
     /** The same, with a talk on the battle map ({@code talk} with the group whose kind's key is {@code talkKey}; 09d round 4). */
     static String fight(FalloutakPlugin pl, List<Player> party, String terrain, List<Group> groups, Mode mode, long seed, Runnable done, Battle.Talk talk, String talkKey) {
+        return fight(pl, party, terrain, groups, mode, seed, done, talk, talkKey, null, 2);
+    }
+
+    /**
+     * The same on a UNIQUE LOCATION MAP when {@code on} is given (09d round 5), and with the raiders' kit of {@code years} after day D.
+     */
+    static String fight(FalloutakPlugin pl, List<Player> party, String terrain, List<Group> groups, Mode mode, long seed, Runnable done, Battle.Talk talk, String talkKey,
+                        WorldMap.OnUnique on, double years) {
         if (current != null && !current.over && !pl.battle.players(current).isEmpty()) return "! another fight is on a battle map";
         for (Player q : party) if (pl.battle.inBattle(q)) pl.battle.stop(q);
-        World w = world();
         int reach = reach(party, groups);
-        Layout lay = build(w, terrain, seed, sizeFor(groups.size(), reach), startDistance(reach));
+        World w = on == null ? world() : uniqueWorld(on.u().world());
+        if (w == null) { on = null; w = world(); }
+        Layout lay = on != null ? survey(w, terrain, on.x(), on.z(), on.u().size(), sizeFor(groups.size(), reach), startDistance(reach), mode == Mode.AMBUSHED)
+                : build(w, terrain, seed, sizeFor(groups.size(), reach), startDistance(reach));
+        String where = on != null ? "the " + on.u().name() + " map" : "the " + terrain + " map";
         Battle.Fight f = new Battle.Fight("the enemies");
         f.demo = false;
         f.enemiesFirst = mode == Mode.AMBUSHED || mode == Mode.PARLEY;
@@ -477,8 +543,8 @@ final class Arena {
         int stride = Math.max(1, theirs.size() / Math.max(1, total));
         for (Group g : groups) {
             gi++;
-            Foe foe = foe(g.kind().key());
             for (int n = 0; n < g.count(); n++) {
+                Foe foe = kitFor(g.kind().key(), years, r);
                 if (theirs.isEmpty()) break;
                 Spot sp = theirs.get(Math.min(theirs.size() - 1, (k++ * stride) % theirs.size()));
                 Location at = sp.at(w);
@@ -496,6 +562,7 @@ final class Arena {
                 t.meatKg = foe.meatKg();
                 t.hides = foe.hides();
                 t.foe = foe.key();
+                arm(t, foe, r);
                 t.talking = talk != null && g.kind().key().equals(talkKey);
                 if (!foe.nemesis().isEmpty()) t.kind = foe.nemesis();
                 if (foe.gun()) t.gunHealth = Math.max(1, Battle.SMG.maxHealth * (0.25 + 0.35 * r.nextDouble()));   // used guns (05 §9, round 11)
@@ -508,16 +575,18 @@ final class Arena {
         if (talk != null) for (Battle.Target t : f.targets.values()) if (t.talking) { f.talk = talk; break; }
         List<Spot> ours = mode == Mode.AMBUSHED ? lay.open() : lay.cover();   // a talk or a parley: they were seen first, the party kept its cover
         if (ours.isEmpty()) ours = lay.open();
+        if (ours.isEmpty()) ours = List.of(new Spot((int) Math.floor(lay.centre(w).getX()), lay.y0() + 1, lay.z0() + ESCAPE));   // a map with no ground found
         back.clear();
         StringBuilder who = new StringBuilder();
         for (Group g : groups) who.append(who.length() == 0 ? "" : ", ").append(g.count()).append(" × ").append(foe(g.kind().key()).name()).append(g.flees() ? " (hunted)" : "");
         String intro = switch (mode) {
-            case AMBUSH -> "AMBUSH on the " + terrain + " map: you lie in cover, they have not seen you (" + who + "). Round 1: YOUR TURN, all of you at once.";
-            case HUNT -> "THE HUNT on the " + terrain + " map (" + who + "): you are downwind. Round 1: YOUR TURN; what is not hostile will run.";
-            case AMBUSHED -> "AMBUSHED on the " + terrain + " map (" + who + "): they are all round you and act first.";
-            case TALK -> "THE TALK on the " + terrain + " map (" + who + "): " + (talk == null ? "you" : talk.speakerName) + " steps out and talks; it lasts "
-                    + Battle.TALK_ROUNDS + " rounds. Move into position meanwhile. An attack breaks the talk and catches them off guard; it can also go wrong.";
-            case PARLEY -> "THEY TURN HOSTILE on the " + terrain + " map (" + who + "): they go for their guns first; you still have your cover.";
+            case AMBUSH -> "AMBUSH on " + where + ": you lie in cover, they have not seen you (" + who + "). Round 1: YOUR TURN, all of you at once.";
+            case HUNT -> "THE HUNT on " + where + " (" + who + "): you are downwind. Round 1: YOUR TURN; what is not hostile will run.";
+            case AMBUSHED -> "AMBUSHED on " + where + " (" + who + "): they are all round you and act first.";
+            case TALK -> "THE TALK on " + where + " (" + who + "): " + (talk == null ? "you" : talk.speakerName) + " steps out and talks; it lasts "
+                    + Battle.TALK_ROUNDS + " rounds. Move into position meanwhile. An attack breaks the talk and catches them off guard; it can also go wrong; "
+                    + "another danger falling on the map can make them your allies.";
+            case PARLEY -> "THEY TURN HOSTILE on " + where + " (" + who + "): they go for their weapons first; you still have your cover.";
         };
         int i = 0;
         for (Player q : party) {
@@ -527,17 +596,113 @@ final class Arena {
             at.setDirection(lay.centre(w).toVector().subtract(at.toVector()).setY(0));
             if (mode == Mode.AMBUSHED) at.setDirection(theirs.isEmpty() ? at.getDirection() : theirs.get(0).at(w).toVector().subtract(at.toVector()).setY(0));
             q.teleport(at);
+            border(q, lay);
             Character c = pl.character(q);
             pl.battle.join(q, c, f, true);   // his own gear (09d round 3), and a death in it is real
             q.sendMessage(Component.text(intro + " Left click AT AN ENEMY = fire, right click = mode, shift = stance, the clock = end your turn; when every one "
                     + "of you has ended his, it is their turn. Walk to the map's edge to get away; the dangers also fight each other.", NamedTextColor.AQUA));
         }
-        f.onLeave = q -> { Location l = back.remove(q.getUniqueId()); if (l != null) q.teleport(l); };
+        f.onLeave = q -> { unborder(q); Location l = back.remove(q.getUniqueId()); if (l != null) q.teleport(l); };
         f.onEnd = () -> { current = null; Runnable a = afterAll; afterAll = () -> { }; a.run(); };
         f.started = true;
         if (f.enemiesFirst) pl.battle.enemyPhase(f, () -> pl.battle.partyPhase(f));
         else for (Player q : party) { Battle.State s = pl.battle.state(q); if (s != null) pl.battle.show(q, s, pl.character(q), "round 1: your turn"); }
         return intro;
+    }
+
+    /**
+     * The figure's weapon from its statblock (09d round 5): a bow or a melee weapon of `data/weapons.json` drawn from the row's list, the
+     * rounds or arrows it carries besides the loaded ones; a gunner's pistol otherwise.
+     */
+    static void arm(Battle.Target t, Foe foe, Random r) {
+        t.reserve = foe.reserve();
+        if (foe.weapons().isEmpty()) return;
+        Battle.Weapon w = Battle.GEAR.get(foe.weapons().get(r.nextInt(foe.weapons().size())));
+        if (w == null) return;
+        if (w.melee()) {
+            t.melee = true;
+            t.minDmg = w.minDmg; t.maxDmg = w.maxDmg;
+            t.reach = Math.max(1, w.range - 1);
+            t.attackAp = w.modes.get(0).ap();
+            t.attack = w.name.toLowerCase(java.util.Locale.ROOT);
+        } else {
+            t.melee = false;
+            t.gun = w;
+            t.ammo = w.magazine;
+            t.gunHealth = Math.max(1, w.maxHealth * (0.25 + 0.35 * r.nextDouble()));
+        }
+        t.weaponName = w.name;
+    }
+
+    /** The map's edge shown as a world border to the player (09d round 5: *"If the border will be visible, it should be fine."*). */
+    static void border(Player q, Layout lay) {
+        Battle.cosmetic(() -> {
+            org.bukkit.WorldBorder b = Bukkit.createWorldBorder();
+            b.setCenter(lay.x0() + lay.size() / 2.0, lay.z0() + lay.size() / 2.0);
+            b.setSize(lay.size());
+            b.setWarningDistance(0);
+            q.setWorldBorder(b);
+        });
+    }
+
+    static void unborder(Player q) { Battle.cosmetic(() -> q.setWorldBorder(null)); }
+
+    /** A unique map's world, loaded on first use (null when it is not on the server). */
+    static World uniqueWorld(String name) {
+        if (use != null) return use;
+        World w = Bukkit.getWorld(name);
+        if (w != null) return w;
+        if (!java.nio.file.Files.isDirectory(Bukkit.getWorldContainer().toPath().resolve(name))) return null;
+        return Battle.orElse(() -> new WorldCreator(name).createWorld(), () -> null);
+    }
+
+    /**
+     * THE FIGHT'S GROUND ON A UNIQUE MAP (09d round 5): nothing is built; the 128 blocks round the place are surveyed as they stand. The
+     * party's point ({@code px}, {@code pz}) is on its line {@link #ESCAPE} blocks from the box's south edge (in the middle when they
+     * are ambushed); the ground is the median of the surface in the box, and a column whose surface is within 3 blocks of it is a spot
+     * (a roof or a wall is cover, not a spot) [mine, EXAMPLE].
+     */
+    static Layout survey(World w, String terrain, int px, int pz, int mapSize, int sz, int d, boolean centred) {
+        size = sz;
+        dist = d;
+        coverZ = ESCAPE;
+        int x0 = Math.max(0, Math.min(mapSize - sz, px - sz / 2));
+        int z0 = Math.max(0, Math.min(mapSize - sz, centred ? pz - sz / 2 : pz - ESCAPE));
+        int[][] top = new int[sz][sz];
+        List<Integer> sample = new ArrayList<>();
+        for (int x = 0; x < sz; x++)
+            for (int z = 0; z < sz; z++) {
+                int xx = x0 + x, zz = z0 + z;
+                top[x][z] = Battle.orElse(() -> w.getHighestBlockYAt(xx, zz, org.bukkit.HeightMap.MOTION_BLOCKING_NO_LEAVES), () -> w.getHighestBlockYAt(xx, zz));
+                if ((x & 3) == 0 && (z & 3) == 0) sample.add(top[x][z]);
+            }
+        java.util.Collections.sort(sample);
+        int ground = sample.isEmpty() ? Y : sample.get(sample.size() / 2);
+        List<Spot> cover = new ArrayList<>(), open = new ArrayList<>(), far = new ArrayList<>(), ring = new ArrayList<>();
+        double cx = centred ? px + 0.5 : x0 + sz / 2.0, cz = centred ? pz + 0.5 : z0 + sz / 2.0;
+        double ox = px + 0.5, oz = pz + 0.5;
+        int pzLine = pz - z0;
+        for (int x = 2; x < sz - 2; x++)
+            for (int z = 2; z < sz - 2; z++) {
+                int y = top[x][z] + 1;
+                if (Math.abs(y - 1 - ground) > 3 || !standing(w, x0 + x, y, z0 + z)) continue;
+                Spot s = new Spot(x0 + x, y, z0 + z);
+                boolean shield = false;
+                for (int dx = -1; dx <= 1; dx++) if (w.getBlockAt(x0 + x + dx, y, z0 + z + 1).getType().isSolid() || w.getBlockAt(x0 + x + dx, y, z0 + z + 2).getType().isSolid()) shield = true;
+                if (Math.abs(x0 + x + 0.5 - ox) <= 24 && z >= pzLine - 4 && z <= pzLine + 3 && shield) cover.add(s);
+                double dc = Math.hypot(x0 + x + 0.5 - (centred ? cx : ox), z0 + z + 0.5 - (centred ? cz : oz));
+                if (dc <= 4.5) open.add(s);
+                if (z >= pzLine + d - 2 && z <= Math.min(sz - 4, pzLine + d + 10) && Math.abs(x0 + x + 0.5 - ox) <= 40) far.add(s);
+                double dr = Math.hypot(x0 + x + 0.5 - cx, z0 + z + 0.5 - cz);
+                if (dr >= 9 && dr <= Math.max(14, sz / 5.0)) ring.add(s);
+            }
+        Random r = new Random(((long) px << 20) ^ pz);
+        if (cover.size() < 8) for (Spot s : open) if (cover.size() < 12) cover.add(s);
+        if (cover.size() < 8) for (int x = 4; x < sz - 4 && cover.size() < 12; x += 2) {
+            int y = top[x][Math.max(0, Math.min(sz - 1, pzLine))] + 1;
+            if (standing(w, x0 + x, y, z0 + pzLine)) cover.add(new Spot(x0 + x, y, z0 + pzLine));
+        }
+        return new Layout(terrain, x0, z0, sz, spread(cover, r), spread(open, r), spread(far, r), spread(ring, r), ground - 8, ground + 24);
     }
 
     /** An item in stacks of at most 64. */

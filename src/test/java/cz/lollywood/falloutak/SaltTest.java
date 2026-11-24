@@ -111,7 +111,8 @@ class SaltTest {
         assertTrue(Production.reserved("Chemicals", 1, 2, List.of("Lye")), "Chemicals I R2 is kept for salt");
         assertFalse(Production.reserved("Chemicals", 1, 2, List.of("Salt")));
         assertFalse(Production.reserved("Chemicals", 1, 1, List.of("Lye")));
-        assertFalse(Production.reserved("Food", 2, 2, List.of("Jerky")), "rows without named items take any rarity");
+        assertFalse(Production.reserved("Water", 2, 2, List.of("Boiled water")), "rows without named items take any rarity");
+        assertTrue(Production.reserved("Food", 2, 2, List.of("Jerky")), "Food II R2 is kept for the cleaning's step (09d round 5)");
     }
 
     @Test
@@ -119,7 +120,7 @@ class SaltTest {
         Base base = new Base(null);
         base.addUnits("Chemicals", 1, 1, 2, List.of("Lye"));
         List<Base.Row> rows = base.rows("Chemicals");
-        assertEquals(List.of("Lye", "Vinegar"), rows.get(0).sets());
+        assertEquals(List.of("Lye", "Vinegar", "Potash"), rows.get(0).sets());
         base.putThing("Chemicals", 1, 2, "Salt", 1);
         Base.Row r2 = base.rows("Chemicals").stream().filter(r -> r.pool().rarity == 2).findFirst().orElseThrow();
         assertEquals(List.of("Salt"), r2.sets());

@@ -36,7 +36,7 @@ class WorldMapTest {
     @Test
     void theFixtureLoads() {
         assertEquals(40, m.w); assertEquals(30, m.h);
-        assertEquals(3, m.bases.size()); assertEquals(5, m.lairs.size()); assertEquals(3, m.places.size());
+        assertEquals(3, m.bases.size()); assertEquals(5, m.lairs.size()); assertEquals(4, m.places.size()); assertTrue(m.places.get(3).depot());
         assertEquals("road", m.terrainAt(13, 0)); assertEquals("forest", m.terrainAt(20, 30)); assertEquals("town", m.terrainAt(2, 2));
         assertEquals(2, m.groundAt(25, 35));
         assertTrue(m.kinds.containsKey("raiders:pond") && m.kinds.containsKey("creature:boar") && m.kinds.containsKey("traders"));

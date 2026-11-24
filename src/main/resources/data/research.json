@@ -270,12 +270,13 @@
    "id": "rad-scrubbing",
    "name": "Rad scrubbing",
    "recipes": [
-    "wash-and-peel"
+    "field-potatoes-on-potash",
+    "brine-and-soak"
    ],
    "science": "Biology",
    "tier": 3,
-   "rarity": 1,
-   "points": 900,
+   "rarity": 2,
+   "points": 1800,
    "gate": 100,
    "lab": 3,
    "lines": [
@@ -302,7 +303,7 @@
     "electronics": 2,
     "machinery": 1
    },
-   "better": "field crops made clean (Tier III) by washing and peeling",
+   "better": "potash on the field: the crop takes up a third of the caesium (potash cut it 2-14 times after Chernobyl): Food II R2",
    "parked": false,
    "basic": false
   },

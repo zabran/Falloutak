@@ -1505,22 +1505,23 @@
    "harvest": true
   },
   {
-   "id": "wash-and-peel",
-   "name": "Wash and peel",
+   "id": "leach-food",
+   "name": "Leach food",
    "building": "Kitchen",
-   "tier": 3,
+   "tier": 2,
    "skill": "Biology",
-   "min": 40,
+   "min": 20,
    "hours": 2,
    "days": 0,
-   "known": "research",
+   "known": "start",
    "makes": [
     {
      "type": "Food",
-     "tier": 3,
+     "tier": 2,
      "count": 2,
+     "rarity": 2,
      "items": [
-      "Potatoes"
+      "Leached food"
      ]
     }
    ],
@@ -1529,15 +1530,176 @@
      "type": "Food",
      "tier": 2,
      "count": 3,
-     "rarity": 0,
+     "rarity": 1,
      "sets_rarity": true,
      "tool": false,
      "extra": false
     },
     {
      "type": "Water",
+     "tier": 2,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Fuel",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "sliced, soaked and boiled, the water thrown away: a quarter to a half of the caesium left, still Tier II; a third of it lost"
+  },
+  {
+   "id": "boil-down-potash",
+   "name": "Boil down potash",
+   "building": "Kitchen",
+   "tier": 1,
+   "skill": "Chemistry",
+   "min": 10,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "items": [
+      "Potash"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 2,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Lye"
+     ]
+    },
+    {
+     "type": "Fuel",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "the wood ash's lye boiled dry"
+  },
+  {
+   "id": "field-potatoes-on-potash",
+   "name": "Field potatoes on potash",
+   "building": "Field",
+   "tier": 2,
+   "skill": "Biology",
+   "min": 25,
+   "hours": 40,
+   "days": 120,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 10,
+     "rarity": 2,
+     "items": [
+      "Potash-grown crops"
+     ]
+    },
+    {
+     "type": "Seeds",
+     "tier": 2,
+     "count": 1,
+     "items": [
+      "Saved seed"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Seeds",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 2,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Potash"
+     ]
+    }
+   ],
+   "research": "Rad scrubbing",
+   "better": "potash on the field: the crop takes up a third of the caesium (potash cut it 2-14 times after Chernobyl): Food II R2",
+   "harvest": true
+  },
+  {
+   "id": "brine-and-soak",
+   "name": "Brine and soak",
+   "building": "Kitchen",
+   "tier": 3,
+   "skill": "Biology",
+   "min": 40,
+   "hours": 2,
+   "days": 2,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Food",
      "tier": 3,
-     "count": 5,
+     "count": 2
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 3,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    },
+    {
+     "type": "Water",
+     "tier": 3,
+     "count": 4,
      "rarity": 0,
      "sets_rarity": false,
      "tool": false,
@@ -1545,7 +1707,63 @@
     }
    ],
    "research": "Rad scrubbing",
-   "better": "field crops made clean (Tier III) by washing and peeling"
+   "better": "leached or potash-grown food soaked two days in brine changed daily: under a tenth of its rads = clean"
+  },
+  {
+   "id": "make-cheese-and-butter",
+   "name": "Make cheese and butter",
+   "building": "Kitchen",
+   "tier": 3,
+   "skill": "Biology",
+   "min": 20,
+   "hours": 3,
+   "days": 7,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 3,
+     "count": 2,
+     "items": [
+      "Cheese and butter"
+     ]
+    },
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 1,
+     "items": [
+      "Whey"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 4,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Goat milk"
+     ]
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    }
+   ],
+   "note": "the caesium stays in the whey (hard cheese ~0.1, butter ~0.02 of the milk's): clean; the whey to the pigs"
   },
   {
    "id": "mushroom-cellar",

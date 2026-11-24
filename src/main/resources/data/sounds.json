@@ -112,6 +112,14 @@
    ]
   },
   {
+   "key": "bow.shot",
+   "what": "a bow or a crossbow looses an arrow (09d round 5: the raiders' archers)",
+   "mc": "entity.arrow.shoot",
+   "volume": 0.9,
+   "pitch": 1.0,
+   "f2": []
+  },
+  {
    "key": "pistol.empty",
    "what": "the 10mm: out of ammo",
    "mc": "block.dispenser.fail",

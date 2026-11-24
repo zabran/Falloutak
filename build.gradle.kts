@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "cz.lollywood"
-version = "0.79.1"
+version = "0.80.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
@@ -30,6 +30,7 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    maxHeapSize = "4g"   // the battle maps are 128 x 128 (09d round 5): the mock world keeps every block it builds
     finalizedBy(tasks.jacocoTestReport)
 }
 
