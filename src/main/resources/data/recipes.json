@@ -1450,7 +1450,7 @@
      "extra": false
     }
    ],
-   "note": "the autumn's soil: +rads; × the harvest factor (the nuclear autumn; indoors in a grow room none, part 8 round 7), Good Harvest ×1.5",
+   "note": "the autumn's soil: +rads; on medium or heavy ground Tier I (the fields' ground, the GM's); × the harvest factor (the nuclear autumn; indoors in a grow room none, part 8 round 7), Good Harvest ×1.5",
    "harvest": true
   },
   {
@@ -1490,18 +1490,9 @@
      "sets_rarity": true,
      "tool": false,
      "extra": false
-    },
-    {
-     "type": "Water",
-     "tier": 3,
-     "count": 30,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
     }
    ],
-   "note": "the shelter's pre-war seed stock",
+   "note": "the shelter's pre-war seed stock; the water is the room's own 20 l a day",
    "harvest": true
   },
   {
@@ -1655,7 +1646,8 @@
    ],
    "research": "Rad scrubbing",
    "better": "potash on the field: the crop takes up a third of the caesium (potash cut it 2-14 times after Chernobyl): Food II R2",
-   "harvest": true
+   "harvest": true,
+   "ground": "light"
   },
   {
    "id": "field-potatoes-on-skimmed-ground",
@@ -1697,8 +1689,9 @@
      "extra": false
     }
    ],
-   "note": "the top 5 cm of an unploughed field carted off once (the pile a hot spot): the crop takes up a tenth to a fifth of the caesium; NEVER on a hot spot (radiation everywhere there: the GM's word)",
-   "harvest": true
+   "note": "the top 5 cm of an unploughed field carted off once (the pile a hot spot): the crop takes up a tenth to a fifth of the caesium; never on medium or heavy ground (the radiation is in the whole soil)",
+   "harvest": true,
+   "ground": "light"
   },
   {
    "id": "brine-and-soak",
@@ -1841,15 +1834,6 @@
     {
      "type": "Wood",
      "tier": 1,
-     "count": 10,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Water",
-     "tier": 3,
      "count": 10,
      "rarity": 0,
      "sets_rarity": false,
@@ -2582,15 +2566,6 @@
      "count": 1,
      "rarity": 0,
      "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Water",
-     "tier": 3,
-     "count": 5,
-     "rarity": 0,
-     "sets_rarity": false,
      "tool": false,
      "extra": false
     }
@@ -3425,15 +3400,6 @@
      "count": 2,
      "rarity": 0,
      "sets_rarity": true,
-     "tool": false,
-     "extra": false
-    },
-    {
-     "type": "Water",
-     "tier": 2,
-     "count": 10,
-     "rarity": 0,
-     "sets_rarity": false,
      "tool": false,
      "extra": false
     }

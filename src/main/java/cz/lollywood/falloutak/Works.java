@@ -39,7 +39,8 @@ final class Works {
     static void main(Player p) {
         Production pr = pr();
         List<Component> lines = new ArrayList<>();
-        lines.add(line(pr.supply() + (pr.harvest != 100 ? " · harvests at " + Math.round(pr.harvest) + " %" : ""), NamedTextColor.WHITE));
+        lines.add(line(pr.supply() + (pr.harvest != 100 ? " · harvests at " + Math.round(pr.harvest) + " %" : "")
+                + (!"clean".equals(pr.ground) ? " · the fields on " + pr.ground + " ground" : ""), NamedTextColor.WHITE));
         lines.add(line("A job runs when the GM passes time for everyone: its crew works, the store gives the inputs and takes what is made.", NamedTextColor.GRAY));
         List<Ui.Btn> b = new ArrayList<>();
         for (Production.Building x : pr.buildings)
@@ -386,6 +387,10 @@ final class Works {
         b.add(btn("Harvest factor: " + Math.round(pr.harvest) + " %", "the fields' yield (the nuclear autumn's failed harvests, part 1)", x -> ask(x, "Harvest factor", "",
                 List.of(Ui.In.numberRange("h", Component.text("% of a normal harvest"), 0, 150).step(5f).initial((float) pr.harvest).width(300).build()),
                 form("Set", "set it", (v, y) -> { pr.harvest = Math.round(v.getFloat("h")); pr.save(); gmPage(y); }), Works::gmPage)));
+        b.add(btn("Fields' ground: " + pr.ground, "the strikes map's class where the fields lie (09e round 4): on medium and heavy ground the fields grow only Tier I food, "
+                + "and the skim and potash are refused; click for the next class", x -> {
+            pr.ground = Production.GROUNDS.get((Production.groundIndex(pr.ground) + 1) % Production.GROUNDS.size());
+            pr.save(); gmPage(x); }));
         menu(g, "GM · production", List.of(line(pr.buildings.size() + " buildings · " + pr.known.size() + " recipes unlocked beyond the start", NamedTextColor.GRAY)), b, Works::main);
     }
 

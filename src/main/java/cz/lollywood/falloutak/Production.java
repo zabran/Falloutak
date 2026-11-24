@@ -61,6 +61,8 @@ final class Production {
     static final class Builds { String kind = ""; int tier = 1; }
     static final class Recipe {
         String id = "", name = "", building = "", skill = "", known = "start", research = "", better = "", note = "";
+        /** `09e` round 4: the hottest fields' ground it may run on ("light": the skim, potash); "" = any. */
+        String ground = "";
         /** A repair job's part type (round 5): it makes nothing, it mends one row of worn parts. "" = an ordinary recipe. */
         String repairs = "";
         int tier = 1, min;
@@ -362,6 +364,27 @@ final class Production {
     final Set<String> known = new TreeSet<>();
     /** The fields' yield in % (the nuclear autumn's failed harvests, part 1; the GM sets it). */
     double harvest = 100;
+    /**
+     * The fields' ground (`09e` round 4, Marek 11-24, verbatim: *""the plugin doesn't know where hot spots are, so it's the GM's call." -
+     * the ground should be part of the input. In the same way, it should not be possible to grow T2 food in medium and very hot area,
+     * just T1 food."*): the strikes map's class where the base's fields lie (`09` §3.6c), the GM sets it like the harvest factor. On
+     * medium and heavy ground a field's food comes out Tier I, and a recipe with {@link Recipe#ground} hotter than its own is refused.
+     * A grow room has its own soil, so it is never touched.
+     */
+    String ground = "clean";
+    static final List<String> GROUNDS = List.of("clean", "light", "medium", "heavy");
+
+    static int groundIndex(String g) { int i = GROUNDS.indexOf(g == null ? "" : g); return Math.max(0, i); }
+
+    /** Medium or heavy ground: the field's food is Tier I. */
+    boolean hotGround() { return groundIndex(ground) >= 2; }
+
+    /** Why a field cannot run this recipe on its ground, or null. */
+    String groundRefusal(Building b, Recipe r) {
+        if (b == null || r == null || !"Field".equals(b.kind) || r.ground == null || r.ground.isEmpty()) return null;
+        if (groundIndex(ground) <= groundIndex(r.ground)) return null;
+        return b.name + " lies on " + ground + " ground: " + r.name + " only on " + r.ground + " ground or cleaner (the radiation is in the whole soil there)";
+    }
     long day = Long.MIN_VALUE;
     double powerUsed, waterUsed;
     /** The headcount of this pass of time (round 8: the kitchen's water a person fed, the washing, the condensate). */
@@ -531,6 +554,8 @@ final class Production {
         if (!fits(b, r)) return "! " + b.label() + " cannot make " + r.name + " (a " + r.building + " of Tier " + Rules.roman(r.tier) + " or better)";
         if (b.job != null) return "! " + b.name + " already runs " + recipe(b.job.recipe).name + ": stop it first";
         if (b.condition <= 0) return "! " + b.name + " is broken: its crew must repair it first (upkeep)";
+        String gr = groundRefusal(b, r);
+        if (gr != null) return "! " + gr;
         Job j = new Job();
         j.recipe = r.id;
         j.runs = Math.max(0, runs);
@@ -1093,6 +1118,9 @@ final class Production {
         for (Ttr m : r.makes) {
             double n = m.count;
             int tier = "Water".equals(m.type) ? m.tier : Math.min(m.tier, cap);   // water made is its own input's, not the room's [mine]
+            // 09e round 4: a field on medium or heavy ground grows only Tier I food (no step, no named crop)
+            boolean hot = "Food".equals(m.type) && "Field".equals(b.kind) && hotGround() && tier > 1;
+            if (hot) tier = 1;
             // indoors under lamps (a grow room, round 7) out of the nuclear autumn's harvest factor; Good Harvest still the gardener's [mine]
             if (r.harvest) n *= ("Grow room".equals(b.kind) ? 1 : harvest / 100) * (crew.stream().anyMatch(w -> w.perk("Good Harvest")) ? 1.5 : 1);
             if ("Chems".equals(m.type) && crew.stream().anyMatch(w -> w.perk("Cook"))) n *= 2;
@@ -1104,11 +1132,12 @@ final class Production {
             j.carry.put(ck, Math.max(0, total - k));
             if (k <= 0) continue;
             // 09d round 5: a step's own rarity (leached or potash-grown food is Food II R2, the step to Tier III); else the marked inputs'
-            int rr = m.rarity > 1 ? m.rarity : rarity;   // 0.60.0: never into a row kept for a named item it does not make (lye at R2 is not salt)
-            while (rr > 1 && reserved(m.type, tier, rr, m.items)) rr--;
-            base.addUnits(m.type, tier, rr, k, m.items);
+            int rr = hot ? 1 : m.rarity > 1 ? m.rarity : rarity;   // 0.60.0: never into a row kept for a named item it does not make (lye at R2 is not salt)
+            List<String> names = hot ? List.of() : m.items;
+            while (rr > 1 && reserved(m.type, tier, rr, names)) rr--;
+            base.addUnits(m.type, tier, rr, k, names);
             Research.made(this, m.type, tier, k, out);   // part 8: the eurekas count what is made
-            made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rr + (tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
+            made.add(k + " " + m.type + " " + Rules.roman(tier) + " R" + rr + (hot ? " (" + ground + " ground)" : tier < m.tier ? " (Tier " + Rules.roman(cap) + " water)" : ""));
         }
         j.water = 5;
         for (Ttr i : r.inputs) if (i.tool) base.wear(i.type, i.tier, Math.max(1, r.hours));   // a tool: 1 % a work hour [EXAMPLE]
