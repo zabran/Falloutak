@@ -55,7 +55,7 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
 | `Arena` | 754 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 2185 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 2211 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
 | `Character` | 2729 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
@@ -63,7 +63,7 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Creatures` | 160 | the game's creatures in the world (spawning, their sounds and motion) |
 | `Data` | 935 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
 | `Diseases` | 608 | the diseases' race, catching, vaccines, the treatments and the tending check |
-| `FalloutakPlugin` | 422 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
+| `FalloutakPlugin` | 425 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
 | `Forms` | 425 | the dialog forms: create a character, spend points, the level-up |
 | `Hauls` | 266 | the prologue's last-minute hauls |
 | `Hud` | 432 | each character's game hour and passing time, healing, the action bar |
@@ -74,8 +74,9 @@ javadoc's first sentence marked NEW (then describe it here).
 | `MapView` | 182 | the world map drawn in Minecraft |
 | `Maps` | 164 | the map worlds and their commands |
 | `Meals` | 253 | eating and drinking: the pack's portions, the base's day per person, the base's people's factors |
-| `Menus` | 1929 | every menu: actions, the patient's menu, pass time, the GM's buttons |
+| `Menus` | 1954 | every menu: actions, the patient's menu, pass time, the GM's buttons |
 | `Narrator` | 165 | the narrator's lines on critical hits and failures |
+| `Npcs` | 204 | the GM's NPC tools: a figurant's side (hostile, neutral, the party's), following a player, joining his faction, the fight where they stand |
 | `Part3` | 308 | the species and modification commands (templates, genes, implants) |
 | `Path` | 71 | how an enemy walks on the battle map |
 | `Population` | 188 | the base's people and their groups (the workbook's Population and Factions) |
@@ -98,5 +99,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **46 classes** | **23865** | |
+| **47 classes** | **24123** | |
 <!-- /CLASSES -->

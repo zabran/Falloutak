@@ -87,11 +87,14 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         base.knownMaker = production::makesNamed;   // 0.60.0: a named item is open when a recipe the base knows makes it
         Items.KEY = new org.bukkit.NamespacedKey(this, "fo_thing");
         Items.NPC = new org.bukkit.NamespacedKey(this, "fo_npc");
+        Npcs.SIDE = new org.bukkit.NamespacedKey(this, "fo_side");     // the GM's NPC tools (Marek 11-24)
+        Npcs.FOLLOW = new org.bukkit.NamespacedKey(this, "fo_follow");
         Items.COND = new org.bukkit.NamespacedKey(this, "fo_cond");
         Items.FIT = new org.bukkit.NamespacedKey(this, "fo_fit");
         Menus.pl = this;
         hud = new Hud(this);
         battle = new Battle(this);
+        getServer().getScheduler().runTaskTimer(this, () -> Npcs.tick(this), 20L, 10L);   // the GM's followers walk after their leader
         roster = new Roster(this);
         for (String n : List.of("npc", "pop", "group", "xp")) { var cmd = getCommand(n); if (cmd != null) cmd.setExecutor(roster); }
         var gmCmd = getCommand("gm");
@@ -260,8 +263,8 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
             v.setAI(false);
             v.setInvulnerable(true);
             v.setSilent(true);
-            v.setPersistent(true);
-            v.setRemoveWhenFarAway(false);
+            Battle.cosmetic(() -> v.setPersistent(true));
+            Battle.cosmetic(() -> v.setRemoveWhenFarAway(false));
             v.customName(Component.text(name, NamedTextColor.GOLD));
             v.setCustomNameVisible(true);
             v.getPersistentDataContainer().set(Items.NPC, org.bukkit.persistence.PersistentDataType.STRING, name);

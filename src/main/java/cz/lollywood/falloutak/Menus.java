@@ -878,6 +878,9 @@ final class Menus {
             b.add(btn(w.name() + " (NPC)", w.c().template + ", HP " + w.c().hp + "/" + w.c().hpMax(), x -> gmOn(x, whoOf(e))));
         }
         b.add(btn("Spawn a figurant", "an NPC to test on: a statblock (/npc) standing here", Menus::spawnForm));
+        b.add(btn("Fight here", "the players and the figurants within " + (int) Npcs.RADIUS + " blocks, each figurant on its side (its menu: Side)",
+                x -> pick(x, "Fight here", "Who acts first?", List.of("party", "them"), k -> k.equals("party") ? "The party first" : "They attack first",
+                        k -> k.equals("party") ? "an ambush or the party starts it" : "they open fire", (y, k) -> say(y, Npcs.fightHere(pl, y, k.equals("them"))), Menus::gm)));
         b.add(btn("All characters", "for everyone at once: pass time, heal, stop bleeding, give an item", Menus::gmAll));
         b.add(btn("Pass time (everyone)", "the game clock for every character: survival, chems, bleeding, healing, clinical death", x -> passTime(x, null)));
         b.add(btn("Gas zones" + (pl.zones.list.isEmpty() ? "" : " (" + pl.zones.list.size() + ")"), "a gas over an area: a factory hall, an anomaly, a cloud (03b §3c)", Menus::zonesMenu));
@@ -1315,6 +1318,28 @@ final class Menus {
         b.add(btn("Pass time", "his clock, or everyone's (a tick in the form)", x -> passTime(x, o)));
         b.add(btn("Time of day", "now " + c.timeText() + ": set his hour and minute, or everyone's", x -> timeOfDay(x, o)));
         b.add(btn("His sheet", "", x -> SheetView.open(x, c, SheetView.Page.OVERVIEW)));
+        if (o.npc() && o.entity() != null) {      // THE GM'S NPC TOOLS (Marek 11-24: follow, hostile, not hostile, join the faction)
+            Npcs.Side sd = Npcs.side(o.entity());
+            java.util.UUID ld = Npcs.leader(o.entity());
+            Player lp = ld == null ? null : Bukkit.getPlayer(ld);
+            List<String> names = new ArrayList<>();
+            for (Player q : Bukkit.getOnlinePlayers()) names.add(q.getName());
+            b.add(btn("Side: " + sd.label, "hostile fights the party; neutral holds until attacked; the party's fights with the party (in the GM's fight here)",
+                    x -> pick(x, "Side of " + o.name(), "Its side in a fight where it stands (the GM menu: Fight here).",
+                            List.of("HOSTILE", "NEUTRAL", "PARTY"), k -> Npcs.Side.valueOf(k).label, k -> Npcs.Side.valueOf(k).tip,
+                            (y, k) -> { say(y, Npcs.setSide(o.entity(), o.name(), Npcs.Side.valueOf(k))); gmOn(y, o); }, back)));
+            if (ld != null) b.add(btn("Stop following" + (lp == null ? "" : " " + lp.getName()), "it stays where it stands",
+                    x -> { say(x, Npcs.unfollow(o.entity(), o.name())); gmOn(x, o); }));
+            else b.add(btn("Follow a player", "it walks after him (a jump to him when he is far or in another world)",
+                    x -> pick(x, o.name() + " follows", "Whom?", names, n -> n, n -> "", (y, n) -> {
+                        Player q = Bukkit.getPlayerExact(n);
+                        say(y, q == null ? "! " + n + " is not online" : Npcs.follow(o.entity(), o.name(), q)); gmOn(y, o); }, back)));
+            b.add(btn("Join a player's faction", "the party's side, his faction on its statblock, and it follows him",
+                    x -> pick(x, o.name() + " joins", "Whose faction?", names, n -> n, n -> pl.character(Bukkit.getPlayerExact(n)) == null ? "" : "faction: "
+                            + (pl.character(Bukkit.getPlayerExact(n)).group.isEmpty() ? "none on his sheet" : pl.character(Bukkit.getPlayerExact(n)).group), (y, n) -> {
+                        Player q = Bukkit.getPlayerExact(n);
+                        say(y, q == null ? "! " + n + " is not online" : Npcs.join(pl, o.entity(), o.name(), q)); gmOn(y, o); }, back)));
+        }
         if (o.npc() && o.entity() != null) b.add(btn("Remove the figurant", "the body goes; its statblock stays (/npc)", x -> { pl.saveNpc(o.name()); o.entity().remove(); pl.npcs.remove(o.name()); gm(x); }));
         double[] am = c.arrestMinutes();
         menu(g, "GM · " + o.name(), List.of(line(c.name + " · " + c.template + " · HP " + c.hp + "/" + c.hpMax() + (c.dead ? " · DEAD" : c.inArrest()

@@ -913,7 +913,11 @@ public final class Battle implements Listener {
             return;
         }
         if (s.fight != null && s.fight.talk != null && s.ap >= apOf(c, w, m)) breakTalk(s.fight, p);
-        if (s.fight != null && s.ap >= apOf(c, w, m)) { Target ta = s.fight.targets.get(a.target().getUniqueId()); if (ta != null && ta.ally) betray(s.fight, ta.group, p); }
+        if (s.fight != null && s.ap >= apOf(c, w, m)) {
+            Target ta = s.fight.targets.get(a.target().getUniqueId());
+            if (ta != null && ta.ally) betray(s.fight, ta.group, p);
+            if (ta != null && neutral(s.fight, ta)) provoke(s.fight, ta.group, p);
+        }
         int pen = movePenalty(s, w, at);
         Combat.Shot sh = shot(p, s, c, w, m, a, pen);
         Combat.ToHit th = Combat.toHit(sh);
@@ -1134,7 +1138,8 @@ public final class Battle implements Listener {
     }
 
     void label(LivingEntity e, Target t) {
-        e.customName(Component.text(t.label(), t.dead ? NamedTextColor.DARK_GRAY : t.dying() ? NamedTextColor.GOLD : t.ally ? NamedTextColor.GREEN : NamedTextColor.RED));
+        e.customName(Component.text(t.label(), t.dead ? NamedTextColor.DARK_GRAY : t.dying() ? NamedTextColor.GOLD : t.ally ? NamedTextColor.GREEN
+                : t.talking ? NamedTextColor.YELLOW : NamedTextColor.RED));
         if (t.dead) { e.setInvulnerable(false); e.setHealth(0); }
     }
 
@@ -1172,7 +1177,7 @@ public final class Battle implements Listener {
         if (s.env) return false;
         Fight f = s.fight;
         if (f.over) return true;
-        for (Target t : f.targets.values()) if (t.inFight() && !t.ally) return false;
+        for (Target t : f.targets.values()) if (t.inFight() && !t.ally && !neutral(f, t)) return false;
         f.over = true;
         List<Player> ps = players(f);
         if (!ps.contains(p)) ps.add(p);
@@ -1951,6 +1956,27 @@ public final class Battle implements Listener {
         String r = pl.roster != null && !team.isEmpty() && !hps.isEmpty() ? pl.roster.killAward(team, hps, "allies of convenience on the battle map") : "";
         tell(f, "ALLIES OF CONVENIENCE: another danger falls on the map, and " + k.who + " (still talking with " + k.speakerName + ") turn their weapons on it. "
                 + "Resolved without killing: their full kill XP. " + r, NamedTextColor.GREEN);
+    }
+
+    /** A NEUTRAL figure (the GM's tools, `Npcs`): it holds as a talker does, but outside any talk; it does not keep the fight going. */
+    static boolean neutral(Fight f, Target t) { return t.talking && f.talk == null; }
+
+    /** A player attacks a neutral figure (the GM's tools): its whole group fights from now on. */
+    void provoke(Fight f, int group, Player p) {
+        for (var en : f.targets.entrySet()) {
+            Target t = en.getValue();
+            if (t.group != group || !neutral(f, t)) continue;
+            t.talking = false;
+            Entity e = pl.getServer().getEntity(en.getKey());
+            if (e instanceof LivingEntity le) label(le, t);
+        }
+        tell(f, p.getName() + " attacks the neutral ones: they fight back.", NamedTextColor.RED);
+    }
+
+    /** Whether a figure is in a fight that is not over (the GM's followers stand still in it: the battle moves them). */
+    boolean figureInFight(UUID u) {
+        for (State s : states.values()) if (s.fight != null && !s.fight.over && s.fight.targets.containsKey(u)) return true;
+        return false;
     }
 
     /** A player attacks an ally of convenience: the whole group is hostile again (their XP was paid already). */
