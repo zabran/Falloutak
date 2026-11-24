@@ -1658,6 +1658,49 @@
    "harvest": true
   },
   {
+   "id": "field-potatoes-on-skimmed-ground",
+   "name": "Field potatoes on skimmed ground",
+   "building": "Field",
+   "tier": 2,
+   "skill": "Biology",
+   "min": 15,
+   "hours": 50,
+   "days": 120,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 10,
+     "rarity": 2,
+     "items": [
+      "Skimmed-field crops"
+     ]
+    },
+    {
+     "type": "Seeds",
+     "tier": 2,
+     "count": 1,
+     "items": [
+      "Saved seed"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Seeds",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "the top 5 cm of an unploughed field carted off once (the pile a hot spot): the crop takes up a tenth to a fifth of the caesium; NEVER on a hot spot (radiation everywhere there: the GM's word)",
+   "harvest": true
+  },
+  {
    "id": "brine-and-soak",
    "name": "Brine and soak",
    "building": "Kitchen",

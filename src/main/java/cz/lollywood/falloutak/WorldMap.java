@@ -37,16 +37,19 @@ final class WorldMap {
 
     /**
      * A kind of danger. {@code sneak} = a typical member's Sneak (the group's worst is lower: {@link Travel#worstSneak}), {@code stealth} = the share of its hostile meetings in
-     * which it does (a raider ambush, a hunting predator), {@code loud} = how much easier it is to see and hear when it does not (a
+     * which it does (a raider ambush, a hunting predator), {@code notice} = its senses, its own check against the party (09d round 6:
+     * an older export without it notices always), {@code loud} = how much easier it is to see and hear when it does not (a
      * caravan's carts, an engine, a herd) (09d round 5, Marek 11-24: *"the check should go counter to enemy stealth check, if the enemy
      * is trying for stealth. Without stealth, it should instead check how much visible and audible the target is."*) [every number of the
      * export's mine, EXAMPLE].
      */
     record Kind(String key, String name, double day, double night, double hostile, double[] season, String peace, double group,
-                double range, double hp, int party, int sneak, double stealth, int loud) {
+                double range, double hp, int party, int sneak, double stealth, int loud, int notice) {
         Kind(String key, String name, double day, double night, double hostile, double[] season, String peace, double group, double range, double hp, int party) {
-            this(key, name, day, night, hostile, season, peace, group, range, hp, party, 0, 0, 0);
+            this(key, name, day, night, hostile, season, peace, group, range, hp, party, 0, 0, 0, 100);
         }
+        /** The people (09d round 6: they never attack first without a feud); the creatures' peaceful meeting is a sight. */
+        boolean people() { return !peace.equals("sight"); }
     }
 
     /** A base or a lair; a base can be cleared (the players or a group took it). The weekly tick ({@link Tick}) moves, grows, splits and
@@ -158,7 +161,8 @@ final class WorldMap {
                     k.get("hostile").getAsDouble(), new double[]{s.get(0).getAsDouble(), s.get(1).getAsDouble(), s.get(2).getAsDouble(), s.get(3).getAsDouble()},
                     k.get("peace").getAsString(), k.has("group") ? k.get("group").getAsDouble() : 1, k.has("range") ? k.get("range").getAsDouble() : 0,
                     k.has("hp") ? k.get("hp").getAsDouble() : 30, k.has("party") ? k.get("party").getAsInt() : 1,
-                    k.has("sneak") ? k.get("sneak").getAsInt() : 0, k.has("stealth") ? k.get("stealth").getAsDouble() : 0, k.has("loud") ? k.get("loud").getAsInt() : 0));
+                    k.has("sneak") ? k.get("sneak").getAsInt() : 0, k.has("stealth") ? k.get("stealth").getAsDouble() : 0, k.has("loud") ? k.get("loud").getAsInt() : 0,
+                    k.has("notice") ? k.get("notice").getAsInt() : 100));
         }
         for (JsonElement e : o.getAsJsonArray("bases")) {
             JsonObject b = e.getAsJsonObject();

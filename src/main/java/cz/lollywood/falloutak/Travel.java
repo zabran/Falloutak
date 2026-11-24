@@ -17,6 +17,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static cz.lollywood.falloutak.Menus.btn;
 import static cz.lollywood.falloutak.Menus.line;
@@ -63,14 +65,31 @@ final class Travel {
     /** One meeting of the scene: what, whether it was seen in time, whether the party hunts it (a sight). */
     static final class Met {
         final WorldMap.Encounter e;
-        final boolean seen;
+        /** Seen in time to ambush or talk (the plain check); {@code glimpsed} = seen well enough only to go round (Survival +30, 09d round 6). */
+        final boolean seen, glimpsed;
         boolean hunt;
         /** Its spotting check's difficulty (the go-round pays it), and whether it was sneaking (09d round 5). */
         int difficulty;
         boolean sneaking;
-        Met(WorldMap.Encounter e, boolean seen) { this.e = e; this.seen = seen; }
+        Met(WorldMap.Encounter e, boolean seen) { this(e, seen, seen); }
+        Met(WorldMap.Encounter e, boolean seen, boolean glimpsed) { this.e = e; this.seen = seen; this.glimpsed = seen || glimpsed; }
         boolean hostile() { return e.type().equals("fight"); }
     }
+
+    /**
+     * Going round needs less than an ambush (09d round 6, Marek 11-24: *"avoid on world map should be easier than ambush. So consider
+     * +30% bonus to Survival for simple avoid as opposed to ambush."*): the same roll, the go-round's threshold Survival +30 (at most 95).
+     */
+    static final int AVOID_BONUS = 30;
+    /** The party's noise beyond its size (a vehicle, a cart: none yet) [mine]. */
+    static final int PARTY_LOUD = 0;
+    /**
+     * THE FEUDS (09d round 6, Marek 11-24: *"They only attack first if it is monster or an enemy already shoots them on sight."*): the
+     * people the party struck first (an ambush, a blow in a talk) shoot it on sight; the rest ask a toll first ({@link #tollFirst}).
+     */
+    static final Set<String> feuds = new TreeSet<>();
+    /** The kind the party is talking to on the battle map (a blow in the talk starts a feud with it). */
+    static String talkKind = "";
 
     /** The scene that stopped the journey (every meeting of that window), the terrain where they met, and where they were going. */
     static final List<Met> scene = new ArrayList<>();
@@ -100,7 +119,7 @@ final class Travel {
     static void load(Path dataFolder) {
         file = dataFolder.resolve("travel.json");
         map = WorldMap.load(dataFolder.resolve("worldmap.json"));
-        pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); dest = ""; cleared.clear();
+        pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); dest = ""; cleared.clear(); feuds.clear();
         tickFile = dataFolder.resolve("worldmap-state.json");
         tick = map != null && map.tick != null ? Tick.load(map, tickFile, new Random()) : null;
         tickDay = Integer.MIN_VALUE;
@@ -110,6 +129,7 @@ final class Travel {
                 pi = o.get("i").getAsDouble(); pj = o.get("j").getAsDouble(); season = o.get("season").getAsInt();
                 marched = o.get("marched").getAsDouble(); marchDay = o.get("marchDay").getAsInt();
                 if (o.has("cleared")) o.getAsJsonArray("cleared").forEach(e -> cleared.add(e.getAsInt()));
+                if (o.has("feuds")) o.getAsJsonArray("feuds").forEach(e -> feuds.add(e.getAsString()));
                 if (o.has("tickDay")) tickDay = o.get("tickDay").getAsInt();
             } catch (IOException | RuntimeException e) { /* a broken file: start again at the start */ }
         }
@@ -118,7 +138,7 @@ final class Travel {
     }
 
     static void use(WorldMap m) {
-        map = m; pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); cleared.clear();
+        map = m; pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); cleared.clear(); feuds.clear();
         tick = m != null && m.tick != null ? new Tick(m, new Random(1)) : null; tickFile = null; tickDay = Integer.MIN_VALUE;
         start();
     }
@@ -152,6 +172,7 @@ final class Travel {
         o.addProperty("marchDay", marchDay);
         o.addProperty("tickDay", tickDay);
         o.add("cleared", new Gson().toJsonTree(cleared));
+        o.add("feuds", new Gson().toJsonTree(feuds));
         try { Files.createDirectories(file.getParent()); Files.writeString(file, o.toString(), StandardCharsets.UTF_8); }
         catch (IOException e) { /* the next save tries again */ }
     }
@@ -214,6 +235,18 @@ final class Travel {
         return -Math.min(30, 5 * Math.max(0, count - 4)) - k.loud();
     }
 
+    /**
+     * The party's own term against the enemy's senses (09d round 6, *"Should a party's own size and noise make it easier to spot?" - yes,
+     * definitely*): −5 a head over four (at most −30) and its noise [mine, EXAMPLE].
+     */
+    static int partyTerm(int size) { return -Math.min(30, 5 * Math.max(0, size - 4)) - PARTY_LOUD; }
+
+    /** THE TOLL FIRST (09d round 6): people never attack first unless the party struck them first; their fight is their peaceful meeting. */
+    static WorldMap.Encounter tollFirst(WorldMap.Encounter e) {
+        if (e == null || !e.type().equals("fight") || !e.kind().people() || feuds.contains(e.kind().key())) return e;
+        return new WorldMap.Encounter(e.kind(), e.kind().peace(), e.count());
+    }
+
     /** The clumsiest of a group: the kind's Sneak less 3 a head beyond the first, at most 15 less [mine, EXAMPLE]. */
     static int worstSneak(int sneak, int count) { return Math.max(0, sneak - Math.min(15, 3 * Math.max(0, count - 1))); }
 
@@ -256,7 +289,7 @@ final class Travel {
     static List<WorldMap.Encounter> drawAll(List<WorldMap.Row> rows, int n, Random rnd) {
         List<WorldMap.Encounter> l = new ArrayList<>();
         for (int k = 0; k < n; k++) {
-            WorldMap.Encounter e = WorldMap.draw(rows, rnd);
+            WorldMap.Encounter e = tollFirst(WorldMap.draw(rows, rnd));
             if (e == null) continue;
             boolean merged = false;
             for (int m = 0; m < l.size() && !merged; m++) {
@@ -346,22 +379,33 @@ final class Travel {
             sceneTerrain = map.terrainAt(c0[0], c0[1]);
             dayWeather(lead.day(), rnd);
             int cond = conditions(sceneTerrain, lead.hourOfDay(), weather);
-            double scout = Math.min(95, best(cs, "Survival"));
+            double scout = Math.min(95, best(cs, "Survival")), avoid = Math.min(95, best(cs, "Survival") + AVOID_BONUS);
             scene.clear();
             sceneDifficulty = cond;
+            List<String> passed = new ArrayList<>();
             for (WorldMap.Encounter e : wk.encs()) {
                 boolean fight = e.type().equals("fight");
                 boolean sneaking = fight && rnd.nextDouble() < e.kind().stealth();
                 int diff = cond + targetTerm(e.kind(), e.count(), sneaking);
-                Met m = new Met(e, !fight || rnd.nextInt(100) < scout - diff);
+                int roll = fight ? rnd.nextInt(100) : 0;
+                boolean seen = !fight || roll < scout - diff, glimpsed = !fight || roll < avoid - diff;
+                // the enemy's own check (09d round 6): a sneaking group stalks the party already; one in the open by its senses against
+                // the conditions and the party's size and noise; nobody seeing anybody = they pass each other by
+                if (!glimpsed && !sneaking && rnd.nextInt(100) >= Math.min(95, e.kind().notice()) - (cond + partyTerm(cs.size()))) {
+                    passed.add(e.text());
+                    continue;
+                }
+                Met m = new Met(e, seen, glimpsed);
                 m.difficulty = diff;
                 m.sneaking = sneaking;
                 scene.add(m);
                 if (fight) sceneDifficulty = Math.max(sceneDifficulty, diff);
             }
-            out.append("\n").append(sceneText());
+            if (!passed.isEmpty()) out.append("\n").append("Unseen, and they did not notice you either: you passed each other by (").append(String.join("; ", passed)).append(").");
+            if (!scene.isEmpty()) out.append("\n").append(sceneText());
             List<String> gm = new ArrayList<>();
-            for (Met m : scene) gm.add(m.e.kind().key() + " (" + m.e.type() + ", " + m.e.count() + (m.hostile() ? (m.seen ? ", spotted" : ", AMBUSH") : "") + ")");
+            for (Met m : scene) gm.add(m.e.kind().key() + " (" + m.e.type() + ", " + m.e.count() + (m.hostile() ? (m.seen ? ", spotted" : m.glimpsed ? ", glimpsed" : ", AMBUSH") : "") + ")");
+            for (String x : passed) gm.add(x + " (passed by)");
             tellGm("travel: " + String.join(" + ", gm) + " near " + where() + "; the area's table: /travel table");
         } else out.append(" ").append(switch (wk.why()) {
             case "arrived" -> "Arrived.";
@@ -377,8 +421,12 @@ final class Travel {
 
     // ------------------------------------------------------------------ the scene
     static boolean anyHostile() { for (Met m : scene) if (m.hostile()) return true; return false; }
-    /** A hostile group nobody saw in time: they attack first. */
-    static boolean ambushed() { for (Met m : scene) if (m.hostile() && !m.seen) return true; return false; }
+    /** A hostile group nobody saw even well enough to go round: they attack first. */
+    static boolean ambushed() { for (Met m : scene) if (m.hostile() && !m.glimpsed) return true; return false; }
+    /** Every hostile group seen in time to ambush or talk to. */
+    static boolean allSeen() { for (Met m : scene) if (m.hostile() && !m.seen) return false; return true; }
+    /** A hostile group seen only well enough to go round (09d round 6). */
+    static boolean glimpsedOnly() { for (Met m : scene) if (m.hostile() && m.glimpsed && !m.seen) return true; return false; }
     static boolean anyHunted() { for (Met m : scene) if (m.hunt && !m.hostile()) return true; return false; }
 
     static String sceneShort() {
@@ -390,10 +438,12 @@ final class Travel {
     static String sceneText() {
         List<String> l = new ArrayList<>();
         for (Met m : scene)
-            l.add((m.hostile() ? (m.seen ? "SPOTTED IN TIME: " : "AMBUSH! ") : m.hunt ? "HUNTED: " : "ENCOUNTER: ") + m.e.text()
+            l.add((m.hostile() ? (m.seen ? "SPOTTED IN TIME: " : m.glimpsed ? "GLIMPSED (only to go round): " : "AMBUSH! ") : m.hunt ? "HUNTED: " : "ENCOUNTER: ") + m.e.text()
                     + (m.hostile() ? " (" + (m.sneaking ? "sneaking" : "in the open") + ", the spotting's difficulty " + m.difficulty + ")" : "") + ".");
         if (anyHostile()) l.add("The weather: " + weather + "; the ground: " + sceneTerrain + ".");
         if (ambushed()) l.add("They act first: to the battle map (" + sceneTerrain + ").");
+        else if (anyHostile() && !allSeen()) l.add("Go round them (Survival +" + AVOID_BONUS + "; each group's check pays its difficulty, at least 10: " + goRoundXp()
+                + " XP), or face them (seen too late to take position: they act first).");
         else if (anyHostile()) l.add("Go round them (each group's Survival check pays its difficulty, at least 10: " + goRoundXp() + " XP), talk to them on the battle map "
                 + "(you saw them first: a bonus), or ambush them (on the battle map, you act first).");
         for (Met m : scene) if (m.e.type().equals("sight")) { l.add("A sight can be hunted (the menu)."); break; }
@@ -453,15 +503,21 @@ final class Travel {
     /** The same with the talk on the battle map (09d round 4): {@code talk} with the group of {@code talkKey}. */
     static String battleMap(FalloutakPlugin pl, Player p, Arena.Mode mode, Battle.Talk talk, String talkKey) {
         if (scene.isEmpty()) return "! no encounter waits";
-        if ((mode == Arena.Mode.AMBUSH || mode == Arena.Mode.TALK) && (!anyHostile() || ambushed())) return "! nothing hostile seen in time to ambush or talk to";
+        if ((mode == Arena.Mode.AMBUSH || mode == Arena.Mode.TALK) && (!anyHostile() || ambushed() || !allSeen()))
+            return "! nothing hostile seen in time to ambush or talk to" + (glimpsedOnly() ? " (only glimpsed: go round them, or face them and they act first)" : "");
         if (mode == Arena.Mode.HUNT && (anyHostile() || !anyHunted())) return anyHostile() ? "! the hostile ones first (go round them or ambush them; the hunted join an ambush)" : "! mark what you hunt first";
-        if (mode == Arena.Mode.AMBUSHED && !ambushed()) return "! nobody ambushed you";
+        if (mode == Arena.Mode.AMBUSHED && !ambushed() && !glimpsedOnly()) return "! nobody ambushed you";
         List<Arena.Group> g = groups(mode != Arena.Mode.AMBUSHED);
         if (g.isEmpty()) return "! nobody to fight";
         WorldMap.OnUnique on = map.unique(pi, pj);
         String r = Arena.fight(pl, party(p), sceneTerrain, g, mode, pl.rnd.nextLong(), Travel::afterFight, talk, talkKey, on, years());
         if (!r.startsWith("!")) tellGm("travel: " + mode.name().toLowerCase(Locale.ROOT) + (on != null ? " on the unique map " + on.u().name() + " (" + on.x() + ", " + on.z() + ")"
                 : " on the " + sceneTerrain + " battle map") + ": " + sceneShort());
+        if (!r.startsWith("!")) {
+            talkKind = mode == Arena.Mode.TALK ? talkKey : "";
+            if (mode == Arena.Mode.AMBUSH) for (Met m : scene) if (m.hostile() && m.e.kind().people()) feuds.add(m.e.kind().key());   // they were struck first
+            save();
+        }
         return r;
     }
 
@@ -469,6 +525,13 @@ final class Travel {
     static double years() {
         if (tick != null) return tick.years();
         return map != null && map.tick != null ? map.tick.startYear : 2;
+    }
+
+    /** The party struck in the middle of a talk: a feud with that kind (09d round 6). */
+    static void struckFirst() {
+        if (talkKind.isEmpty()) return;
+        feuds.add(talkKind);
+        save();
     }
 
     /** The GM makes the talk go wrong NOW (09d round 5, Marek: *"give there option for GM to trigger the enemy attack first"*). */
@@ -564,7 +627,7 @@ final class Travel {
                 return go(pl, p, String.join(" ", java.util.Arrays.copyOfRange(a, 1, a.length)), arg.equals("push"), pl.rnd);
             }
             case "round" -> { return goRound(pl, p); }
-            case "ambush" -> { return battleMap(pl, p, ambushed() ? Arena.Mode.AMBUSHED : Arena.Mode.AMBUSH); }
+            case "ambush" -> { return battleMap(pl, p, ambushed() || !allSeen() ? Arena.Mode.AMBUSHED : Arena.Mode.AMBUSH); }
             case "hunt" -> {
                 for (Met m : scene) if (m.e.type().equals("sight")) m.hunt = true;
                 return anyHostile() ? "The sights are hunted: they join an ambush." : battleMap(pl, p, Arena.Mode.HUNT);
@@ -578,6 +641,15 @@ final class Travel {
         switch (arg) {
             case "table" -> { return String.join("\n", table()); }
             case "attack" -> { return gmAttack(pl); }
+            case "feud" -> {
+                if (a.length > 1 && a[1].equalsIgnoreCase("clear")) {
+                    if (a.length > 2) feuds.remove(a[2]); else feuds.clear();
+                    save();
+                    return "Feuds: " + (feuds.isEmpty() ? "none" : String.join(", ", feuds));
+                }
+                if (a.length > 1 && map != null && map.kinds.containsKey(a[1])) { feuds.add(a[1]); save(); }
+                return "Feuds (they shoot on sight): " + (feuds.isEmpty() ? "none" : String.join(", ", feuds)) + " · /travel feud <kind> | clear [kind]";
+            }
             case "weather" -> {
                 if (a.length < 2) return "The weather: " + weather + (weatherSet ? " (set by the GM)" : " (drawn each day)");
                 String w = String.join(" ", java.util.Arrays.copyOfRange(a, 1, a.length)).toLowerCase(Locale.ROOT);
@@ -603,7 +675,7 @@ final class Travel {
                 if (tickFile != null) tick.save(tickFile);
                 return tick.summary();
             }
-            default -> { return "/travel [where|to|push|round|ambush|hunt|on|map|depots] · GM: table|season <s>|weather <w>|attack|here <place>|clear [km]|hold [km]|tick [weeks]"; }
+            default -> { return "/travel [where|to|push|round|ambush|hunt|on|map|depots] · GM: table|season <s>|weather <w>|attack|feud [kind|clear]|here <place>|clear [km]|hold [km]|tick [weeks]"; }
         }
     }
 
@@ -640,9 +712,13 @@ final class Travel {
         if (!scene.isEmpty()) {
             lines.add(line("On the " + sceneTerrain + ":", NamedTextColor.GRAY));
             for (Met m : scene)
-                lines.add(line((m.hostile() ? (m.seen ? "Spotted in time: " : "AMBUSH: ") : m.hunt ? "Hunted: " : "Encounter: ") + m.e.text(),
+                lines.add(line((m.hostile() ? (m.seen ? "Spotted in time: " : m.glimpsed ? "Glimpsed (only to go round): " : "AMBUSH: ") : m.hunt ? "Hunted: " : "Encounter: ") + m.e.text(),
                         m.hostile() ? NamedTextColor.RED : m.hunt ? NamedTextColor.GOLD : NamedTextColor.YELLOW));
             if (ambushed()) b.add(btn("To the battle map: they act first", "an ambush on you (" + sceneTerrain + "): every hostile group of the scene", x -> { say(x, battleMap(pl, x, Arena.Mode.AMBUSHED)); }));
+            else if (anyHostile() && !allSeen()) {
+                b.add(btn("Go round them", "Survival +" + AVOID_BONUS + " (09d round 6): only the Survival check's XP, to your scout (06b §3)", x -> { say(x, goRound(pl, x)); menu(pl, x); }));
+                b.add(btn("Face them: they act first", "seen too late to take position (" + sceneTerrain + ")", x -> { say(x, battleMap(pl, x, Arena.Mode.AMBUSHED)); }));
+            }
             else if (anyHostile()) {
                 b.add(btn("Go round them", "unseen: only the Survival check's XP, to your scout (06b §3)", x -> { say(x, goRound(pl, x)); menu(pl, x); }));
                 for (Met m : scene) if (m.hostile() && Talks.talks(m.e.kind()))

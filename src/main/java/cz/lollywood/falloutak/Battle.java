@@ -1892,6 +1892,7 @@ public final class Battle implements Listener {
         if (k == null) return;
         for (Target t : f.targets.values()) if (t.talking) { t.talking = false; t.surprised = true; }
         f.talk = null;
+        Travel.struckFirst();   // 09d round 6: struck first, they shoot on sight from now on
         tell(f, p.getName() + " strikes in the middle of the talk: " + k.who + " are caught off guard (+" + TALK_SURPRISE + " to hit them for the rest of "
                 + "your turn).", NamedTextColor.GOLD);
     }
@@ -1916,14 +1917,14 @@ public final class Battle implements Listener {
     }
 
     /**
-     * ANOTHER DANGER FALLS ON THE MAP DURING THE TALK (09d round 5): a talk going well (its check passed) makes the talkers ALLIES OF
+     * ANOTHER DANGER FALLS ON THE MAP DURING THE TALK (09d rounds 5-6): while nobody shoots yet (the talk still on, whatever its check;
+     * Marek 11-24: *"if they do not yet shoot each other, common enemy will make them into allies"*) the talkers become ALLIES OF
      * CONVENIENCE: they turn on the newcomers, never on the party, and the talk counts as resolved without killing (their full kill XP,
-     * once); a talk going wrong is cut short and they stay hostile. {@code attacker} = the newcomers' group.
+     * once). A talk that went wrong is over already (they shoot). {@code attacker} = the newcomers' group.
      */
     void allies(Fight f, int attacker) {
         Talk k = f.talk;
         if (k == null) return;
-        if (k.failAt > 0) { endTalk(f); tell(f, "Another danger falls on the map: the talk with " + k.who + " is cut short.", NamedTextColor.RED); return; }
         List<Double> hps = new ArrayList<>();
         int g = -1;
         for (var en : f.targets.entrySet()) {
@@ -1942,7 +1943,7 @@ public final class Battle implements Listener {
         List<Player> team = new ArrayList<>();
         for (UUID u : f.members) { Player q = pl.getServer().getPlayer(u); if (q != null) team.add(q); }
         String r = pl.roster != null && !team.isEmpty() && !hps.isEmpty() ? pl.roster.killAward(team, hps, "allies of convenience on the battle map") : "";
-        tell(f, "ALLIES OF CONVENIENCE: another danger falls on the map, and " + k.who + " (" + k.speakerName + " talked them round) turn their weapons on it. "
+        tell(f, "ALLIES OF CONVENIENCE: another danger falls on the map, and " + k.who + " (still talking with " + k.speakerName + ") turn their weapons on it. "
                 + "Resolved without killing: their full kill XP. " + r, NamedTextColor.GREEN);
     }
 

@@ -206,7 +206,7 @@ class EncounterRoundThreeTest extends MockGame {
         Travel.battleMap(plugin, a, Arena.Mode.AMBUSH);
         Battle.Fight f = plugin.battle.fightOf(a);
         UUID raider = null, boar = null;
-        for (UUID u : f.dummies) if (f.targets.get(u).melee) boar = u; else raider = u;
+        for (UUID u : f.dummies) if (f.targets.get(u).foe.equals("boar")) boar = u; else raider = u;   // a raider may fight in melee too
         assertNotNull(raider); assertNotNull(boar);
         assertNotEquals(f.targets.get(raider).group, f.targets.get(boar).group);
         // the boar right next to the raider, both far from the player: each goes for the other

@@ -57,8 +57,8 @@ class EncounterRoundFiveTest extends MockGame {
         assertEquals(45, Travel.conditions("town", 5.5, "snow"));
         // sneaking: their stealth check, THE WORST SNEAK IN THE GROUP IN FULL (Marek 11-24, round 6); in the open: how visible and
         // audible they are
-        assertEquals(65, Travel.targetTerm(Travel.map.kinds.get("creature:wolves"), 6, true), "80 less 3 a head beyond the first, at most 15");
-        assertEquals(80, Travel.targetTerm(Travel.map.kinds.get("creature:wolves"), 1, true), "alone: his own Sneak");
+        assertEquals(45, Travel.targetTerm(Travel.map.kinds.get("creature:wolves"), 6, true), "60 (round 6: coursing hunters) less 3 a head beyond the first, at most 15");
+        assertEquals(60, Travel.targetTerm(Travel.map.kinds.get("creature:wolves"), 1, true), "alone: his own Sneak");
         assertEquals(74, Travel.worstSneak(80, 3));
         assertEquals(-20, Travel.targetTerm(Travel.map.kinds.get("raiders:pond"), 8, false), "eight of them: four over four, -5 each");
         assertEquals(-30, Travel.targetTerm(Travel.map.kinds.get("raiders:pond"), 20, false), "at most -30");
@@ -144,7 +144,7 @@ class EncounterRoundFiveTest extends MockGame {
     }
 
     @Test
-    void aTalkGoingWrongIsOnlyCutShortAndAnAttackedAllyTurnsAgain() {
+    void anUndecidedTalkMakesAlliesAndAnAttackedAllyTurnsAgain() {
         PlayerMock a = player();
         Travel.Met m = scene("raiders:pond", "fight", 2, true);
         scene("creature:boar", "fight", 1, true);
@@ -153,11 +153,14 @@ class EncounterRoundFiveTest extends MockGame {
         Battle.Fight f = plugin.battle.fightOf(a);
         int raiderGroup = -1, boarGroup = -1;
         for (Battle.Target t : f.targets.values()) if (t.talking) raiderGroup = t.group; else boarGroup = t.group;
+        // 09d round 6 (Marek: *"if they do not yet shoot each other, common enemy will make them into allies"*): the check failed, but
+        // nobody shoots yet, so the common enemy makes them allies all the same
         plugin.battle.allies(f, boarGroup);
         assertNull(f.talk);
-        for (Battle.Target t : f.targets.values()) assertFalse(t.ally, "a talk going wrong makes no allies");
+        int allies = 0;
+        for (Battle.Target t : f.targets.values()) if (t.group == raiderGroup) { assertTrue(t.ally, "an undecided talk makes allies"); allies++; }
+        assertEquals(2, allies);
         // an ally attacked: the whole group is hostile again
-        for (Battle.Target t : f.targets.values()) if (t.group == raiderGroup) t.ally = true;
         plugin.battle.betray(f, raiderGroup, a);
         for (Battle.Target t : f.targets.values()) assertFalse(t.ally);
         plugin.battle.stop(a);
