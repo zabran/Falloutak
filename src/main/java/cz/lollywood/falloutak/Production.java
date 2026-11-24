@@ -1346,11 +1346,11 @@ final class Production {
         sb.append(r == null ? "no job" : r.name + (b.job.runs == 0 ? " (until stopped" : " (" + b.job.done + " of " + b.job.runs) + ", this run "
                 + Math.round(100 * Math.min(1, b.job.work / Math.max(0.01, r.hours))) + " %)");
         sb.append(" · crew ").append(b.crew.size()).append(b.site ? "" : "/" + b.slots());
-        if (upkeep(b) > 0) sb.append(" · upkeep ").append(SheetGui.f(b.upkeepDone)).append("/").append(SheetGui.f(upkeep(b))).append(" h this week")
+        if (upkeep(b) > 0) sb.append(" · upkeep ").append(Txt.f(b.upkeepDone)).append("/").append(Txt.f(upkeep(b))).append(" h this week")
                 .append(b.noTool ? " (WAITS: it needs " + UPKEEP_TOOL + " of Tier " + Rules.roman(b.tier) + " or better)" : "");
         if (b.condition < 100) sb.append(" · condition ").append(pct(b.condition)).append(" %")
                 .append(efficiency(b) < 1 ? " (works at " + Math.round(100 * efficiency(b)) + " %)" : "")
-                .append(", repair ").append(SheetGui.f(repairHours(b))).append(" crew h");
+                .append(", repair ").append(Txt.f(repairHours(b))).append(" crew h");
         if (b.job != null && !b.job.waiting.isEmpty()) sb.append(" · WAITS: ").append(b.job.waiting);
         return sb.toString();
     }
@@ -1367,24 +1367,13 @@ final class Production {
     static Production load(Path dataFolder) {
         Path f = dataFolder == null ? null : dataFolder.resolve("production.json");
         Production p = null;
-        if (f != null && Files.isRegularFile(f)) {
-            try { p = Store.GSON.fromJson(Files.readString(f, StandardCharsets.UTF_8), Production.class); }
-            catch (Exception e) {
-                try { Files.move(f, f.resolveSibling("production.bad-" + System.currentTimeMillis() + ".json")); } catch (IOException ignored) { }
-            }
-        }
+        if (f != null) p = Store.read(f, Production.class);
         if (p == null) p = new Production();
         p.file = f;
         return p;
     }
 
     void save() {
-        if (file == null) return;
-        try {
-            Files.createDirectories(file.getParent());
-            Path tmp = file.resolveSibling("production.json.tmp");
-            Files.writeString(tmp, Store.GSON.toJson(this), StandardCharsets.UTF_8);
-            Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } catch (IOException ignored) { }
+        Store.save(file, this);
     }
 }

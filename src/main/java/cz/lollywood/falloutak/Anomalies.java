@@ -263,7 +263,7 @@ final class Anomalies {
             case "cold" -> {
                 double add = 10 * (1 - Math.max(0, Math.min(100, c.resistances()[5])) / 100);
                 c.survival.put(Rules.Stat.HYPOTHERMIA, Math.min(c.max(Rules.Stat.HYPOTHERMIA), c.survival.getOrDefault(Rules.Stat.HYPOTHERMIA, 0.0) + add));
-                return "the cold: Hypothermia +" + SheetGui.f(add) + "; bare hands on metal: Pain 5 and the weapon sticks (a Strength check to let go)";
+                return "the cold: Hypothermia +" + Txt.f(add) + "; bare hands on metal: Pain 5 and the weapon sticks (a Strength check to let go)";
             }
             case "echo" -> {
                 if (c.deaf()) return "the echo: deaf, you hear none of it";
@@ -703,7 +703,7 @@ final class Anomalies {
         rainEnd = pl.zones.round + Math.max(1, rounds);
         Battle.cosmetic(() -> { w.setStorm(true); w.setThundering(true); });
         for (Player p : w.getPlayers()) p.sendMessage(Component.text("THE BLACK RAIN. Out under the sky it burns and it is hot: get under a roof.", NamedTextColor.DARK_RED));
-        return "The Black Rain falls on " + w.getName() + " for " + rounds + " rounds: out in it each round +" + SheetGui.f(RAIN_RADS)
+        return "The Black Rain falls on " + w.getName() + " for " + rounds + " rounds: out in it each round +" + Txt.f(RAIN_RADS)
                 + " rads (before resistance) and the acid's d4; a roof or the hazard suit keeps it off.";
     }
 
@@ -784,6 +784,6 @@ final class Anomalies {
         if (c.wearing.contains("Hazard suit")) return "the Black Rain runs off your hazard suit";
         double res = Math.max(0, Math.min(100, c.resistances()[1])) / 100, rads = RAIN_RADS * (1 - res);
         c.survival.put(Rules.Stat.RADS, Math.min(2000, c.survival.getOrDefault(Rules.Stat.RADS, 0.0) + rads));
-        return "THE BLACK RAIN: rads +" + SheetGui.f(rads) + ", the acid " + Hud.hit(c, dice(rnd, 1, 4), "") + " (a roof, the hazard suit)";
+        return "THE BLACK RAIN: rads +" + Txt.f(rads) + ", the acid " + Hud.hit(c, dice(rnd, 1, 4), "") + " (a roof, the hazard suit)";
     }
 }

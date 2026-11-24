@@ -7,8 +7,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -286,9 +284,8 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         Character c = character(p);
         String a = args.length > 0 ? args[0].toLowerCase(Locale.ROOT) : "";
         switch (a) {
-            case "" -> SheetView.open(p, c, SheetGui.Page.OVERVIEW);
+            case "" -> SheetView.open(p, c, SheetView.Page.OVERVIEW);
             case "actions", "a" -> Menus.actions(p);
-            case "icons" -> SheetGui.open(p, c, SheetGui.Page.OVERVIEW);   // the 0.1 chest screen, for comparison
             case "create" -> {
                 Character draft = Character.sample(p.getName());
                 draft.name = p.getName();
@@ -305,7 +302,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
             case "repair" -> p.sendMessage(Component.text(battle.repair(p, c), NamedTextColor.GREEN));
             case "legs" -> {
                 c.brokenLegs = Math.max(0, Math.min(2, args.length > 1 ? Integer.parseInt(args[1]) : 0));
-                p.sendMessage(Component.text("broken legs: " + c.brokenLegs + " (movement " + SheetGui.f(Rules.stepAp(0, c.brokenLegs, c.has("Brittle Bones")))
+                p.sendMessage(Component.text("broken legs: " + c.brokenLegs + " (movement " + Txt.f(Rules.stepAp(0, c.brokenLegs, c.has("Brittle Bones")))
                         + " AP a block standing)", NamedTextColor.YELLOW));
             }
             case "battle" -> { if (battle.inBattle(p)) battle.stop(p); else battle.start(p, c); }
@@ -332,10 +329,10 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
                 p.sendMessage(Component.text("The sample character is back.", NamedTextColor.GREEN));
             }
             default -> {
-                for (SheetGui.Page pg : SheetGui.Page.values())
+                for (SheetView.Page pg : SheetView.Page.values())
                     if (pg.name().toLowerCase(Locale.ROOT).startsWith(a)) { SheetView.open(p, c, pg); return true; }
                 p.sendMessage(Component.text("The Pip-Boy (right click) opens your actions; right-click someone to act on him; the GM: /gm. "
-                        + "/sheet [overview|skills|weapons|traits|body|survival|combat|achievements] · actions · icons · create · spend · hud · demo · hit <n> [crit|stab] · firstaid · repair · legs <0-2> · battle · reset"
+                        + "/sheet [overview|skills|weapons|traits|body|survival|combat|achievements] · actions · create · spend · hud · demo · hit <n> [crit|stab] · firstaid · repair · legs <0-2> · battle · reset"
                         + " · implant · surgery · revive · dose · wait <hours> · mutate <rads> · limb", NamedTextColor.GRAY));
             }
         }
@@ -398,7 +395,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         if (id == null) return;
         e.setCancelled(true);   // no bottle filling, no placing
         Player p = e.getPlayer();
-        if (id.equals("pipboy")) { if (p.isSneaking()) SheetView.open(p, character(p), SheetGui.Page.OVERVIEW); else Menus.actions(p); }
+        if (id.equals("pipboy")) { if (p.isSneaking()) SheetView.open(p, character(p), SheetView.Page.OVERVIEW); else Menus.actions(p); }
         else if (id.startsWith("chem:")) {
             Character c = character(p);
             if (c.dead || c.inArrest()) return;
@@ -421,23 +418,5 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         var held = e.getPlayer().getInventory().getItemInMainHand();
         if (!held.getType().isAir() && !"pipboy".equals(Items.id(held))) return;
         Menus.on(e.getPlayer(), w);
-    }
-
-    @EventHandler
-    public void onClick(InventoryClickEvent e) {
-        if (!(e.getView().getTopInventory().getHolder() instanceof SheetGui g)) return;
-        e.setCancelled(true);
-        if (!(e.getWhoClicked() instanceof Player p) || e.getClickedInventory() != e.getView().getTopInventory()) return;
-        int slot = e.getSlot();
-        if (slot >= 45 && slot < 45 + SheetGui.Page.values().length) SheetGui.open(p, g.c, SheetGui.Page.values()[slot - 45]);
-        else if (slot == 53) p.closeInventory();
-        else if (g.page == SheetGui.Page.SKILLS && slot == SheetGui.SPEND_SLOT) { p.closeInventory(); Forms.spend(p, this, g.c); }
-        else if (g.page == SheetGui.Page.TRAITS && slot >= 9) p.sendMessage(Component.text(
-                "At a perk level the perks you qualify for are picked here, then confirmed (no perk level now).", NamedTextColor.GRAY));
-    }
-
-    @EventHandler
-    public void onDrag(InventoryDragEvent e) {
-        if (e.getView().getTopInventory().getHolder() instanceof SheetGui) e.setCancelled(true);
     }
 }

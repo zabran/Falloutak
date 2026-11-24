@@ -11,7 +11,7 @@ import java.util.StringJoiner;
 /**
  * Part 4b §3c, the conditions with their own clocks (RULED rounds 7-10), and the exposures §5 left over (Marek 11-24, verbatim:
  * *"Please, complete the illnesses and then continue with the next item."*): scurvy by the shelter's days, trench foot by the hour,
- * scabies by contact, tuberculosis's latent years, and the tick bites of a march through fields and forest. Each condition is one
+ * scabies by contact and tuberculosis's latent years. Each condition is one
  * effect in its own slot ({@code condition:<name>}), set when its stage changes.
  */
 final class Conditions {
@@ -186,27 +186,6 @@ final class Conditions {
         return null;
     }
 
-    // ------------------------------------------------------------------ ticks on the world map (04b §5)
-    /** A tick bite in a day's march (8 h) through fields or forest, spring to autumn [mine, EXAMPLE]. */
-    static final double TICK_DAY = 0.2;
-
-    /**
-     * The tick bites of hours marched through fields or forest (not in winter): a bite rolls tick-borne encephalitis (2 % of ticks
-     * carry it, a third of the infected fall ill) and Lyme disease (1 % taken off within the day by the daily tick check, 3 % left on).
-     */
-    static String ticks(Character c, double wildHours, int season, Random rnd) {
-        if (c.dead || wildHours <= 0 || season == 0) return null;
-        double p = 1 - Math.pow(1 - TICK_DAY, wildHours / 8);
-        if (rnd.nextDouble() >= p) return null;
-        StringJoiner j = new StringJoiner("; ");
-        j.add("a tick bite" + (c.tickCheck ? " (found at the evening's check)" : " (no tick check: left on over a day)"));
-        String tbe = Diseases.expose(c, "Tick-borne encephalitis", 2.0 / 3, false, false, rnd);
-        if (tbe.contains("CAUGHT")) j.add(tbe);
-        String lyme = Diseases.expose(c, "Lyme disease", c.tickCheck ? 1 : 3, false, false, rnd);
-        if (lyme.contains("CAUGHT")) j.add(lyme);
-        return j.toString();
-    }
-
     // ------------------------------------------------------------------ the hour, the GM, the sheet
     /** The hourly part (trench foot, scabies, tuberculosis's latency); the world map's weather and season decide the feet. */
     static String hour(Character c, Random rnd) {
@@ -231,9 +210,9 @@ final class Conditions {
         return String.join(", ", l);
     }
 
-    /** /sheet condition scurvy|trench <value> · scabies on|off · tb_latent on|off · tickcheck on|off (the GM). */
+    /** /sheet condition scurvy|trench <value> · scabies on|off · tb_latent on|off (the GM). */
     static String command(Character c, String[] a) {
-        String usage = "! /sheet condition [scurvy <days> | trench <hours> | scabies on|off | tb_latent on|off | tickcheck on|off]";
+        String usage = "! /sheet condition [scurvy <days> | trench <hours> | scabies on|off | tb_latent on|off]";
         if (a.length < 2) { String s = show(c); return s.isEmpty() ? "No condition." + (c.tbLatent >= 0 ? " Latent tuberculosis (the GM's)." : "") : s; }
         if (a.length < 3) return usage;
         boolean on = a[2].equalsIgnoreCase("on");
@@ -252,7 +231,6 @@ final class Conditions {
             }
             case "scabies" -> { if (on) { c.scabies = true; set(c, "Scabies", "Scabies", new int[7], Map.of()); } else ointment(c); }
             case "tb_latent" -> c.tbLatent = on ? c.now() : -1;
-            case "tickcheck" -> c.tickCheck = on;
             default -> { return usage; }
         }
         String s = show(c);

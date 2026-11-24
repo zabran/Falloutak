@@ -916,7 +916,7 @@ public final class Data {
         for (int i = 0; i < 7; i++)
             if (r.mods()[i] != 0) sb.append(sb.isEmpty() ? "" : ", ").append(r.mods()[i] > 0 ? "+" : "").append(r.mods()[i]).append(" ").append(Rules.SPECIAL[i]);
         for (Map.Entry<String, Double> e : r.other().entrySet())
-            if (e.getValue() != 0) sb.append(sb.isEmpty() ? "" : ", ").append(e.getValue() > 0 ? "+" : "").append(SheetGui.f(e.getValue())).append(" ")
+            if (e.getValue() != 0) sb.append(sb.isEmpty() ? "" : ", ").append(e.getValue() > 0 ? "+" : "").append(Txt.f(e.getValue())).append(" ")
                     .append(switch (e.getKey()) {
                         case "hp_current" -> "HP an hour";
                         case "hp_once" -> "HP once, when it begins";

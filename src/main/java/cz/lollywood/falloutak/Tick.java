@@ -320,8 +320,7 @@ final class Tick {
         o.addProperty("own", Base64.getEncoder().encodeToString(d.own));
         o.add("bases", list(m.bases));
         o.add("lairs", list(m.lairs));
-        try { Files.createDirectories(file.getParent()); Files.writeString(file, o.toString(), StandardCharsets.UTF_8); }
-        catch (IOException e) { /* the next save tries again */ }
+        Store.save(file, o);   // the next save tries again if the disk refused
     }
 
     private static JsonArray list(List<WorldMap.Src> l) {
@@ -357,7 +356,7 @@ final class Tick {
         Tick t = new Tick(m, rnd);
         if (file == null || !Files.isRegularFile(file)) return t;
         try {
-            JsonObject o = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
+            JsonObject o = JsonParser.parseString(Store.readText(file)).getAsJsonObject();
             m.bases.clear(); m.bases.addAll(unlist(o.getAsJsonArray("bases")));
             m.lairs.clear(); m.lairs.addAll(unlist(o.getAsJsonArray("lairs")));
             t.week = o.get("week").getAsInt();

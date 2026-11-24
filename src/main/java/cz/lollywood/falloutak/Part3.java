@@ -94,7 +94,7 @@ final class Part3 {
         for (Map.Entry<String, Double> e : at.other().entrySet()) {
             if (TEXT_ONLY.contains(e.getKey())) continue;
             double v = e.getValue();
-            sb.append(sb.isEmpty() ? "" : ", ").append(v > 0 ? "+" : "").append(SheetGui.f(Math.round(v * 100) / 100.0)).append(" ").append(e.getKey().replace("skill:", "").replace('_', ' '));
+            sb.append(sb.isEmpty() ? "" : ", ").append(v > 0 ? "+" : "").append(Txt.f(Math.round(v * 100) / 100.0)).append(" ").append(e.getKey().replace("skill:", "").replace('_', ' '));
         }
         if (!at.senses().isEmpty()) sb.append(sb.isEmpty() ? "" : ", ").append(at.senses());
         if (!at.notes().isEmpty()) sb.append(sb.isEmpty() ? "" : "; ").append(at.notes());
@@ -126,7 +126,7 @@ final class Part3 {
         double op = Rules.operationFactor(im.slot());
         double chance = Rules.surgeryChance(med, room, sup, op);
         int d = 1 + rnd.nextInt(100);
-        String head = "Surgery, " + im.name() + ": " + Math.round(med) + " × " + room + " × " + sup + " × " + op + " = " + SheetGui.f(Math.round(chance * 10) / 10.0)
+        String head = "Surgery, " + im.name() + ": " + Math.round(med) + " × " + room + " × " + sup + " × " + op + " = " + Txt.f(Math.round(chance * 10) / 10.0)
                 + " %, rolled " + d + ": ";
         String always = "\nAlways (part 4): the infection roll (a cut 2 %; cleaned with alcohol, none), the anaesthesia's own risk, Pain without it.";
         if (d <= chance) {
@@ -175,7 +175,7 @@ final class Part3 {
         double chance = Rules.surgeryChance(med, room, sup, g.op());
         int d = 1 + rnd.nextInt(100);
         String head = "Transplant, the donor's " + g.organ() + ": " + Math.round(med) + " × " + room + " × " + sup + " × " + g.op() + " = "
-                + SheetGui.f(Math.round(chance * 10) / 10.0) + " %, rolled " + d + ": ";
+                + Txt.f(Math.round(chance * 10) / 10.0) + " %, rolled " + d + ": ";
         String always = "\nAlways (part 4): the infection roll (a cut 2 %), the anaesthesia's own risk"
                 + (g.drugs() ? "; from today a month's anti-rejection course at a time (Tacrolimus the pre-war rate, Azathioprine the made one), "
                 + "Immunity −30 % while taken, two weeks without it = rejected" : "; the corneas need no drugs");
@@ -221,9 +221,9 @@ final class Part3 {
         double w = c.deathWindow();
         boolean torpor = t.atDeath().equals("torpor");
         double chance = torpor ? med / 2 * eq : Rules.revivalChance(med, eq, min - cpr, cpr, w);
-        if (chance <= 0) return "! FINAL DEATH: " + SheetGui.f(min) + " minutes is past the window (× " + SheetGui.f(w) + " for a " + c.template + ").";
+        if (chance <= 0) return "! FINAL DEATH: " + Txt.f(min) + " minutes is past the window (× " + Txt.f(w) + " for a " + c.template + ").";
         int d = 1 + rnd.nextInt(100);
-        String head = "Revival of a " + c.template + (torpor ? " in torpor (no time penalty)" : ", window × " + SheetGui.f(w)) + ": " + SheetGui.f(Math.round(chance * 10) / 10.0)
+        String head = "Revival of a " + c.template + (torpor ? " in torpor (no time penalty)" : ", window × " + Txt.f(w)) + ": " + Txt.f(Math.round(chance * 10) / 10.0)
                 + " %, rolled " + d + ": ";
         if (c.has("Medical Marvel")) return "! " + head + "Medical Marvel: nobody can revive you (02c).";
         if (d > chance) return "! " + head + "failed; one attempt a minute.";
@@ -285,7 +285,7 @@ final class Part3 {
         if (why != null) return "! " + why;
         double eff = c.efficiency(a[1].toLowerCase(Locale.ROOT));
         return a[1].replace('_', ' ') + ": " + (a[2].equalsIgnoreCase("none") ? "natural again" : a[2] + ", " + Math.round(eff) + " %")
-                + (a[1].endsWith("arm") ? "; to hit with it " + Rules.prostheticToHit(eff) : "; movement × " + SheetGui.f(c.legFactor()));
+                + (a[1].endsWith("arm") ? "; to hit with it " + Rules.prostheticToHit(eff) : "; movement × " + Txt.f(c.legFactor()));
     }
 
     // ------------------------------------------------------------------ falls
@@ -302,7 +302,7 @@ final class Part3 {
         int total = (int) Math.floor(dmg * share * f);
         String how = share < 1 ? ", halved (Athletics " + ath + " ≥ " + 20 * dice + ")" : " (Athletics " + ath + " < " + 20 * dice + ": full)";
         if (total <= 0) return "A fall of " + Math.round(blocks) + " blocks: " + dice + "d6 = " + dmg + how + ": nothing.";
-        return "A fall of " + Math.round(blocks) + " blocks: " + dice + "d6 = " + dmg + how + (f != 1 ? ", × " + SheetGui.f(f) + " " + c.template : "")
+        return "A fall of " + Math.round(blocks) + " blocks: " + dice + "d6 = " + dmg + how + (f != 1 ? ", × " + Txt.f(f) + " " + c.template : "")
                 + ": " + Hud.hit(c, total, "normal");
     }
 }

@@ -56,11 +56,11 @@ final class Zones {
         String describe() {
             if (anomaly != null && !anomaly.isEmpty()) {
                 Anomalies.Kind k = Anomalies.KINDS.get(anomaly);
-                return "anomaly: " + (k == null ? anomaly : k.name()) + ", " + (ball ? "a ball of radius " + SheetGui.f(r) + " at " + (int) Math.floor(x1) + " "
+                return "anomaly: " + (k == null ? anomaly : k.name()) + ", " + (ball ? "a ball of radius " + Txt.f(r) + " at " + (int) Math.floor(x1) + " "
                         + (int) Math.floor(y1) + " " + (int) Math.floor(z1) : "a box from " + (int) x1 + " " + (int) y1 + " " + (int) z1)
                         + (artifact == null || artifact.isEmpty() ? "" : ", the " + artifact + " inside");
             }
-            String shape = ball ? "a ball of radius " + SheetGui.f(r) + " at " + (int) Math.floor(x1) + " " + (int) Math.floor(y1) + " " + (int) Math.floor(z1)
+            String shape = ball ? "a ball of radius " + Txt.f(r) + " at " + (int) Math.floor(x1) + " " + (int) Math.floor(y1) + " " + (int) Math.floor(z1)
                     : "a box " + (int) (x2 - x1) + "×" + (int) (y2 - y1) + "×" + (int) (z2 - z1) + " from " + (int) x1 + " " + (int) y1 + " " + (int) z1;
             return (label.isEmpty() ? "" : label + ": ") + gas + " " + Rules.roman(strength) + ", " + shape + (rounds < 0 ? ", lasting" : ", " + rounds + " rounds left");
         }
@@ -79,7 +79,7 @@ final class Zones {
     private void load() {
         if (!Files.isRegularFile(file)) return;
         try {
-            Zone[] zs = Store.GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Zone[].class);
+            Zone[] zs = Store.GSON.fromJson(Store.readText(file), Zone[].class);
             if (zs != null)
                 for (Zone z : zs) {
                     if (z == null) continue;
@@ -89,15 +89,13 @@ final class Zones {
                 }
             for (Zone z : list) try { seq = Math.max(seq, Integer.parseInt(z.id)); } catch (NumberFormatException ignored) { }
         } catch (IOException | RuntimeException e) {
-            Bukkit.getLogger().warning("[Falloutak] zones.json unreadable: " + e);
+            Bukkit.getLogger().warning("[Falloutak] zones.json unreadable, kept aside: " + e);
+            Store.keepBad(file);
         }
     }
 
     void save() {
-        try {
-            Files.createDirectories(file.getParent());
-            Files.writeString(file, Store.GSON.toJson(list.toArray(new Zone[0])), StandardCharsets.UTF_8);
-        } catch (IOException e) { Bukkit.getLogger().warning("[Falloutak] could not save zones: " + e); }
+        if (!Store.save(file, list.toArray(new Zone[0]))) Bukkit.getLogger().warning("[Falloutak] could not save zones.json");
     }
 
     /** The clouds nobody breathes (they only hide: {@link Rules#OBSCURES}); the allergy is the pollen's row for the allergic. */

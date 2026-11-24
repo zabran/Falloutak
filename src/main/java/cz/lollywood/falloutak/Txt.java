@@ -1,5 +1,7 @@
 package cz.lollywood.falloutak;
 
+import java.util.Locale;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.kyori.adventure.text.Component;
@@ -28,6 +30,9 @@ import java.util.*;
  * Two tables can stand side by side as panels ({@link #sideBySide}).
  */
 public final class Txt {
+    /** A number as the sheet shows it: whole without decimals, else one decimal. */
+    public static String f(double v) { return v == Math.floor(v) ? String.valueOf((long) v) : String.format(Locale.ROOT, "%.1f", v); }
+
     private Txt() {}
 
     private static final Map<Integer, Integer> ADVANCE = new HashMap<>();

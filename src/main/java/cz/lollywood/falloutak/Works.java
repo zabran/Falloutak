@@ -27,8 +27,8 @@ final class Works {
         sb.append(r.repairs.isEmpty() ? "makes " + Production.makesText(r) : "mends worn " + r.repairs + " " + Rules.roman(r.tier))
                 .append(" from ").append(Production.inputsText(r)).append(" · ").append(r.building)
                 .append(" ").append(Rules.roman(r.tier)).append("+ · ").append(r.skill).append(" ").append(r.min).append(" · ")
-                .append(SheetGui.f(r.hours)).append(" h of work at the minimum");
-        if (r.days > 0) sb.append(" · at least ").append(SheetGui.f(r.days)).append(r.days == 1 ? " day" : " days");
+                .append(Txt.f(r.hours)).append(" h of work at the minimum");
+        if (r.days > 0) sb.append(" · at least ").append(Txt.f(r.days)).append(r.days == 1 ? " day" : " days");
         if (!r.note.isEmpty()) sb.append(" · ").append(r.note);
         if (!r.atStart()) sb.append(" · RESEARCHED: ").append(r.research).append(" (").append(r.better).append(")");
         sb.append(" · * = sets the rarity, tool = wears, extra = x1.5 faster");
@@ -133,7 +133,7 @@ final class Works {
         if (x == null) { main(p); return; }
         ask(p, "An event damages " + x.name, "Now " + Production.pct(x.condition) + " %. Below 75 % it works less, at 0 it stops until its crew repairs it with "
                         + Production.UPKEEP_TOOL + " of Tier " + Rules.roman(x.tier) + " or better, "
-                        + SheetGui.f(Production.repairPerHour(x.tier)) + " % a crew hour (10 points = " + SheetGui.f(10 / Production.repairPerHour(x.tier)) + " crew hours).",
+                        + Txt.f(Production.repairPerHour(x.tier)) + " % a crew hour (10 points = " + Txt.f(10 / Production.repairPerHour(x.tier)) + " crew hours).",
                 List.of(Ui.In.numberRange("d", Component.text("Condition lost (% points)"), 0, 100).step(5f).initial(20f).width(300).build()),
                 form("Damage", "the condition falls", (v, y) -> { say(y, pr().damage(x, v.getFloat("d"))); pr().save(); building(y, x.id); }),
                 y -> building(y, x.id));
@@ -204,7 +204,7 @@ final class Works {
             if (r != null && Production.fits(x, r)) keys.add(q.key());
         }
         pick(p, "Repair worn parts: " + x.name, keys.isEmpty() ? "No worn parts this building can mend (a Workbench or Workshop of at least the parts' tier)."
-                        : "A run: 1 unit of the material and " + SheetGui.f(Production.REPAIR.hours) + " h of work at the minimum " + Production.REPAIR.min
+                        : "A run: 1 unit of the material and " + Txt.f(Production.REPAIR.hours) + " h of work at the minimum " + Production.REPAIR.min
                         + "; the repair kit's points by the best skill (Mr. Fixit x2) to each of up to " + Production.REPAIR.parts + " worn parts.", keys,
                 k -> { Base.Pool q = pl.base.pools.get(k); return q.type + " " + Rules.roman(q.tier) + (q.rarity > 1 ? " R" + q.rarity : "") + " · " + q.worn() + " worn at " + Math.round(q.average()) + " %"; },
                 k -> { Base.Pool q = pl.base.pools.get(k); return recipeTip(Production.repairRecipe(q.type, q.tier)); },

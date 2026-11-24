@@ -107,7 +107,7 @@ final class Menus {
         for (Player g : Bukkit.getOnlinePlayers()) if (g.hasPermission("falloutak.gm")) g.sendMessage(Component.text("[GM] " + s, NamedTextColor.GRAY));
     }
 
-    static String pct(double v) { return SheetGui.f(Math.round(v * 10) / 10.0) + " %"; }
+    static String pct(double v) { return Txt.f(Math.round(v * 10) / 10.0) + " %"; }
 
     static String chemText(Data.Chem ch) {
         StringBuilder sb = new StringBuilder();
@@ -178,7 +178,7 @@ final class Menus {
         double[] am = c.arrestMinutes();
         String state = c.dead ? "DEAD" : c.inArrest() ? "CLINICAL DEATH " + Hud.clock(am[0] + am[1]) + (c.arrestCause.isEmpty() ? "" : " (" + c.arrestCause + ")") + ": only others can act"
                 : c.unconscious() ? "UNCONSCIOUS: only others can act"
-                : "HP " + c.hp + "/" + c.hpMax() + (c.hp <= 0 ? " (dying)" : "") + (c.bleeding > 0 ? " · bleeding " + SheetGui.f(c.bleeding) : "")
+                : "HP " + c.hp + "/" + c.hpMax() + (c.hp <= 0 ? " (dying)" : "") + (c.bleeding > 0 ? " · bleeding " + Txt.f(c.bleeding) : "")
                 + (c.sleeping ? " · " + (c.synthetic() ? "cleaning memory" : "resting") : "");
         lines.add(line(c.name + " · " + state, c.hp > 0 && !c.inArrest() && !c.unconscious() ? NamedTextColor.WHITE : NamedTextColor.RED));
         for (String s : Hud.around(c)) lines.add(line(s, NamedTextColor.GOLD));
@@ -204,10 +204,6 @@ final class Menus {
                     : "no bar left: carry Soap (Chemicals II) and a new one is taken") + "; " + bars + " in your pack"
                     : "wash with soap: ×" + Diseases.SOAP + " on catching from the sick (04b §5), a bar lasts " + Math.round(Diseases.SOAP_DAYS) + " days; "
                     + bars + " in your pack", x -> { c.washSoap = !c.washSoap; actions(x); }));
-            // 04c §7: the daily tick check (Lyme needs a day attached: 1 % a bite found that evening, 3 % left on)
-            b.add(btn(c.tickCheck ? "Tick check: ON" : "Tick check: OFF", c.tickCheck
-                    ? "every evening on the march you check for ticks: a bite is found within the day (Lyme 1 % a bite, not 3 %)"
-                    : "no tick check: a bite stays on over a day (Lyme 3 % a bite)", x -> { c.tickCheck = !c.tickCheck; actions(x); }));
             // Marek 11-24: eating and drinking from the pack (in the base the base's daily lot feeds you while the GM passes time)
             List<String> foods = new ArrayList<>(), waters = new ArrayList<>();
             for (String id : carry.keySet()) {
@@ -275,7 +271,7 @@ final class Menus {
         b.add(btn("Travel (the world map)", "the party's journey to a place: a roll every 4 hours on the way (part 9d)", x -> Travel.menu(pl, x)));
         b.add(btn("Groups", "the base's people: each group's level, its points to spend (any player levels them up), lessons", Menus::groups));
         b.add(btn("Production", "the base's buildings, their jobs and crews (part 7): any player runs them", Works::main));
-        b.add(btn("My sheet", "your character sheet", x -> SheetView.open(x, c, SheetGui.Page.OVERVIEW)));
+        b.add(btn("My sheet", "your character sheet", x -> SheetView.open(x, c, SheetView.Page.OVERVIEW)));
         if (p.hasPermission("falloutak.gm")) b.add(btn("GM menu", "the game master's tools", Menus::gm));
         if (!cannot.isEmpty()) {
             lines.add(line("Not now:", NamedTextColor.DARK_GRAY));
@@ -544,7 +540,7 @@ final class Menus {
                 tellGm(p.getName() + " → " + o.name() + ": " + r);
                 on(x, whoOf(o.entity()));
             }));
-        b.add(btn("Their sheet", "sheets are open to all", x -> SheetView.open(x, t, SheetGui.Page.OVERVIEW)));
+        b.add(btn("Their sheet", "sheets are open to all", x -> SheetView.open(x, t, SheetView.Page.OVERVIEW)));
         if (p.hasPermission("falloutak.gm")) b.add(btn("GM: " + o.name(), "the GM's tools on him", x -> gmOn(x, whoOf(o.entity()))));
         if (!cannot.isEmpty()) {
             lines.add(line("Not now:", NamedTextColor.DARK_GRAY));
@@ -984,7 +980,7 @@ final class Menus {
         say(p, r);
         if (r.startsWith("!")) return;
         if (saved != null) saved.accept(p);
-        if (c.perksDue() > 0) perkPick(p, c, saved); else if (saved == null) SheetView.open(p, c, SheetGui.Page.TRAITS);
+        if (c.perksDue() > 0) perkPick(p, c, saved); else if (saved == null) SheetView.open(p, c, SheetView.Page.TRAITS);
     }
 
     // ------------------------------------------------------------------ part 6: the groups, for any player (Marek 11-20)
@@ -1013,7 +1009,7 @@ final class Menus {
         Character sb = pl.roster.statblock(g.name);
         List<Component> lines = new ArrayList<>();
         int n = pop.members(g.name);
-        lines.add(line(n + (n == 1 ? " person" : " people") + " · XP " + Math.round(g.xp) + " · level " + SheetGui.f(Math.round(Population.level(g.xp, n) * 100) / 100.0)
+        lines.add(line(n + (n == 1 ? " person" : " people") + " · XP " + Math.round(g.xp) + " · level " + Txt.f(Math.round(Population.level(g.xp, n) * 100) / 100.0)
                 + (sb == null ? " · no statblock yet" : " · statblock level " + g.statLevel + ", " + sb.template), NamedTextColor.WHITE));
         for (Population.Person m : pop.membersOf(g.name))
             lines.add(line(" " + m.name + " · " + m.activity + " (" + Population.workXp(m.activity) + " XP an hour)" + (m.traits.isEmpty() ? "" : " · " + String.join(", ", m.traits)), NamedTextColor.GRAY));
@@ -1318,11 +1314,11 @@ final class Menus {
         }
         b.add(btn("Pass time", "his clock, or everyone's (a tick in the form)", x -> passTime(x, o)));
         b.add(btn("Time of day", "now " + c.timeText() + ": set his hour and minute, or everyone's", x -> timeOfDay(x, o)));
-        b.add(btn("His sheet", "", x -> SheetView.open(x, c, SheetGui.Page.OVERVIEW)));
+        b.add(btn("His sheet", "", x -> SheetView.open(x, c, SheetView.Page.OVERVIEW)));
         if (o.npc() && o.entity() != null) b.add(btn("Remove the figurant", "the body goes; its statblock stays (/npc)", x -> { pl.saveNpc(o.name()); o.entity().remove(); pl.npcs.remove(o.name()); gm(x); }));
         double[] am = c.arrestMinutes();
         menu(g, "GM · " + o.name(), List.of(line(c.name + " · " + c.template + " · HP " + c.hp + "/" + c.hpMax() + (c.dead ? " · DEAD" : c.inArrest()
-                ? " · CLINICAL DEATH " + Hud.clock(am[0] + am[1]) : "") + (c.bleeding > 0 ? " · bleeding " + SheetGui.f(c.bleeding) : ""), NamedTextColor.WHITE)), b, Menus::gm);
+                ? " · CLINICAL DEATH " + Hud.clock(am[0] + am[1]) : "") + (c.bleeding > 0 ? " · bleeding " + Txt.f(c.bleeding) : ""), NamedTextColor.WHITE)), b, Menus::gm);
     }
 
     /** The survival values a GM sets by hand (11-17), in the order of the sheet; rads have their own form (a dose through resistance). */
@@ -1695,7 +1691,7 @@ final class Menus {
                     c.survival.put(Rules.Stat.RADS, now);
                     c.radiationRolls(was, now, pl.rnd);   // 03d §5: a stage crossed rolls for every therapy
                     String news = c.takeNews();
-                    String r = (out ? "−" : "+") + SheetGui.f(got) + " rads (now " + Math.round(now) + ")" + (news == null ? "" : "; " + news);
+                    String r = (out ? "−" : "+") + Txt.f(got) + " rads (now " + Math.round(now) + ")" + (news == null ? "" : "; " + news);
                     say(y, o.name() + ": " + r);
                     o.tell(r, NamedTextColor.YELLOW);
                     addRads(y, o);

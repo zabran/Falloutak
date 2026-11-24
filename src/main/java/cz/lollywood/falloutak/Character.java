@@ -75,13 +75,11 @@ public final class Character {
     public double soapDays = 0;
     /**
      * 04b §3c's counters (Marek 11-24: *"Please, complete the illnesses"*): scurvy's days without fresh food (the shelter only), trench
-     * foot's wet hours, scabies; tuberculosis's latent infection (the hour it began, −1 none: the GM's secret); the daily tick check
-     * (Lyme needs a day attached: on, a bite is found that evening). {@link Conditions}.
+     * foot's wet hours, scabies; tuberculosis's latent infection (the hour it began, −1 none: the GM's secret). {@link Conditions}.
      */
     public double scurvy, trench;
     public boolean scabies;
     public double tbLatent = -1;
-    public boolean tickCheck = true;
     /** In the base and fed or watered by its daily lot (the GM's time passing sets them): his own bar does not fall then. */
     public transient boolean baseFood = false, baseWater = false;
     /** The base's store lacked his meals or his water on its last day (his bar falls then); the parts of a portion and a litre owed. */
@@ -568,7 +566,7 @@ public final class Character {
             double ch = therapyChance(biology, place, g.tierNo(), ease);
             int d = 1 + rnd.nextInt(100);
             sb.append(": the course ").append(Math.round(ch)).append(" % (Biology ").append(Math.round(biology)).append(" × the place ")
-                    .append(SheetGui.f(place)).append(" × the tier, ease ").append(ease).append("), rolled ").append(d);
+                    .append(Txt.f(place)).append(" × the tier, ease ").append(ease).append("), rolled ").append(d);
             if (!fashion(g)) courseSickness(g.tierNo(), g.name());
             if (d > ch) return sb.append(": FAILED, the course wasted (its fever all the same)").toString();
         } else if (!fashion(g)) courseSickness(g.tierNo(), g.name());
@@ -598,7 +596,7 @@ public final class Character {
             double ch = therapyChance(biology, place, top, 0);
             int d = 1 + rnd.nextInt(100);
             sb.append(": the course ").append(Math.round(ch)).append(" % (Biology ").append(Math.round(biology)).append(" × the place ")
-                    .append(SheetGui.f(place)).append(" × tier ").append(Rules.roman(top)).append("), rolled ").append(d);
+                    .append(Txt.f(place)).append(" × tier ").append(Rules.roman(top)).append("), rolled ").append(d);
             courseSickness(top, s.name());
             if (d > ch) return sb.append(": FAILED, the course wasted (its fever all the same)").toString();
         } else courseSickness(top, s.name());
@@ -628,7 +626,7 @@ public final class Character {
         int d6 = 1 + rnd.nextInt(6);
         double total = d6 + biology / 30 + ease + (madeForChange() ? 1 : 0);
         int r = (int) Math.floor(total + 1e-9);
-        String head = ": over " + old.gene + ", d6 " + d6 + " + Biology / 30 " + SheetGui.f(Math.round(biology / 30 * 10) / 10.0) + " + ease " + ease
+        String head = ": over " + old.gene + ", d6 " + d6 + " + Biology / 30 " + Txt.f(Math.round(biology / 30 * 10) / 10.0) + " + ease " + ease
                 + (madeForChange() ? " + 1 (made for change)" : "") + " = " + r;
         if (r <= 1) { therapies.remove(old); return head + ": a TWIST, both gone and a mutation instead (" + rollMutation(rnd) + ")"; }
         if (r == 2) { therapies.remove(old); return head + ": BOTH OFF, the slot empty until a new course (the old fades in days, the new never comes)"; }
@@ -984,7 +982,7 @@ public final class Character {
             for (String k : List.of("food_need", "water_need", "sleep_need", "oxygen_need")) o.put(k, more);
             String what = t == 1 ? "half speed, food, water, sleep and breath ×1.5" : t == 2 ? "half speed, AP halved, food, water, sleep and breath ×2"
                     : "too heavy to move: no AP";
-            add(new Effect("Overloaded " + SheetGui.f(Math.round(kg * 10) / 10.0) + " / " + SheetGui.f(Math.round(capacityKg() * 10) / 10.0) + " kg: " + what,
+            add(new Effect("Overloaded " + Txt.f(Math.round(kg * 10) / 10.0) + " / " + Txt.f(Math.round(capacityKg() * 10) / 10.0) + " kg: " + what,
                     "load", "load", false, new int[7], o, 1e6, null, 100));
         }
         if (has("Hoarder") && kg < capacityKg() / 2) {
@@ -1544,7 +1542,7 @@ public final class Character {
         if (ch.effect() != null) {
             Effect e = stageEffect(ch, 0);
             add(e);
-            sb.append(SheetGui.f(e.hoursLeft())).append(" h").append(e.next() != null ? ", then " + e.next() : "").append(".");
+            sb.append(Txt.f(e.hoursLeft())).append(" h").append(e.next() != null ? ", then " + e.next() : "").append(".");
         }
         return sb.toString().trim();
     }
@@ -1804,7 +1802,7 @@ public final class Character {
         double gain = (tags.contains(skill) ? 2.0 : 1.0) / Rules.pricePerPercent(skills(true)[i]);
         points[i] += gain;
         handsOnSkills.add(skill);
-        return "Hands-On Learner: " + skill + " +" + SheetGui.f(Math.round(gain * 100) / 100.0) + " % (" + handsOnSkills.size() + " of " + HANDS_ON_MAX
+        return "Hands-On Learner: " + skill + " +" + Txt.f(Math.round(gain * 100) / 100.0) + " % (" + handsOnSkills.size() + " of " + HANDS_ON_MAX
                 + " this session)";
     }
 
@@ -2641,7 +2639,7 @@ public final class Character {
             if (st == Rules.Stat.FOOD) return "Power";
             if (st == Rules.Stat.SLEEP) return "Memory";
         }
-        return SheetGui.name(st);
+        return SheetView.name(st);
     }
 
     /** A stage as this body names it (the effects stay the stage's own). */

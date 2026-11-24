@@ -93,9 +93,9 @@ final class Labs {
             lines.add(line(Research.eurekaLine(pr, c, pl.base), NamedTextColor.GRAY));
             lines.add(line("Experiments: " + (pj == null ? 0 : pj.experimentsDone) + " of " + Research.maxExperiments(pj, wf, null) + ", each "
                     + c.experiment.electronics + " Electronics + " + c.experiment.machinery + " Machinery of Tier " + Rules.roman(c.tier) + ", "
-                    + SheetGui.f(Research.jobFor(c, "experiment").hours) + " h in a laboratory (no roll)", NamedTextColor.GRAY));
+                    + Txt.f(Research.jobFor(c, "experiment").hours) + " h in a laboratory (no roll)", NamedTextColor.GRAY));
             if (t != null) lines.add(line("The prototype: at 100 % (90 % with Prototype), in a " + t.building + " of Tier " + Rules.roman(t.tier) + ", "
-                    + SheetGui.f(proto.hours) + " h from " + Production.inputsText(t) + ", by a crew of " + t.skill + " " + t.min + " led by a researcher ("
+                    + Txt.f(proto.hours) + " h from " + Production.inputsText(t) + ", by a crew of " + t.skill + " " + t.min + " led by a researcher ("
                     + c.science + " " + c.gate + ", no slot); the test 50 % + (the lead's " + c.science + " − " + c.gate + "), +10 % a failure"
                     + (pj != null && pj.failures > 0 ? " (failed " + pj.failures + ")" : ""), NamedTextColor.GRAY));
         }

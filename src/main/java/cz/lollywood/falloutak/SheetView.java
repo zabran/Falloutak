@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static cz.lollywood.falloutak.Txt.*;
 
@@ -30,6 +31,18 @@ import static cz.lollywood.falloutak.Txt.*;
 public final class SheetView {
     private SheetView() {}
 
+    /** The sheet's pages (the buttons along its top). */
+    public enum Page { OVERVIEW, SKILLS, WEAPONS, TRAITS, BODY, SURVIVAL, COMBAT, ACHIEVEMENTS }
+
+    static NamedTextColor color(int level) {
+        return switch (level) { case 0 -> NamedTextColor.GREEN; case 1 -> NamedTextColor.YELLOW; case 2 -> NamedTextColor.GOLD; case 3 -> NamedTextColor.RED; default -> NamedTextColor.DARK_RED; };
+    }
+
+    static String name(Rules.Stat st) {
+        String s = st.name().toLowerCase(Locale.ROOT);
+        return s.substring(0, 1).toUpperCase(Locale.ROOT) + s.substring(1);
+    }
+
     /** The dialog's text width; a line is padded to {@link #W}; two panels of {@link #P} with a gap of {@link #G}. */
     private static final int WIDTH = 440, W = WIDTH - 4, G = 12, P = (W - G) / 2;
     private static final int LABEL = 100;
@@ -39,7 +52,7 @@ public final class SheetView {
     private static final Table.Cell NONE = c("", WHITE);
 
     /** The page as blocks of lines (no server needed: the tests render them). */
-    static List<List<Component>> page(Character c, SheetGui.Page page) {
+    static List<List<Component>> page(Character c, SheetView.Page page) {
         List<List<Component>> body = new ArrayList<>();
         body.add(new Table(W).minWidths(LABEL).row(b(c.name, NamedTextColor.GOLD),
                 c(c.template + " · level " + c.level + " · HP " + c.hp + "/" + c.hpMax() + " · AP " + c.apMax() + " · skill points "
@@ -60,7 +73,7 @@ public final class SheetView {
         return body;
     }
 
-    public static void open(Player p, Character c, SheetGui.Page page) {
+    public static void open(Player p, Character c, SheetView.Page page) {
         List<Component> body = new ArrayList<>();
         Icons.VIEWER_HAS_PACK.set(Icons.hasPack(p, c));
         try {
@@ -69,17 +82,17 @@ public final class SheetView {
             Icons.VIEWER_HAS_PACK.remove();
         }
         List<Ui.Btn> buttons = new ArrayList<>();
-        for (SheetGui.Page pg : SheetGui.Page.values())
+        for (SheetView.Page pg : SheetView.Page.values())
             buttons.add(button((pg == page ? "» " : "") + title(pg), "open " + title(pg), 100, pp -> open(pp, c, pg)));
-        if (page == SheetGui.Page.SKILLS)
+        if (page == SheetView.Page.SKILLS)
             buttons.add(button("Spend " + c.unspentSkillPoints + " points", "the level-up form", 100, pp -> Forms.spend(pp, null, c)));
-        if (page == SheetGui.Page.TRAITS && c.perksDue() > 0)
+        if (page == SheetView.Page.TRAITS && c.perksDue() > 0)
             buttons.add(button("Pick a perk (" + c.perksDue() + ")", "the perks whose gate you meet", 100, pp -> Menus.perkPick(pp, c, null)));
         Ui.Btn close = button("Close", "close the sheet", 100, pp -> {});
         Ui.show(new Ui.Page(p, c.name + " · " + title(page), body, WIDTH, List.of(), Ui.Type.MULTI, buttons, close, 4, true));
     }
 
-    static String title(SheetGui.Page p) {
+    static String title(SheetView.Page p) {
         return switch (p) {
             case OVERVIEW -> "Overview"; case SKILLS -> "Skills"; case WEAPONS -> "Weapon skills"; case TRAITS -> "Traits & perks";
             case BODY -> "Body"; case SURVIVAL -> "Survival"; case COMBAT -> "Combat"; case ACHIEVEMENTS -> "Achievements";
@@ -90,7 +103,7 @@ public final class SheetView {
         return new Ui.Btn(label, tip, width, (v, p) -> then.accept(p));
     }
 
-    private static String f(double v) { return SheetGui.f(v); }
+    private static String f(double v) { return Txt.f(v); }
     private static String sign(int v) { return (v > 0 ? "+" : "−") + Math.abs(v); }
     /** A panel: name · value (right-aligned) · a short unit or mark. */
     private static Table panel(String head) { return new Table(P).minWidths(LABEL, 40).gap(6).title(head, null); }
@@ -358,8 +371,8 @@ public final class SheetView {
             double h = Rules.hourly(st, c.survival.get(Rules.Stat.HYPERTHERMIA), c.sleeping, c.locationRads);
             String eff = sg == null ? "" : Data.effectText(sg);
             if (st == Rules.Stat.PAIN && sg != null && noPain) eff += "\nIGNORED: Survival " + f(Math.round(c.painCheckSurvival())) + " ≥ Pain " + f(Math.round(v));
-            t.row(Icons.tip(Icons.stat(st), "stat_" + Icons.key(st.name()), eff, Data.note("Character", SheetGui.name(st))), c(c.statName(st), WHITE), r(f(Math.round(v)) + " / " + f(Math.round(m)), WHITE),
-                    c(sg == null ? "fine" : c.label(sg) + (st == Rules.Stat.PAIN && noPain ? " (ignored)" : ""), SheetGui.color(Rules.level(sg))),
+            t.row(Icons.tip(Icons.stat(st), "stat_" + Icons.key(st.name()), eff, Data.note("Character", name(st))), c(c.statName(st), WHITE), r(f(Math.round(v)) + " / " + f(Math.round(m)), WHITE),
+                    c(sg == null ? "fine" : c.label(sg) + (st == Rules.Stat.PAIN && noPain ? " (ignored)" : ""), color(Rules.level(sg))),
                     r((h >= 0 ? "+" : "") + f(Math.round(h * 10) / 10.0), HOW), NONE);
         }
         t.row(tip("Blood a round (Andor's numbers, absolute): a weak wound 2, a strong one 5, +1 a further cut\n/sheet firstaid stops it", null),

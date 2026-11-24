@@ -35,7 +35,7 @@ class SheetPreviewTest {
         c.add(new Character.Effect("Mutation: Scales", "mutation", "", true, new int[]{0, 0, 0, 0, 0, -1, 0},
                 new java.util.LinkedHashMap<>(java.util.Map.of("dt", 2.0)), 0, null, 100));
         Map<String, List<List<List<Map<String, Object>>>>> out = new LinkedHashMap<>();
-        for (SheetGui.Page pg : SheetGui.Page.values()) {
+        for (SheetView.Page pg : SheetView.Page.values()) {
             List<List<List<Map<String, Object>>>> blocks = new ArrayList<>();
             for (List<Component> block : SheetView.page(c, pg)) {
                 List<List<Map<String, Object>>> lines = new ArrayList<>();

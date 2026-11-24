@@ -324,6 +324,19 @@ final class Diseases {
         }
     }
 
+    /**
+     * The giant tick's bite (`09b` §4, Marek 11-24: the standard ticks were removed as too random; the giant tick is seen and can be
+     * killed): what one tick bite carries in life (04b §5): tick-borne encephalitis 2 % infected, a third of them ill; Lyme 1 % (it
+     * cannot stay on unseen for a day). Null if nothing.
+     */
+    static String tickBite(Character c, Random rnd) {
+        if (c.dead) return null;
+        StringJoiner j = new StringJoiner("; ");
+        for (String r : new String[]{expose(c, "Tick-borne encephalitis", 2.0 / 3, false, false, rnd), expose(c, "Lyme disease", 1, false, false, rnd)})
+            if (r.contains("CAUGHT")) j.add(r);
+        return j.length() == 0 ? null : j.toString();
+    }
+
     /** 04b §5: a wound through the skin rolls its infection by its class, and tetanus at 1 % (the vaccine keeps it off); null if none. */
     static String wound(Character c, String cls, Random rnd) {
         if (c.dead) return null;
@@ -420,7 +433,7 @@ final class Diseases {
 
     static String actText(Disease d, String act) {
         return switch (act) {
-            case "tend" -> "a carer's day: the growth × 0.7 for 24 hours; the carer's Medicine at least " + TEND_CHECK + " × the stage (1-4)";
+            case "tend" -> "a carer's day: the growth × 0.7 for 24 hours; the carer's Medicine at least " + CARE.getOrDefault(d.name(), 20) + " + " + TEND_STAGE + " × the stage (1-4)";
             case "sanatorium" -> "the sanatorium: food, rest and clean air, the immunity × " + f(SANATORIUM) + " (on until stopped); isolated";
             case "antibiotics" -> "a 7-day course from the hour it is recognised (its second stage); works for: " + String.join(", ", d.families());
             case "support" -> (d.name().equals("Botulism") ? "breathing kept up: the paralysis cannot kill" : "breathing kept up: the growth × " + f(d.support()))
@@ -438,8 +451,23 @@ final class Diseases {
         };
     }
 
-    /** The tending check (04c §4: a Medicine check a day): the carer's Medicine at least this × the stage, 1 to 4 [mine, EXAMPLE]. */
-    static final int TEND_CHECK = 20;
+    /**
+     * The tending check (04c §4: a Medicine check a day; Marek 11-24: *"some diseases should be harder for medic than other, please look
+     * into resolving that"*): the carer's Medicine at least the disease's CARE + {@link #TEND_STAGE} × its stage (1-4). The care by what
+     * nursing it needs in life [the classes and numbers mine, EXAMPLE]: home care 0 (rest and fluids), nursing 10 (the fever watched,
+     * fluids and food pushed), medical 20 (rehydration measured, a wound dressed, the lungs watched: a medic's work), intensive 30
+     * (breathing, spasms, the brain: an intensive-care nurse's work).
+     */
+    static final int TEND_STAGE = 15;
+    static final Map<String, Integer> CARE = Map.ofEntries(
+            Map.entry("Common cold", 0), Map.entry("Food poisoning", 0),
+            Map.entry("Influenza", 10), Map.entry("Dysentery", 10), Map.entry("Hepatitis A", 10), Map.entry("Measles", 10), Map.entry("Lyme disease", 10),
+            Map.entry("Cholera", 20), Map.entry("Typhoid", 20), Map.entry("Pneumonia", 20), Map.entry("Wound infection", 20),
+            Map.entry("Leptospirosis", 20), Map.entry("Tuberculosis", 20), Map.entry("Epidemic typhus", 20),
+            Map.entry("Tetanus", 30), Map.entry("Botulism", 30), Map.entry("Tick-borne encephalitis", 30), Map.entry("Rabies", 30));
+
+    /** The Medicine tending this disease needs at this stage. */
+    static int tendNeed(Disease d, Case k) { return CARE.getOrDefault(d.name(), 20) + TEND_STAGE * (Math.max(0, k.stage) + 1); }
 
     /** A medic's action on one disease; {@code family} and {@code strength} for antibiotics (the old stores half, sulfa 0.7). */
     static String treat(Character c, String name, String act, String family, double strength) { return treat(c, name, act, family, strength, null); }
@@ -454,7 +482,7 @@ final class Diseases {
         double now = c.now();
         switch (act) {
             case "tend" -> {
-                int need = TEND_CHECK * (Math.max(0, k.stage) + 1);
+                int need = tendNeed(d, k);
                 double med = carer == null ? need : carer.skill("Medicine");
                 if (!Rules.check(med, need)) return "! " + carer.name + "'s Medicine " + Math.round(med) + " is under the " + need + " this stage needs: no tending";
                 k.acts.put("tend", now + 24);

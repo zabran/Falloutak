@@ -1,5 +1,11 @@
 package cz.lollywood.falloutak;
 
+import java.util.List;
+
+import java.util.ArrayList;
+
+import net.kyori.adventure.text.format.TextColor;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -513,5 +519,27 @@ final class Items {
         if (has(p, "pipboy")) return;
         if (p.getInventory().getItem(8) == null) p.getInventory().setItem(8, make("pipboy", 1));
         else give(p, "pipboy", 1);
+    }
+
+    // ------------------------------------------------------------------ item stacks for menus (from the removed chest sheet)
+    static Component t(String s, TextColor col) { return Component.text(s, col).decoration(TextDecoration.ITALIC, false); }
+    static Component t(String s) { return t(s, NamedTextColor.GRAY); }
+
+    static ItemStack item(Material m, int amount, Component name, List<Component> lore, boolean glow) {
+        ItemStack it = new ItemStack(m, Math.max(1, Math.min(99, amount)));
+        ItemMeta meta = it.getItemMeta();
+        if (amount > 64) meta.setMaxStackSize(99);
+        meta.displayName(name.decoration(TextDecoration.ITALIC, false));
+        meta.lore(lore);
+        if (glow) meta.setEnchantmentGlintOverride(true);
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.values());
+        it.setItemMeta(meta);
+        return it;
+    }
+
+    static ItemStack item(Material m, String name, String... lore) {
+        List<Component> l = new ArrayList<>();
+        for (String s : lore) l.add(t(s));
+        return item(m, 1, t(name, NamedTextColor.WHITE), l, false);
     }
 }

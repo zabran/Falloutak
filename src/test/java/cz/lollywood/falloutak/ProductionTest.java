@@ -313,7 +313,7 @@ class ProductionTest {
         pr.advance(1 + 10, t + 5, base, crew, 0);                                      // 1 h upkeep (Tier IV), then repairs +0.4 an hour
         assertEquals(r0 - 30 + 4, reactor.condition, 1e-9);                            // round 7: a Tier IV room far more time demanding
         assertEquals((100 - reactor.condition) / 0.4, Production.repairHours(reactor), 1e-9);
-        assertTrue(pr.status(reactor).contains(", repair " + SheetGui.f((100 - reactor.condition) / 0.4) + " crew h"), pr.status(reactor));
+        assertTrue(pr.status(reactor).contains(", repair " + Txt.f((100 - reactor.condition) / 0.4) + " crew h"), pr.status(reactor));
         assertEquals(89, base.pools.get(Base.key("Gear and tools", 4, 1)).average(), 1e-9);   // 11 h of work: the TOOL 11 %
         assertEquals(1, base.pools.get(Base.key("Gear and tools", 3, 1)).fresh);      // the Tier III one untouched
     }

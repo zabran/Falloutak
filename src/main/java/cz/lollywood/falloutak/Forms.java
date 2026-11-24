@@ -197,8 +197,8 @@ public final class Forms {
         int load = 0;
         for (Data.Gene g : t.genes()) load += g.load();
         lines.add(Component.text("Picked " + t.genes().size() + ": " + (t.genes().isEmpty() ? "none" : String.join(", ", draft.genes))
-                + " · attributes" + (mods.length() == 0 ? " ±0" : mods) + " · load " + sign(load) + " · food × " + SheetGui.f(t.foodFactor())
-                + (t.waterFactor() != 1 ? " · water × " + SheetGui.f(t.waterFactor()) : ""), NamedTextColor.WHITE));
+                + " · attributes" + (mods.length() == 0 ? " ±0" : mods) + " · load " + sign(load) + " · food × " + Txt.f(t.foodFactor())
+                + (t.waterFactor() != 1 ? " · water × " + Txt.f(t.waterFactor()) : ""), NamedTextColor.WHITE));
         String bad = Data.checkCustom(draft.genes);
         if (bad != null && !draft.genes.isEmpty()) lines.add(Component.text("! " + bad, NamedTextColor.RED));
         List<Ui.Btn> b = new ArrayList<>();
@@ -283,14 +283,14 @@ public final class Forms {
         for (var e : t.other().entrySet()) if (e.getKey().startsWith("skill:")) skillsAll++;
         if (skillsAll == Rules.SKILLS.size()) {
             double v = t.other().get("skill:" + Rules.SKILLS.get(0).name());
-            sb.append(sb.isEmpty() ? "" : ", ").append(v > 0 ? "+" : "").append(SheetGui.f(v)).append(" to every skill");
+            sb.append(sb.isEmpty() ? "" : ", ").append(v > 0 ? "+" : "").append(Txt.f(v)).append(" to every skill");
         }
         for (var e : t.other().entrySet()) {
             if (skillsAll == Rules.SKILLS.size() && e.getKey().startsWith("skill:")) continue;
             double v = e.getValue();
             String k = e.getKey().replace("skill:", "").replace("hp_max", "HP").replace("ap", "AP").replace("sequence", "Initiative")
                     .replace("aimed", "aimed shots").replace("poison_res", "Poison resistance %").replace("rad_res", "Rad resistance %");
-            sb.append(sb.isEmpty() ? "" : ", ").append(v > 0 ? "+" : "").append(SheetGui.f(v)).append(" ").append(k);
+            sb.append(sb.isEmpty() ? "" : ", ").append(v > 0 ? "+" : "").append(Txt.f(v)).append(" ").append(k);
         }
         return sb.toString();
     }
@@ -371,7 +371,7 @@ public final class Forms {
             draft.survival.put(st, switch (st) { case POISON, RADS, HYPOTHERMIA, HYPERTHERMIA, PAIN -> 0.0; default -> draft.max(st); });
         pl.characters.put(pp.getUniqueId(), draft);
         pp.sendMessage(Component.text("Character " + draft.name + " created.", NamedTextColor.GREEN));
-        SheetView.open(pp, draft, SheetGui.Page.OVERVIEW);
+        SheetView.open(pp, draft, SheetView.Page.OVERVIEW);
     }
 
     // ------------------------------------------------------------------ level-up: skill points, one slider a skill
@@ -384,7 +384,7 @@ public final class Forms {
         int max = Math.max(1, c.unspentSkillPoints);
         for (int i = 0; i < Rules.SKILLS.size(); i++) {
             String n = Rules.SKILLS.get(i).name();
-            in.add(Ui.In.numberRange("s" + i, Component.text(n + " " + SheetGui.f(perm[i]) + " %" + (c.tags.contains(n) ? " (tag)" : "")), 0, max)
+            in.add(Ui.In.numberRange("s" + i, Component.text(n + " " + Txt.f(perm[i]) + " %" + (c.tags.contains(n) ? " (tag)" : "")), 0, max)
                     .step(1f).initial(0f).width(300).labelFormat("%s: +%s points").build());
         }
         show(p, "Skill points: " + c.unspentSkillPoints, List.of(Component.text(
@@ -415,11 +415,11 @@ public final class Forms {
                         }
                         c.points[i] += gain;
                         c.unspentSkillPoints -= want[i] - pts;
-                        sb.append(Rules.SKILLS.get(i).name()).append(" +").append(SheetGui.f(gain)).append(" %  ");
+                        sb.append(Rules.SKILLS.get(i).name()).append(" +").append(Txt.f(gain)).append(" %  ");
                     }
                     pp.sendMessage(Component.text("Spent: " + sb, NamedTextColor.GREEN));
-                    if (onSpent != null) onSpent.accept(pp); else SheetView.open(pp, c, SheetGui.Page.SKILLS);   // onSpent opens what follows
+                    if (onSpent != null) onSpent.accept(pp); else SheetView.open(pp, c, SheetView.Page.SKILLS);   // onSpent opens what follows
                 }),
-                button("Cancel", "nothing spent", (v, pp) -> SheetView.open(pp, c, SheetGui.Page.SKILLS)));
+                button("Cancel", "nothing spent", (v, pp) -> SheetView.open(pp, c, SheetView.Page.SKILLS)));
     }
 }

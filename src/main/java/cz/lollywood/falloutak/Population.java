@@ -176,15 +176,13 @@ final class Population {
 
     // ------------------------------------------------------------------ the file
     static Population load(Path file) throws IOException {
-        if (!Files.isRegularFile(file)) return null;
-        Population p = Store.GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Population.class);
+        String s = Store.readText(file);
+        if (s == null) return null;
+        Population p = Store.GSON.fromJson(s, Population.class);
         return p != null ? p : new Population();
     }
 
     void save(Path file) throws IOException {
-        Files.createDirectories(file.getParent());
-        Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
-        Files.writeString(tmp, Store.GSON.toJson(this), StandardCharsets.UTF_8);
-        Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        Store.write(file, Store.GSON.toJson(this));
     }
 }

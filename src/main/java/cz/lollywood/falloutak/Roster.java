@@ -34,7 +34,7 @@ final class Roster implements CommandExecutor {
             pop = Population.load(popFile);
         } catch (Exception e) {
             pl.getLogger().warning("population.json unreadable (" + e.getMessage() + "): kept as .bad, starting from the workbook's example");
-            try { Files.move(popFile, popFile.resolveSibling("population.bad-" + System.currentTimeMillis() + ".json")); } catch (Exception ignored) { }
+            Store.keepBad(popFile);
         }
         if (pop == null) { pop = Population.example(); save(); }
     }
@@ -99,7 +99,7 @@ final class Roster implements CommandExecutor {
                 if (!(s instanceof Player p) || a.length < 2) { say(s, "/npc show <name> (a player: it opens the sheet)", NamedTextColor.GRAY); return; }
                 Character c = st.loadNpc(a[1]);
                 if (c == null) { say(s, "No NPC " + a[1] + " (/npc list).", NamedTextColor.RED); return; }
-                SheetView.open(p, c, SheetGui.Page.OVERVIEW);
+                SheetView.open(p, c, SheetView.Page.OVERVIEW);
             }
             case "delete" -> {
                 if (!gm(s) || a.length < 2) return;
@@ -343,7 +343,7 @@ final class Roster implements CommandExecutor {
                 + (base != null ? (redo > 0 ? "The last " + redo + (redo == 1 ? " level's" : " levels'") + " skill points are yours to spend again: "
                 + d.unspentSkillPoints + "." : "") : "The group has no record of its levels from before 0.39.0: its skill points stay as they are.")
                 + (d.perksDue() > 0 ? " Perks to pick: " + d.perksDue() + "." : "") + " " + dead.name + " is kept among the fallen.", NamedTextColor.GREEN);
-        java.util.function.Consumer<Player> perks = x -> { if (d.perksDue() > 0) Menus.perkPick(x, d, null); else SheetView.open(x, d, SheetGui.Page.OVERVIEW); };
+        java.util.function.Consumer<Player> perks = x -> { if (d.perksDue() > 0) Menus.perkPick(x, d, null); else SheetView.open(x, d, SheetView.Page.OVERVIEW); };
         if (d.unspentSkillPoints > 0) Forms.spend(p, pl, d, perks); else perks.accept(p);
     }
 
@@ -388,7 +388,7 @@ final class Roster implements CommandExecutor {
         Player tp = org.bukkit.Bukkit.getPlayerExact(teacherName);
         String mine = tp != null ? award(tp, (long) h * Rules.workXp(true), "teaching")
                 : pop.group(teacherName) != null ? teacherName + "'s pool +" + h + appended(pool(teacherName, h * Rules.workXp(true))) : t.name + " (an NPC)";
-        return t.name + " (level " + tl + ") taught " + students + " of " + g.name + " (level " + gl + ") for " + h + " h (" + SheetGui.f(Rules.lessonXp(lead))
+        return t.name + " (level " + tl + ") taught " + students + " of " + g.name + " (level " + gl + ") for " + h + " h (" + Txt.f(Rules.lessonXp(lead))
                 + " XP a student-hour instead of 1): the pool +" + Math.round(gain) + appended(up) + ". " + mine
                 + ". Lesson hours left this week: " + (Rules.LESSON_HOURS_A_WEEK - g.lessonHours) + ".";
     }
@@ -455,7 +455,7 @@ final class Roster implements CommandExecutor {
                     double lv = Population.level(f.xp, n);
                     int whole = (int) Math.floor(lv + 1e-9);
                     say(s, " " + f.name + " · " + n + (n == 1 ? " person" : " people") + " · XP " + Math.round(f.xp)
-                            + (n > 0 ? " (" + Math.round(f.xp / n) + " a member)" : "") + " · level " + whole + " (" + SheetGui.f(Math.round(lv * 100) / 100.0)
+                            + (n > 0 ? " (" + Math.round(f.xp / n) + " a member)" : "") + " · level " + whole + " (" + Txt.f(Math.round(lv * 100) / 100.0)
                             + "; level " + (whole + 1) + " at " + Math.round(Population.xpForLevel(whole + 1)) + " a member)"
                             + " · statblock " + (pl.store.loadNpc(f.name) != null ? "level " + f.statLevel : "none (/npc edit " + f.name + ")")
                             + (f.unlocked.isEmpty() ? "" : " · unlocked " + String.join(", ", f.unlocked)), NamedTextColor.WHITE);
@@ -476,7 +476,7 @@ final class Roster implements CommandExecutor {
                 try { f.xp = Math.max(0, f.xp + Double.parseDouble(a[2])); } catch (NumberFormatException e) { say(s, "A number, please.", NamedTextColor.RED); return; }
                 String up = levelUp(f);
                 save();
-                say(s, f.name + ": XP " + Math.round(f.xp) + ", level " + SheetGui.f(Math.round(Population.level(f.xp, pop.members(f.name)) * 100) / 100.0)
+                say(s, f.name + ": XP " + Math.round(f.xp) + ", level " + Txt.f(Math.round(Population.level(f.xp, pop.members(f.name)) * 100) / 100.0)
                         + (up.isEmpty() ? "" : ". " + up), NamedTextColor.GREEN);
             }
             case "spend" -> {   // 06 §2.2 (Marek 11-20: any player levels a group up)

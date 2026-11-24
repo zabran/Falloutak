@@ -249,7 +249,7 @@ public final class Battle implements Listener {
             if (legCrippled) st.add("leg crippled");
             if (!dead && jammed) st.add("gun jammed");
             if (!dead && broken) st.add("gun destroyed"); else if (!dead && Combat.broken(gunHealth)) st.add("gun broken"); else if (!dead && dropped) st.add("gun dropped");
-            if (!dead && bleeding > 0) st.add("bleeding " + SheetGui.f(bleeding));
+            if (!dead && bleeding > 0) st.add("bleeding " + Txt.f(bleeding));
             if (!dead && ally) st.add("ALLY");
             return name + " · " + hp + "/" + hpMax + " HP" + (st.isEmpty() ? "" : " · " + String.join(", ", st));
         }
@@ -683,8 +683,8 @@ public final class Battle implements Listener {
 
     private ItemStack tagged(Material m, String id, String name, String... lore) {
         List<Component> l = new ArrayList<>();
-        for (String x : lore) l.add(SheetGui.t(x));
-        ItemStack it = SheetGui.item(m, 1, SheetGui.t(name, NamedTextColor.WHITE), l, false);
+        for (String x : lore) l.add(Items.t(x));
+        ItemStack it = Items.item(m, 1, Items.t(name, NamedTextColor.WHITE), l, false);
         ItemMeta meta = it.getItemMeta();
         meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, id);
         Icons.model(meta, Icons.slug(id));
@@ -766,7 +766,7 @@ public final class Battle implements Listener {
 
     private String stanceLine(State s, Character c) {
         int st = s.stance();
-        StringBuilder b = new StringBuilder(Rules.STANCES[st] + ": " + SheetGui.f(stepCost(st, c)) + " AP a block");
+        StringBuilder b = new StringBuilder(Rules.STANCES[st] + ": " + Txt.f(stepCost(st, c)) + " AP a block");
         if (st == 1) b.append(" · AC +2 · ranged +5 · melee −20");
         if (st == 2) b.append(" · AC +4 · ranged +15 · no melee · +20 to be hit at short range");
         if (c.brokenLegs > 0) b.append(" · ").append(c.brokenLegs).append(c.brokenLegs == 1 ? " leg" : " legs").append(" broken");
@@ -798,7 +798,7 @@ public final class Battle implements Listener {
             Aim a = aim(p, w.range);
             String look = a == null ? (w.melee() ? "no enemy within reach" : "no enemy in your sights")
                     : a.part() == null ? who(a.target()) + ": aim at the body"
-                    : who(a.target()) + " · " + a.part().label + (m.aimed() ? " (" + sign(a.part().toHit) + ")" : "") + " · " + SheetGui.f(Math.round(a.dist() * 10) / 10.0) + " bl."
+                    : who(a.target()) + " · " + a.part().label + (m.aimed() ? " (" + sign(a.part().toHit) + ")" : "") + " · " + Txt.f(Math.round(a.dist() * 10) / 10.0) + " bl."
                     + " · " + Combat.toHit(shot(p, s, c, w, m, a, pen)).chance() + " %";
             bar = Component.text(w.name + ": " + m.name() + " · " + apOf(c, w, m) + " AP", NamedTextColor.WHITE)
                     .append(Component.text(m.toHit() != 0 ? " · to hit " + sign(m.toHit()) : "", NamedTextColor.YELLOW))
@@ -812,7 +812,7 @@ public final class Battle implements Listener {
             int range = throwRange(c);
             Aim a = aim(p, range);
             bar = Component.text((id.equals("grenade") ? "Frag grenade · 4 AP" : "Flare · 2 AP") + " · range " + range, NamedTextColor.WHITE)
-                    .append(Component.text("  » " + (a != null && a.part() != null ? who(a.target()) + " · " + SheetGui.f(Math.round(a.dist() * 10) / 10.0) + " bl."
+                    .append(Component.text("  » " + (a != null && a.part() != null ? who(a.target()) + " · " + Txt.f(Math.round(a.dist() * 10) / 10.0) + " bl."
                             : "at the ground you look at"), NamedTextColor.GOLD));
         } else if (s.env) bar = Component.text(Rules.STANCES[s.stance()] + " · AP " + s.ap + " · Oxygen " + Math.round(c.survival.getOrDefault(Rules.Stat.OXYGEN, 0.0))
                 + "/" + Math.round(c.max(Rules.Stat.OXYGEN)) + " · " + envWhat(c) + " · the Pip-Boy: act, end the round", NamedTextColor.GOLD);
@@ -991,11 +991,11 @@ public final class Battle implements Listener {
                     each.add(dmg);
                     total += dmg;
                 }
-                log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + SheetGui.f(mult) + ")" : "HIT").append(spray).append(" Damage ")
+                log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + Txt.f(mult) + ")" : "HIT").append(spray).append(" Damage ")
                         .append(total).append(hits > 1 ? " " + each : "").append(" (").append(w.minDmg).append("-").append(w.maxDmg)
                         .append(w.melee() ? " + " + Rules.meleeBonus(me) + " melee" : ", " + w.ammo)
-                        .append(Combat.conditionDamage(cond(s, w)) < 1 ? "; x" + SheetGui.f(Math.round(Combat.conditionDamage(cond(s, w)) * 100) / 100.0) + " for its condition" : "")
-                        .append(perkDamage(c, w, tg) > 1 ? "; x" + SheetGui.f(perkDamage(c, w, tg)) + (master(c, w) ? " Weapon Master" : "") + (nemesis(c, tg) ? " Nemesis" : "") : "")
+                        .append(Combat.conditionDamage(cond(s, w)) < 1 ? "; x" + Txt.f(Math.round(Combat.conditionDamage(cond(s, w)) * 100) / 100.0) + " for its condition" : "")
+                        .append(perkDamage(c, w, tg) > 1 ? "; x" + Txt.f(perkDamage(c, w, tg)) + (master(c, w) ? " Weapon Master" : "") + (nemesis(c, tg) ? " Nemesis" : "") : "")
                         .append("; DT ").append(tg != null ? tg.dt : 0)
                         .append(", DR ").append(tg != null ? Math.round(tg.dr * 100) : 0).append(" %").append(fx.bypass() ? ", through the armour" : "").append(").");
                 if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
@@ -1121,7 +1121,7 @@ public final class Battle implements Listener {
             boolean strong = deg >= 4 || fx.crippledArm() || fx.crippledLeg();
             double before = t.bleeding;
             t.bleeding = Rules.bleedingPerRound(t.bleeding, strong);
-            log.append(" He bleeds ").append(SheetGui.f(t.bleeding)).append(" Blood a round").append(before > 0 ? " (was " + SheetGui.f(before) + ")" : "").append(".");
+            log.append(" He bleeds ").append(Txt.f(t.bleeding)).append(" Blood a round").append(before > 0 ? " (was " + Txt.f(before) + ")" : "").append(".");
         }
         if (fx.dies() || fx.heartStops() || t.hp < -t.a[Rules.E]) {   // a raider has no clinical death: a stopped heart ends him (03b §3c)
             t.dead = true;
@@ -1261,7 +1261,7 @@ public final class Battle implements Listener {
         if (t.atDeath().equals("torpor")) return "TORPOR, not death: no window while the body is whole and not burned; raise the HP above −Endurance and warm it (a revival roll with no time penalty).";
         if (t.atDeath().equals("self-mend")) return "the revenant shuts down and mends itself, 1 HP a day, waking above −Endurance with 10 % of its XP lost; a medic can speed it with a revival roll.";
         double w = c.deathWindow();
-        return "the brain is harmed from " + SheetGui.f(5 * w) + " minutes and final death comes at ~" + Math.round(14.3 * w) + " minutes untouched, ~"
+        return "the brain is harmed from " + Txt.f(5 * w) + " minutes and final death comes at ~" + Math.round(14.3 * w) + " minutes untouched, ~"
                 + Math.round(33.3 * w) + " with CPR from the start (the cold doubles it). /sheet revive <Medicine> <minutes> [CPR minutes] <hands|adrenaline|defibrillator|icu>";
     }
 
@@ -1307,7 +1307,7 @@ public final class Battle implements Listener {
             if (f.onFire()) {   // Fallout 2: the flamer's own damage once, as fire; the survival sheet: fire damage x3 into Hyperthermia
                 double heat = Combat.FIRE_HYPERTHERMIA_PER_HP * dmg;
                 c.survival.put(Rules.Stat.HYPERTHERMIA, c.survival.getOrDefault(Rules.Stat.HYPERTHERMIA, 0.0) + heat);
-                log.append(", fire damage: Hyperthermia +").append(SheetGui.f(heat));
+                log.append(", fire damage: Hyperthermia +").append(Txt.f(heat));
             }
             log.append(".");
         }
@@ -1689,11 +1689,11 @@ public final class Battle implements Listener {
                 int range = throwRange(c), ap = 2;
                 Aim a = aim(p, range);
                 String where;
-                if (a != null && a.part() != null) where = who(a.target()) + ", " + SheetGui.f(Math.round(a.dist() * 10) / 10.0) + " blocks";
+                if (a != null && a.part() != null) where = who(a.target()) + ", " + Txt.f(Math.round(a.dist() * 10) / 10.0) + " blocks";
                 else {
                     RayTraceResult r = p.rayTraceBlocks(range, FluidCollisionMode.NEVER);
                     if (r == null) { show(p, s, c, "nothing within your throw (" + range + " blocks = 3 × Strength, at most 15): aim at an enemy or the ground"); return; }
-                    where = "the ground " + SheetGui.f(Math.round(r.getHitPosition().distance(p.getEyeLocation().toVector()) * 10) / 10.0) + " blocks away";
+                    where = "the ground " + Txt.f(Math.round(r.getHitPosition().distance(p.getEyeLocation().toVector()) * 10) / 10.0) + " blocks away";
                 }
                 if (!pay(p, s, c, ap, "the flare")) return;
                 Sfx.at(p.getLocation(), "flare");
@@ -1842,7 +1842,7 @@ public final class Battle implements Listener {
             if (t.bleeding > 0) {
                 t.blood = Math.max(0, t.blood - t.bleeding);
                 if (t.blood < 0.2 * 4 * t.hpMax) { t.dead = true; them.add(t.name + " bled out (Deadly Anemia: under 20 % Blood)"); }
-                else them.add(t.name + " bleeds: Blood " + SheetGui.f(t.blood) + " / " + 4 * t.hpMax);
+                else them.add(t.name + " bleeds: Blood " + Txt.f(t.blood) + " / " + 4 * t.hpMax);
             }
             label(le, t);
         }
@@ -2014,7 +2014,7 @@ public final class Battle implements Listener {
             p.sendMessage(Component.text((p.getUniqueId().equals(k.speaker) ? "You talk to " + k.who : k.speakerName + " talks to " + k.who) + " (round " + s.round
                     + " of " + TALK_ROUNDS + "): move into position. An attack breaks the talk and catches them off guard; the talk can still go wrong.", NamedTextColor.YELLOW));
         }
-        show(p, s, c, out ? "unconscious" : lost ? "this turn is lost" : "your turn: " + s.ap + " AP" + (c.bleeding > 0 ? "; bleeding " + SheetGui.f(c.bleeding) + " Blood a round" : ""));
+        show(p, s, c, out ? "unconscious" : lost ? "this turn is lost" : "your turn: " + s.ap + " AP" + (c.bleeding > 0 ? "; bleeding " + Txt.f(c.bleeding) + " Blood a round" : ""));
     }
 
     private void nextMode(Player p, State s, Character c, Weapon w) {

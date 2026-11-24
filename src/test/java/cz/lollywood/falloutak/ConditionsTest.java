@@ -95,14 +95,12 @@ class ConditionsTest {
     }
 
     @Test
-    void ticksOnTheMarchThroughFieldsAndForest() {
+    void theGiantTicksBiteCarriesTheTickDiseases() {
         Character c = AirTest.human();
-        assertNull(Conditions.ticks(c, 8, 0, always(0.0)), "no ticks in winter");
-        assertNull(Conditions.ticks(c, 0, 2, always(0.0)), "on roads and in towns: none");
-        String m = Conditions.ticks(c, 8, 2, always(0.0));
-        assertTrue(m.startsWith("a tick bite") && m.contains("CAUGHT"), m);
+        String m = Diseases.tickBite(c, always(0.0));
+        assertTrue(m.contains("CAUGHT"), m);
         assertNotNull(Diseases.active(c, "Lyme disease"));
-        assertEquals(0.2, 1 - Math.pow(1 - Conditions.TICK_DAY, 1), 1e-9, "20 % a day's march");
+        assertNull(Diseases.tickBite(AirTest.human(), always(0.99)), "most bites carry nothing");
     }
 
     @Test
@@ -110,11 +108,16 @@ class ConditionsTest {
         Character c = AirTest.human(), carer = AirTest.human();
         Diseases.Case k = Diseases.infect(c, Diseases.ALL.get("Dysentery"), always(0.5));
         k.incubation = 0;
-        k.stage = 1;   // needs 40
+        k.stage = 1;   // dysentery, nursing: 10 + 15 × 2 = 40
         double med = carer.skill("Medicine");
         String r = Diseases.treat(c, "Dysentery", "tend", "", 1, carer);
         assertEquals(med >= 40, !r.startsWith("!"), r);
         assertFalse(Diseases.treat(c, "Dysentery", "tend", "", 1, null).startsWith("!"), "the GM's word");
+        assertEquals(40, Diseases.tendNeed(Diseases.ALL.get("Dysentery"), k));
+        Diseases.Case t = Diseases.infect(c, Diseases.ALL.get("Tetanus"), always(0.5));
+        t.stage = 1;
+        assertEquals(60, Diseases.tendNeed(Diseases.ALL.get("Tetanus"), t), "intensive care: 30 + 15 × 2");
+        for (String n : Diseases.ALL.keySet()) if (!n.equals("Cancer")) assertTrue(Diseases.CARE.containsKey(n), n + " has its care");
     }
 
     @Test

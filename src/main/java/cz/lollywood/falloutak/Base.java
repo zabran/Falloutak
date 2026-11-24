@@ -493,7 +493,7 @@ final class Base {
         loading = true;
         boolean converted = false;
         try {
-            Saved s = Store.GSON.fromJson(Files.readString(file, StandardCharsets.UTF_8), Saved.class);
+            Saved s = Store.GSON.fromJson(Store.readText(file), Saved.class);
             if (s == null) return;
             if (s.unlocked != null) unlocked.addAll(s.unlocked);
             if (s.wornOut != null) wornOut.putAll(s.wornOut);
@@ -514,7 +514,7 @@ final class Base {
             });
             if (s.units != null) for (OldUnit u : s.units) if (u != null) converted |= legacy(u.type, u.tier, u.rarity, 1, u.condition / 100) >= 0;
         } catch (IOException | RuntimeException e) {
-            try { Files.move(file, file.resolveSibling("base.bad-" + System.currentTimeMillis() + ".json")); } catch (IOException ignored) { }
+            Store.keepBad(file);
         }
         loading = false;
         if (converted) save();
@@ -528,11 +528,6 @@ final class Base {
         s.chests = chests;
         s.wornOut = wornOut;
         s.genePool = new ArrayList<>(genePool.values());
-        try {
-            Files.createDirectories(file.getParent());
-            Path tmp = file.resolveSibling("base.json.tmp");
-            Files.writeString(tmp, Store.GSON.toJson(s), StandardCharsets.UTF_8);
-            Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } catch (IOException ignored) { }
+        Store.save(file, s);
     }
 }

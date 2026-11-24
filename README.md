@@ -1,5 +1,7 @@
 # Falloutak
 
+The code's map (layers, flows, every class): [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 Fallouťák (the LollyWood group's post-apocalyptic RPG) inside Minecraft: a Paper 1.21.11 plugin (Java 21). The design lives in
 LollyWood-Lore `_notes/Fallout/` (`NOW.md` first; the sheet's layout: `02d-SHEET-LAYOUT.md`).
 
@@ -495,7 +497,7 @@ the Stimpak, and every character saved as JSON (`plugins/Falloutak/characters/<u
 **Version 0.2.0 (2026-11-14): the EXAMPLE, after Marek's first look** (`02d` §5b). One sample character per player:
 - `/sheet` (or `/sheet skills`, `weapons`, `traits`, `body`, `survival`, `combat`, `achievements`): the sheet as a TEXT screen (a
   dialog, like the level-up form): every value with its breakdown written out, the workbook's own notes under the attributes,
-  skills, weapon skills and survival stats, the pages as buttons. `/sheet icons` = the 0.1 chest screen, for comparison.
+  skills, weapon skills and survival stats, the pages as buttons.
 - `/sheet create`: the creation form in three dialogs (name, template, SPECIAL sliders checked to sum 40 · three tags · traits).
 - `/sheet spend` or the Skills page's button: the level-up form, a slider a skill, priced 1 / 2 / 4 points a %.
 - The survival sidebar (only the stats past stage 0, as ruled; `/sheet hud` shows all) and the action bar; `/sheet demo` runs a

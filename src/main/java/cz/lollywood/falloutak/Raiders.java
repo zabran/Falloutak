@@ -685,7 +685,7 @@ final class Raiders {
             int dmg = Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, c.dtAt(Rules.Part.TORSO, "Normal"), c.drAt(Rules.Part.TORSO, "Normal"), fx.bypass());
             String wear = c.wearArmour(Rules.Part.TORSO, Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, 0, 0, false));
             if (!wear.isEmpty()) Items.writeArmour(p, c);
-            log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + SheetGui.f(mult) + ")" : "HIT").append(", ").append(dmg)
+            log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + Txt.f(mult) + ")" : "HIT").append(", ").append(dmg)
                     .append(" HP (").append(w.minDmg).append("-").append(w.maxDmg).append(", ").append(w.ammo).append("; your DT ").append(c.dtAt(Rules.Part.TORSO, "Normal")).append(", DR ").append(Math.round(c.drAt(Rules.Part.TORSO, "Normal") * 100))
                     .append(" %").append(c.armourAt(Rules.Part.TORSO) == null ? ", no armour" : ", " + c.armourAt(Rules.Part.TORSO).set()).append(").").append(wear);
             if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
@@ -853,13 +853,17 @@ final class Raiders {
             int dmg = Combat.damage(base, mult, 0, 0, c.dtAt(Rules.Part.TORSO, "Normal"), c.drAt(Rules.Part.TORSO, "Normal"), fx.bypass());
             String wear = c.wearArmour(Rules.Part.TORSO, Combat.damage(base, mult, 0, 0, 0, 0, false));
             if (!wear.isEmpty()) Items.writeArmour(p, c);
-            log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + SheetGui.f(mult) + ")" : "HIT").append(", ").append(dmg).append(" HP (")
+            log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + Txt.f(mult) + ")" : "HIT").append(", ").append(dmg).append(" HP (")
                     .append(t.minDmg).append("-").append(t.maxDmg).append("; your DT ").append(c.dtAt(Rules.Part.TORSO, "Normal")).append(", DR ")
                     .append(Math.round(c.drAt(Rules.Part.TORSO, "Normal") * 100)).append(" %).").append(wear);
             if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
             result = (r.crit() ? "CRIT on you, " : "hit, ") + dmg + " HP";
             Sfx.at(p.getLocation(), "knife.flesh");
-            b.hitPlayer(p, s, c, le.getLocation(), dmg, fx, r.crit(), deg, log, "cut");
+            // 04b §5: a bite 40 %, a tusk's gore a dirty wound, claws and blades a cut
+            b.hitPlayer(p, s, c, le.getLocation(), dmg, fx, r.crit(), deg, log, t.attack.equals("bite") ? "bite" : t.attack.equals("gore") ? "dirty" : "cut");
+            // `09b` §4 (Marek: *"radiation has made them several times bigger"*; 11-24: the small ticks are out, only the giant tick):
+            // its bite carries what a tick carries (04b §5)
+            if (dmg > 0 && t.name.startsWith("Giant tick")) Diseases.tickBite(c, b.rnd);
             if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female, p);
         }
         p.sendMessage(Component.text(log.toString(), NamedTextColor.RED));

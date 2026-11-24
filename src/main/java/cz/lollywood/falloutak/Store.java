@@ -34,7 +34,7 @@ final class Store {
         try {
             return fromJson(Files.readString(f, StandardCharsets.UTF_8));
         } catch (Exception e) {
-            try { Files.move(f, f.resolveSibling(u + ".bad-" + System.currentTimeMillis() + ".json")); } catch (IOException ignored) { }
+            keepBad(f);
             return null;
         }
     }
@@ -67,10 +67,7 @@ final class Store {
 
     void saveNpc(String name, Character c) throws IOException {
         if (!validName(name)) throw new IOException("not a valid name: " + name);
-        Files.createDirectories(npcDir());
-        Path tmp = npcDir().resolve(name + ".json.tmp");
-        Files.writeString(tmp, toJson(c), StandardCharsets.UTF_8);
-        Files.move(tmp, npcDir().resolve(name + ".json"), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        write(npcDir().resolve(name + ".json"), toJson(c));
     }
 
     /** Sets a statblock aside (renamed .deleted-<time>, never lost); false if there is none. */
@@ -83,15 +80,44 @@ final class Store {
 
     /** A dead PC is kept when his player goes on as someone else (fallen/<player>-<time>.json, never lost). */
     void saveFallen(UUID u, Character c) throws IOException {
-        Path d = dir.resolveSibling("fallen");
-        Files.createDirectories(d);
-        Files.writeString(d.resolve(u + "-" + System.currentTimeMillis() + ".json"), toJson(c), StandardCharsets.UTF_8);
+        write(dir.resolveSibling("fallen").resolve(u + "-" + System.currentTimeMillis() + ".json"), toJson(c));
     }
 
-    void save(UUID u, Character c) throws IOException {
-        Files.createDirectories(dir);
-        Path tmp = dir.resolve(u + ".json.tmp");
-        Files.writeString(tmp, toJson(c), StandardCharsets.UTF_8);
-        Files.move(tmp, file(u), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    void save(UUID u, Character c) throws IOException { write(file(u), toJson(c)); }
+
+    // ------------------------------------------------------------------ every saved file (Marek 11-24: "use helper for all")
+    /** Writes the text whole: to {@code <name>.tmp} beside it, then moved over the old file, so a crash never leaves half a file. */
+    static void write(Path f, String text) throws IOException {
+        Files.createDirectories(f.toAbsolutePath().getParent());
+        Path tmp = f.resolveSibling(f.getFileName() + ".tmp");
+        Files.writeString(tmp, text, StandardCharsets.UTF_8);
+        Files.move(tmp, f, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    }
+
+    /** Saves {@code o} (a JSON tree or text as it is, anything else through {@link #GSON}); false if the disk refused (the next save tries again). */
+    static boolean save(Path f, Object o) {
+        if (f == null) return false;
+        try {
+            write(f, o instanceof String s ? s : o instanceof com.google.gson.JsonElement j ? j.toString() : GSON.toJson(o));
+            return true;
+        } catch (IOException e) { return false; }
+    }
+
+    /** A saved file's text, or null if there is none. */
+    static String readText(Path f) throws IOException { return f != null && Files.isRegularFile(f) ? Files.readString(f, StandardCharsets.UTF_8) : null; }
+
+    /** A saved file read as {@code type}; null if there is none or it is unreadable (then kept aside: {@link #keepBad}). */
+    static <T> T read(Path f, Class<T> type) {
+        try {
+            String s = readText(f);
+            return s == null ? null : GSON.fromJson(s, type);
+        } catch (Exception e) { keepBad(f); return null; }
+    }
+
+    /** An unreadable file is moved aside as {@code <name>.bad-<time>.json}, never lost and never overwritten by the next save. */
+    static void keepBad(Path f) {
+        if (f == null) return;
+        String n = f.getFileName().toString().replaceFirst("\\.json$", "");
+        try { Files.move(f, f.resolveSibling(n + ".bad-" + System.currentTimeMillis() + ".json")); } catch (IOException ignored) { }
     }
 }

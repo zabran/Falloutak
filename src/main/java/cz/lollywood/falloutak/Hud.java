@@ -76,7 +76,7 @@ public final class Hud {
                 p.sendActionBar(Component.text("HP " + c.hp + "/" + c.hpMax(), c.hp > 0 ? NamedTextColor.RED : NamedTextColor.DARK_RED)
                         .append(Component.text(" · AP " + c.apMax(), NamedTextColor.AQUA))
                         .append(Component.text(" · Rads " + Math.round(rads), NamedTextColor.YELLOW))
-                        .append(Component.text(c.bleeding > 0 ? " · BLEEDING " + SheetGui.f(c.bleeding) + " Blood/round" : "", NamedTextColor.DARK_RED))
+                        .append(Component.text(c.bleeding > 0 ? " · BLEEDING " + Txt.f(c.bleeding) + " Blood/round" : "", NamedTextColor.DARK_RED))
                         .append(Component.text(det, NamedTextColor.LIGHT_PURPLE))
                         .append(Component.text(pl.anomalies.rainNote(p, c), NamedTextColor.DARK_RED))   // the Black Rain's countdown (round 10)
                         .append(Component.text(c.loadTier() > 0 ? " · OVERLOADED " + Math.round(c.carriedKg) + "/" + Math.round(c.capacityKg()) + " kg" : "", NamedTextColor.RED))
@@ -307,7 +307,7 @@ public final class Hud {
             var score = o.getScore("l" + line);
             score.setScore(line--);
             score.customName(Component.text(c.statName(st) + " " + Math.round(v) + "/" + Math.round(m) + "  ", NamedTextColor.WHITE)
-                    .append(Component.text(sg == null ? "fine" : c.label(sg), SheetGui.color(Rules.level(sg)))));
+                    .append(Component.text(sg == null ? "fine" : c.label(sg), SheetView.color(Rules.level(sg)))));
             shown++;
         }
         if (c.hp <= 0 || c.dead || c.inArrest() || c.unconscious()) {
@@ -416,8 +416,8 @@ public final class Hud {
             c.arrestAt = c.now();   // clinical death begins (03b §5), on the game clock
             defib = c.autoDefibrillate(java.util.concurrent.ThreadLocalRandom.current());   // an implanted defibrillator (03b §3b)
         }
-        String what = "hit for " + n + (crit ? " (" + kind + ")" : "") + ": Pain +" + SheetGui.f(pain)
-                + (c.bleeding > 0 ? ", bleeding " + SheetGui.f(c.bleeding) + " Blood a round (/sheet firstaid)" : "") + defib;
+        String what = "hit for " + n + (crit ? " (" + kind + ")" : "") + ": Pain +" + Txt.f(pain)
+                + (c.bleeding > 0 ? ", bleeding " + Txt.f(c.bleeding) + " Blood a round (/sheet firstaid)" : "") + defib;
         return c.hp > 0 ? what + "; HP " + c.hp
                 : c.hp >= floor ? what + "; DYING (HP " + c.hp + ", dead below " + floor + "): Pain and Blood decide what you can do"
                 : what + "; CLINICAL DEATH: " + Battle.clinical(c);
