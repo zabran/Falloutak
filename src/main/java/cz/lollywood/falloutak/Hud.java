@@ -209,6 +209,8 @@ public final class Hud {
         c.radsSeen = radsNow;
         String sick = Diseases.hour(c, java.util.concurrent.ThreadLocalRandom.current());   // 04b: the diseases' race (09e round 3)
         if (sick != null) c.news.add(sick);
+        String cond = Conditions.hour(c, java.util.concurrent.ThreadLocalRandom.current());   // 04b §3c: trench foot, scabies, latent TB
+        if (cond != null) c.news.add(cond);
         c.gasHour();       // 03b §3c: mercury vapour
         String pa = c.paHour();   // 05c §3c: Power Armour Training by wearing the suit
         if (pa != null) c.news.add(pa);
@@ -261,7 +263,7 @@ public final class Hud {
         if (c.restHours < 8) return;
         c.restHours = 0;
         double f = c.tpl().healFactor() * Math.max(0, 1 + c.other("heal_factor", true));
-        if (rate == 0) return;   // radiation's healing rate can take it all (04 §3.8)
+        if (rate == 0 || c.other("no_healing") > 0) return;   // radiation's healing rate can take it all (04 §3.8); scurvy (04b §3c)
         c.hp = Math.min(c.hpMax(), c.hp + Math.max(1, (int) Math.round(rate * f)));
     }
 

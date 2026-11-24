@@ -747,6 +747,12 @@
    "found_only": false,
    "items": [
     {
+     "name": "Willow bark",
+     "tier": 2,
+     "rarity": 1,
+     "id": "chem:Willow bark"
+    },
+    {
      "name": "Prussian blue",
      "tier": 3,
      "rarity": 2,
@@ -771,10 +777,40 @@
      "id": "chem:Nicotine"
     },
     {
+     "name": "Cannabis",
+     "tier": 1,
+     "rarity": 1,
+     "id": "chem:Cannabis"
+    },
+    {
+     "name": "Herbal tea",
+     "tier": 1,
+     "rarity": 1,
+     "id": "chem:Herbal tea"
+    },
+    {
+     "name": "Tannin tea",
+     "tier": 1,
+     "rarity": 1,
+     "id": "chem:Tannin tea"
+    },
+    {
+     "name": "Placebo",
+     "tier": 1,
+     "rarity": 1,
+     "id": "chem:Placebo"
+    },
+    {
      "name": "Caffeine",
      "tier": 2,
      "rarity": 1,
      "id": "chem:Caffeine"
+    },
+    {
+     "name": "Opium",
+     "tier": 2,
+     "rarity": 1,
+     "id": "chem:Opium"
     },
     {
      "name": "Codeine",
@@ -829,6 +865,24 @@
      "tier": 4,
      "rarity": 1,
      "id": "chem:Ketamine"
+    },
+    {
+     "name": "Paracetamol",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Paracetamol"
+    },
+    {
+     "name": "Ibuprofen",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Ibuprofen"
+    },
+    {
+     "name": "Diazepam",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Diazepam"
     },
     {
      "name": "Jet Antidote",

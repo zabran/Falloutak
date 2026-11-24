@@ -57,6 +57,11 @@ final class Diseases {
     /** 04b §5: a wound's infection by its class (a cut, a gunshot or a blast's fragments, a dirty wound or a bite), % [life's anchors]. */
     static final Map<String, Double> WOUND = Map.of("cut", 2.0, "gunshot", 15.0, "dirty", 40.0, "bite", 40.0);
     static final Map<String, Disease> ALL = load();
+    /** The diseases of the runs and the vomiting: opium and codeine halve their water loss, tannins give back 0.5 an hour, cannabis
+     * stops the vomiting's food loss (04c §4b, §5). */
+    static final java.util.Set<String> GUT = java.util.Set.of("Food poisoning", "Dysentery", "Cholera");
+    /** The sanatorium (04c §7: food, rest, air): the immunity × 1.2 (the simulation's; tuberculosis's deaths 66 → 26 %). */
+    static final double SANATORIUM = 1.2;
 
     /** One disease running in a body (saved with the character). */
     public static final class Case {
@@ -234,7 +239,7 @@ final class Diseases {
                 out.add(d.name() + ": the first signs");
             }
             k.ill += 1;
-            k.imm = Math.min(1, k.imm + d.rI() * speedBody * k.luck / 24);
+            k.imm = Math.min(1, k.imm + d.rI() * speedBody * k.luck * (k.acts.containsKey("sanatorium") ? SANATORIUM : 1) / 24);
             if (k.imm >= 1 && !k.immune) { k.immune = true; out.add(d.name() + ": the body has its answer, it fades from now"); }
             int si = d.stageAt(k.sev);
             double days = (d.course() > 0 ? d.course() : ABX_DAYS) / k.abxRate;
@@ -260,8 +265,9 @@ final class Diseases {
                 double grow = d.rS() * k.dose * (k.acts.containsKey("tend") ? TEND : 1);
                 if (d.absorbDays() > 0 && k.ill > d.absorbDays() * 24) grow = 0;   // a toxin: all of it absorbed
                 if (k.acts.containsKey("support") && d.support() > 0) grow *= d.support();
-                for (Map.Entry<String, Act> a : d.acts().entrySet())
-                    if (k.acts.containsKey(a.getKey()) && si <= a.getValue().upTo()) grow *= a.getValue().x();
+                for (Map.Entry<String, Act> a : d.acts().entrySet())   // a sedative taken counts as the sedation (04c §4b)
+                    if ((k.acts.containsKey(a.getKey()) || (a.getKey().equals("sedation") && c.other("sedation") > 0)) && si <= a.getValue().upTo())
+                        grow *= a.getValue().x();
                 k.sev += grow / 24;
             }
             if (k.sev <= 0) {
@@ -283,8 +289,13 @@ final class Diseases {
                 out.add(d.name() + ": " + s.name() + " (" + stageText(s) + ")");
                 if (d.name().equals("Influenza") && ni == 2) complication.add("Pneumonia");   // 04b §5: Bedridden flu, 5 %
             }
-            if (s.waterH() != 0) bump(c, Rules.Stat.WATER, s.waterH());
-            if (s.foodH() != 0) bump(c, Rules.Stat.FOOD, s.foodH());
+            double wh = s.waterH(), fh = s.foodH();
+            if (GUT.contains(d.name())) {   // 04c §4b, §5: opium and codeine slow the gut, tannins, cannabis against the vomiting
+                if (wh < 0) wh = Math.min(0, wh * Math.max(0, 1 + c.other("runs")) + c.other("runs_back"));
+                if (fh < 0 && c.other("nausea") > 0) fh = 0;
+            }
+            if (wh != 0) bump(c, Rules.Stat.WATER, wh);
+            if (fh != 0) bump(c, Rules.Stat.FOOD, fh);
             if (s.pain() > 0) c.survival.put(Rules.Stat.PAIN, Math.max(c.survival.getOrDefault(Rules.Stat.PAIN, 0.0), s.pain()));
             if (!saved && s.hpH() < 0) {
                 c.diseaseHp += s.hpH();
@@ -398,6 +409,7 @@ final class Diseases {
             return l;
         }
         l.add("tend");
+        if (d.name().equals("Tuberculosis")) l.add("sanatorium");
         if (!d.families().isEmpty()) l.add("antibiotics");
         if (d.support() > 0) l.add("support");
         l.addAll(d.acts().keySet());
@@ -408,7 +420,8 @@ final class Diseases {
 
     static String actText(Disease d, String act) {
         return switch (act) {
-            case "tend" -> "a carer's day: the growth × 0.7 for 24 hours (a Medicine check a day)";
+            case "tend" -> "a carer's day: the growth × 0.7 for 24 hours; the carer's Medicine at least " + TEND_CHECK + " × the stage (1-4)";
+            case "sanatorium" -> "the sanatorium: food, rest and clean air, the immunity × " + f(SANATORIUM) + " (on until stopped); isolated";
             case "antibiotics" -> "a 7-day course from the hour it is recognised (its second stage); works for: " + String.join(", ", d.families());
             case "support" -> (d.name().equals("Botulism") ? "breathing kept up: the paralysis cannot kill" : "breathing kept up: the growth × " + f(d.support()))
                     + "; someone at it all the time (on until stopped)";
@@ -425,8 +438,14 @@ final class Diseases {
         };
     }
 
+    /** The tending check (04c §4: a Medicine check a day): the carer's Medicine at least this × the stage, 1 to 4 [mine, EXAMPLE]. */
+    static final int TEND_CHECK = 20;
+
     /** A medic's action on one disease; {@code family} and {@code strength} for antibiotics (the old stores half, sulfa 0.7). */
-    static String treat(Character c, String name, String act, String family, double strength) {
+    static String treat(Character c, String name, String act, String family, double strength) { return treat(c, name, act, family, strength, null); }
+
+    /** The same by a carer (null = the GM's word): tending is a Medicine check against the disease's stage (no roll: a comparison). */
+    static String treat(Character c, String name, String act, String family, double strength, Character carer) {
         Disease d = find(name);
         if (d == null) return "! no disease " + name;
         Case k = active(c, d.name());
@@ -434,7 +453,18 @@ final class Diseases {
         if (!actions(d, k).contains(act)) return "! " + act + " does nothing for " + d.name() + (k.incubation > 0 ? " before it shows" : "");
         double now = c.now();
         switch (act) {
-            case "tend" -> { k.acts.put("tend", now + 24); return d.name() + ": tended for the day (the growth × 0.7)"; }
+            case "tend" -> {
+                int need = TEND_CHECK * (Math.max(0, k.stage) + 1);
+                double med = carer == null ? need : carer.skill("Medicine");
+                if (!Rules.check(med, need)) return "! " + carer.name + "'s Medicine " + Math.round(med) + " is under the " + need + " this stage needs: no tending";
+                k.acts.put("tend", now + 24);
+                return d.name() + ": tended for the day (the growth × 0.7" + (carer == null ? "" : "; Medicine " + Math.round(med) + " of " + need) + ")";
+            }
+            case "sanatorium" -> {
+                if (k.acts.remove("sanatorium") != null) return d.name() + ": out of the sanatorium";
+                k.acts.put("sanatorium", -1.0);
+                return d.name() + ": in the sanatorium (the immunity × " + f(SANATORIUM) + ")";
+            }
             case "antibiotics" -> {
                 if (!d.families().contains(family)) return "! " + family + " does nothing for " + d.name() + " (it takes " + String.join(", ", d.families()) + ")";
                 if (strength <= 0) return "! these antibiotics no longer work (over 10 years past day D)";

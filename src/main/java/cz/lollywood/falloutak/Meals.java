@@ -178,6 +178,9 @@ final class Meals {
         StringJoiner what = new StringJoiner(", ");
         for (int t = 4; t >= 1; t--) if (ateTier[t] > 0) what.add(ateTier[t] + " Food " + Rules.roman(t));
         for (int t = 4; t >= 1; t--) if (drankTier[t] > 0) what.add(drankTier[t] + " l of Tier " + Rules.roman(t));
+        // 04b §3c (the shelter only, RULED round 10): a portion of Tier III or IV food = a vitamin C day
+        String sc = Conditions.scurvyDay(c, ateTier[3] + ateTier[4] > 0, rnd);
+        if (sc != null) j.add(sc);
         double rads = c.survival.getOrDefault(Rules.Stat.RADS, 0.0) - rads0;
         if (rads > 1e-9) what.add("+" + Diseases.f(rads) + " rads");
         if (what.length() > 0) j.add("you ate and drank " + what);
@@ -192,15 +195,23 @@ final class Meals {
     }
 
     /** The base's people by their species: the average food and water factor of their templates (a synthetic body 0 and 0). */
-    static void npcFactors(Production pr, java.util.List<Population.Person> people) {
+    static void npcFactors(Production pr, java.util.List<Population.Person> people) { npcFactors(pr, people, g -> 0); }
+
+    /**
+     * The same with each person's group's Survival (Marek 11-24, verbatim: *"groups exist mostly for the skills values, so please add
+     * it."*): a portion and a litre give him × (1 + Survival / 100), as for a character, so he needs that much less.
+     */
+    static void npcFactors(Production pr, java.util.List<Population.Person> people, java.util.function.ToDoubleFunction<String> survivalOf) {
         double f = 0, w = 0;
         int n = 0;
+        java.util.Map<String, Double> surv = new java.util.HashMap<>();
         for (Population.Person p : people) {
             Data.Template t = Data.TEMPLATES.getOrDefault(p.species, Data.TEMPLATES.get("Human"));
             if (t == null) continue;
             boolean power = "power".equals(t.needs());
-            f += power ? 0 : t.foodFactor();
-            w += power ? 0 : t.waterFactor();
+            double gain = 1 + Math.max(0, surv.computeIfAbsent(p.group == null ? "" : p.group, g -> g.isEmpty() ? 0 : survivalOf.applyAsDouble(g))) / 100;
+            f += power ? 0 : t.foodFactor() / gain;
+            w += power ? 0 : t.waterFactor() / gain;
             n++;
         }
         pr.mealFactor = n == 0 ? 1 : f / n;

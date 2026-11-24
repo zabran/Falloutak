@@ -314,6 +314,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
             case "surgery" -> say(p, Part3.surgery(c, args, rnd));
             case "transplant", "graft" -> say(p, Part3.transplant(c, args, rnd));
             case "disease", "diseases" -> say(p, Diseases.command(c, args, rnd));
+            case "condition", "conditions" -> say(p, Conditions.command(c, args));
             case "revive" -> say(p, Part3.revive(c, args, rnd));
             case "dose", "chem", "chems" -> say(p, Part3.dose(c, args, rnd));
             case "mutate" -> say(p, Part3.mutate(c, args, rnd));

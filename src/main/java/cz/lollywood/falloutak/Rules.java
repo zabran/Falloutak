@@ -470,7 +470,6 @@ public final class Rules {
     /** 03b §3 (the old factor, kept for old saves): Tier IV (pre-war) full, III three quarters, II half (rounded down, at least 1). */
     public static double tierShare(int tier) { return tier >= 4 ? 1 : tier == 3 ? 0.75 : 0.5; }
     public static int implantTier(double v, int tier) { return scaleInt(v, tierShare(tier)); }
-    public static double implantTierD(double v, int tier) { return v * tierShare(tier); }
 
     /**
      * Falls (RULED 11-16, round 3: *"your idea sounds better than MC, accepted"*): 1d6 per 3 blocks beyond the first 3 (D&D's 1d6 per

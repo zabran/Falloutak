@@ -75,7 +75,8 @@
    "effect": {
     "hours": 6,
     "other": {
-     "pain_felt": -20
+     "pain_felt": -20,
+     "runs": -0.5
     }
    },
    "withdrawal": {
@@ -127,6 +128,139 @@
     }
    },
    "source": "04c §4b (-50 for 1 h, Intelligence -2 an hour on waking)"
+  },
+  {
+   "name": "Paracetamol",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "pain_felt": -10
+    }
+   },
+   "source": "04c §4b (-10 for 6 h; the liver if overdosed: the GM's)"
+  },
+  {
+   "name": "Ibuprofen",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "pain_felt": -15
+    }
+   },
+   "source": "04c §4b (ibuprofen or aspirin, -15 for 6 h; thins the blood: not with bleeding, the GM's)"
+  },
+  {
+   "name": "Willow bark",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "pain_felt": -10
+    }
+   },
+   "source": "04c §5 (willow-bark tea or extract, -10 for 6 h; Cochrane: 240 mg salicin a day eased back pain)"
+  },
+  {
+   "name": "Opium",
+   "chance": 0.1,
+   "roll": "day",
+   "effect": {
+    "hours": 6,
+    "other": {
+     "pain_felt": -30,
+     "runs": -0.5
+    }
+   },
+   "withdrawal": {
+    "hours": 240,
+    "mods": {
+     "agility": -1,
+     "intelligence": -1
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "04c §5 (the Czech poppy: -30 for 6 h, the runs' water loss halved, 10 % a day of use); the addiction as morphine's"
+  },
+  {
+   "name": "Cannabis",
+   "chance": 0.02,
+   "roll": "day",
+   "effect": {
+    "hours": 4,
+    "other": {
+     "pain_felt": -10,
+     "nausea": 1
+    }
+   },
+   "withdrawal": {
+    "hours": 168,
+    "mods": {
+     "charisma": -1
+    }
+   },
+   "dependence": {
+    "hours": 720
+   },
+   "source": "04c §5 (nausea and pain -10; ~9 % of users become dependent [approx]; the 2 % a day and the lengths mine)"
+  },
+  {
+   "name": "Herbal tea",
+   "chance": 0,
+   "effect": {
+    "hours": 2,
+    "other": {
+     "pain_felt": -5
+    }
+   },
+   "source": "04c §5 (linden, elderflower, chamomile: comfort, the placebo's -5)"
+  },
+  {
+   "name": "Tannin tea",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "runs_back": 0.5
+    }
+   },
+   "source": "04c §5 (oak bark, dried blueberries, black tea: the runs' water loss -0.5 an hour; weak, traditional)"
+  },
+  {
+   "name": "Placebo",
+   "chance": 0,
+   "effect": {
+    "hours": 2,
+    "other": {
+     "pain_felt": -5
+    }
+   },
+   "source": "04c §6 (RULED round 7: anything believed in, Pain -5 for the scene; nothing else)"
+  },
+  {
+   "name": "Diazepam",
+   "chance": 0.03,
+   "roll": "day",
+   "effect": {
+    "hours": 6,
+    "other": {
+     "sedation": 1
+    }
+   },
+   "withdrawal": {
+    "hours": 336,
+    "mods": {
+     "agility": -1,
+     "perception": -1
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "04c §4b (tetanus's spasms x0.8 with the dark room; with opioids the breathing stops: the GM's); dependence [approx]"
   },
   {
    "name": "Amphetamine",

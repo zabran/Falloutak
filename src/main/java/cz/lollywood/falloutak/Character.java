@@ -73,6 +73,15 @@ public final class Character {
      */
     public boolean washSoap = false;
     public double soapDays = 0;
+    /**
+     * 04b §3c's counters (Marek 11-24: *"Please, complete the illnesses"*): scurvy's days without fresh food (the shelter only), trench
+     * foot's wet hours, scabies; tuberculosis's latent infection (the hour it began, −1 none: the GM's secret); the daily tick check
+     * (Lyme needs a day attached: on, a bite is found that evening). {@link Conditions}.
+     */
+    public double scurvy, trench;
+    public boolean scabies;
+    public double tbLatent = -1;
+    public boolean tickCheck = true;
     /** In the base and fed or watered by its daily lot (the GM's time passing sets them): his own bar does not fall then. */
     public transient boolean baseFood = false, baseWater = false;
     /** The base's store lacked his meals or his water on its last day (his bar falls then); the parts of a portion and a litre owed. */

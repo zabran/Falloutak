@@ -343,6 +343,18 @@ final class Travel {
         return new Walk(ti, tj, t, km, null, "arrived");
     }
 
+    /** The share of a straight walk through fields or forest (where the ticks are; not on roads or in towns). */
+    static double wildShare(double i, double j, double ti, double tj) {
+        if (map == null || Double.isNaN(i) || Double.isNaN(j)) return 0;
+        int n = Math.max(1, (int) Math.ceil(map.km(i, j, ti, tj) / STEP_KM)), wild = 0;
+        for (int k = 0; k < n; k++) {
+            int[] c = cell(i + (ti - i) * (k + 0.5) / n, j + (tj - j) * (k + 0.5) / n);
+            String t = map.inside(c[0], c[1]) ? map.terrainAt(c[0], c[1]) : "";
+            if (t.equals("field") || t.equals("forest")) wild++;
+        }
+        return wild / (double) n;
+    }
+
     /** The party sets out (or goes on) to a place. Returns what happened. */
     static String go(FalloutakPlugin pl, Player p, String placeName, boolean push, Random rnd) {
         if (map == null) return "! no world map is loaded (worldmap.json from fallout_danger_sim.py --export in the plugin's folder)";
@@ -359,10 +371,13 @@ final class Travel {
         Loot.clear();   // the party sets out: the last field's bodies stay behind
         // time passes for the whole party, outside the base
         List<String> news = new ArrayList<>();
+        double wild = wk.hours() * wildShare(pi, pj, wk.i(), wk.j());   // 04b §5: the ticks of fields and forest
         for (Character c : cs) {
             c.outside = true;
             String r = Hud.pass(c, wk.hours() * 60);
             if (r != null) news.add(c.name + ": " + r);
+            String t = Conditions.ticks(c, wild, season, rnd);
+            if (t != null) { news.add(c.name + ": " + t); if (t.contains("CAUGHT")) tellGm(c.name + ": " + t); }
         }
         if (lead.day() != marchDay) { marchDay = lead.day(); marched = 0; }
         String weeks = catchUp(lead.day());

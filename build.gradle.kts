@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "cz.lollywood"
-version = "0.90.0"
+version = "0.91.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
@@ -31,7 +31,9 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
     maxHeapSize = "4g"   // the battle maps are 128 x 128 (09d round 5): the mock world keeps every block it builds
-    finalizedBy(tasks.jacocoTestReport)
+    // three JVMs side by side (Marek 11-24: the builds took the time); the coverage report only when asked:
+    // ./gradlew test jacocoTestReport
+    maxParallelForks = 3
 }
 
 tasks.jacocoTestReport {

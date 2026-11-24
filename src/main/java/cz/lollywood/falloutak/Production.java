@@ -805,8 +805,6 @@ final class Production {
         return litres - Math.max(0, left);
     }
 
-    /** The people's washing (round 9), everyone as unwounded: kept for the tests and the GM's checks. */
-    double washWater(double litres, Base base) { return washFrom(litres, base, false, null); }
 
     /**
      * Going unwashed (round 9) [the numbers EXAMPLE, mine]: from 3 days Dirty (wound-infection rolls × 1.5), from 7 days Filthy

@@ -204,6 +204,10 @@ final class Menus {
                     : "no bar left: carry Soap (Chemicals II) and a new one is taken") + "; " + bars + " in your pack"
                     : "wash with soap: ×" + Diseases.SOAP + " on catching from the sick (04b §5), a bar lasts " + Math.round(Diseases.SOAP_DAYS) + " days; "
                     + bars + " in your pack", x -> { c.washSoap = !c.washSoap; actions(x); }));
+            // 04c §7: the daily tick check (Lyme needs a day attached: 1 % a bite found that evening, 3 % left on)
+            b.add(btn(c.tickCheck ? "Tick check: ON" : "Tick check: OFF", c.tickCheck
+                    ? "every evening on the march you check for ticks: a bite is found within the day (Lyme 1 % a bite, not 3 %)"
+                    : "no tick check: a bite stays on over a day (Lyme 3 % a bite)", x -> { c.tickCheck = !c.tickCheck; actions(x); }));
             // Marek 11-24: eating and drinking from the pack (in the base the base's daily lot feeds you while the GM passes time)
             List<String> foods = new ArrayList<>(), waters = new ArrayList<>();
             for (String id : carry.keySet()) {
@@ -469,6 +473,12 @@ final class Menus {
                 if (!Diseases.actions(d, k).isEmpty())
                     b.add(btn("Treat: " + d.name() + " (" + st + ")", d.real(), x -> treatDisease(x, whoOf(o.entity()), d.name())));
             }
+        // 04b §3c: the conditions with their own clocks
+        String cond = Conditions.show(t);
+        if (!t.dead && !cond.isEmpty()) lines.add(line("Condition: " + cond, NamedTextColor.RED));
+        if (!t.dead && t.scabies)
+            b.add(btn("Scabies: the ointment", "permethrin (pre-war) or sulphur ointment (made): the mites gone; treat everyone in contact at once",
+                    x -> { String r = Conditions.ointment(t); say(x, o.name() + ": " + r); o.tell(r, NamedTextColor.YELLOW); on(x, whoOf(o.entity())); }));
         if (!t.dead && Works.gm(p))
             b.add(btn("GM: a disease", "infect " + o.name() + " with one (the incubation runs, the GM sees it), or vaccinate", x -> gmDisease(x, whoOf(o.entity()))));
         if (!t.dead && (t.bleeding > 0 || (t.hp < t.hpMax() && t.inSlot("treatment:dressing") == null)))
@@ -656,7 +666,7 @@ final class Menus {
         Consumer<Player> back = x -> on(x, whoOf(o.entity()));
         pick(p, "Treat " + o.name() + ": " + d.name(), d.caught(), Diseases.actions(d, k), a -> a, a -> Diseases.actText(d, a), (x, act) -> {
             if (!act.equals("antibiotics")) {
-                String r = Diseases.treat(o.c(), name, act, "", 1);
+                String r = Diseases.treat(o.c(), name, act, "", 1, pl.character(x));
                 say(x, o.name() + ": " + r);
                 o.tell(x.getName() + ": " + r, NamedTextColor.YELLOW);
                 on(x, whoOf(o.entity()));
@@ -1234,7 +1244,10 @@ final class Menus {
                         int hurt = (int) pl.roster.pop.people.stream().filter(p -> p.hpMax > 0 && p.hp < p.hpMax).count();
                         List<Who> inBase = pl.production.buildings.isEmpty() ? List.of()
                                 : everyone().stream().filter(o -> !o.c().outside && !o.c().dead).toList();   // they eat and drink there too
-                        Meals.npcFactors(pl.production, pl.roster.pop.people);   // the base's people by their species
+                        Meals.npcFactors(pl.production, pl.roster.pop.people, grp -> {   // by their species and their group's Survival
+                            Character sb = pl.roster.statblock(grp);
+                            return sb == null ? 0 : sb.skill("Survival");
+                        });
                         pl.production.soapPeople = inBase.size();
                         pl.production.dayHook = b -> {
                             for (Who o : inBase) {
