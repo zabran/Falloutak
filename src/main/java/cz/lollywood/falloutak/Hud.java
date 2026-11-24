@@ -188,6 +188,8 @@ public final class Hud {
         c.therapyHour();   // 03d §2, §10
         String graft = c.graftHour(java.util.concurrent.ThreadLocalRandom.current());   // 03e §4, 09e §6: the grafts' drugs and rejection
         if (graft != null) c.news.add(graft);
+        String sick = Diseases.hour(c, java.util.concurrent.ThreadLocalRandom.current());   // 04b: the diseases' race (09e round 3)
+        if (sick != null) c.news.add(sick);
         c.gasHour();       // 03b §3c: mercury vapour
         String pa = c.paHour();   // 05c §3c: Power Armour Training by wearing the suit
         if (pa != null) c.news.add(pa);

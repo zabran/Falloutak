@@ -437,6 +437,18 @@ final class Menus {
             }
             if (!carry.containsKey("gear:Defibrillator")) cannot.add("Revive with a defibrillator: you carry none");
         }
+        // 04b, 04c §7 (09e round 3: "the plugin doesn't simulate diseases - please add that."): the shown diseases and their actions
+        if (!t.dead)
+            for (Diseases.Case k : new ArrayList<>(t.diseases)) {
+                Diseases.Disease d = Diseases.ALL.get(k.name);
+                if (d == null || (k.incubation > 0 && !Works.gm(p))) continue;
+                String st = k.incubation > 0 ? "incubating" : d.stages().get(Math.max(0, k.stage)).name();
+                lines.add(line("Ill: " + d.name() + " (" + st + ")", NamedTextColor.RED));
+                if (!Diseases.actions(d, k).isEmpty())
+                    b.add(btn("Treat: " + d.name() + " (" + st + ")", d.real(), x -> treatDisease(x, whoOf(o.entity()), d.name())));
+            }
+        if (!t.dead && Works.gm(p))
+            b.add(btn("GM: a disease", "infect " + o.name() + " with one (the incubation runs, the GM sees it), or vaccinate", x -> gmDisease(x, whoOf(o.entity()))));
         if (!t.dead && (t.bleeding > 0 || (t.hp < t.hpMax() && t.inSlot("treatment:dressing") == null)))
             b.add(btn(t.bleeding > 0 ? "First aid (stop the bleeding)" : "Dress the wounds", t.bleeding > 0 ? "the bleeding stops (Medicine)"
                     : "your Medicine 20 (a check): his healing rate +1 for the next 24 hours", x -> {
@@ -586,6 +598,57 @@ final class Menus {
                             pick(y, "Operate: the chip's skill", "The memory chip's skill.", sk, k -> k, k -> "now " + Math.round(o.c().skill(k)) + " %",
                                     (z, k) -> operateConfirm(z, o, implant, im, tier, me, room, s, k), back);
                         }, back), back);
+    }
+
+    /** A disease's actions (04c §7): pick one; antibiotics take a carried Medicine III or IV and the family the medic picks. */
+    static void treatDisease(Player p, Who o, String name) {
+        if (o == null) return;
+        Diseases.Disease d = Diseases.ALL.get(name);
+        Diseases.Case k = d == null ? null : Diseases.active(o.c(), name);
+        if (k == null) { on(p, o); return; }
+        Consumer<Player> back = x -> on(x, whoOf(o.entity()));
+        pick(p, "Treat " + o.name() + ": " + d.name(), d.caught(), Diseases.actions(d, k), a -> a, a -> Diseases.actText(d, a), (x, act) -> {
+            if (!act.equals("antibiotics")) {
+                String r = Diseases.treat(o.c(), name, act, "", 1);
+                say(x, o.name() + ": " + r);
+                o.tell(x.getName() + ": " + r, NamedTextColor.YELLOW);
+                on(x, whoOf(o.entity()));
+                return;
+            }
+            String dose = null;
+            int tier = 0;
+            for (String id : Items.carried(x).keySet()) {
+                String[] th = Items.thing(id);
+                if (th != null && th[0].equals("Medicine") && Integer.parseInt(th[1]) > tier && Integer.parseInt(th[1]) >= 3) { dose = id; tier = Integer.parseInt(th[1]); }
+            }
+            if (dose == null) { say(x, "! you carry no antibiotics (Medicine III: crude penicillin, IV: pre-war)"); on(x, whoOf(o.entity())); return; }
+            String id = dose;
+            int t = tier;
+            List<String> fams = t >= 4 ? Diseases.FAMILIES : List.of("penicillins");
+            pick(x, "Which antibiotic", "Your Medicine (a check) or your own knowledge picks it (04c §4c): the wrong one does nothing.", fams, f -> f,
+                    f -> (t >= 4 ? "pre-war: " + Math.round(100 * Diseases.prewarStrength(Travel.years())) + " % strength now" : "crude penicillin (Medicine III)"),
+                    (y, fam) -> {
+                        if (!Items.take(y, id)) { say(y, "! the dose is gone"); return; }
+                        String r = Diseases.treat(o.c(), name, "antibiotics", fam, t >= 4 ? Diseases.prewarStrength(Travel.years()) : 1);
+                        say(y, o.name() + ": " + r);
+                        o.tell(y.getName() + ": " + r, NamedTextColor.YELLOW);
+                        on(y, whoOf(o.entity()));
+                    }, back);
+        }, back);
+    }
+
+    /** The GM gives a disease or a vaccine (04b §2b). */
+    static void gmDisease(Player p, Who o) {
+        if (o == null) return;
+        Consumer<Player> back = x -> on(x, whoOf(o.entity()));
+        pick(p, "GM: a disease for " + o.name(), Diseases.show(o.c()), List.of("infect", "vaccinate", "cure"), a -> a, a -> "", (x, what) ->
+                pick(x, "GM: " + what, "", new ArrayList<>(Diseases.ALL.keySet()), n -> n, n -> Diseases.ALL.get(n).caught(), (y, n) -> {
+                    String r = Diseases.command(o.c(), new String[]{"disease", what.equals("infect") ? "catch" : what.equals("vaccinate") ? "vaccine" : "cure",
+                            n.replace(' ', '_')}, pl.rnd);
+                    say(y, o.name() + ": " + r);
+                    if (!what.equals("infect")) o.tell(r, NamedTextColor.YELLOW);
+                    on(y, whoOf(o.entity()));
+                }, back), back);
     }
 
     /** A donor's organ into a patient (03e §4, 09e §6): the room, the supplies, an arm's side, then his consent. */

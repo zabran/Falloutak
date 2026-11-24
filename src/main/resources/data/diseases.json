@@ -1,0 +1,1218 @@
+{
+ "source": "_tools/fallout_diseases_json.py from fallout_disease_sim.py (04b, 04c; the numbers EXAMPLE unless the notes say RULED)",
+ "rows": [
+  {
+   "name": "Common cold",
+   "cz": "rýma, nachlazení",
+   "kind": "virus",
+   "bacterial": false,
+   "lethal": false,
+   "max": 20,
+   "inc": [
+    1,
+    3
+   ],
+   "r_s": 0.3,
+   "r_i": 0.2,
+   "r_rec": 0.25,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 99,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": true,
+   "person": true,
+   "families": [],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Sniffles",
+     "mods": {
+      "P": -1
+     }
+    },
+    {
+     "from": 0.4,
+     "name": "Cold",
+     "mods": {
+      "P": -1,
+      "C": -1
+     }
+    },
+    {
+     "from": 0.8,
+     "name": "Heavy cold",
+     "mods": {
+      "P": -1,
+      "C": -1,
+      "E": -1
+     }
+    }
+   ],
+   "real": "1-3 days to show, 7-10 days ill, never lethal (CDC)",
+   "catch": "a day near the sick; cold and wet days count twice [game]"
+  },
+  {
+   "name": "Influenza",
+   "cz": "chřipka",
+   "kind": "virus",
+   "bacterial": false,
+   "lethal": true,
+   "max": 40,
+   "inc": [
+    1,
+    4
+   ],
+   "r_s": 0.14,
+   "r_i": 0.25,
+   "r_rec": 0.2,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 3,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 365,
+   "immune_share": 1,
+   "resist": true,
+   "person": true,
+   "families": [
+    "penicillins",
+    "sulfa",
+    "tetracyclines"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Feverish",
+     "mods": {
+      "S": -1,
+      "E": -1
+     },
+     "water_h": -0.5
+    },
+    {
+     "from": 0.3,
+     "name": "Flu",
+     "mods": {
+      "S": -2,
+      "E": -1,
+      "A": -1,
+      "P": -1
+     },
+     "water_h": -1
+    },
+    {
+     "from": 0.6,
+     "name": "Bedridden flu",
+     "mods": {
+      "S": -3,
+      "E": -1,
+      "A": -2,
+      "P": -1,
+      "I": -1
+     },
+     "water_h": -1
+    },
+    {
+     "from": 0.85,
+     "name": "Pneumonia",
+     "mods": {
+      "S": -4,
+      "E": -2,
+      "A": -3,
+      "P": -2,
+      "I": -1
+     },
+     "water_h": -1,
+     "hp_h": -0.25
+    }
+   ],
+   "real": "1-4 days to show, a week ill, weak for two; kills the old, the weak and the starving, mostly by pneumonia",
+   "catch": "a day near the sick, crowds, the shelter"
+  },
+  {
+   "name": "Food poisoning",
+   "cz": "otrava jídlem, střevní chřipka",
+   "kind": "bacteria or virus",
+   "bacterial": false,
+   "lethal": false,
+   "max": 15,
+   "inc": [
+    0.5,
+    2
+   ],
+   "r_s": 1.5,
+   "r_i": 0.8,
+   "r_rec": 1.0,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 99,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": true,
+   "person": false,
+   "families": [],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Nausea",
+     "mods": {
+      "E": -1
+     }
+    },
+    {
+     "from": 0.4,
+     "name": "Vomiting",
+     "mods": {
+      "S": -1,
+      "A": -1
+     },
+     "water_h": -1,
+     "food_h": -1
+    },
+    {
+     "from": 0.8,
+     "name": "The runs",
+     "mods": {
+      "E": -1,
+      "S": -1,
+      "A": -1
+     },
+     "water_h": -1.5,
+     "food_h": -1
+    }
+   ],
+   "real": "12-48 hours to show, 1-3 days ill, dangerous only by the water lost",
+   "catch": "spoiled or raw food (a roll a meal), dirty water"
+  },
+  {
+   "name": "Dysentery",
+   "cz": "úplavice",
+   "kind": "bacteria",
+   "bacterial": true,
+   "lethal": true,
+   "max": 50,
+   "inc": [
+    1,
+    3
+   ],
+   "r_s": 0.13,
+   "r_i": 0.18,
+   "r_rec": 0.25,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 1,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 365,
+   "immune_share": 0.5,
+   "resist": true,
+   "person": true,
+   "families": [
+    "ciprofloxacin",
+    "sulfa"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Cramps",
+     "mods": {
+      "E": -1
+     },
+     "pain": 10
+    },
+    {
+     "from": 0.3,
+     "name": "Bloody flux",
+     "mods": {
+      "E": -1,
+      "S": -1
+     },
+     "water_h": -1,
+     "pain": 15
+    },
+    {
+     "from": 0.6,
+     "name": "Dysentery",
+     "mods": {
+      "E": -1,
+      "S": -2,
+      "A": -1
+     },
+     "water_h": -1.5,
+     "hp_h": -0.1,
+     "pain": 20
+    },
+    {
+     "from": 0.85,
+     "name": "Wasting",
+     "mods": {
+      "E": -2,
+      "S": -3,
+      "A": -2
+     },
+     "water_h": -2,
+     "hp_h": -0.5,
+     "pain": 20
+    }
+   ],
+   "real": "1-3 days to show, 5-7 days ill; Shiga's kind kills up to ~10 % in camps, mostly the weak [approx]",
+   "catch": "dirty water, food handled by the sick, flies, camps"
+  },
+  {
+   "name": "Cholera",
+   "cz": "cholera",
+   "kind": "bacteria",
+   "bacterial": true,
+   "lethal": false,
+   "max": 60,
+   "inc": [
+    0.5,
+    5
+   ],
+   "r_s": 0.6,
+   "r_i": 0.4,
+   "r_rec": 0.5,
+   "dose": "sq",
+   "abx_stage": 1,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 1095,
+   "immune_share": 1,
+   "resist": true,
+   "person": true,
+   "families": [
+    "ciprofloxacin",
+    "tetracyclines"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Loose bowels",
+     "mods": {},
+     "water_h": -1
+    },
+    {
+     "from": 0.25,
+     "name": "Watery diarrhoea",
+     "mods": {
+      "E": -1
+     },
+     "water_h": -3
+    },
+    {
+     "from": 0.5,
+     "name": "Rice-water stools",
+     "mods": {
+      "E": -1,
+      "S": -1
+     },
+     "water_h": -8
+    },
+    {
+     "from": 0.75,
+     "name": "Cholera gravis",
+     "mods": {
+      "E": -1,
+      "S": -2,
+      "A": -1
+     },
+     "water_h": -15
+    }
+   ],
+   "real": "under a day to 5 days to show; most cases mild, a severe one loses up to ~1 l an hour and dies within hours untreated (up to half of the severe ones); with rehydration under 1 % (WHO, CDC)",
+   "catch": "dirty water where cholera is about (an outbreak)"
+  },
+  {
+   "name": "Typhoid",
+   "cz": "břišní tyfus",
+   "kind": "bacteria",
+   "bacterial": true,
+   "lethal": true,
+   "max": 80,
+   "inc": [
+    6,
+    30
+   ],
+   "r_s": 0.039,
+   "r_i": 0.05,
+   "r_rec": 0.1,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 1,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 1095,
+   "immune_share": 0.5,
+   "resist": true,
+   "person": true,
+   "families": [
+    "chloramphenicol",
+    "ciprofloxacin",
+    "sulfa"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Fever",
+     "mods": {
+      "E": -1,
+      "S": -1
+     },
+     "water_h": -0.5
+    },
+    {
+     "from": 0.3,
+     "name": "Typhoid fever",
+     "mods": {
+      "E": -1,
+      "S": -1,
+      "A": -1,
+      "I": -1
+     },
+     "water_h": -1
+    },
+    {
+     "from": 0.6,
+     "name": "Typhoid state",
+     "mods": {
+      "E": -1,
+      "S": -2,
+      "A": -2,
+      "I": -3,
+      "P": -2
+     },
+     "water_h": -1,
+     "hp_h": -0.1
+    },
+    {
+     "from": 0.85,
+     "name": "Perforated gut",
+     "mods": {
+      "E": -2,
+      "S": -3,
+      "A": -3,
+      "I": -3,
+      "P": -2
+     },
+     "water_h": -1,
+     "hp_h": -1,
+     "pain": 40
+    }
+   ],
+   "real": "6-30 days to show, 3-4 weeks ill; kills 10-20 % untreated, under 1 % with antibiotics",
+   "catch": "dirty water and food (a carrier's hands)"
+  },
+  {
+   "name": "Hepatitis A",
+   "cz": "žloutenka typu A",
+   "kind": "virus",
+   "bacterial": false,
+   "lethal": true,
+   "max": 60,
+   "inc": [
+    15,
+    50
+   ],
+   "r_s": 0.022,
+   "r_i": 0.04,
+   "r_rec": 0.05,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 99,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": -1,
+   "immune_share": 1,
+   "resist": true,
+   "person": true,
+   "families": [],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Tired",
+     "mods": {
+      "E": -1
+     }
+    },
+    {
+     "from": 0.3,
+     "name": "Jaundice",
+     "mods": {
+      "E": -1,
+      "S": -1,
+      "C": -1
+     },
+     "food_h": -0.3
+    },
+    {
+     "from": 0.6,
+     "name": "Hepatitis",
+     "mods": {
+      "E": -1,
+      "S": -2,
+      "C": -1,
+      "A": -1
+     },
+     "food_h": -0.3
+    },
+    {
+     "from": 0.9,
+     "name": "Liver failure",
+     "mods": {
+      "E": -2,
+      "S": -3,
+      "I": -2
+     },
+     "hp_h": -0.5
+    }
+   ],
+   "real": "2-7 weeks to show, weeks to two months ill; rarely lethal (~0.3 %, more in the old) [approx]",
+   "catch": "dirty water and food"
+  },
+  {
+   "name": "Wound infection",
+   "cz": "infekce rány, otrava krve",
+   "kind": "bacteria",
+   "bacterial": true,
+   "lethal": true,
+   "max": 60,
+   "inc": [
+    1,
+    3
+   ],
+   "r_s": 0.095,
+   "r_i": 0.12,
+   "r_rec": 0.15,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 1,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {
+    "maggots": {
+     "x": 0.5,
+     "up_to": 1
+    },
+    "honey": {
+     "x": 0.8,
+     "up_to": 1
+    }
+   },
+   "debride": 0.3,
+   "amputable": true,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": false,
+   "person": false,
+   "families": [
+    "penicillins",
+    "sulfa",
+    "tetracyclines"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Red wound",
+     "mods": {},
+     "pain": 10,
+     "hp_max": -2
+    },
+    {
+     "from": 0.3,
+     "name": "Festering",
+     "mods": {
+      "E": -1
+     },
+     "pain": 20,
+     "hp_max": -4
+    },
+    {
+     "from": 0.6,
+     "name": "Spreading",
+     "mods": {
+      "E": -1,
+      "S": -1
+     },
+     "water_h": -1,
+     "hp_h": -0.25,
+     "pain": 25,
+     "hp_max": -4
+    },
+    {
+     "from": 0.8,
+     "name": "Sepsis",
+     "mods": {
+      "E": -2,
+      "S": -2,
+      "A": -2,
+      "P": -1,
+      "I": -1
+     },
+     "water_h": -1,
+     "hp_h": -1,
+     "pain": 25,
+     "hp_max": -4
+    }
+   ],
+   "real": "1-3 days after a dirty wound; a spreading one turns to sepsis, before antibiotics a common killer of the wounded",
+   "catch": "a wound through the skin: a roll by its dirt (a bite, rust, mud, a bullet)"
+  },
+  {
+   "name": "Tetanus",
+   "cz": "tetanus",
+   "kind": "toxin",
+   "bacterial": false,
+   "lethal": true,
+   "max": 80,
+   "inc": [
+    3,
+    21
+   ],
+   "r_s": 0.055,
+   "r_i": 0.06,
+   "r_rec": 0.08,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 99,
+   "support": 0.5,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {
+    "sedation": {
+     "x": 0.8,
+     "up_to": 9
+    },
+    "antitoxin": {
+     "x": 0.4,
+     "up_to": 9
+    }
+   },
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": true,
+   "person": false,
+   "families": [
+    "penicillins"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Lockjaw",
+     "mods": {
+      "C": -2
+     },
+     "food_h": -0.3
+    },
+    {
+     "from": 0.3,
+     "name": "Spasms",
+     "mods": {
+      "A": -3,
+      "S": -1
+     },
+     "pain": 30
+    },
+    {
+     "from": 0.6,
+     "name": "Arching spasms",
+     "mods": {
+      "A": -5,
+      "S": -2,
+      "E": -1
+     },
+     "hp_h": -0.2,
+     "pain": 50
+    },
+    {
+     "from": 0.85,
+     "name": "Breathing fails",
+     "mods": {
+      "A": -6,
+      "S": -3,
+      "E": -2
+     },
+     "hp_h": -2,
+     "pain": 60
+    }
+   ],
+   "real": "3-21 days after a dirty wound, 3-4 weeks of spasms; without intensive care often lethal; recovering gives NO immunity (WHO)",
+   "catch": "a deep dirty wound, unvaccinated (the shelter's shots wear off in ~10 years)"
+  },
+  {
+   "name": "Epidemic typhus",
+   "cz": "skvrnitý tyfus",
+   "kind": "bacteria",
+   "bacterial": true,
+   "lethal": true,
+   "max": 70,
+   "inc": [
+    7,
+    14
+   ],
+   "r_s": 0.066,
+   "r_i": 0.08,
+   "r_rec": 0.15,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 1,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 3650,
+   "immune_share": 1,
+   "resist": true,
+   "person": false,
+   "families": [
+    "chloramphenicol",
+    "tetracyclines"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Fever and headache",
+     "mods": {
+      "E": -1,
+      "P": -1
+     },
+     "water_h": -0.5
+    },
+    {
+     "from": 0.3,
+     "name": "Typhus rash",
+     "mods": {
+      "E": -1,
+      "S": -1,
+      "P": -1
+     },
+     "water_h": -1
+    },
+    {
+     "from": 0.6,
+     "name": "Typhus stupor",
+     "mods": {
+      "E": -1,
+      "S": -2,
+      "I": -3,
+      "P": -3
+     },
+     "water_h": -1
+    },
+    {
+     "from": 0.85,
+     "name": "Collapse",
+     "mods": {
+      "E": -2,
+      "S": -3,
+      "I": -4,
+      "P": -3
+     },
+     "water_h": -1,
+     "hp_h": -1
+    }
+   ],
+   "real": "1-2 weeks to show, about 2 weeks ill; kills 10-40 % untreated, more in the old; antibiotics cure it in days; the war and camp disease (3 million dead in Eastern Europe and Russia 1918-22)",
+   "catch": "lice: camps, raiders' bedding, the unwashed in winter (a roll a week in lice)"
+  },
+  {
+   "name": "Rabies",
+   "cz": "vzteklina",
+   "kind": "virus",
+   "bacterial": false,
+   "lethal": true,
+   "max": 50,
+   "inc": [
+    20,
+    90
+   ],
+   "r_s": 0.15,
+   "r_i": 0,
+   "r_rec": 0,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 99,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": true,
+   "person": false,
+   "families": [],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Itching bite, fever",
+     "mods": {
+      "E": -1
+     }
+    },
+    {
+     "from": 0.3,
+     "name": "Fear of water",
+     "mods": {
+      "C": -3,
+      "P": -1
+     },
+     "no_drink": true
+    },
+    {
+     "from": 0.6,
+     "name": "Furious",
+     "mods": {
+      "I": -4,
+      "C": -5,
+      "A": -1
+     },
+     "no_drink": true
+    },
+    {
+     "from": 0.85,
+     "name": "Paralysis",
+     "mods": {
+      "S": -5,
+      "A": -6,
+      "I": -6
+     },
+     "hp_h": -2,
+     "no_drink": true
+    }
+   ],
+   "real": "1-3 months after the bite; once it shows, nearly always lethal; the vaccine given in the incubation saves",
+   "catch": "the bite of a rabid animal (a dog, a fox, a bat)"
+  },
+  {
+   "name": "Tick-borne encephalitis",
+   "cz": "klíšťová encefalitida",
+   "kind": "virus (ticks)",
+   "bacterial": false,
+   "lethal": true,
+   "max": 60,
+   "inc": [
+    7,
+    14
+   ],
+   "r_s": 0.06,
+   "r_i": 0.1,
+   "r_rec": 0.06,
+   "dose": "sq",
+   "abx_stage": 99,
+   "support": 0.6,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": -1,
+   "immune_share": 1,
+   "resist": true,
+   "person": false,
+   "families": [],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Tick fever",
+     "mods": {
+      "S": -1,
+      "E": -1
+     },
+     "water_h": -0.5
+    },
+    {
+     "from": 0.35,
+     "name": "Meningitis",
+     "mods": {
+      "P": -2,
+      "I": -1
+     },
+     "pain": 30
+    },
+    {
+     "from": 0.6,
+     "name": "Encephalitis",
+     "mods": {
+      "I": -3,
+      "P": -2,
+      "A": -3
+     },
+     "hp_h": -0.1
+    },
+    {
+     "from": 0.85,
+     "name": "Paralysis",
+     "mods": {
+      "A": -5,
+      "S": -3,
+      "E": -1
+     },
+     "hp_h": -1
+    }
+   ],
+   "real": "7-14 days after the bite; most only a flu, about a third a second phase in the brain; ~1 % die (the European kind), many keep damage; a vaccine (common in Czechia); Czechia ~6 cases a year per 100 000",
+   "catch": "a tick bite in a wood or a meadow (2-7 % of Czech ticks carry it); also raw goat milk"
+  },
+  {
+   "name": "Leptospirosis",
+   "cz": "leptospiróza",
+   "kind": "bacteria (rats)",
+   "bacterial": true,
+   "lethal": true,
+   "max": 50,
+   "inc": [
+    5,
+    14
+   ],
+   "r_s": 0.12,
+   "r_i": 0.2,
+   "r_rec": 0.25,
+   "dose": "sq",
+   "abx_stage": 1,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 365,
+   "immune_share": 1,
+   "resist": true,
+   "person": false,
+   "families": [
+    "penicillins",
+    "tetracyclines"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Fever and aching calves",
+     "mods": {
+      "S": -1
+     },
+     "water_h": -0.5,
+     "pain": 15
+    },
+    {
+     "from": 0.35,
+     "name": "Leptospirosis",
+     "mods": {
+      "S": -2,
+      "E": -1
+     },
+     "water_h": -0.5
+    },
+    {
+     "from": 0.6,
+     "name": "Weil's disease",
+     "mods": {
+      "S": -2,
+      "E": -1,
+      "C": -1
+     },
+     "water_h": -1,
+     "hp_h": -0.3
+    },
+    {
+     "from": 0.85,
+     "name": "Bleeding lungs",
+     "mods": {
+      "S": -3,
+      "E": -2
+     },
+     "hp_h": -2
+    }
+   ],
+   "real": "5-14 days to show; mostly a flu with aching calves; a few get Weil's disease (jaundice, failing kidneys, bleeding lungs), of whom a part die [approx]; antibiotics",
+   "catch": "water and mud fouled by rats (floods, cellars, sewers) through skin cuts or drinking"
+  },
+  {
+   "name": "Pneumonia",
+   "cz": "zápal plic",
+   "kind": "bacteria",
+   "bacterial": true,
+   "lethal": true,
+   "max": 60,
+   "inc": [
+    1,
+    3
+   ],
+   "r_s": 0.14,
+   "r_i": 0.17,
+   "r_rec": 0.3,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 1,
+   "support": 0.7,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": true,
+   "person": true,
+   "families": [
+    "penicillins",
+    "sulfa",
+    "tetracyclines"
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Chest cold",
+     "mods": {
+      "S": -1,
+      "E": -1
+     },
+     "water_h": -0.5
+    },
+    {
+     "from": 0.3,
+     "name": "Pneumonia",
+     "mods": {
+      "S": -2,
+      "E": -1,
+      "A": -1
+     },
+     "water_h": -1
+    },
+    {
+     "from": 0.6,
+     "name": "Lobar pneumonia",
+     "mods": {
+      "S": -3,
+      "E": -1,
+      "A": -2,
+      "P": -1
+     },
+     "water_h": -1,
+     "hp_h": -0.2
+    },
+    {
+     "from": 0.85,
+     "name": "Failing lungs",
+     "mods": {
+      "S": -4,
+      "E": -2,
+      "A": -3
+     },
+     "hp_h": -1
+    }
+   ],
+   "real": "a few days; untreated it turned at the 'crisis' on days 5-7 or killed: 25-30 % died before antibiotics, ~5 % with penicillin (Harrison's); a complication of flu, cold, wounds and the bedridden",
+   "catch": "flu, a chill, lying long in bed, near-drowning, the sick nearby"
+  },
+  {
+   "name": "Measles",
+   "cz": "spalničky",
+   "kind": "virus",
+   "bacterial": false,
+   "lethal": true,
+   "max": 50,
+   "inc": [
+    10,
+    14
+   ],
+   "r_s": 0.07,
+   "r_i": 0.12,
+   "r_rec": 0.2,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 99,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": -1,
+   "immune_share": 1,
+   "resist": true,
+   "person": true,
+   "families": [],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Fever and cough",
+     "mods": {
+      "E": -1,
+      "P": -1
+     }
+    },
+    {
+     "from": 0.3,
+     "name": "Measles rash",
+     "mods": {
+      "E": -1,
+      "S": -1,
+      "C": -2,
+      "P": -1
+     }
+    },
+    {
+     "from": 0.6,
+     "name": "Measles pneumonia",
+     "mods": {
+      "S": -2,
+      "E": -1,
+      "A": -1
+     },
+     "water_h": -1,
+     "hp_h": -0.2
+    },
+    {
+     "from": 0.85,
+     "name": "Measles encephalitis",
+     "mods": {
+      "I": -3,
+      "P": -2
+     },
+     "hp_h": -1
+    }
+   ],
+   "real": "10-14 days to show, ~10 days ill; rarely lethal for the fed, 15.7 % of children died in a Ghana trial, more of the malnourished; vitamin A helped little there; immune for life; the MMR vaccine",
+   "catch": "the most contagious there is: a room with a case (unvaccinated)"
+  },
+  {
+   "name": "Botulism",
+   "cz": "botulismus",
+   "kind": "toxin",
+   "bacterial": false,
+   "lethal": true,
+   "max": 60,
+   "inc": [
+    0.5,
+    1.5
+   ],
+   "r_s": 0.7,
+   "r_i": 0.035,
+   "r_rec": 0.04,
+   "dose": [
+    0.3,
+    1.5
+   ],
+   "abx_stage": 99,
+   "support": 1,
+   "support_saves": true,
+   "absorb_days": 1.5,
+   "acts": {
+    "antitoxin": {
+     "x": 0.4,
+     "up_to": 9
+    }
+   },
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": false,
+   "person": false,
+   "families": [],
+   "stages": [
+    {
+     "from": 0,
+     "name": "Blurred vision, dry mouth",
+     "mods": {
+      "P": -2
+     }
+    },
+    {
+     "from": 0.3,
+     "name": "Drooping, slurred",
+     "mods": {
+      "C": -3,
+      "P": -2,
+      "A": -1
+     },
+     "food_h": -0.5
+    },
+    {
+     "from": 0.6,
+     "name": "Descending paralysis",
+     "mods": {
+      "A": -4,
+      "S": -3
+     },
+     "no_drink": true
+    },
+    {
+     "from": 0.85,
+     "name": "Breathing fails",
+     "mods": {
+      "A": -6,
+      "S": -4
+     },
+     "hp_h": -2,
+     "no_drink": true
+    }
+   ],
+   "real": "12-36 h after bad canned food; a paralysis from the eyes down; over 60 % died in the US before the 1950s, under 10 % with breathing machines and antitoxin; recovery takes weeks",
+   "catch": "old cans (bulging), home-preserved food; the toxin, not a germ: no resistance roll, by the can"
+  }
+ ]
+}

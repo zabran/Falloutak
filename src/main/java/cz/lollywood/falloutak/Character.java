@@ -57,6 +57,12 @@ public final class Character {
     public int templateHp = 15, templateSkillPoints = 5, templatePerkRate = 3;
     public final int[] base = {5, 6, 6, 5, 7, 7, 4};
     public final List<Effect> effects = new ArrayList<>();
+    /** Part 4b: the diseases running in this body ({@link Diseases}), what keeps each off (pairs of until-hour and share, −1 = for
+     *  life: the vaccines and the memory of the last bout), whether the start's vaccines were set, the HP the diseases drain by the hour. */
+    public List<Diseases.Case> diseases = new ArrayList<>();
+    public Map<String, double[]> immune = new LinkedHashMap<>();
+    public boolean vaccinesSet = false;
+    public double diseaseHp = 0;
     public final List<Feat> traits = new ArrayList<>();
     /** Hands-On Learner (round 6): the session its skills were counted in, and those skills (up to {@link #HANDS_ON_MAX}). */
     public String handsOnSession = "";
