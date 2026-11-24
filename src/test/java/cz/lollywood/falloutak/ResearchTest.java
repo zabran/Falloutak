@@ -57,7 +57,7 @@ class ResearchTest {
 
     @Test
     void theCardsAreTheCataloguesResearchedWays() {
-        assertEquals(38, Research.CARDS.size());                                            // round 8: the grow room built from the start; 0.61.0 + Chlor-alkali; 0.81.0 + Prussian blue
+        assertEquals(39, Research.CARDS.size());                                            // round 8: the grow room built from the start; 0.61.0 + Chlor-alkali; 0.81.0 + Prussian blue; 0.84.0 + Immunosuppressants
         assertEquals(2, Research.CARDS.values().stream().filter(c -> c.parked).count());     // gene research PARKED (Marek 11-13)
         int[] gate = {0, 25, 50, 100, 150};
         for (Research.Card c : Research.CARDS.values()) {
@@ -268,7 +268,7 @@ class ResearchTest {
             if (!c.eureka.counted()) gm++;
             if (c.eureka.model.contains("a way used N times")) sameWay++;
         }
-        assertEquals(8, gm);
+        assertEquals(9, gm);                                                                   // 0.84.0: + Immunosuppressants (a graft kept a month)
         assertEquals(4, sameWay);                                                           // the rare kind (0.81.0: Prussian blue by boiling potash)
         Production pr = new Production();
         pr.shelter();

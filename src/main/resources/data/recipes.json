@@ -2388,6 +2388,50 @@
    "better": "the lower RadAway, from potash: (50 + Medicine) / 2 rads out over three days, no addiction; in the herds' feed the meat and milk carry 3-10 times less caesium"
   },
   {
+   "id": "make-azathioprine",
+   "name": "Make azathioprine",
+   "building": "Workshop",
+   "tier": 3,
+   "skill": "Chemistry",
+   "min": 70,
+   "hours": 8,
+   "days": 3,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Chems",
+     "tier": 3,
+     "count": 2,
+     "rarity": 2,
+     "items": [
+      "Azathioprine"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 3,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Immunosuppressants",
+   "better": "the made anti-rejection drug: a graft kept a month on it, at the made drug's worse rejection rate (5 % an organ, 10 % a limb)"
+  },
+  {
    "id": "willow-bark-extract",
    "name": "Willow-bark extract",
    "building": "Infirmary",

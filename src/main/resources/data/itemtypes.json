@@ -705,8 +705,8 @@
    "tiers": {
     "I": "home brew, home-grown tobacco",
     "II": "ersatz coffee",
-    "III": "lab chems: Buffout, Mentats, Psycho, Jet; Prussian blue (R2)",
-    "IV": "pre-war pharmacy: Morphine, Ketamine, RadAway"
+    "III": "lab chems: Buffout, Mentats, Psycho, Jet; Prussian blue, Azathioprine (R2)",
+    "IV": "pre-war pharmacy: Morphine, Ketamine, RadAway, Tacrolimus"
    },
    "found_only": false,
    "items": [
@@ -715,6 +715,12 @@
      "tier": 3,
      "rarity": 2,
      "id": "chem:Prussian blue"
+    },
+    {
+     "name": "Azathioprine",
+     "tier": 3,
+     "rarity": 2,
+     "id": "chem:Azathioprine"
     },
     {
      "name": "Alcohol",
@@ -799,6 +805,12 @@
      "tier": 4,
      "rarity": 1,
      "id": "chem:RadAway"
+    },
+    {
+     "name": "Tacrolimus",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Tacrolimus"
     }
    ]
   },

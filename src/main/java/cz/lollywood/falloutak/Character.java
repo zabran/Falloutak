@@ -1240,6 +1240,134 @@ public final class Character {
         return sb.isEmpty() ? "" : " Implants hit:" + sb.substring(0, sb.length() - 1) + ".";
     }
 
+    // ------------------------------------------------------------------ grafts from a donor (03e §4 T II, `09e` §6)
+    /**
+     * The transplant (Marek 11-24, verbatim: *"The transplant operation itself still isn't built. - please, look into that."*; the donor
+     * organ a T II RULED `09d` round 5, the limb a T II with a worse rejection and the made drug Tier III RULED `09e` round 2): a donor's
+     * organ in the place's implant slot (03e §3: one thing a place), the arm in its limb's place. While the anti-rejection drugs are taken
+     * (Tacrolimus = the pre-war rate, Azathioprine = the made one) a monthly rejection roll; two weeks without them = rejected. The
+     * corneas need no drugs and no match. The places, the operation's factor and the rates [03e §4, `09e` §6; the numbers mine, EXAMPLE].
+     */
+    public record Graft(String organ, String place, double op, double preWar, double made, boolean drugs) {}
+
+    public static final List<Graft> GRAFTS = List.of(
+            new Graft("kidney", "gut", 0.8, 2, 5, true),
+            new Graft("liver", "gut", 0.8, 2, 5, true),
+            new Graft("heart", "heart", 0.7, 2, 5, true),
+            new Graft("lungs", "lungs", 0.8, 2, 5, true),
+            new Graft("corneas", "eyes", 0.8, 0, 0, false),
+            new Graft("arm", "limb", 0.6, 5, 10, true));
+    /** A month of game hours; two weeks without the drugs; the arm's use from 20 % to 90 % over 270 days (nerves ~1 mm a day) [mine]. */
+    static final double MONTH = 720, WITHOUT_DRUGS = 336, LIMB_START = 20, LIMB_FULL = 90, LIMB_DAYS = 270;
+
+    public static Graft graftOf(String organ) {
+        for (Graft g : GRAFTS) if (g.organ().equalsIgnoreCase(organ == null ? "" : organ.trim())) return g;
+        return null;
+    }
+
+    /** The blood group (the transplant's match, `09e` §6), drawn by Central Europe's shares when first needed. */
+    public String blood = "";
+
+    public String bloodGroup(Random rnd) {
+        if (blood == null || blood.isEmpty()) blood = Loot.bloodGroup(rnd);
+        return blood;
+    }
+
+    /** ABO only [real: Rh does not bar a solid organ]: O gives to all, AB takes from all. */
+    static boolean aboMatch(String donor, String patient) {
+        String d = donor.replaceAll("[+\\-−]", "").toUpperCase(Locale.ROOT), p = patient.replaceAll("[+\\-−]", "").toUpperCase(Locale.ROOT);
+        return d.equals("O") || d.equals(p) || p.equals("AB");
+    }
+
+    /** The strongest anti-rejection drug taken now: 2 the pre-war tablets, 1 the made drug, 0 none. */
+    public double immuno() {
+        double m = 0;
+        for (Effect e : effects) m = Math.max(m, e.other("immuno"));
+        return m;
+    }
+
+    /** Puts a donor's organ in (the operation has succeeded): null when done, else why not. {@code limb} = left_arm or right_arm for an arm. */
+    public String graft(String organ, String donorBlood, String limb, Random rnd) {
+        Graft g = graftOf(organ);
+        if (g == null) return "a donor organ: kidney, liver, heart, lungs, corneas, arm";
+        if (tpl().name().equals("Basic Robot") || tpl().family().equals("animal")) return "a " + template + " takes no donor organ";
+        String donor = donorBlood == null ? "" : donorBlood.trim();
+        if (g.drugs() && !aboMatch(donor, bloodGroup(rnd))) return "the donor's blood group " + donor + " does not match " + blood + " (O gives to all, AB takes from all)";
+        String slot = null;
+        if (g.place().equals("limb")) {
+            if (limb == null || !List.of("left_arm", "right_arm").contains(limb)) return "which arm: left_arm or right_arm";
+            Effect there = inSlot("limb:" + limb);
+            if (there == null) return "the " + limb.replace('_', ' ') + " is whole";
+            if (!there.source().equals("injury")) return "take off the " + there.name() + " first";
+            effects.remove(there);
+            slot = "limb:" + limb;
+        } else {
+            int n = slots(g.place());
+            for (int k = 1; k <= n && slot == null; k++) if (inSlot("implant:" + g.place() + "#" + k) == null) slot = "implant:" + g.place() + "#" + k;
+            if (slot == null) return "the " + g.place() + " slot is taken: take out what is there first (03e §3: one thing a place)";
+        }
+        Map<String, Double> o = new LinkedHashMap<>();
+        o.put("graft_drugs", g.drugs() ? 1.0 : 0.0);
+        o.put("graft_prewar", g.preWar());
+        o.put("graft_made", g.made());
+        o.put("graft_hours", 0.0);
+        o.put("graft_without", 0.0);
+        if (slot.startsWith("limb:")) o.put("efficiency", LIMB_START);
+        add(new Effect("Donor " + organ.toLowerCase(Locale.ROOT) + (slot.startsWith("limb:") ? " (" + limb.replace('_', ' ') + ")" : "")
+                + " · graft, Tier II" + (g.drugs() ? ", blood " + donor : ""), "graft", slot, true, new int[7], o, 0, null, 100));
+        if (g.organ().equals("corneas")) effects.removeIf(e -> e.name().startsWith("One Eye Blind"));
+        return null;
+    }
+
+    public List<Effect> grafts() {
+        List<Effect> l = new ArrayList<>();
+        for (Effect e : effects) if (e.source().equals("graft")) l.add(e);
+        return l;
+    }
+
+    /** One game hour of the grafts: the arm's nerves regrow, two weeks without the drugs reject, the month's roll. Null when nothing happened. */
+    public String graftHour(Random rnd) {
+        double drug = immuno();
+        StringJoiner out = new StringJoiner("; ");
+        for (int i = 0; i < effects.size(); i++) {
+            Effect e = effects.get(i);
+            if (!e.source().equals("graft")) continue;
+            Map<String, Double> o = new LinkedHashMap<>(e.other());
+            double h = o.getOrDefault("graft_hours", 0.0) + 1;
+            o.put("graft_hours", h);
+            String why = null;
+            if (o.getOrDefault("graft_drugs", 0.0) > 0) {
+                double without = drug > 0 ? 0 : o.getOrDefault("graft_without", 0.0) + 1;
+                o.put("graft_without", without);
+                if (without >= WITHOUT_DRUGS) why = "two weeks without the anti-rejection drugs";
+                else if (drug > 0 && Math.abs(h % MONTH) < 1e-9) {
+                    double rate = drug >= 2 ? o.getOrDefault("graft_prewar", 0.0) : o.getOrDefault("graft_made", 0.0);
+                    int d = 1 + rnd.nextInt(100);
+                    if (d <= rate) why = "the month's rejection roll, " + d + " of " + Math.round(rate) + " % (" + (drug >= 2 ? "the pre-war drug" : "the made drug") + ")";
+                }
+            }
+            if (e.slot().startsWith("limb:"))
+                o.put("efficiency", Math.min(LIMB_FULL, LIMB_START + (LIMB_FULL - LIMB_START) * h / (LIMB_DAYS * 24)));
+            if (why == null) {
+                effects.set(i, new Effect(e.name(), e.source(), e.slot(), true, e.mods(), o, 0, e.next(), e.condition()));
+                continue;
+            }
+            effects.remove(i--);
+            String part = e.slot().startsWith("limb:") ? e.slot().substring(5) : null;
+            if (part != null) add(new Effect("Missing " + part.replace('_', ' '), "injury", "limb:" + part, true, new int[7],
+                    new LinkedHashMap<>(Map.of("efficiency", 0.0)), 0, null, 100));
+            out.add(e.name() + " REJECTED (" + why + "): " + rejected(e));
+        }
+        return out.length() == 0 ? null : out.toString();
+    }
+
+    private static String rejected(Effect e) {
+        String s = e.slot();
+        if (s.startsWith("limb:")) return "the arm dies and is taken off: the limb is missing again";
+        if (e.name().startsWith("Donor kidney")) return "the old failure is back: weeks to live without another kidney (the GM)";
+        return "the old failure is back: part 4's death roll unless another graft comes in time (the GM)";
+    }
+
     // ------------------------------------------------------------------ prostheses (03b §6)
     /** A limb's efficiency in %: a natural one 100, else the prosthesis's (hook 50, peg 60, mechanical 80, powered 100, bionic 120) × its condition. */
     public double efficiency(String limb) {

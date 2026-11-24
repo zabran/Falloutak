@@ -347,6 +347,30 @@
     }
    },
    "source": "09e round 2: the lower RadAway, (50 + Medicine) / 2 rads out over 3 days, no addiction [numbers mine, EXAMPLE]"
+  },
+  {
+   "name": "Tacrolimus",
+   "chance": 0,
+   "effect": {
+    "hours": 720,
+    "other": {
+     "immuno": 2,
+     "immunity": -30
+    }
+   },
+   "source": "09e §6: the pre-war anti-rejection tablets, a month's course; Immunity -30 % [numbers mine, EXAMPLE]"
+  },
+  {
+   "name": "Azathioprine",
+   "chance": 0,
+   "effect": {
+    "hours": 720,
+    "other": {
+     "immuno": 1,
+     "immunity": -30
+    }
+   },
+   "source": "09e round 2: the made anti-rejection drug (Chems III R2), a month's course, the worse rejection rate [numbers mine, EXAMPLE]"
   }
  ]
 }

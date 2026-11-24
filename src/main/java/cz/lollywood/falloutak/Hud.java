@@ -186,6 +186,8 @@ public final class Hud {
         heal(c);
         c.radiationRolls(rads0, c.survival.getOrDefault(Rules.Stat.RADS, 0.0), java.util.concurrent.ThreadLocalRandom.current());   // 03d §5
         c.therapyHour();   // 03d §2, §10
+        String graft = c.graftHour(java.util.concurrent.ThreadLocalRandom.current());   // 03e §4, 09e §6: the grafts' drugs and rejection
+        if (graft != null) c.news.add(graft);
         c.gasHour();       // 03b §3c: mercury vapour
         String pa = c.paHour();   // 05c §3c: Power Armour Training by wearing the suit
         if (pa != null) c.news.add(pa);

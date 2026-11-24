@@ -424,6 +424,43 @@
    "basic": true
   },
   {
+   "id": "immunosuppressants",
+   "name": "Immunosuppressants",
+   "recipes": [
+    "make-azathioprine"
+   ],
+   "science": "Chemistry",
+   "tier": 3,
+   "rarity": 2,
+   "points": 1800,
+   "gate": 100,
+   "lab": 2,
+   "lines": [
+    "medicine",
+    "chems"
+   ],
+   "needs": [
+    "workshop-iii"
+   ],
+   "eureka": {
+    "kind": "gm",
+    "text": "Keep a graft alive through its first month on the pre-war tablets",
+    "model": "— (the GM's: a deed the plugin does not see yet)",
+    "auto": false
+   },
+   "notes": [
+    "the experiments' Electronics III: from Circuit boards (or found)",
+    "the experiments' Machinery III: from Precision parts (or found)"
+   ],
+   "experiment": {
+    "electronics": 3,
+    "machinery": 3
+   },
+   "better": "the made anti-rejection drug: a graft kept a month on it, at the made drug's worse rejection rate (5 % an organ, 10 % a limb)",
+   "parked": false,
+   "basic": true
+  },
+  {
    "id": "herbal-extracts",
    "name": "Herbal extracts",
    "recipes": [

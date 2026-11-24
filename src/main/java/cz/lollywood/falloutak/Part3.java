@@ -153,6 +153,56 @@ final class Part3 {
         };
     }
 
+    /**
+     * /sheet transplant <organ> <the donor's blood> <the surgeon's Medicine> <room> <supplies> [left_arm|right_arm]: a donor's organ as a
+     * T II graft (03e §4, `09e` §6): the implant operation's chance with the place's factor (an arm's microsurgery 0.6 [mine]) and its
+     * failures; this character is the patient.
+     */
+    static String transplant(Character c, String[] a, Random rnd) {
+        if (a.length < 6)
+            return "! /sheet transplant <kidney|liver|heart|lungs|corneas|arm> <the donor's blood group> <the surgeon's Medicine> <field|clean|clinic|prewar> "
+                    + "<none|improvised|tier3|tier4> [left_arm|right_arm]\n! chance = min(98 %, Medicine × room × supplies × the operation) (03b §4); "
+                    + "then a month's anti-rejection course at a time (Tacrolimus, Azathioprine), the corneas none";
+        Character.Graft g = Character.graftOf(a[1]);
+        if (g == null) return "! a donor organ: kidney, liver, heart, lungs, corneas, arm";
+        double med = num(a, 3, 0);
+        Double room = Rules.ROOMS.get(a[4].toLowerCase(Locale.ROOT)), sup = Rules.SUPPLIES.get(a[5].toLowerCase(Locale.ROOT));
+        if (Double.isNaN(med) || room == null || sup == null) return "! Medicine a number, the room field|clean|clinic|prewar, the supplies none|improvised|tier3|tier4";
+        String limb = a.length > 6 ? a[6].toLowerCase(Locale.ROOT) : null;
+        String donor = a[2].toUpperCase(Locale.ROOT);
+        if (g.drugs() && !Character.aboMatch(donor, c.bloodGroup(rnd)))   // checked before the knife: the GM's blood test
+            return "! the donor's blood group " + donor + " does not match " + c.blood + " (O gives to all, AB takes from all): no operation";
+        double chance = Rules.surgeryChance(med, room, sup, g.op());
+        int d = 1 + rnd.nextInt(100);
+        String head = "Transplant, the donor's " + g.organ() + ": " + Math.round(med) + " × " + room + " × " + sup + " × " + g.op() + " = "
+                + SheetGui.f(Math.round(chance * 10) / 10.0) + " %, rolled " + d + ": ";
+        String always = "\nAlways (part 4): the infection roll (a cut 2 %), the anaesthesia's own risk"
+                + (g.drugs() ? "; from today a month's anti-rejection course at a time (Tacrolimus the pre-war rate, Azathioprine the made one), "
+                + "Immunity −30 % while taken, two weeks without it = rejected" : "; the corneas need no drugs");
+        if (d <= chance) {
+            String why = c.graft(g.organ(), donor, limb, rnd);
+            return head + (why == null ? "SUCCESS, the " + g.organ() + " is in." : "success, but: " + why) + always;
+        }
+        String kind = Rules.surgeryFailure(1 + rnd.nextInt(100), med);
+        boolean vital = List.of("heart", "lungs", "liver").contains(g.organ());
+        return switch (kind) {
+            case "minor" -> {
+                int hp = 1 + rnd.nextInt(6);
+                c.hp -= hp;
+                c.survival.put(Rules.Stat.PAIN, Math.min(100, c.survival.getOrDefault(Rules.Stat.PAIN, 0.0) + 30));
+                yield head + "FAILED, minor: not in, HP −" + hp + ", Pain +30; the organ still good if it is still within its hours." + always;
+            }
+            case "catastrophic" -> {
+                int hp = 2 + rnd.nextInt(10) + rnd.nextInt(10);
+                c.hp -= hp;
+                yield "! " + head + "FAILED, CATASTROPHIC: the place damaged, HP −" + hp + ", the organ lost"
+                        + (vital ? "; part 4's death roll (Lucky Escape against it)." : ".") + always;
+            }
+            default -> "! " + head + "FAILED, RIDICULOUS: the GM's absurd mistake (the wrong side, a vessel tied off, a sponge left inside = an "
+                    + "infection roll at the dirty class)." + always;
+        };
+    }
+
     // ------------------------------------------------------------------ /sheet revive
     /**
      * /sheet revive <the medic's Medicine> <minutes since the arrest> [of them with CPR] <hands|adrenaline|defibrillator|icu> (03b §5,

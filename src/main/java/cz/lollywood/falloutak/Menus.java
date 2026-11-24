@@ -473,6 +473,15 @@ final class Menus {
                     b.add(btn("Operate: " + name, "fit it into " + o.name() + " (your Medicine " + Math.round(med) + ")" + (o.npc() ? "" : "; he must agree"), x -> operate(x, whoOf(o.entity()), name)));
                 }
             if (carry.keySet().stream().noneMatch(k -> k.startsWith("implant:"))) cannot.add("Operate: you carry no implant");
+            for (String k : carry.keySet())   // 03e §4, 09e §6: a donor's organ from the field (Loot) as a T II graft
+                if (k.startsWith("body:Donor ")) {
+                    String what = k.substring("body:Donor ".length());
+                    String organ = what.replaceAll("\\|.*", ""), donorBlood = what.contains("|") ? what.substring(what.indexOf('|') + 1) : "";
+                    if (Character.graftOf(organ) == null) continue;
+                    b.add(btn("Transplant: the donor " + organ + (donorBlood.isEmpty() ? "" : " (" + donorBlood + ")"),
+                            "a T II graft into " + o.name() + " (your Medicine " + Math.round(med) + "); it keeps only its hours: the GM checks"
+                                    + (o.npc() ? "" : "; he must agree"), x -> transplant(x, whoOf(o.entity()), k, organ, donorBlood)));
+                }
             for (String k : carry.keySet())
                 if (k.startsWith("therapy:") || k.startsWith("geneset:")) {
                     String what = k.substring(k.indexOf(':') + 1);
@@ -577,6 +586,45 @@ final class Menus {
                             pick(y, "Operate: the chip's skill", "The memory chip's skill.", sk, k -> k, k -> "now " + Math.round(o.c().skill(k)) + " %",
                                     (z, k) -> operateConfirm(z, o, implant, im, tier, me, room, s, k), back);
                         }, back), back);
+    }
+
+    /** A donor's organ into a patient (03e §4, 09e §6): the room, the supplies, an arm's side, then his consent. */
+    static void transplant(Player p, Who o, String item, String organ, String donorBlood) {
+        if (o == null) return;
+        Character.Graft g = Character.graftOf(organ);
+        if (g == null) return;
+        Map<String, Integer> carry = Items.carried(p);
+        List<String> sup = new ArrayList<>(List.of("none"));
+        for (String s : Items.SUPPLIES) if (carry.containsKey("supplies:" + s)) sup.add(s);
+        Character me = pl.character(p);
+        Consumer<Player> back = x -> on(x, whoOf(o.entity()));
+        pick(p, "Transplant: the room", "Be honest: the GM sees it.", new ArrayList<>(Rules.ROOMS.keySet()), r -> r, r -> "× " + Rules.ROOMS.get(r),
+                (x, room) -> pick(x, "Transplant: the supplies", "Used up by the operation.", sup, s -> s, s -> "× " + (s.equals("none") ? 0.3 : Rules.SUPPLIES.get(s)),
+                        (y, s) -> {
+                            if (!g.place().equals("limb")) { transplantConfirm(y, o, item, g, donorBlood, me, room, s, null); return; }
+                            pick(y, "Transplant: which arm", "The missing arm it replaces.", List.of("left_arm", "right_arm"), k -> k.replace('_', ' '), k -> "",
+                                    (z, k) -> transplantConfirm(z, o, item, g, donorBlood, me, room, s, k), back);
+                        }, back), back);
+    }
+
+    static void transplantConfirm(Player p, Who o, String item, Character.Graft g, String donorBlood, Character me, String room, String s, String limb) {
+        double chance = Rules.surgeryChance(me.skill("Medicine"), Rules.ROOMS.get(room), s.equals("none") ? 0.3 : Rules.SUPPLIES.get(s), g.op());
+        ask(p, "Transplant into " + o.name(), "The donor " + g.organ() + (donorBlood.isEmpty() ? "" : ", blood group " + donorBlood) + (limb == null ? "" : ", the " + limb.replace('_', ' '))
+                        + ", in a " + room + " room with " + s + " supplies: " + pct(chance) + " (your Medicine " + Math.round(me.skill("Medicine")) + " × room × supplies × "
+                        + g.op() + "). " + (g.drugs() ? "Then a month's anti-rejection course at a time." : "The corneas need no drugs."),
+                List.of(),
+                form(o.npc() ? "Operate" : "Ask him", "the transplant", (v, x) -> consent(o, x.getName() + " wants to transplant", "The donor's " + g.organ() + " into you: "
+                        + pct(chance) + " (" + room + ", " + s + "). " + (g.drugs() ? "Then the anti-rejection drugs a month at a time, Immunity −30 %." : ""), () -> {
+                    if (!Items.has(x, item)) { say(x, "! you no longer have it"); return; }
+                    if (!s.equals("none") && !Items.take(x, "supplies:" + s)) { say(x, "! the supplies are gone"); return; }
+                    List<String> args = new ArrayList<>(List.of("transplant", g.organ(), donorBlood, String.valueOf(me.skill("Medicine")), room, s));
+                    if (limb != null) args.add(limb);
+                    String r = Part3.transplant(o.c(), args.toArray(new String[0]), pl.rnd);
+                    if (r.contains("SUCCESS") || r.contains("CATASTROPHIC")) Items.take(x, item);
+                    say(x, o.name() + ": " + r);
+                    o.tell(r, NamedTextColor.YELLOW);
+                    tellGm(x.getName() + " transplanted into " + o.name() + ": " + r.split("\n")[0]);
+                })), x -> on(x, whoOf(o.entity())));
     }
 
     static void operateConfirm(Player p, Who o, String implant, Data.Implant im, int tier, Character me, String room, String s, String skill) {

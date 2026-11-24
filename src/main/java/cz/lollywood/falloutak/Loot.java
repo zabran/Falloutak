@@ -60,7 +60,8 @@ final class Loot {
             new Organ("heart", 70, 1, "4-6 hours", true),
             new Organ("lungs", 70, 1, "6-8 hours", true),
             new Organ("corneas", 30, 2, "a week (no drugs needed)", false),
-            new Organ("skin", 30, 1, "weeks, dried (no drugs needed)", false));
+            new Organ("skin", 30, 1, "weeks, dried (no drugs needed)", false),
+            new Organ("arm", 50, 2, "6 hours, cold", false));   // 09e §6: a donor's limb, a T II graft (RULED round 2)
 
     /** One body on the field. */
     static final class Body {
