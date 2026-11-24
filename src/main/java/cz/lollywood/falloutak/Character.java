@@ -63,6 +63,10 @@ public final class Character {
     public Map<String, double[]> immune = new LinkedHashMap<>();
     public boolean vaccinesSet = false;
     public double diseaseHp = 0;
+    /** 04b §3b: every rad ever taken (RadAway clears the stage, never this); the last rads seen. The HUD's soap and neighbours (§5). */
+    public double lifetimeRads = 0, radsSeen = 0;
+    public transient boolean soap = false;
+    public transient List<Character> nearby = new ArrayList<>();
     /** 07 §19: the parts of the carried food on their way to the next tier down, by item ({@link Spoil#carried}). */
     public Map<String, Double> spoilCarry = new LinkedHashMap<>();
     public final List<Feat> traits = new ArrayList<>();

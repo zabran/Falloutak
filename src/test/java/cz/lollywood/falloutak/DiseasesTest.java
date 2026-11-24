@@ -31,7 +31,7 @@ class DiseasesTest {
 
     @Test
     void theDataIsTheSimulationsTable() {
-        assertEquals(16, Diseases.ALL.size());
+        assertEquals(19, Diseases.ALL.size(), "16 acute, tuberculosis and Lyme, cancer");
         Diseases.Disease t = of("Typhoid");
         assertEquals(0.039, t.rS(), 1e-12);
         assertEquals(6, t.incLo(), 1e-12);
@@ -47,6 +47,89 @@ class DiseasesTest {
         assertEquals(-1, of("Measles").immuneDays(), 1e-12);
         assertEquals("Pneumonia", of("Influenza").stages().get(3).name());
         assertEquals(-4, of("Influenza").stages().get(3).mods()[Rules.S]);
+    }
+
+    @Test
+    void theSickNearbySpreadItAndTheBedriddenFluBringsPneumonia() {
+        Character sick = AirTest.human(), c = AirTest.human();
+        Random r = fixed(0.5, 1);
+        Diseases.infect(sick, of("Common cold"), r);
+        run(sick, 48, r);                                                         // it shows
+        c.nearby = List.of(sick);
+        Random always = fixed(0.0, 1);                                            // every roll under the chance
+        Diseases.hour(c, always);
+        assertNotNull(Diseases.active(c, "Common cold"), "a day's 3 % spread over its hours, caught");
+        Character far = AirTest.human();
+        Diseases.hour(far, always);
+        assertNull(Diseases.active(far, "Common cold"), "nobody near, nothing caught");
+        // the flu reaching Bedridden: a pneumonia roll (5 %)
+        Character f = AirTest.human();
+        Diseases.infect(f, of("Influenza"), r);
+        f.clock += 1;
+        Diseases.Case k = Diseases.active(f, "Influenza");
+        k.incubation = 0;
+        k.sev = 0.59;
+        for (int h = 0; h < 48 && Diseases.active(f, "Pneumonia") == null; h++) { f.clock += 1; Diseases.hour(f, always); }
+        assertNotNull(Diseases.active(f, "Pneumonia"));
+    }
+
+    @Test
+    void aWoundRollsItsInfectionByItsClassAndTetanusOnlyWithoutTheVaccine() {
+        Character c = AirTest.human();
+        assertNotNull(Diseases.wound(c, "gunshot", fixed(0.1, 1)), "15 %: a roll of 10 catches it");
+        assertNotNull(Diseases.active(c, "Wound infection"));
+        assertNull(Diseases.active(c, "Tetanus"), "the start's booster keeps tetanus off");
+        Character d = AirTest.human();
+        assertNull(Diseases.wound(d, "cut", fixed(0.1, 1)), "a cut 2 %: a roll of 10 does not");
+        Character u = AirTest.human();
+        u.vaccinesSet = true;                                                     // no booster
+        Diseases.wound(u, "bite", fixed(0.005, 1));
+        assertNotNull(Diseases.active(u, "Tetanus"), "unvaccinated: 1 %");
+    }
+
+    @Test
+    void tuberculosisTakesItsSixMonthCourseAndLymeIsRecognisedAtOnce() {
+        Diseases.Disease tb = of("Tuberculosis"), lyme = of("Lyme disease");
+        assertEquals(180, tb.course(), 1e-9);
+        assertEquals(List.of("streptomycin"), tb.families());
+        assertEquals(0, lyme.abxStage());
+        Character c = AirTest.human();
+        Random r = fixed(0.5, 1);
+        Diseases.infect(c, tb, r);
+        Diseases.Case k = Diseases.active(c, "Tuberculosis");
+        k.incubation = 0;
+        k.sev = 0.3;                                                               // Consumption: it can be recognised
+        assertFalse(Diseases.treat(c, "Tuberculosis", "antibiotics", "streptomycin", 1).startsWith("!"));
+        List<String> said = run(c, 24, r);
+        assertTrue(said.stream().anyMatch(x -> x.contains("streptomycin course starts (180 days)")), said.toString());
+        run(c, 179 * 24, r);
+        assertNotNull(Diseases.active(c, "Tuberculosis"), "a few germs live until the course ends");
+        run(c, 48, r);
+        assertNull(Diseases.active(c, "Tuberculosis"), "the full course cures");
+        Character l = AirTest.human();
+        Diseases.infect(l, lyme, r);
+        Diseases.active(l, "Lyme disease").incubation = 0;
+        Diseases.treat(l, "Lyme disease", "antibiotics", "", 1);
+        assertTrue(Diseases.treat(l, "Lyme disease", "antibiotics", "tetracyclines", 1).contains("given"));
+        assertTrue(run(l, 2, r).stream().anyMatch(x -> x.contains("tetracyclines course starts (21 days)")));
+    }
+
+    @Test
+    void cancerRollsEachYearOnTheLifetimesRadsAndSurgeryCuresItWhileLocal() {
+        Character c = AirTest.human();
+        c.lifetimeRads = 1000;                                                    // 2 % a year
+        c.clock = 2 * Diseases.YEAR - 1;
+        run(c, 1, fixed(0.03, 1));
+        assertNull(Diseases.active(c, "Cancer"), "a roll of 3 against 2 %");
+        c.clock = 3 * Diseases.YEAR - 1;
+        run(c, 1, fixed(0.015, 1));
+        Diseases.Case k = Diseases.active(c, "Cancer");
+        assertNotNull(k);
+        run(c, 24, fixed(0.5, 1));
+        assertEquals("Cancer: Local", c.inSlot("disease:Cancer").name());
+        assertEquals(List.of("surgery", "radiotherapy"), Diseases.actions(of("Cancer"), k));
+        assertTrue(Diseases.treat(c, "Cancer", "surgery", "", 1).contains("cured"));
+        assertNull(c.inSlot("disease:Cancer"));
     }
 
     @Test

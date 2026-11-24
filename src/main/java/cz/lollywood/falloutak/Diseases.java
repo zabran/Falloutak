@@ -24,8 +24,10 @@ import java.util.StringJoiner;
  * ((0.5 + 1.5 × the poison resistance) × luck × 1.1 asleep × the food, water and radiation stages × the Immunity effects, the grafts'
  * drugs −30 %); immune first = it fades, severity first = a lethal one stops the heart, a mild one stays at its worst; an antibiotic
  * course from the hour the disease is recognised (its second stage), tending × 0.7 and the other actions of `04c` §7; catching by `04b`
- * §5 (× (1 − the poison resistance), soap × 0.7 from a sick person, the vaccines of §2b, the memory a disease leaves). The long ones
- * (tuberculosis, Lyme), the automatic exposures (water, wounds, ticks) and the cancer roll come in later builds.
+ * §5 (× (1 − the poison resistance), soap × 0.7 from a sick person, the vaccines of §2b, the memory a disease leaves). Second build
+ * (Marek 11-24: *"Not built yet - please continue."*): tuberculosis and Lyme on the same race with their long courses of drugs, the sick
+ * nearby (§5's daily household chances), the flu's pneumonia, a wound's infection and tetanus by its class, cancer's yearly roll on the
+ * lifetime's rads (§3b) with surgery and radiotherapy.
  */
 final class Diseases {
     private Diseases() {}
@@ -37,8 +39,8 @@ final class Diseases {
     record Disease(String name, String cz, String kind, boolean bacterial, boolean lethal, double max, double incLo, double incHi,
                    double rS, double rI, double rRec, String dose, double doseLo, double doseHi, int abxStage, double support,
                    boolean supportSaves, double absorbDays, Map<String, Act> acts, double debride, boolean amputable,
-                   double immuneDays, double immuneShare, boolean resist, boolean person, List<String> families, List<Stage> stages,
-                   String real, String caught) {
+                   double immuneDays, double immuneShare, boolean resist, boolean person, List<String> families, double contagion,
+                   double course, double drug, List<Stage> stages, String real, String caught) {
         int stageAt(double sev) {
             int i = -1;
             for (int k = 0; k < stages.size(); k++) if (sev >= stages.get(k).from() - 1e-12) i = k;
@@ -48,7 +50,9 @@ final class Diseases {
 
     static final double[] FOOD_IMM = {1, .9, .8, .6, .4, .3}, WATER_IMM = {1, .9, .8, .6, .4}, RAD_IMM = {1, .8, .6, .4, .2, .1};
     static final double TEND = 0.7, ABX_DAYS = 7, SOAP = 0.7, YEAR = 365 * 24;
-    static final List<String> FAMILIES = List.of("penicillins", "tetracyclines", "sulfa", "chloramphenicol", "ciprofloxacin");
+    static final List<String> FAMILIES = List.of("penicillins", "tetracyclines", "sulfa", "chloramphenicol", "ciprofloxacin", "streptomycin");
+    /** 04b §5: a wound's infection by its class (a cut, a gunshot or a blast's fragments, a dirty wound or a bite), % [life's anchors]. */
+    static final Map<String, Double> WOUND = Map.of("cut", 2.0, "gunshot", 15.0, "dirty", 40.0, "bite", 40.0);
     static final Map<String, Disease> ALL = load();
 
     /** One disease running in a body (saved with the character). */
@@ -94,7 +98,8 @@ final class Diseases {
                         sq ? 0 : dose.getAsJsonArray().get(0).getAsDouble(), sq ? 1.5 : dose.getAsJsonArray().get(1).getAsDouble(),
                         o.get("abx_stage").getAsInt(), d(o, "support"), o.get("support_saves").getAsBoolean(), d(o, "absorb_days"), acts,
                         d(o, "debride"), o.get("amputable").getAsBoolean(), d(o, "immune_days"), d(o, "immune_share"),
-                        o.get("resist").getAsBoolean(), o.get("person").getAsBoolean(), fam, st, o.get("real").getAsString(),
+                        o.get("resist").getAsBoolean(), o.get("person").getAsBoolean(), fam, d(o, "contagion"), d(o, "course"), d(o, "drug"),
+                        st, o.get("real").getAsString(),
                         o.get("catch").getAsString()));
             }
         } catch (Exception e) {
@@ -200,7 +205,10 @@ final class Diseases {
     // ------------------------------------------------------------------ the hour
     /** One game hour of every disease in this body; what changed, or null. */
     static String hour(Character c, Random rnd) {
-        if (c.diseases.isEmpty() || c.dead) return null;
+        if (c.dead) return null;
+        cancerYear(c, rnd);
+        nearby(c, rnd);
+        if (c.diseases.isEmpty()) return null;
         StringJoiner out = new StringJoiner("; ");
         double now = c.now(), res = resistance(c);
         int fl = level(Rules.stage(Rules.Stat.FOOD, c.survival.getOrDefault(Rules.Stat.FOOD, c.max(Rules.Stat.FOOD)), c.max(Rules.Stat.FOOD)));
@@ -209,6 +217,7 @@ final class Diseases {
         int rl = rs != null && rs.contains("Radiation Poisoning") ? level(rs) : 0;
         double speedBody = (0.5 + 1.5 * res) * (c.sleeping ? 1.1 : 1) * FOOD_IMM[Math.min(fl, 5)] * WATER_IMM[Math.min(wl, 4)]
                 * RAD_IMM[Math.min(rl, 5)] * Math.max(0, 1 + c.other("immunity") / 100);
+        List<String> complication = new ArrayList<>();
         for (Iterator<Case> it = c.diseases.iterator(); it.hasNext(); ) {
             Case k = it.next();
             Disease d = ALL.get(k.name);
@@ -225,14 +234,25 @@ final class Diseases {
             k.imm = Math.min(1, k.imm + d.rI() * speedBody * k.luck / 24);
             if (k.imm >= 1 && !k.immune) { k.immune = true; out.add(d.name() + ": the body has its answer, it fades from now"); }
             int si = d.stageAt(k.sev);
-            if (!k.abxFamily.isEmpty() && k.abxStart < 0 && si >= Math.max(1, d.abxStage())) {
+            double days = (d.course() > 0 ? d.course() : ABX_DAYS) / k.abxRate;
+            if (!k.abxFamily.isEmpty() && k.abxStart < 0 && si >= d.abxStage()) {
                 k.abxStart = now;
-                out.add(d.name() + " recognised: the " + k.abxFamily + " course starts (" + f(ABX_DAYS / k.abxRate) + " days)");
+                out.add(d.name() + " recognised: the " + k.abxFamily + " course starts (" + f(days) + " days)");
             }
-            double courseEnd = k.abxStart + ABX_DAYS * 24 / k.abxRate;
+            double courseEnd = k.abxStart + days * 24;
             boolean abx = k.abxStart >= 0 && now < courseEnd && (d.bacterial() || si >= d.abxStage());
-            if (k.abxStart >= 0 && now >= courseEnd) { k.abxStart = -1; k.abxFamily = ""; out.add(d.name() + ": the antibiotic course is over"); }
-            if (k.immune || abx) k.sev -= d.rRec() * (k.immune ? 1 : k.abxRate) / 24;
+            if (k.abxStart >= 0 && now >= courseEnd) {
+                k.abxStart = -1;
+                k.abxFamily = "";
+                if (d.course() > 0) {   // a long course run to its end cures (the simulation's rule)
+                    it.remove();
+                    out.add(d.name() + ": the full course is done, cured" + cured(c, d));
+                    continue;
+                }
+                out.add(d.name() + ": the antibiotic course is over");
+            }
+            if (abx && d.drug() > 0) k.sev = Math.max(0.02, k.sev - d.drug() * k.abxRate / 24);   // a few germs live until the course ends
+            else if (k.immune || abx) k.sev -= d.rRec() * (k.immune ? 1 : k.abxRate) / 24;
             else {
                 double grow = d.rS() * k.dose * (k.acts.containsKey("tend") ? TEND : 1);
                 if (d.absorbDays() > 0 && k.ill > d.absorbDays() * 24) grow = 0;   // a toxin: all of it absorbed
@@ -258,6 +278,7 @@ final class Diseases {
                 k.stage = ni;
                 setEffect(c, d, ni);
                 out.add(d.name() + ": " + s.name() + " (" + stageText(s) + ")");
+                if (d.name().equals("Influenza") && ni == 2) complication.add("Pneumonia");   // 04b §5: Bedridden flu, 5 %
             }
             if (s.waterH() != 0) bump(c, Rules.Stat.WATER, s.waterH());
             if (s.foodH() != 0) bump(c, Rules.Stat.FOOD, s.foodH());
@@ -267,7 +288,50 @@ final class Diseases {
                 while (c.diseaseHp <= -1) { c.hp -= 1; c.diseaseHp += 1; }
             }
         }
+        for (String n : complication) expose(c, n, 5, false, false, rnd);
         return out.length() == 0 ? null : out.toString();
+    }
+
+    /**
+     * The sick nearby (04b §5, RULED round 7): an hour beside someone whose disease has shown is that day's household chance spread over
+     * the day's hours (dysentery 4 %, cholera 2 %, hepatitis A 3 %, a cold 3 %, the flu 2 % a day; measles 90 % for the unvaccinated);
+     * soap × 0.7. The neighbours are the HUD's (within 8 blocks).
+     */
+    static void nearby(Character c, Random rnd) {
+        if (c.nearby == null || c.nearby.isEmpty()) return;
+        for (Character x : new ArrayList<>(c.nearby)) {
+            if (x == c || x.dead) continue;
+            for (Case kx : new ArrayList<>(x.diseases)) {
+                Disease d = ALL.get(kx.name);
+                if (d == null || d.contagion() <= 0 || kx.incubation > 0 || active(c, d.name()) != null) continue;
+                double hourly = 100 * (1 - Math.pow(1 - d.contagion() / 100, 1.0 / 24));
+                expose(c, d.name(), hourly, true, c.soap, rnd);
+            }
+        }
+    }
+
+    /** 04b §5: a wound through the skin rolls its infection by its class, and tetanus at 1 % (the vaccine keeps it off); null if none. */
+    static String wound(Character c, String cls, Random rnd) {
+        if (c.dead) return null;
+        StringJoiner j = new StringJoiner("; ");
+        String w = expose(c, "Wound infection", WOUND.getOrDefault(cls, 15.0), false, false, rnd);
+        if (w.contains("CAUGHT")) j.add(w);
+        if (!cls.equals("cut")) {
+            String t = expose(c, "Tetanus", 1, false, false, rnd);
+            if (t.contains("CAUGHT")) j.add(t);
+        }
+        return j.length() == 0 ? null : j.toString();
+    }
+
+    /**
+     * 04b §3b (RULED round 6): every game year the lifetime's rads roll for cancer, the rads × 0.002 % (100 rads ≈ 0.2 % a year, 1 000
+     * ≈ 2 %), from the second year (leukemia; the solid cancers' fifth year folded in) [the folding mine].
+     */
+    static void cancerYear(Character c, Random rnd) {
+        long h = Math.round(c.clock);
+        if (h < 2 * YEAR || h % (long) YEAR != 0 || c.lifetimeRads <= 0 || active(c, "Cancer") != null) return;
+        double pct = c.lifetimeRads * 0.002;
+        if (100 * rnd.nextDouble() < pct) infect(c, ALL.get("Cancer"), rnd);
     }
 
     private static void bump(Character c, Rules.Stat st, double v) {
@@ -323,6 +387,11 @@ final class Diseases {
     static List<String> actions(Disease d, Case k) {
         List<String> l = new ArrayList<>();
         if (k.incubation > 0) { if (d.name().equals("Rabies")) l.add("vaccine"); return l; }
+        if (d.name().equals("Cancer")) {   // 04b §3b: surgery while local, pre-war radio- or chemotherapy until it is terminal
+            if (k.stage <= 0) l.add("surgery");
+            if (k.stage <= 1) l.add("radiotherapy");
+            return l;
+        }
         l.add("tend");
         if (!d.families().isEmpty()) l.add("antibiotics");
         if (d.support() > 0) l.add("support");
@@ -345,6 +414,8 @@ final class Diseases {
             case "debride" -> "cut away the dead and dirty tissue: the severity −" + f(100 * d.debride()) + " % at once; Pain 30, 5 % of the Blood";
             case "amputate" -> "the limb off: the infection gone; 5 HP, a quarter of the Blood, Pain 60";
             case "vaccine" -> "the vaccine series in the incubation: it never shows (two doses if vaccinated before)";
+            case "surgery" -> "cut out while it is local: high Medicine and an operating room (the GM's check); cured";
+            case "radiotherapy" -> "pre-war radiotherapy or chemotherapy (a hospital's machines, its drugs): cured while it has not reached its end";
             default -> act;
         };
     }
@@ -388,6 +459,11 @@ final class Diseases {
             case "vaccine" -> {
                 c.diseases.remove(k);
                 return d.name() + ": the vaccine series in time, it never shows";
+            }
+            case "surgery", "radiotherapy" -> {
+                c.diseases.remove(k);
+                c.effects.removeIf(e -> e.slot().equals("disease:" + d.name()));
+                return d.name() + ": " + (act.equals("surgery") ? "cut out" : "treated") + ", cured";
             }
             default -> { k.acts.put(act, -1.0); return d.name() + ": " + actText(d, act); }
         }

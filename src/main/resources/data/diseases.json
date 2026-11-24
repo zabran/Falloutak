@@ -31,6 +31,9 @@
    "resist": true,
    "person": true,
    "families": [],
+   "contagion": 3,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -94,6 +97,9 @@
     "sulfa",
     "tetracyclines"
    ],
+   "contagion": 2,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -174,6 +180,9 @@
    "resist": true,
    "person": false,
    "families": [],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -240,6 +249,9 @@
     "ciprofloxacin",
     "sulfa"
    ],
+   "contagion": 4,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -317,6 +329,9 @@
     "ciprofloxacin",
     "tetracyclines"
    ],
+   "contagion": 2,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -389,6 +404,9 @@
     "ciprofloxacin",
     "sulfa"
    ],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -471,6 +489,9 @@
    "resist": true,
    "person": true,
    "families": [],
+   "contagion": 3,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -557,6 +578,9 @@
     "sulfa",
     "tetracyclines"
    ],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -646,6 +670,9 @@
    "families": [
     "penicillins"
    ],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -723,6 +750,9 @@
     "chloramphenicol",
     "tetracyclines"
    ],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -800,6 +830,9 @@
    "resist": true,
    "person": false,
    "families": [],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -869,6 +902,9 @@
    "resist": true,
    "person": false,
    "families": [],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -942,6 +978,9 @@
     "penicillins",
     "tetracyclines"
    ],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -1019,6 +1058,9 @@
     "sulfa",
     "tetracyclines"
    ],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -1095,6 +1137,9 @@
    "resist": true,
    "person": true,
    "families": [],
+   "contagion": 90,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -1173,6 +1218,9 @@
    "resist": false,
    "person": false,
    "families": [],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
    "stages": [
     {
      "from": 0,
@@ -1213,6 +1261,216 @@
    ],
    "real": "12-36 h after bad canned food; a paralysis from the eyes down; over 60 % died in the US before the 1950s, under 10 % with breathing machines and antitoxin; recovery takes weeks",
    "catch": "old cans (bulging), home-preserved food; the toxin, not a germ: no resistance roll, by the can"
+  },
+  {
+   "name": "Tuberculosis",
+   "cz": "tuberkulóza",
+   "kind": "bacteria",
+   "bacterial": true,
+   "lethal": true,
+   "max": 100,
+   "inc": [
+    30,
+    180
+   ],
+   "r_s": 0.0014285714285714286,
+   "r_i": 0.0013157894736842105,
+   "r_rec": 0.0033333333333333335,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 1,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": true,
+   "person": true,
+   "families": [
+    "streptomycin"
+   ],
+   "contagion": 0,
+   "course": 180,
+   "drug": 0.01,
+   "stages": [
+    {
+     "from": 0,
+     "name": "Cough",
+     "mods": {
+      "C": -1
+     }
+    },
+    {
+     "from": 0.25,
+     "name": "Consumption",
+     "mods": {
+      "S": -1
+     },
+     "food_h": -0.2
+    },
+    {
+     "from": 0.5,
+     "name": "Advanced consumption",
+     "mods": {
+      "S": -2,
+      "E": -1,
+      "A": -1
+     },
+     "food_h": -0.4
+    },
+    {
+     "from": 0.75,
+     "name": "Terminal",
+     "mods": {
+      "S": -3,
+      "E": -2
+     },
+     "hp_h": -0.2
+    }
+   ],
+   "real": "infection by air from a coughing case; 5-10 % of the infected ever fall ill (5 % in two years, then ~0.1 % a year), more when starving (+14 % for each BMI point lost); untreated ~70 % die within 10 years (smear-positive), ill 1.5-3 years; six months of four drugs cure most (Tiemersma 2011, Ragonnet 2021)",
+   "catch": "months near a coughing case (a shelter, a camp)"
+  },
+  {
+   "name": "Lyme disease",
+   "cz": "lymská borelióza",
+   "kind": "bacteria (ticks)",
+   "bacterial": true,
+   "lethal": false,
+   "max": 100,
+   "inc": [
+    3,
+    30
+   ],
+   "r_s": 0.008333333333333333,
+   "r_i": 0.006666666666666667,
+   "r_rec": 0.011111111111111112,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 0,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": true,
+   "person": false,
+   "families": [
+    "penicillins",
+    "tetracyclines"
+   ],
+   "contagion": 0,
+   "course": 21,
+   "drug": 0.1,
+   "stages": [
+    {
+     "from": 0,
+     "name": "Bull's-eye rash",
+     "mods": {}
+    },
+    {
+     "from": 0.25,
+     "name": "Disseminated",
+     "mods": {
+      "C": -1,
+      "A": -1
+     }
+    },
+    {
+     "from": 0.5,
+     "name": "Lyme arthritis",
+     "mods": {
+      "A": -2
+     },
+     "pain": 20
+    },
+    {
+     "from": 0.75,
+     "name": "Neuroborreliosis",
+     "mods": {
+      "I": -1,
+      "P": -1,
+      "A": -2
+     },
+     "pain": 30
+    }
+   ],
+   "real": "a tick that stays on over a day; a spreading red ring in 3-30 days; untreated, months of aching joints, nerve palsies, sometimes heart trouble, rarely lethal; antibiotics early cure it; Czechia ~37 cases a year per 100 000, a quarter of Prague's park ticks carry it (2025)",
+   "catch": "a tick on the skin over a day (daily checks prevent most)"
+  },
+  {
+   "name": "Cancer",
+   "cz": "rakovina",
+   "kind": "the body's own cells (the lifetime's rads)",
+   "bacterial": false,
+   "lethal": true,
+   "max": 100,
+   "inc": [
+    0,
+    0
+   ],
+   "r_s": 0.0025,
+   "r_i": 0,
+   "r_rec": 0,
+   "dose": [
+    0.8,
+    1.2
+   ],
+   "abx_stage": 99,
+   "support": 0,
+   "support_saves": false,
+   "absorb_days": 0,
+   "acts": {},
+   "debride": 0,
+   "amputable": false,
+   "immune_days": 0,
+   "immune_share": 0,
+   "resist": false,
+   "person": false,
+   "families": [],
+   "contagion": 0,
+   "course": 0,
+   "drug": 0,
+   "stages": [
+    {
+     "from": 0,
+     "name": "Local",
+     "mods": {
+      "E": -1
+     }
+    },
+    {
+     "from": 0.45,
+     "name": "Spread",
+     "mods": {
+      "S": -1,
+      "E": -1
+     },
+     "food_h": -0.2
+    },
+    {
+     "from": 0.9,
+     "name": "Terminal",
+     "mods": {
+      "S": -3,
+      "E": -2
+     },
+     "hp_h": -0.2,
+     "pain": 40
+    }
+   ],
+   "real": "the atomic bomb survivors: solid cancers linear with the dose, ~5 % more lifetime cancer death a sievert; leukemia within 15 years",
+   "catch": "the yearly roll: the lifetime's rads x 0.002 % (04b §3b, RULED)"
   }
  ]
 }

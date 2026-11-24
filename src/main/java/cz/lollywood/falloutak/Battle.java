@@ -1546,6 +1546,12 @@ public final class Battle implements Listener {
      * HP, Pain and bleeding (the /sheet hit rules), the crit's effects, knockback away from {@code from}, death.
      */
     void hitPlayer(Player p, State s, Character c, Location from, int dmg, Combat.CritEffects fx, boolean crit, int deg, StringBuilder log) {
+        hitPlayer(p, s, c, from, dmg, fx, crit, deg, log, "gunshot");
+    }
+
+    /** The same, the wound's class named (04b §5: a cut, a gunshot or a blast's fragments, a dirty wound or a bite) for its infection. */
+    void hitPlayer(Player p, State s, Character c, Location from, int dmg, Combat.CritEffects fx, boolean crit, int deg, StringBuilder log, String wound) {
+        if (dmg > 0) Diseases.wound(c, wound, rnd);   // silent: the incubation is the GM's
         boolean strong = deg >= 4 || fx.crippledArm() || fx.crippledLeg();
         log.append(" You: ").append(Hud.hit(c, dmg, crit ? (strong ? "stab" : "crit") : "normal")).append(".");
         if (c.hp > 0 && (fx.knockedDown() || fx.knockedOut())) Sfx.fall(p.getLocation(), Sfx.body("down", c.female), c.female);

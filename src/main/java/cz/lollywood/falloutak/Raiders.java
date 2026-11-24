@@ -859,7 +859,7 @@ final class Raiders {
             if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
             result = (r.crit() ? "CRIT on you, " : "hit, ") + dmg + " HP";
             Sfx.at(p.getLocation(), "knife.flesh");
-            b.hitPlayer(p, s, c, le.getLocation(), dmg, fx, r.crit(), deg, log);
+            b.hitPlayer(p, s, c, le.getLocation(), dmg, fx, r.crit(), deg, log, "cut");
             if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female, p);
         }
         p.sendMessage(Component.text(log.toString(), NamedTextColor.RED));

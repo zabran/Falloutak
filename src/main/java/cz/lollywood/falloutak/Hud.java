@@ -50,6 +50,11 @@ public final class Hud {
             pl.anomalies.apply(p, c);       // the anomaly his body is in (09c, round 9)
             pl.anomalies.belt(p, c);        // the artifacts on his belt
             Map<String, Integer> carry = Items.carried(p);   // what he wears (05c), the big gas mask with the filters he carries
+            c.soap = carry.containsKey("thing:Chemicals|2|1|Soap");   // 04b §5: soap × 0.7 on the catching from the sick
+            List<Character> near = new ArrayList<>();
+            for (Player q : p.getWorld().getPlayers())
+                if (q != p && q.getLocation().distanceSquared(p.getLocation()) <= 64) near.add(pl.character(q));
+            c.nearby = near;
             String det = pl.anomalies.detect(p, carry);      // the anomaly detector (09c §1.4)
             c.setArmour(Items.readArmour(p), carry.containsKey("gear:Gas filter"), carry.containsKey("gear:CO filter"));
             // Marek 11-18: "battle rounds should also be active during taking damage from environment"
@@ -191,6 +196,9 @@ public final class Hud {
         c.therapyHour();   // 03d §2, §10
         String graft = c.graftHour(java.util.concurrent.ThreadLocalRandom.current());   // 03e §4, 09e §6: the grafts' drugs and rejection
         if (graft != null) c.news.add(graft);
+        double radsNow = c.survival.getOrDefault(Rules.Stat.RADS, 0.0);              // 04b §3b: the lifetime's rads
+        if (radsNow > c.radsSeen) c.lifetimeRads += radsNow - c.radsSeen;
+        c.radsSeen = radsNow;
         String sick = Diseases.hour(c, java.util.concurrent.ThreadLocalRandom.current());   // 04b: the diseases' race (09e round 3)
         if (sick != null) c.news.add(sick);
         c.gasHour();       // 03b §3c: mercury vapour
