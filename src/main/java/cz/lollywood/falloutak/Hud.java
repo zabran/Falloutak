@@ -182,6 +182,9 @@ public final class Hud {
         if (Math.round(c.clock) % 24 == 0) {                                         // 03b §7b: the day's episode roll (round 8)
             String ep = c.episode(java.util.concurrent.ThreadLocalRandom.current(), false);
             if (ep != null) c.news.add(ep);
+            if (Menus.pl != null && org.bukkit.Bukkit.getServer() != null)            // 07 §19: the food carried spoils by the day
+                for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers())
+                    if (Menus.pl.character(p) == c) { String sp = Spoil.carried(p, c); if (sp != null) c.news.add(sp); }
         }
         heal(c);
         c.radiationRolls(rads0, c.survival.getOrDefault(Rules.Stat.RADS, 0.0), java.util.concurrent.ThreadLocalRandom.current());   // 03d §5

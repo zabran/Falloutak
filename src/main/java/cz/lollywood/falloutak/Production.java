@@ -808,6 +808,9 @@ final class Production {
      */
     static double CLEAN_T3 = 0.5;
 
+    /** 07 §19: the parts of the store's Food rows on their way to the next tier down, by row ({@link Spoil}). */
+    Map<String, Double> spoilCarry = new LinkedHashMap<>();
+
     // ------------------------------------------------------------------ time passes
     /**
      * Hours of the world's time pass (the GM's Pass time for everyone), hour by hour from {@code worldHours}: new days charge the rooms
@@ -877,6 +880,10 @@ final class Production {
     }
 
     private void newDay(long d, int people, Base base, List<String> out) {
+        if (day != Long.MIN_VALUE) {   // 07 §19 (RULED 11-24): the day that passed spoiled the store's food by its rows' pace
+            String sp = Spoil.store(this, base);
+            if (sp != null) out.add(sp);
+        }
         day = d;
         powerUsed = 0;
         // round 8: the scrubbers give the people's breath and sweat back as Tier II water (no rads, the roll stays) [EXAMPLE]

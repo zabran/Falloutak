@@ -63,6 +63,8 @@ public final class Character {
     public Map<String, double[]> immune = new LinkedHashMap<>();
     public boolean vaccinesSet = false;
     public double diseaseHp = 0;
+    /** 07 §19: the parts of the carried food on their way to the next tier down, by item ({@link Spoil#carried}). */
+    public Map<String, Double> spoilCarry = new LinkedHashMap<>();
     public final List<Feat> traits = new ArrayList<>();
     /** Hands-On Learner (round 6): the session its skills were counted in, and those skills (up to {@link #HANDS_ON_MAX}). */
     public String handsOnSession = "";

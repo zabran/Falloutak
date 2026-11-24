@@ -114,10 +114,11 @@ class SaltLivestockTest {
         Production pr = new Production();
         Production.Building k = pr.build("Kitchen", 2, "K");
         Base base = new Base(null);
-        base.addUnits("Food", 1, 1, 3);
+        base.addUnits("Food", 1, 1, 20);
+        base.addUnits("Water", 2, 1, 1);
         base.putThing("Chemicals", 1, 2, "Salt", 1);
         ProductionTest.Crew c = crew("Survival");
-        Production.Recipe jerky = ProductionTest.recipe("dry-jerky");
+        Production.Recipe jerky = ProductionTest.recipe("salt-meat-in-brine");
         pr.start(k, jerky, 1, 1, c);
         assertNull(pr.takeInputs(k, jerky, base, 0));
         assertEquals(0, base.count("Chemicals", 1, 2));

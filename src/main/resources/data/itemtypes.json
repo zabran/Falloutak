@@ -519,12 +519,6 @@
      "id": ""
     },
     {
-     "name": "Jerky",
-     "tier": 2,
-     "rarity": 1,
-     "id": ""
-    },
-    {
      "name": "Field potatoes",
      "tier": 2,
      "rarity": 1,
@@ -556,6 +550,42 @@
     },
     {
      "name": "Skimmed-field crops",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Jerky",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Salted meat",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Smoked meat",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Pemmican",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Sauerkraut",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Dried roots",
      "tier": 2,
      "rarity": 2,
      "id": ""

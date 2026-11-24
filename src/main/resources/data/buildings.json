@@ -312,6 +312,51 @@
    "water_use": "",
    "water_per_person": 0,
    "condensate": 0
+  },
+  {
+   "kind": "Root cellar",
+   "makes": "keeps the store cool: fresh food keeps months, kept food never spoils",
+   "slots": 0,
+   "power": 0,
+   "water": 0,
+   "daily": false,
+   "automatic": false,
+   "produces": {},
+   "upkeep_skill": "Survival",
+   "note": "T I, dug at the start (Dig a root cellar)",
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
+  },
+  {
+   "kind": "Ice house",
+   "makes": "keeps the store cold: nothing spoils",
+   "slots": 0,
+   "power": 0,
+   "water": 0,
+   "daily": false,
+   "automatic": false,
+   "produces": {},
+   "upkeep_skill": "Survival",
+   "note": "T II, built (Build an ice house); the winter's ice",
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
+  },
+  {
+   "kind": "Freezer",
+   "makes": "keeps the store cold while it has power: nothing spoils",
+   "slots": 0,
+   "power": 1,
+   "water": 0,
+   "daily": true,
+   "automatic": true,
+   "produces": {},
+   "upkeep_skill": "Engineering",
+   "note": "T II, set up from salvage (Set up a freezer); draws power every day",
+   "water_use": "",
+   "water_per_person": 0,
+   "condensate": 0
   }
  ]
 }

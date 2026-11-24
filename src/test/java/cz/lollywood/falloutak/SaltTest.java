@@ -55,20 +55,21 @@ class SaltTest {
     }
 
     @Test
-    void theJerkyWantsSaltByNameAndTakesTheSaltRowOnly() {
+    void theSaltedMeatWantsSaltByNameAndTakesTheSaltRowOnly() {
         Production pr = new Production();
         Production.Building k = pr.build("Kitchen", 2, "K");
         Base base = new Base(null);
-        base.addUnits("Food", 1, 1, 3);
+        base.addUnits("Food", 1, 1, 20);                             // 07 §19: salt 7 % of the meat, 20 portions to the kilo
+        base.addUnits("Water", 2, 1, 1);
         base.addUnits("Chemicals", 1, 1, 5, List.of("Vinegar"));   // vinegar no longer stands in for salt
         ProductionTest.Crew crew = new ProductionTest.Crew(ProductionTest.worker("C", "Survival", 30));
-        Production.Recipe jerky = ProductionTest.recipe("dry-jerky");
+        Production.Recipe jerky = ProductionTest.recipe("salt-meat-in-brine");
         assertTrue(Production.inputsText(jerky).contains("1 Salt (Chemicals I R2)"), Production.inputsText(jerky));
         pr.start(k, jerky, 1, 1, crew);
         String miss = pr.takeInputs(k, jerky, base, 0);
         assertNotNull(miss);
         assertTrue(miss.contains("Salt (not available"), miss);
-        assertEquals(3, base.count("Food", 1, 0), "nothing taken while salt is missing");
+        assertEquals(20, base.count("Food", 1, 0), "nothing taken while salt is missing");
         // a sack brought in: unlocked, and one unit of the R2 row goes into the jerky; the vinegar stays
         base.putThing("Chemicals", 1, 2, "Salt", 2);
         assertNull(pr.takeInputs(k, jerky, base, 0));
@@ -112,7 +113,8 @@ class SaltTest {
         assertFalse(Production.reserved("Chemicals", 1, 2, List.of("Salt")));
         assertFalse(Production.reserved("Chemicals", 1, 1, List.of("Lye")));
         assertFalse(Production.reserved("Water", 2, 2, List.of("Boiled water")), "rows without named items take any rarity");
-        assertTrue(Production.reserved("Food", 2, 2, List.of("Jerky")), "Food II R2 is kept for the cleaning's step (09d round 5)");
+        assertTrue(Production.reserved("Food", 2, 2, List.of("Cooked meat")), "Food II R2 is kept for the cleaning's step (09d round 5)");
+        assertFalse(Production.reserved("Food", 2, 2, List.of("Jerky")), "and the kept food (07 §19: one rarity up)");
     }
 
     @Test

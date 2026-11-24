@@ -1280,14 +1280,15 @@
    "tier": 2,
    "skill": "Survival",
    "min": 20,
-   "hours": 2,
+   "hours": 4,
    "days": 3,
    "known": "start",
    "makes": [
     {
      "type": "Food",
      "tier": 2,
-     "count": 2,
+     "count": 10,
+     "rarity": 2,
      "items": [
       "Jerky"
      ]
@@ -1297,26 +1298,14 @@
     {
      "type": "Food",
      "tier": 1,
-     "count": 3,
+     "count": 10,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
      "extra": false
-    },
-    {
-     "type": "Chemicals",
-     "tier": 1,
-     "count": 1,
-     "rarity": 2,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false,
-     "items": [
-      "Salt"
-     ]
     }
    ],
-   "note": "salted and dried: keeps"
+   "note": "air- and sun-drying, thin: no salt [real]; only in a dry summer, the nuclear autumn's damp years spoil a share [inf]"
   },
   {
    "id": "salt-meat-in-brine",
@@ -1325,21 +1314,25 @@
    "tier": 2,
    "skill": "Survival",
    "min": 20,
-   "hours": 1,
+   "hours": 6,
    "days": 7,
    "known": "start",
    "makes": [
     {
      "type": "Food",
      "tier": 2,
-     "count": 3
+     "count": 20,
+     "rarity": 2,
+     "items": [
+      "Salted meat"
+     ]
     }
    ],
    "inputs": [
     {
      "type": "Food",
      "tier": 1,
-     "count": 3,
+     "count": 20,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
@@ -1367,7 +1360,7 @@
      "extra": false
     }
    ],
-   "note": "the herds' meat kept for the winter: the disease roll gone, the rads stay"
+   "note": "the brine or the dry cure, salt 7 % of the meat [real]: the herds' meat kept for the winter, the disease roll gone, the rads stay"
   },
   {
    "id": "sauerkraut",
@@ -1376,21 +1369,25 @@
    "tier": 2,
    "skill": "Survival",
    "min": 15,
-   "hours": 2,
+   "hours": 10,
    "days": 21,
    "known": "start",
    "makes": [
     {
      "type": "Food",
      "tier": 2,
-     "count": 4
+     "count": 100,
+     "rarity": 2,
+     "items": [
+      "Sauerkraut"
+     ]
     }
    ],
    "inputs": [
     {
      "type": "Food",
      "tier": 1,
-     "count": 5,
+     "count": 100,
      "rarity": 0,
      "sets_rarity": true,
      "tool": false,
@@ -1409,7 +1406,148 @@
      ]
     }
    ],
-   "note": "cabbage and roots at ~2 % salt: keeps the winter"
+   "note": "cabbage and roots at 2 % salt [real] in crocks: keeps the winter, the vitamin C kept [real]"
+  },
+  {
+   "id": "hot-smoke-meat",
+   "name": "Hot-smoke meat",
+   "building": "Kitchen",
+   "tier": 2,
+   "skill": "Survival",
+   "min": 20,
+   "hours": 3,
+   "days": 2,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 10,
+     "rarity": 2,
+     "items": [
+      "Smoked meat"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 10,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Wood",
+     "tier": 1,
+     "count": 8,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "a smokehouse, hardwood: 1.5 kg of wood a kg of meat, salt optional [real]"
+  },
+  {
+   "id": "make-pemmican",
+   "name": "Make pemmican",
+   "building": "Kitchen",
+   "tier": 2,
+   "skill": "Survival",
+   "min": 25,
+   "hours": 5,
+   "days": 2,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 10,
+     "rarity": 2,
+     "items": [
+      "Pemmican"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 10,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Fuel",
+     "tier": 2,
+     "count": 1,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Rendered fat"
+     ]
+    },
+    {
+     "type": "Wood",
+     "tier": 1,
+     "count": 3,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "dried lean meat pounded with rendered fat, made without salt [real: the fur trade's ration]; keeps for years"
+  },
+  {
+   "id": "kiln-dry-roots",
+   "name": "Kiln-dry roots",
+   "building": "Kiln",
+   "tier": 2,
+   "skill": "Survival",
+   "min": 15,
+   "hours": 2,
+   "days": 2,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 10,
+     "rarity": 2,
+     "items": [
+      "Dried roots"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 10,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Wood",
+     "tier": 1,
+     "count": 15,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "roots, fruit, mushrooms in a kiln or the bread oven's after-heat: 3 kg of wood a kg, the wood is the cost [inf]"
   },
   {
    "id": "field-potatoes",
@@ -5934,6 +6072,98 @@
    ],
    "builds": {
     "kind": "Workbench",
+    "tier": 2
+   }
+  },
+  {
+   "id": "dig-a-root-cellar",
+   "name": "Dig a root cellar",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 10,
+   "hours": 24,
+   "days": 3,
+   "known": "start",
+   "makes": [],
+   "inputs": [],
+   "note": "a dug cellar or a straw-and-earth clamp, 2-5 °C: the store keeps cool (`09e` §1.7: ~3 days' work a household)",
+   "builds": {
+    "kind": "Root cellar",
+    "tier": 1
+   }
+  },
+  {
+   "id": "build-an-ice-house",
+   "name": "Build an ice house",
+   "building": "Base",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 20,
+   "hours": 40,
+   "days": 7,
+   "known": "start",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Wood",
+     "tier": 1,
+     "count": 10,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Textile",
+     "tier": 1,
+     "count": 4,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "an insulated pit packed with pond ice cut in winter and sawdust: the store keeps cold through the summer [real: the 19th century's]",
+   "builds": {
+    "kind": "Ice house",
+    "tier": 2
+   }
+  },
+  {
+   "id": "set-up-a-freezer",
+   "name": "Set up a freezer",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Crafting",
+   "min": 30,
+   "hours": 4,
+   "days": 0,
+   "known": "start",
+   "makes": [],
+   "inputs": [
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "a salvaged chest freezer: the store keeps cold while it has power (~300 kWh a year for ~150 kg, `09e` §3.1)",
+   "builds": {
+    "kind": "Freezer",
     "tier": 2
    }
   },
