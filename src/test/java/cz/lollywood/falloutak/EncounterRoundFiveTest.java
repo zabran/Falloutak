@@ -285,9 +285,9 @@ class EncounterRoundFiveTest extends MockGame {
         assertTrue(brine.inputs.stream().anyMatch(i -> i.items != null && i.items.contains("Salt")), "salt takes it the rest of the way");
         assertEquals(3, cheese.makes.get(0).tier, "the caesium stays in the whey");
         // 09e round 2 (Marek 11-24: *"please, reuse brine"*): one salt cleans three times the food (6 Food III from 9 Food II R2)
-        assertEquals(6, brine.makes.get(0).count);
+        assertEquals(60, brine.makes.get(0).count);   // 07 §19 round 3: 90 in, 1 Salt (~0.03 kg a kg, the salt simulation)
         assertEquals(1, brine.inputs.stream().filter(i -> i.items != null && i.items.contains("Salt")).mapToInt(i -> i.count).sum());
-        assertEquals(9, brine.inputs.stream().filter(i -> i.type.equals("Food")).mapToInt(i -> i.count).sum());
+        assertEquals(9, brine.inputs.stream().filter(i -> i.type.equals("Food")).mapToInt(i -> i.count).sum() / 10);   // 90 Food II R2
         // a run: Food II R1 leached lands in the Food II R2 row
         Production pr = new Production();
         pr.build("Reactor", 4, "Reactor");

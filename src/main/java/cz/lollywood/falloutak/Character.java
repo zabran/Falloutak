@@ -75,6 +75,9 @@ public final class Character {
     public double soapDays = 0;
     /** In the base and fed or watered by its daily lot (the GM's time passing sets them): his own bar does not fall then. */
     public transient boolean baseFood = false, baseWater = false;
+    /** The base's store lacked his meals or his water on its last day (his bar falls then); the parts of a portion and a litre owed. */
+    public boolean baseShortFood = false, baseShortWater = false;
+    public double mealCarry = 0, drinkCarry = 0;
     public transient List<Character> nearby = new ArrayList<>();
     /** 07 §19: the parts of the carried food on their way to the next tier down, by item ({@link Spoil#carried}). */
     public Map<String, Double> spoilCarry = new LinkedHashMap<>();

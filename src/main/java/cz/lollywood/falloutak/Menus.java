@@ -1210,10 +1210,12 @@ final class Menus {
                     String s = (min >= 60 ? (int) (min / 60) + " h " : "") + (min % 60 > 0 ? (int) (min % 60) + " min" : "");
                     for (Who o : all ? everyone() : List.of(only)) {
                         if (o.entity() != null) pl.zones.apply(o.c(), o.entity());   // the gas zone he stands in
-                        // Marek 11-24: in the base its daily lot feeds and waters him (his bar holds while the base fed everyone in full)
+                        // Marek 11-24: in the base he eats and drinks from its store by his own needs (Meals.baseDay at each day): his
+                        // bars hold while the store had his meals last time; the base's soap covers him on a day it had soap
                         boolean inBase = all && !o.c().outside && !pl.production.buildings.isEmpty();
-                        o.c().baseFood = inBase && pl.production.fedFood;
-                        o.c().baseWater = inBase && pl.production.fedWater && Meals.cannotDrink(o.c()) == null;
+                        o.c().baseFood = inBase && !o.c().baseShortFood;
+                        o.c().baseWater = inBase && !o.c().baseShortWater && Meals.cannotDrink(o.c()) == null;
+                        if (inBase && pl.production.washSoap && pl.production.soapToday) o.c().soap = true;
                         String r = Hud.pass(o.c(), min);
                         o.c().baseFood = o.c().baseWater = false;
                         if (o.player() != null && o.c().workedHours > 0) {   // downtime work (06b §5.4.7): 1 XP an hour
@@ -1232,14 +1234,19 @@ final class Menus {
                         int hurt = (int) pl.roster.pop.people.stream().filter(p -> p.hpMax > 0 && p.hp < p.hpMax).count();
                         List<Who> inBase = pl.production.buildings.isEmpty() ? List.of()
                                 : everyone().stream().filter(o -> !o.c().outside && !o.c().dead).toList();   // they eat and drink there too
-                        for (String w : pl.production.advance(min / 60, before, pl.base, pl.workforce(), pl.roster.pop.people.size() + inBase.size(), hurt)) say(x, w);
-                        for (Who o : inBase)
-                            for (Production.Ration ra : pl.production.rations) {
-                                String m = Meals.baseDay(o.c(), ra, pl.rnd);
+                        Meals.npcFactors(pl.production, pl.roster.pop.people);   // the base's people by their species
+                        pl.production.soapPeople = inBase.size();
+                        pl.production.dayHook = b -> {
+                            for (Who o : inBase) {
+                                String m = Meals.baseDay(o.c(), pl.production, b, pl.rnd);
                                 if (m == null) continue;
                                 o.tell(m, m.contains("CAUGHT") ? NamedTextColor.RED : NamedTextColor.GRAY);
-                                if (m.contains("CAUGHT")) tellGm(o.name() + ": " + m);
+                                if (m.contains("CAUGHT") || m.contains("short")) tellGm(o.name() + ": " + m);
                             }
+                        };
+                        try {
+                            for (String w : pl.production.advance(min / 60, before, pl.base, pl.workforce(), pl.roster.pop.people.size(), hurt)) say(x, w);
+                        } finally { pl.production.dayHook = null; }
                         if (min >= 1440 - 1e-9 || pl.production.unwashed > 0)   // round 9: in the base, the base's lot
                             for (Who o : everyone()) if (!o.c().outside) o.c().unwashedDays = pl.production.unwashed;
                         pl.production.save();

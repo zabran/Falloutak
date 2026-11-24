@@ -133,15 +133,41 @@ final class Production {
     static double MEALS = 3;
 
     /**
-     * One day of the base's lot (Marek 11-24: *"inside base, we should already have system for water and food usage, so just go based on
-     * that."*), a person's share: the portions eaten by row ("tier|rarity"), the litres drunk by tier (the filtration's as Tier III),
-     * what was needed and got.
+     * The base's people by their species (Marek 11-24: *"technically, we should simulate how each person eats in there, because Survival
+     * adds bonus to how much people gain from food. And other genes etc. also change that."*): the average of their templates' food and
+     * water factors (the orc ×1.25, a synthetic body drinks nothing), set by whoever passes the time. The characters in the base eat
+     * one by one ({@link #dayHook}, {@link Meals#baseDay}). [Their group's Survival not counted yet: mine]
      */
-    record Ration(Map<String, Double> food, double[] water, double foodNeed, double foodGot, double waterNeed, double waterGot) {}
-    /** The days of the last {@link #advance}, in order (the characters in the base take their share of each). */
-    final transient List<Ration> rations = new ArrayList<>();
-    /** Whether the base fed and watered everyone in full on its last day (the characters in it then need nothing more). */
-    boolean fedFood = true, fedWater = true;
+    transient double mealFactor = 1, drinkFactor = 1;
+    /** Called at each new day after the base's people ate, drank and washed: the characters in the base eat and drink there. */
+    transient java.util.function.Consumer<Base> dayHook;
+    /**
+     * The people wash with soap (Marek 11-24, verbatim: *""Soap is a switch in Actions." - it should be selectable for base. There is
+     * much more people inside it, after all."*): a bar a person every {@link Diseases#SOAP_DAYS} days from the store's Soap (Chemicals II,
+     * known in the base); the day it had enough, everyone in the base catches ×{@link Diseases#SOAP} from the sick (04b §5).
+     */
+    boolean washSoap = false;
+    double soapCarry;
+    transient boolean soapToday;
+    /** The characters in the base this pass of time (they wash with the base's soap too). */
+    transient int soapPeople;
+
+    /** A portion from the store for a character in the base, the base's order (the best tier first, Tier I last): {tier, rarity} or null. */
+    int[] takeMeal(Base base) {
+        if (base == null) return null;
+        for (int t : new int[]{4, 3, 2, 1})
+            for (int r = 1; r <= 4; r++)
+                if (base.count("Food", t, r) > 0) { base.takeUnits("Food", t, r, 1); return new int[]{t, r}; }
+        return null;
+    }
+
+    /** A litre for a character in the base: the filtration's spare clean water first (Tier III), then the store's best tier; 0 = none. */
+    int takeDrink(Base base) {
+        if (waterUsed + 1 <= waterCap() + 1e-9) { waterUsed += 1; return 3; }
+        if (base == null) return 0;
+        for (int t = 4; t >= 1; t--) if (base.count("Water", t, 0) > 0) { base.takeUnits("Water", t, 0, 1); return t; }
+        return 0;
+    }
     /**
      * A building's wear by its tier (round 6, Marek 11-20, verbatim: *"The buildings must have condition lost in some absolute number -
      * bigger tier, the less maintanance and the longer it lasts abandoned."* · *"players must not be forced out before first year"* ·
@@ -839,7 +865,6 @@ final class Production {
         List<String> out = new ArrayList<>();
         this.people = Math.max(0, people);
         this.wounded = Math.max(0, Math.min(this.people, wounded));
-        rations.clear();
         if (hours <= 0) return out;
         Map<String, Worker> byId = new HashMap<>();
         quartermaster = false;
@@ -912,11 +937,9 @@ final class Production {
             b.condensateCarry = Math.max(0, l - n);
             condensateLeft += n;
         }
-        double need = DRINK * Math.max(0, people);   // the people drink first (04 §3.9: 2 l a day)
+        double need = DRINK * drinkFactor * Math.max(0, people);   // the people drink first (04 §3.9: 2 l a day, by their species)
         waterUsed = Math.min(waterCap(), need);
         double rest = need - waterUsed;
-        double[] drunk = new double[5];
-        drunk[3] = waterUsed;
         if (rest > 1e-9 && !buildings.isEmpty()) {
             // then the store's Water, the best tier first (round 5); what they drank is the GM's for part 4's harm
             StringJoiner drank = new StringJoiner(", ");
@@ -926,7 +949,6 @@ final class Production {
                 if (n <= 0) continue;
                 base.takeUnits("Water", t, 0, n);
                 rest -= n;
-                drunk[t] += n;
                 drank.add(n + " l of Tier " + Rules.roman(t));
                 if (t <= 2) harm = true;
             }
@@ -937,8 +959,7 @@ final class Production {
         // 04 §3.3 (Marek 11-24, above): then they eat, 3 portions a day each from the store: the best tier first (as the water, round 5),
         // the fresh before the kept and the sealed within a tier, Tier I last (raw or spoiled: eaten only when nothing else is left)
         // [the order mine]
-        double eat = MEALS * Math.max(0, people), ate = 0;
-        Map<String, Double> food = new LinkedHashMap<>();
+        double eat = MEALS * mealFactor * Math.max(0, people), ate = 0;
         if (eat > 1e-9 && !buildings.isEmpty() && base != null) {
             StringJoiner what = new StringJoiner(", ");
             int left = (int) Math.ceil(eat - 1e-9);
@@ -950,7 +971,6 @@ final class Production {
                     base.takeUnits("Food", t, r, n);
                     left -= n;
                     ate += n;
-                    food.merge(t + "|" + r, n / Math.max(1.0, people), Double::sum);
                     what.add(n + " Food " + Rules.roman(t) + (r > 1 ? " R" + r : ""));
                     if (t <= 2) harm = true;
                 }
@@ -958,11 +978,16 @@ final class Production {
                     + (people == 1 ? " person" : " people") + ")" + (left > 0 ? ", " + left + " portions short" : "")
                     + (harm ? " (Tier II = one harm, Tier I both: 04 §3.9)" : ""));
         }
-        for (int t = 1; t <= 4; t++) drunk[t] /= Math.max(1.0, people);
-        double drankAll = need - Math.max(0, rest);
-        rations.add(new Ration(food, drunk, MEALS, people <= 0 ? 0 : ate / people, DRINK, people <= 0 ? 0 : drankAll / people));
-        fedFood = !buildings.isEmpty() && base != null && ate + 1e-9 >= eat;
-        fedWater = !buildings.isEmpty() && rest <= 1e-9;
+        // the soap (Marek 11-24, above): a bar a person every 14 days from the store's Soap, while the base knows it
+        if (washSoap && base != null && !buildings.isEmpty()) {
+            double bars = (Math.max(0, people) + soapPeople) / Diseases.SOAP_DAYS + soapCarry;
+            int n = (int) Math.floor(bars + 1e-9);
+            boolean known = base.unlockedName("Soap");
+            soapToday = known && base.count("Chemicals", 2, 1) >= Math.max(1, n);
+            if (soapToday && n > 0) base.takeUnits("Chemicals", 2, 1, n);
+            soapCarry = soapToday ? bars - n : 0;
+            if (!soapToday) out.add("Soap: none in the store" + (known ? "" : " (Soap is not known in the base)") + ": nobody washes with soap today");
+        } else soapToday = false;
         // round 9: then they wash (2 l a day each): the wounded first, the players' choice of water; the harm and the shortfall told
         double wash = WASH * Math.max(0, people);
         if (wash > 1e-9 && !buildings.isEmpty()) {
@@ -978,6 +1003,7 @@ final class Production {
         }
         if (base != null && condensateLeft >= 1 - 1e-9) base.addUnits("Water", 2, 1, (int) Math.floor(condensateLeft + 1e-9));
         condensateLeft = 0;
+        if (dayHook != null && !buildings.isEmpty()) dayHook.accept(base);   // the characters in the base eat and drink
         for (Building b : buildings)
             if (everyDay(b, base) && !charge(b, base)) out.add(b.name + ": no power or water for it today");
     }

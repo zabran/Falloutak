@@ -65,7 +65,8 @@ final class Works {
                 .append("the clean water (the filtration's, Tier III)").append(pr.washTier4 ? ", Tier IV last" : "")
                 .append("; the wounded the clean water first, then Tier II as boiled water");
         String h = Production.hygiene(pr.unwashed);
-        return s + (h.isEmpty() ? "" : " · the base: " + h);
+        return s + (pr.washSoap ? " · with soap (a bar a person every " + Math.round(Diseases.SOAP_DAYS) + " days" + (pr.soapToday ? "" : ", none today") + ")" : "")
+                + (h.isEmpty() ? "" : " · the base: " + h);
     }
 
     /** Any player picks the washing water (round 9, Marek 11-21: *"players can choose"*). */
@@ -75,11 +76,13 @@ final class Works {
                         + "not on a wound; the clean water is always used.",
                 List.of(Ui.In.bool("t2", Component.text("Tier II and the scrubbers' condensate")).initial(pr.washTier2).build(),
                         Ui.In.bool("t1", Component.text("Tier I (dirty or irradiated)")).initial(pr.washTier1).build(),
-                        Ui.In.bool("t4", Component.text("Tier IV (mineral water, tea)")).initial(pr.washTier4).build()),
+                        Ui.In.bool("t4", Component.text("Tier IV (mineral water, tea)")).initial(pr.washTier4).build(),
+                        Ui.In.bool("soap", Component.text("With soap (a bar a person every 14 days; ×0.7 on catching from the sick)")).initial(pr.washSoap).build()),
                 Menus.form("Set", "the people wash with this", (v, x) -> {
                     pr.washTier2 = Boolean.TRUE.equals(v.getBoolean("t2"));
                     pr.washTier1 = Boolean.TRUE.equals(v.getBoolean("t1"));
                     pr.washTier4 = Boolean.TRUE.equals(v.getBoolean("t4"));
+                    pr.washSoap = Boolean.TRUE.equals(v.getBoolean("soap"));
                     pr.save();
                     main(x);
                 }), Works::main);

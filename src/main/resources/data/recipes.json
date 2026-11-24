@@ -1838,21 +1838,21 @@
    "tier": 3,
    "skill": "Biology",
    "min": 40,
-   "hours": 5,
+   "hours": 20,
    "days": 2,
    "known": "research",
    "makes": [
     {
      "type": "Food",
      "tier": 3,
-     "count": 6
+     "count": 60
     }
    ],
    "inputs": [
     {
      "type": "Food",
      "tier": 2,
-     "count": 9,
+     "count": 90,
      "rarity": 2,
      "sets_rarity": false,
      "tool": false,
@@ -1873,7 +1873,7 @@
     {
      "type": "Water",
      "tier": 3,
-     "count": 12,
+     "count": 120,
      "rarity": 0,
      "sets_rarity": false,
      "tool": false,
@@ -1881,7 +1881,7 @@
     }
    ],
    "research": "Rad scrubbing",
-   "better": "leached or potash-grown food soaked two days in brine, the brine reused for the next batch's first soak: under a tenth of its rads = clean"
+   "better": "leached or potash-grown food soaked two days in brine, the brine reused for the next batch's first soak: under a tenth of its rads = clean (~0.03 kg of salt a kg)"
   },
   {
    "id": "brine-and-cure",
@@ -1890,14 +1890,14 @@
    "tier": 3,
    "skill": "Biology",
    "min": 40,
-   "hours": 5,
+   "hours": 8,
    "days": 7,
    "known": "research",
    "makes": [
     {
      "type": "Food",
      "tier": 3,
-     "count": 6,
+     "count": 20,
      "rarity": 2,
      "items": [
       "Salted meat"
@@ -1908,7 +1908,7 @@
     {
      "type": "Food",
      "tier": 2,
-     "count": 9,
+     "count": 30,
      "rarity": 2,
      "sets_rarity": false,
      "tool": false,
@@ -1917,7 +1917,7 @@
     {
      "type": "Chemicals",
      "tier": 1,
-     "count": 2,
+     "count": 1,
      "rarity": 2,
      "sets_rarity": false,
      "tool": false,
@@ -1929,7 +1929,7 @@
     {
      "type": "Water",
      "tier": 3,
-     "count": 12,
+     "count": 40,
      "rarity": 0,
      "sets_rarity": false,
      "tool": false,
@@ -1937,7 +1937,7 @@
     }
    ],
    "research": "Rad scrubbing",
-   "better": "the brine's soak and the cure at once: clean and kept (Food III R2), for one more Salt"
+   "better": "the brine's soak and the cure at once: clean and kept (Food III R2); the meat keeps its 7 % of salt (~0.10 kg a kg, three times the soak alone)"
   },
   {
    "id": "make-cheese-and-butter",
@@ -2036,7 +2036,49 @@
     }
    ],
    "research": "Mushrooms on straw",
-   "better": "food without lamps' power, half the time"
+   "better": "food without lamps' power, half the time; in-house, so all Tier III"
+  },
+  {
+   "id": "mushroom-beds",
+   "name": "Mushroom beds",
+   "building": "Field",
+   "tier": 2,
+   "skill": "Biology",
+   "min": 20,
+   "hours": 15,
+   "days": 45,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 8,
+     "items": [
+      "Field mushrooms"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Seeds",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Wood",
+     "tier": 1,
+     "count": 10,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "logs and straw in a shaded field: by the base's ground (medium and heavy Tier I, light II, clean half III: the pickers tell the clean ones apart); leached and brined like any Tier II food"
   },
   {
    "id": "gather-water",

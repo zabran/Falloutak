@@ -84,9 +84,10 @@ final class Meals {
         StringJoiner j = new StringJoiner("; ");
         j.add("Ate " + (name.isEmpty() ? "Food " + Rules.roman(tier) : name) + ": Food +" + Math.round(got));
         int home = homeTier("Food", name);
-        if (home == 0) home = tier;
+        boolean named = home > 0;
+        if (!named) home = tier;
         switch (tier) {
-            case 1 -> { rads(c, RADS_FOOD, j); roll(c, "Food poisoning", raw(home) ? RAW : SPOILED, j, rnd); }
+            case 1 -> { rads(c, RADS_FOOD, j); roll(c, "Food poisoning", named && raw(home) ? RAW : SPOILED, j, rnd); }
             case 2 -> { if (home >= 3) roll(c, "Food poisoning", SPOILED, j, rnd); else rads(c, RADS_FOOD, j); }
             case 3 -> { if (rarity >= 2) roll(c, "Botulism", KEPT_BOTULISM, j, rnd); }
             default -> { }
@@ -118,38 +119,92 @@ final class Meals {
     }
 
     /**
-     * A day of the base's lot for a character in the base: his share of what the base's people ate and drank that day, its rads and
-     * rolls (the store's rows have no names: Tier I food counted spoiled, Tier II food irradiated, Tier II water as the condensate or
-     * filtered water, with germs), and his bars refilled when the base fed everyone in full (else by the share it had).
+     * A day in the base for a character (Marek 11-24, verbatim: *"technically, we should simulate how each person eats in there, because
+     * Survival adds bonus to how much people gain from food. And other genes etc. also change that."*): what he lost in 24 hours by
+     * his own body (the template's and the genes' factors, the effects: {@link Character#hourly}) plus what his bar lacks, in portions
+     * and litres of HIS size (× (1 + Survival / 100); plain water's share when he is very dry), taken from the base's store one by one
+     * in the base's order (the filtration's spare clean water first), each with its own harm; the parts carried to the next day. If
+     * the store runs out, the bar loses what the day's hold gave him and falls from then on ({@code baseShortFood}).
      */
-    static String baseDay(Character c, Production.Ration r, Random rnd) {
-        if (c.dead || r == null) return null;
+    static String baseDay(Character c, Production pr, Base base, Random rnd) {
+        if (c.dead) return null;
         StringJoiner j = new StringJoiner("; ");
-        boolean power = "power".equals(c.tpl().needs());
-        if (!power) {
-            double share = r.foodNeed() <= 0 ? 0 : Math.min(1, r.foodGot() / r.foodNeed());
-            if (share >= 1 - 1e-9) c.survival.put(Rules.Stat.FOOD, c.max(Rules.Stat.FOOD));
-            else bump(c, Rules.Stat.FOOD, share * 24 * (1 + c.skill("Survival") / 100));
-            if (share < 1 - 1e-9) j.add("the base had food for " + Math.round(100 * share) + " %");
-            for (Map.Entry<String, Double> e : r.food().entrySet()) {
-                String[] k = e.getKey().split("\\|");
-                int tier = Integer.parseInt(k[0]), rarity = Integer.parseInt(k[1]);
-                double q = e.getValue();
-                if (tier <= 2) rads(c, RADS_FOOD * q, j);
-                if (tier == 1) roll(c, "Food poisoning", chance(SPOILED, q), j, rnd);
-                if (tier == 3 && rarity >= 2) roll(c, "Botulism", chance(KEPT_BOTULISM, q), j, rnd);
+        double rads0 = c.survival.getOrDefault(Rules.Stat.RADS, 0.0);
+        double surv = 1 + c.skill("Survival") / 100;
+        int[] ateTier = new int[5], drankTier = new int[5];
+        if (cannotEat(c) == null) {
+            double gain = PORTION * surv, need = dayNeed(c, Rules.Stat.FOOD) / gain;
+            double lack = Math.max(0, c.max(Rules.Stat.FOOD) - c.survival.getOrDefault(Rules.Stat.FOOD, c.max(Rules.Stat.FOOD))) / gain;
+            double owed = need + c.mealCarry;
+            int n = (int) Math.floor(owed + 1e-9), extra = (int) Math.floor(lack + 1e-9);
+            c.mealCarry = owed - n;
+            c.baseShortFood = false;
+            for (int k = 0; k < n + extra; k++) {
+                int[] tr = pr.takeMeal(base);
+                if (tr == null) {
+                    int missed = Math.min(n, n + extra - k);   // the day's own portions not had: the hold gave them, take them back
+                    bump(c, Rules.Stat.FOOD, -missed * gain);
+                    c.baseShortFood = true;
+                    j.add("the store had no food for " + (n + extra - k) + " of your " + (n + extra) + " portions (short)");
+                    break;
+                }
+                ateTier[tr[0]]++;
+                String r = eat(c, tr[0], tr[1], "", rnd);
+                if (r.contains("CAUGHT")) j.add(r.substring(r.indexOf("; ") + 2));
             }
         }
-        if (cannotDrink(c) == null) {
-            double share = r.waterNeed() <= 0 ? 0 : Math.min(1, r.waterGot() / r.waterNeed());
-            if (share >= 1 - 1e-9) c.survival.put(Rules.Stat.WATER, c.max(Rules.Stat.WATER));
-            else bump(c, Rules.Stat.WATER, share * 50 * (1 + c.skill("Survival") / 100));
-            if (share < 1 - 1e-9) j.add("the base had water for " + Math.round(100 * share) + " %");
-            double l1 = r.water()[1], l2 = r.water()[2];
-            if (l1 > 0) { rads(c, RADS_WATER * l1, j); germs(c, GERMS_T1, l1, WATER_T1, j, rnd); }
-            if (l2 > 0) germs(c, GERMS_T2, l2, WATER_T2, j, rnd);
-        } else j.add("cannot drink: " + cannotDrink(c));
-        return j.length() == 0 ? null : "the base's day: " + j;
+        String noDrink = cannotDrink(c);
+        if (noDrink == null) {
+            double gain = LITRE * surv * plainWaterShare(c), need = dayNeed(c, Rules.Stat.WATER) / Math.max(1e-9, LITRE * surv);
+            double lack = Math.max(0, c.max(Rules.Stat.WATER) - c.survival.getOrDefault(Rules.Stat.WATER, c.max(Rules.Stat.WATER))) / Math.max(1e-9, gain);
+            double owed = need + c.drinkCarry;
+            int n = (int) Math.floor(owed + 1e-9), extra = (int) Math.ceil(lack - 1e-9);
+            c.drinkCarry = owed - n;
+            c.baseShortWater = false;
+            for (int k = 0; k < n + extra; k++) {
+                int t = pr.takeDrink(base);
+                if (t == 0) {
+                    int missed = Math.min(n, n + extra - k);
+                    bump(c, Rules.Stat.WATER, -missed * LITRE * surv);
+                    c.baseShortWater = true;
+                    j.add("the base had no water for " + (n + extra - k) + " of your " + (n + extra) + " l (short)");
+                    break;
+                }
+                drankTier[t]++;
+                String r = drink(c, t, "", rnd);
+                if (r.contains("CAUGHT")) j.add(r.substring(r.indexOf("; ") + 2));
+            }
+        } else if (!noDrink.startsWith("a synthetic")) j.add("cannot drink: " + noDrink);
+        StringJoiner what = new StringJoiner(", ");
+        for (int t = 4; t >= 1; t--) if (ateTier[t] > 0) what.add(ateTier[t] + " Food " + Rules.roman(t));
+        for (int t = 4; t >= 1; t--) if (drankTier[t] > 0) what.add(drankTier[t] + " l of Tier " + Rules.roman(t));
+        double rads = c.survival.getOrDefault(Rules.Stat.RADS, 0.0) - rads0;
+        if (rads > 1e-9) what.add("+" + Diseases.f(rads) + " rads");
+        if (what.length() > 0) j.add("you ate and drank " + what);
+        return j.length() == 0 ? null : "The base's day: " + j;
+    }
+
+    /** What his body loses in 24 hours as it is now (his template, genes, effects, the sweat), never less than 0. */
+    static double dayNeed(Character c, Rules.Stat st) {
+        boolean bf = c.baseFood, bw = c.baseWater;
+        c.baseFood = c.baseWater = false;
+        try { return Math.max(0, -c.hourly(st) * 24); } finally { c.baseFood = bf; c.baseWater = bw; }
+    }
+
+    /** The base's people by their species: the average food and water factor of their templates (a synthetic body 0 and 0). */
+    static void npcFactors(Production pr, java.util.List<Population.Person> people) {
+        double f = 0, w = 0;
+        int n = 0;
+        for (Population.Person p : people) {
+            Data.Template t = Data.TEMPLATES.getOrDefault(p.species, Data.TEMPLATES.get("Human"));
+            if (t == null) continue;
+            boolean power = "power".equals(t.needs());
+            f += power ? 0 : t.foodFactor();
+            w += power ? 0 : t.waterFactor();
+            n++;
+        }
+        pr.mealFactor = n == 0 ? 1 : f / n;
+        pr.drinkFactor = n == 0 ? 1 : w / n;
     }
 
     /** The chance of at least one hit in q meals of p % each. */

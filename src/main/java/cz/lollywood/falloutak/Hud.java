@@ -56,7 +56,8 @@ public final class Hud {
                 p.sendMessage(net.kyori.adventure.text.Component.text("A new bar of soap (it lasts " + Math.round(Diseases.SOAP_DAYS) + " days).",
                         net.kyori.adventure.text.format.NamedTextColor.GRAY));
             }
-            c.soap = c.washSoap && c.soapDays > 0;
+            c.soap = (c.washSoap && c.soapDays > 0)
+                    || (!c.outside && pl.production != null && pl.production.washSoap && pl.production.soapToday);   // the base's soap
             List<Character> near = new ArrayList<>();
             for (Player q : p.getWorld().getPlayers())
                 if (q != p && q.getLocation().distanceSquared(p.getLocation()) <= 64) near.add(pl.character(q));
