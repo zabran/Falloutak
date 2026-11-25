@@ -200,6 +200,85 @@ class OwnGearTest extends MockGame {
     }
 
     @Test
+    void round5PunchesScaleAndPierce() {   // 05d round 5: Unarmed's skill +1 a 25 over 50; from 150 the DT a fifth (Fallout 2's Force Punch)
+        Character c = new Character();
+        int[] max = {10, 5, 5, 5, 5, 5, 5};
+        Battle.Weapon fists = Battle.GEAR.get("Fists");
+        c.points[Rules.skillIndex("Athletics")] += 400;   // Unarmed = Athletics
+        double un = Battle.weaponSkill(c, "Unarmed");
+        assertTrue(un >= 300, "maxed: " + un);
+        assertEquals(Math.round(5 * fists.strDmg) + (int) Math.floor((un - 50) / 25), Battle.handBonus(c, max, fists), "twice the melee rate");
+        assertTrue(Battle.piercing(c, fists));
+        assertFalse(Battle.piercing(new Character(), fists), "an untrained fist does not pierce");
+        assertFalse(Battle.piercing(c, Battle.GEAR.get("Combat knife")), "a knife is no punch");
+        double blow = avg("Fists") + Battle.handBonus(c, max, fists);
+        int vsPower = Combat.damage(blow, 1, 0, 0, (int) Math.round(12 / 5.0), 0.40, false);   // Power Armor: DT 12, DR 40 %
+        assertTrue(vsPower >= 8, "the maxed fist through power armour: " + vsPower);
+        Character novice = new Character();
+        double weak = avg("Fists") + Battle.handBonus(novice, new int[]{5, 5, 5, 5, 5, 5, 5}, fists);
+        assertEquals(0, Combat.damage(weak, 1, 0, 0, 12, 0.40, false), "an average fist does nothing to it");
+    }
+
+    @Test
+    void round5TheGuardTheRecoilTheReloadTheUnaware() {   // 05d round 5
+        assertEquals(25, Battle.guardAc(300), "300 = a power armour's AC against blows");
+        assertEquals(5, Battle.guardAc(100));
+        assertEquals(0, Battle.guardAc(40));
+        Battle.Weapon gun = Battle.GEAR.values().stream().filter(w -> !w.melee() && w.minStrength > 1).findFirst().orElseThrow();
+        assertEquals(5, Battle.recoilBonus(gun.minStrength + 1, gun));
+        assertEquals(15, Battle.recoilBonus(gun.minStrength + 5, gun), "at most +15");
+        assertEquals(0, Battle.recoilBonus(gun.minStrength - 1, gun));
+        assertEquals(0, Battle.recoilBonus(10, Battle.GEAR.get("Club")), "no recoil in a blow");
+        Character c = new Character();
+        assertEquals(2, Battle.reloadAp(c, gun, false), "Fallout 2's 2 AP");
+        c.points[Rules.skillIndex("Guns")] += 120;
+        assertTrue(Battle.weaponSkill(c, "Guns") > 100);
+        Battle.Weapon pistol = Battle.GEAR.get("9mm pistol");
+        assertEquals(1, Battle.reloadAp(c, pistol, false), "Guns over 100: 1 AP less");
+        assertEquals(1, Battle.reloadAp(c, pistol, true), "at least 1");
+        Battle.Fight f = new Battle.Fight();
+        f.ambush = true;
+        Battle.Target t = new Battle.Target("raider");
+        assertTrue(Battle.unaware(f, t), "the ambush's first round");
+        t.touched = true;
+        assertFalse(Battle.unaware(f, t), "hit once: he knows");
+        Battle.Target u = new Battle.Target("raider");
+        f.round = 2;
+        assertFalse(Battle.unaware(f, u), "the second round: everyone knows");
+        u.surprised = true;
+        assertTrue(Battle.unaware(new Battle.Fight(), u), "caught mid-talk");
+    }
+
+    @Test
+    void round5APlayerIsShockedToo() {   // 05d round 5: the shock rule on a player
+        PlayerMock p = player();
+        Character c = plugin.character(p);
+        Battle.State s = fight(p);
+        plugin.battle.d100 = () -> 1;
+        assertTrue(plugin.battle.shockPlayer(p, s, c, 1, false).contains("you endure it"));
+        assertEquals(0, s.apLoss);
+        plugin.battle.d100 = () -> 100;
+        assertTrue(plugin.battle.shockPlayer(p, s, c, 9, false).contains("knocked down"));
+        assertEquals(9, s.apLoss);
+        assertEquals(2, s.stance(), "down: prone");
+        assertEquals("", plugin.battle.shockPlayer(p, s, c, 0, false), "nothing through the Isolation: nothing");
+    }
+
+    @Test
+    void round5TheTierIVTechnoWeaponsBeatTheRipper() {   // 05d round 5: *"Ripper is quite strong compared to T4 technoweapons"*
+        java.util.function.ToDoubleFunction<String> dpap = n -> {
+            Battle.Weapon w = Battle.GEAR.get(n);
+            double sh = w.shockMax > 0 ? (w.shockMin + w.shockMax) / 2.0 : 0;
+            return ((w.minDmg + w.maxDmg) / 2.0 + sh) / w.modes.get(0).ap();
+        };
+        for (String t4 : List.of("Arc baton", "Vibro-blade", "Plasma saber"))
+            assertTrue(dpap.applyAsDouble(t4) > dpap.applyAsDouble("Ripper"), t4);
+        Battle.Weapon saber = Battle.GEAR.get("Plasma saber");
+        assertEquals("Plasma", saber.damageType, "the lightsaber: a plasma blade");
+        assertTrue(saber.pen >= 0.5 && saber.melee());
+    }
+
+    @Test
     void accessoriesFitAndWorkInTheFight() {   // 05d §5 (RULED round 3)
         PlayerMock p = player();
         Character c = plugin.character(p);

@@ -682,7 +682,15 @@ final class Raiders {
             double mult = Combat.critMultiplier(Rules.Part.TORSO, deg);
             double base = (w.minDmg + b.rnd.nextInt(w.maxDmg - w.minDmg + 1)) * cf;
             // the piece over the torso (an unaimed shot, Fallout 2), Normal damage; it wears when the hit beats its DT (05c)
-            int dmg = Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, c.dtAt(Rules.Part.TORSO, "Normal"), c.drAt(Rules.Part.TORSO, "Normal"), fx.bypass());
+            boolean arc = w.damageType.equals("Electrical");   // 05d round 5: his armour's Isolation stops it, not its plates
+            String kind = arc ? "Isolation" : "Normal";
+            int dmg = Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, c.dtAt(Rules.Part.TORSO, kind), c.drAt(Rules.Part.TORSO, kind), fx.bypass());
+            int elec = arc ? dmg : 0;
+            if (w.shockMax > 0) {   // a stun weapon's shock (round 3), through the Isolation
+                int zap = Combat.damage(w.shockMin + b.rnd.nextInt(w.shockMax - w.shockMin + 1), 1, 0, 0, c.dtAt(Rules.Part.TORSO, "Isolation"), c.drAt(Rules.Part.TORSO, "Isolation"), false);
+                dmg += zap;
+                elec += zap;
+            }
             String wear = c.wearArmour(Rules.Part.TORSO, Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, 0, 0, false));
             if (!wear.isEmpty()) Items.writeArmour(p, c);
             log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + Txt.f(mult) + ")" : "HIT").append(", ").append(dmg)
@@ -690,6 +698,7 @@ final class Raiders {
                     .append(" %").append(c.armourAt(Rules.Part.TORSO) == null ? ", no armour" : ", " + c.armourAt(Rules.Part.TORSO).set()).append(").").append(wear);
             if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
             result = (r.crit() ? "CRIT on you, " : "hit, ") + dmg + " HP";
+            if (elec > 0) log.append(b.shockPlayer(p, s, c, elec, p.isInWaterOrRain()));   // 05d round 5
             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_HURT, 1f, 1f);
             b.hitPlayer(p, s, c, le.getLocation(), dmg, fx, r.crit(), deg, log);
             if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female, p);   // he hears "you..."
@@ -830,6 +839,11 @@ final class Raiders {
         sh.targetAc = Rules.ac(c.attrs(false)) + Rules.STANCE_AC[s.stance()] + c.armourAc();
         sh.targetProne = s.stance() == 2;
         sh.huge = c.tpl().huge();
+        Battle.Weapon held = b.heldWeapon(p);   // 05d round 5: his guard, a blade or his fists ready (a gun: none)
+        if (s.stance() != 2 && (held == null || held.melee())) {
+            int g = Battle.guardAc(Battle.weaponSkill(c, held == null ? "Unarmed" : held.skill));
+            if (g > 0) sh.extra.put("your guard", -g);
+        }
         Combat.ToHit th = Combat.toHit(sh);
         Combat.Roll r = Combat.roll(th.chance(), Rules.critChance(t.a, 0), 0, t.a[Rules.L], 0, b.jinxed(c), b.d100);
         Creatures.play(le, t.attack.equals("gore") ? "gore" : "lunge");

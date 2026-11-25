@@ -530,6 +530,7 @@ final class Arena {
         Battle.Fight f = new Battle.Fight("the enemies");
         f.demo = false;
         f.enemiesFirst = mode == Mode.AMBUSHED || mode == Mode.PARLEY;
+        f.ambush = mode == Mode.AMBUSH;   // 05d round 5: the unaware
         f.field = lay.box();
         current = f;
         afterAll = done;

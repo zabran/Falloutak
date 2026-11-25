@@ -32,6 +32,9 @@ outside the game; the game itself is for the look and feel. The rules' text live
   `Diseases.wound`); the enemies' turn is `Raiders` (the giant tick's bite also `Diseases.tickBite`). A gun takes its calibre's rounds (a
   rounds category a calibre); each magazine holds one load, whose damage modifier, penetration and fouling hit (`Battle.reload`,
   `Battle.ammoMods`; old round items map to their calibre by `Production.RENAMED`).
+  The person behind the weapon (05d rounds 3-5): `Battle.handBonus` (Strength by GURPS, the skill; Unarmed twice), `piercing`
+  (Unarmed 150: the DT a fifth), `guardAc` (AC against blows from the weapon's skill), `recoilBonus`, `reloadAp`, `unaware` (the crit
+  chance x2); the shock `Battle.shock` (an NPC) and `Battle.shockPlayer` (a player: his armour's Isolation, AP lost next turn).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
@@ -57,9 +60,9 @@ javadoc's first sentence marked NEW (then describe it here).
 |---|---|---|
 | `Accessories` | 228 | the weapons' accessories (05d §5): their effects, what fits what, `/sheet fit`, kept on the weapon's item |
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
-| `Arena` | 754 | the battle maps of world-map encounters (terrain, size, placing the sides) |
+| `Arena` | 755 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 2351 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 2423 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
 | `Character` | 2729 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
@@ -85,7 +88,7 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Path` | 71 | how an enemy walks on the battle map |
 | `Population` | 188 | the base's people and their groups (the workbook's Population and Factions) |
 | `Production` | 1397 | buildings, jobs, recipes, power and water, the base's day (food, water, soap) |
-| `Raiders` | 913 | the enemies' turn: choosing, moving, shooting, melee and bites |
+| `Raiders` | 927 | the enemies' turn: choosing, moving, shooting, melee and bites |
 | `Research` | 614 | research: inspiration, experiments, prototypes, the cards |
 | `Roster` | 525 | `/npc`, `/pop`, `/group`: statblocks, the groups' XP and levels, lessons, work |
 | `Rules` | 691 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
@@ -103,5 +106,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **48 classes** | **24525** | |
+| **48 classes** | **24612** | |
 <!-- /CLASSES -->

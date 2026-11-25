@@ -2137,6 +2137,34 @@
    "set": ""
   },
   {
+   "category": "Techno weapons",
+   "group": "Melee weapons",
+   "skill": "Techno Weapons",
+   "name": "Plasma saber",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Power",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Pistols",
    "group": "Ranged weapons",
    "skill": "Guns",

@@ -743,7 +743,7 @@ class ProductionTest {
     // ------------------------------------------------------------------ round 4 (Marek 11-20)
     @Test
     void everyAssembledItemTakesKnownParts() {
-        assertEquals(337, Production.DESIGNS.size());   // 0.96.0: Tier IV of 2046, the accessories; 0.95.0: every weapon type Tier I-IV; 0.94.0: the calibres' loads, the region's guns, the sci-fi (05d)
+        assertEquals(338, Production.DESIGNS.size());   // 0.97.0: the plasma saber; 0.96.0: Tier IV of 2046, the accessories; 0.95.0: every weapon type Tier I-IV; 0.94.0: the calibres' loads, the region's guns, the sci-fi (05d)
         for (Production.Design d : Production.DESIGNS.values()) {
             assertFalse(d.parts.isEmpty(), d.key());
             for (Production.Part p : d.parts) assertTrue(Production.TYPES.containsKey(p.type), d.key() + ": " + p.type);

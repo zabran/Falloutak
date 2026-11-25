@@ -314,6 +314,8 @@ public final class Battle implements Listener {
         /** The guns jammed (05 §9, round 11): firing one again is the clearing check. */
         final Set<String> jammed = new HashSet<>();
         int round = 1, lostTurns;
+        /** AP lost at the next turn (05d round 5: the shock on a player, `05d` §2e). */
+        int apLoss;
         org.bukkit.scheduler.BukkitTask task;
         Deque<Runnable> pending = new ArrayDeque<>();
         /** The character as the demo began: given back if he dies in it (it is a demo). */
@@ -340,6 +342,8 @@ public final class Battle implements Listener {
         org.bukkit.scheduler.BukkitTask task;
         int round = 1;
         boolean over, enemyPhase, enemiesFirst, started;
+        /** The party's ambush (the battle map's AMBUSH): in its first round a foe not yet hit is unaware (05d round 5). */
+        boolean ambush;
         /** The demo restores a character who dies in it; so does a fight on a battle map (its kit is still the demo's). */
         boolean demo = true;
         /** How the enemies are named ("the raiders", "the enemies"). */
@@ -738,8 +742,67 @@ public final class Battle implements Listener {
         boolean bow = w.skill.equals("Bows");
         if (!w.melee() && !w.thrown && !bow) return 0;
         int str = (int) Math.round((attrs[Rules.S] - 5) * w.strDmg);
-        int sk = c != null && !w.skill.isEmpty() ? (int) Math.max(0, Math.floor((weaponSkill(c, w.skill) - 50) / 50)) : 0;
+        int per = w.skill.equals("Unarmed") ? 25 : 50;   // round 5: the fist's damage is its technique (300 = +10)
+        int sk = c != null && !w.skill.isEmpty() ? (int) Math.max(0, Math.floor((weaponSkill(c, w.skill) - 50) / per)) : 0;
         return str + sk;
+    }
+
+    /**
+     * PUNCHES THAT SCALE (05d round 5, Marek 11-25: *"punch and unarmed weapons should be able to scale a bit ... It should not be serious
+     * option, but I would still like the maxed character in unarmed (300 skill, 10 strength ...) to punch through power armor."*):
+     * Unarmed's skill adds +1 a 25 points over 50 (the melee families a 50, {@link #handBonus}), and from Unarmed 150 every unarmed blow
+     * PIERCES: the armour's DT a fifth, as Fallout 2's Dragon and Force Punches (`isPenetrate`, its Unarmed 115 and 130 at 6 and 8 AP;
+     * here a plain blow at the gate 150) [the numbers mine]. Fists at Strength 10 and Unarmed 300: 16-17 a blow, through a power
+     * armour's DT 12 / DR 40 % about 9.
+     */
+    static boolean piercing(Character c, Weapon w) { return c != null && w.skill.equals("Unarmed") && weaponSkill(c, "Unarmed") >= PIERCING_SKILL; }
+
+    static final int PIERCING_SKILL = 150;
+
+    /**
+     * THE GUARD (05d round 5, Marek 11-25: *"Maybe instead add AC against melee attacks from part of his weapons skill?"*): one with a
+     * melee weapon or his bare hands ready turns blows aside, +1 AC against a melee attack a 10 points of that weapon's skill over 50
+     * (300 = +25, a power armour's AC); none lying, none with a gun in hand [the numbers mine].
+     */
+    static int guardAc(double skill) { return (int) Math.max(0, Math.floor((skill - 50) / 10)); }
+
+    /**
+     * THE UNAWARE (05d round 5, Marek 11-25: *"Hitting an unaware target: double crit chance. - yes, part of the surprise."*): caught
+     * mid-talk, or in the party's ambush its first round before he was hit [the reading mine].
+     */
+    static boolean unaware(Fight f, Target tg) { return tg != null && (tg.surprised || f != null && f.ambush && f.round == 1 && !tg.touched); }
+
+    /**
+     * RECOIL (05d round 5, Marek 11-25: *"great idea, removing part of the burst penalty. Accepted."*): on a burst, +5 to hit a point
+     * of Strength over the gun's minimum, at most +15.
+     */
+    static int recoilBonus(int strength, Weapon w) { return w.melee() || w.minStrength <= 0 ? 0 : Math.min(15, 5 * Math.max(0, strength - w.minStrength)); }
+
+    /**
+     * THE RELOAD (05d round 5, Marek 11-25: *"I think this should come with Guns skill over 100 instead. Agility already increases AP."*):
+     * 2 AP (Fallout 2), 1 with taped magazines or a speed loader, 1 less over 100 in the gun's skill (Guns; an energy weapon's or a
+     * launcher's own) [that reading mine], at least 1.
+     */
+    static int reloadAp(Character c, Weapon w, boolean fast) {
+        return Math.max(1, (fast ? 1 : 2) - (c != null && weaponSkill(c, w.skill) > 100 ? 1 : 0));
+    }
+
+    /**
+     * THE SHOCK ON A PLAYER (05d round 5, Marek 11-25: *"Should players be shocked too, once robots with electric arms arrive? - yes."*;
+     * the rule of §2e): the Electrical damage that passed his armour's Isolation, x1.5 wet; he endures it on d100 <= End x 10 + 20 - 10 x
+     * the damage; not endured: that many AP (at least 2) less next turn, 8+ knocks him down (Stonewall keeps him up). Returns the log.
+     */
+    String shockPlayer(Player p, State s, Character c, int passed, boolean wet) {
+        int e = (int) Math.round(passed * (wet ? 1.5 : 1));
+        if (e <= 0) return "";
+        int need = c.attrs(false)[Rules.E] * 10 + 20 - 10 * e, roll = d100.getAsInt();
+        if (roll <= need) return " The shock: " + e + " Electrical, you endure it (d100 " + roll + " <= " + need + ").";
+        int lose = Math.max(2, e);
+        s.apLoss = Math.max(s.apLoss, lose);
+        boolean down = e >= 8 && !c.has("Stonewall");
+        if (down) { s.legs.clear(); s.legs.add(new Leg(2, p.getLocation().toBlockLocation())); }
+        return " The shock: " + e + " Electrical, you do not endure it (d100 " + roll + " > " + Math.max(0, need) + "): AP -" + lose + " next turn"
+                + (down ? ", knocked down" : "") + ".";
     }
 
     /**
@@ -1047,7 +1110,8 @@ public final class Battle implements Listener {
         if (!pay(p, s, c, apOf(c, w, m), m.name())) return;
         Sfx.at(p.getLocation(), w.melee() ? (m.name().startsWith("Thrust") ? "knife.thrust" : "knife.swing") : w.skill.equals("Bows") ? "bow.shot" : m.ammo() > 1 ? "pistol.burst" : "pistol.single");
         int[] me = c.attrs(false);
-        double cc = Rules.critChance(me, c.skill("Sneak"));
+        boolean off = unaware(s.fight, s.targets.get(a.target().getUniqueId()));
+        double cc = Rules.critChance(me, c.skill("Sneak")) * (off ? 2 : 1);   // 05d round 5: the unaware
         int better = c.perks.stream().anyMatch(f -> f.name().equals("Better Criticals")) ? 20 : 0;
         int pt = Combat.partTerm(a.part(), m.aimed(), sh.blocks);
         Combat.Roll r = Combat.roll(th.chance(), cc, pt, me[Rules.L], better, jinxed(c), d100);
@@ -1117,7 +1181,9 @@ public final class Battle implements Listener {
                             * perkDamage(c, w, tg) * (w.melee() ? Rules.meleeFactor(c.tpl().bonusDamage()) : 1);   // round 15: the body's melee damage
                     double[] am = ammoMods(s, w);
                     boolean arc = w.damageType.equals("Electrical");   // 05d §2e: through the Isolation, not the armour (an NPC's: none yet)
-                    int dmg = Combat.damage(Math.max(1, base), mult, am[0], am[1], tg != null && !arc ? tg.dt : 0, tg != null && !arc ? tg.dr : 0, fx.bypass());
+                    int dtv = tg != null && !arc ? tg.dt : 0;
+                    if (piercing(c, w)) dtv = (int) Math.round(dtv / 5.0);   // round 5: Unarmed 150 pierces (Fallout 2's Force Punch)
+                    int dmg = Combat.damage(Math.max(1, base), mult, am[0], am[1], dtv, tg != null && !arc ? tg.dr : 0, fx.bypass());
                     int elec = arc ? dmg : 0;
                     if (w.shockMax > 0) { int zap = w.shockMin + rnd.nextInt(w.shockMax - w.shockMin + 1); dmg += zap; elec += zap; }   // round 3
                     if (elec > 0 && tg != null && !tg.dead) shocks.append(shock(tg, elec, machine(tg), a.target().isInWaterOrRain(), d100));
@@ -1159,7 +1225,7 @@ public final class Battle implements Listener {
             if (s.own) s.used.merge(w.thrown ? "thrown:" + w.name : s.load.getOrDefault(w.tag, w.ammoKind), spent, Integer::sum);
             if (jamRound > 0) { log.append(" THE GUN JAMS after ").append(shots).append(" round(s), the next one lost (firing again tries to clear it)."); result += " · JAMMED"; }
             if (ammoOf(s, w) <= 0 && !s.broken.contains(w.name) && !w.thrown) {   // reload automatic when out of ammo (Marek 11-14), 2 AP (Fallout 2)
-                int rap = Accessories.fastReload(s.acc.get(w.tag)) ? 1 : 2;   // 05d §5: taped magazines, a speed loader (F2's Fast Reload)
+                int rap = reloadAp(c, w, Accessories.fastReload(s.acc.get(w.tag)));   // 05d §5 taped magazines, a speed loader; round 5 the skill
                 if (s.ap >= rap && (!s.own || reserveOf(s, w.ammoKind) > 0)) { s.ap -= rap; s.apAtAnchor = s.ap; reload(s, w); log.append(" Reloaded automatically (" + rap + " AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
                 else log.append(s.own && reserveOf(s, w.ammoKind) <= 0 ? " Empty, and no " + w.ammoKind + " left." : " Empty: reloads when you have 2 AP (or after the battle).");
             }
@@ -1205,6 +1271,9 @@ public final class Battle implements Listener {
         if (Accessories.night(fit)) sh.senses = Math.max(sh.senses, 2);
         if (Accessories.toHit(fit) != 0) sh.extra.put("sight", Accessories.toHit(fit));
         if (Accessories.bipod(fit) && m.ammo() > 1 && !moved(s, p.getLocation().toBlockLocation())) sh.extra.put("bipod", 10);
+        if (m.ammo() > 1 && recoilBonus(me[Rules.S], w) > 0) sh.extra.put("Strength over the minimum", recoilBonus(me[Rules.S], w));   // round 5
+        if (w.melee() && tg != null && !tg.lying() && tg.gun != null && tg.gun.melee() && guardAc(tg.skill) > 0)
+            sh.extra.put("his guard", -guardAc(tg.skill));   // round 5: his blade turns blows aside
         if (signature(c, w)) sh.extra.put("Signature Weapon", 15);
         if (nemesis(c, tg)) sh.extra.put("Nemesis", 15);
         if (tg != null && tg.surprised) sh.extra.put("caught mid-talk", TALK_SURPRISE);
@@ -1628,7 +1697,7 @@ public final class Battle implements Listener {
         sh.movePenalty = moved(s, p.getLocation().toBlockLocation()) && !s.steadied ? -10 : 0;
         sh.range = range;
         Combat.ToHit th = Combat.toHit(sh);
-        Combat.Roll r = Combat.roll(th.chance(), Rules.critChance(me, c.skill("Sneak")), 0, me[Rules.L],
+        Combat.Roll r = Combat.roll(th.chance(), Rules.critChance(me, c.skill("Sneak")) * (unaware(s.fight, tg) ? 2 : 1), 0, me[Rules.L],
                 c.perks.stream().anyMatch(f -> f.name().equals("Better Criticals")) ? 20 : 0, jinxed(c), d100);
         StringBuilder log = new StringBuilder("Threw the " + (gas ? "riot gas" : "frag") + " grenade at " + (tg != null ? tg.name : te != null ? who(te) : "the ground") + ", " + blocks
                 + " blocks (4 AP). To hit " + th.chance() + " % =");
@@ -2171,7 +2240,10 @@ public final class Battle implements Listener {
         boolean out = c.unconscious();   // Oxygen 0 (03b §3c): no turn while it lasts
         boolean lost = s.lostTurns > 0 || out;
         if (s.lostTurns > 0) s.lostTurns--;
-        s.ap = s.apAtAnchor = lost ? 0 : c.apMax();
+        int shockAp = lost ? 0 : Math.min(c.apMax(), s.apLoss);   // 05d round 5: a shock last round
+        s.apLoss = 0;
+        s.ap = s.apAtAnchor = lost ? 0 : c.apMax() - shockAp;
+        if (shockAp > 0) p.sendMessage(Component.text("The shock still in your muscles: " + shockAp + " AP less this turn.", NamedTextColor.RED));
         Sfx.to(p, lost ? "ap.lacking" : "turn.start");
         String pass = s.env ? "end the round from the Pip-Boy" : "click the clock to pass it";
         p.sendMessage(Component.text("Round " + s.round + ": your turn" + (out ? " (UNCONSCIOUS: " + pass + ")." : lost ? " (lost: " + pass + ")." : "."), NamedTextColor.AQUA));
