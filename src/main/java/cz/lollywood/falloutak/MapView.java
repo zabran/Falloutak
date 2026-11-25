@@ -56,8 +56,10 @@ final class MapView {
         File dir = Battle.orElse(Bukkit::getWorldContainer, () -> null);
         if (dir == null || !new File(dir, WORLD + "/level.dat").isFile()) return null;
         World made = Battle.orElse(() -> new WorldCreator(WORLD).generator(new Arena.Empty()).createWorld(), () -> null);
-        if (made != null) {   // a map to read: always noon, always clear, nothing spawns
+        if (made != null) {   // a map to read: always noon, always clear, nothing spawns, nothing decays or grows
             Battle.cosmetic(() -> made.setGameRule(org.bukkit.GameRules.ADVANCE_TIME, false));
+            // Arag's map's leaves are not persistent: random ticks would strip his forests round anyone viewing it (11-25)
+            Battle.cosmetic(() -> made.setGameRule(org.bukkit.GameRules.RANDOM_TICK_SPEED, 0));
             Battle.cosmetic(() -> made.setGameRule(org.bukkit.GameRules.ADVANCE_WEATHER, false));
             Battle.cosmetic(() -> made.setGameRule(org.bukkit.GameRules.SPAWN_MOBS, false));
             Battle.cosmetic(() -> made.setTime(6000));
