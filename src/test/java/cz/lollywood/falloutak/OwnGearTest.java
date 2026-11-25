@@ -65,7 +65,7 @@ class OwnGearTest extends MockGame {
     void theKitIsWhatHeCarries() {
         PlayerMock p = player();
         p.getInventory().addItem(made("Pistols", "Pipe pistol", 1, 60));
-        p.getInventory().addItem(made("Pistol rounds", "Remanufactured pistol rounds", 10, 100));
+        p.getInventory().addItem(made("Pistol rounds", "Remanufactured pistol rounds", 10, 100));   // the old rounds: now 9x19 (0.94.0)
         p.getInventory().addItem(Items.make("gear:Stimpak", 2));
         p.getInventory().addItem(made("Grenades", "Frag grenade", 1, 100));
         Battle.State s = fight(p);
@@ -73,16 +73,19 @@ class OwnGearTest extends MockGame {
         assertEquals("w:Pipe pistol", idOf(p, 0));
         assertEquals("w:Fists", idOf(p, 1), "no second weapon: the bare hand");
         Battle.Weapon w = Battle.GEAR.get("Pipe pistol");
-        assertEquals(6, Battle.ammoOf(s, w), "loaded from his rounds");
-        assertEquals(4, s.reserve.get("Pistol rounds"));
+        assertEquals(1, Battle.ammoOf(s, w), "loaded from his rounds: a Tier I pipe gun is single-shot (05d §3b)");
+        assertEquals(9, Battle.reserveOf(s, "9x19 rounds"));
+        assertEquals("9x19 rounds|9x19 remanufactured", s.load.get(w.tag), "the old rounds are the 9x19 remanufactured");
         assertEquals(2, s.quick.get("stim"));
         assertEquals(1, s.quick.get("grenade"));
         assertEquals(0.6 * w.maxHealth, s.health.get("Pipe pistol"), 1e-9, "its own condition");
         // a reload from the pack, and the pack runs dry
         s.ammo.put(w.tag, 0);
         assertTrue(Battle.reload(s, w));
-        assertEquals(4, Battle.ammoOf(s, w));
+        assertEquals(1, Battle.ammoOf(s, w));
+        assertEquals(8, Battle.reserveOf(s, "9x19 rounds"));
         s.ammo.put(w.tag, 0);
+        s.reserve.put("9x19 rounds|9x19 remanufactured", 0);
         assertFalse(Battle.reload(s, w), "no rounds left");
         plugin.battle.stop(p);
     }
@@ -97,19 +100,58 @@ class OwnGearTest extends MockGame {
     void whatHeUsedIsGoneAndHisGunKeepsItsWear() {
         PlayerMock p = player();
         p.getInventory().addItem(made("Pistols", "Pipe pistol", 1, 100));
-        p.getInventory().addItem(made("Pistol rounds", "Remanufactured pistol rounds", 10, 100));
+        p.getInventory().addItem(made("9x19 rounds", "9x19 remanufactured", 10, 100));
         p.getInventory().addItem(Items.make("gear:Stimpak", 2));
         Battle.State s = fight(p);
-        s.used.put("Pistol rounds", 3);
+        s.used.put("9x19 rounds|9x19 remanufactured", 3);
         s.used.put("stim", 1);
         s.health.put("Pipe pistol", 0.4 * Battle.GEAR.get("Pipe pistol").maxHealth);
         plugin.battle.stop(p);
-        assertEquals(7, count(p, "pistol rounds"));
+        assertEquals(7, count(p, "9x19 remanufactured"));
         assertEquals(1, count(p, "Stimpak"));
         double cond = -1;
         for (ItemStack it : p.getInventory().getContents()) if (String.valueOf(Items.id(it)).contains("Pipe pistol")) cond = Items.madeCondition(it);
         assertEquals(40, cond, 0.5, "the pistol comes back at 40 %");
     }
+
+    @Test
+    void aMagazineHoldsOneLoadAndItsModifiersHit() {   // 05d round 1 (RULED 11-25): the real calibres and their loads
+        PlayerMock p = player();
+        p.getInventory().addItem(made("Pistols", "9mm pistol", 1, 100));
+        p.getInventory().addItem(made("9x19 rounds", "9x19 JHP", 5, 100));
+        p.getInventory().addItem(made("9x19 rounds", "9x19 ball", 12, 100));
+        p.getInventory().addItem(made("Rifles", "Hunting rifle", 1, 100));
+        Battle.State s = fight(p);
+        Battle.Weapon w = Battle.GEAR.get("9mm pistol");
+        assertEquals("9x19 rounds", w.ammoKind);
+        assertEquals(12, Battle.ammoOf(s, w), "the load he carries most of: the ball");
+        assertEquals("9x19 rounds|9x19 ball", s.load.get(w.tag));
+        assertArrayEquals(new double[]{-0.11, -0.2}, Battle.ammoMods(s, w), 1e-9, "ball: the workbook's FMJ");
+        s.ammo.put(w.tag, 0);
+        assertTrue(Battle.reload(s, w));
+        assertEquals(5, Battle.ammoOf(s, w), "the ball spent: the JHP");
+        assertArrayEquals(new double[]{0.6, -0.2}, Battle.ammoMods(s, w), 1e-9);
+        Battle.Weapon r = Battle.GEAR.get("Hunting rifle");
+        assertEquals(0, Battle.ammoOf(s, r), "no hunting rounds: a 9 mm round does not fit a rifle");
+        plugin.battle.stop(p);
+        assertEquals(2, Production.design("Pistol rounds", "Pistol reloads").tier, "an old name still finds its load");
+        assertEquals(3, Production.design("9x19 rounds", "9x19 remanufactured").foul, "black powder fouls x3");
+        assertEquals("Hunting rounds", Production.design("Rifle rounds", "Rifle reloads").category);
+    }
+
+    @Test
+    void theNumbersAreRealistic() {   // 05d §2 (RULED round 2): a gun's damage its cartridge's, the stronger kind never weaker
+        assertEquals(5, Battle.GEAR.get("Pipe pistol").minDmg);
+        assertEquals(Battle.GEAR.get("9mm pistol").maxDmg, Battle.GEAR.get("Pipe pistol").maxDmg, "a pipe gun's round is the factory's");
+        assertEquals(1, Battle.GEAR.get("Pipe pistol").magazine, "Tier I: single-shot");
+        assertTrue(avg("Sledgehammer") > avg("Mace") && avg("Mace") > avg("Club"), "a maul > a mace > a club");
+        assertTrue(avg("Metal spear") > avg("Bone spear") && avg("Bone spear") > avg("Sharpened stick"));
+        assertTrue(avg("7.62 battle rifle") > avg("7.62 assault rifle") && avg("7.62 assault rifle") > avg("5.56 assault carbine"));
+        assertTrue(avg(".338 sniper rifle") > avg("7.62 battle rifle") && avg("12.7 anti-materiel rifle") > avg(".338 sniper rifle"));
+        assertEquals(avg("Pump shotgun"), avg("Pipe shotgun"), 1e-9, "the same 12 ga shell");
+    }
+
+    private static double avg(String w) { Battle.Weapon x = Battle.GEAR.get(w); return (x.minDmg + x.maxDmg) / 2.0; }
 
     @Test
     void aThrownWeaponIsPickedUpByThoseWhoHoldTheField() {

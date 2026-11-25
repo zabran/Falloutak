@@ -29,13 +29,16 @@ outside the game; the game itself is for the look and feel. The rules' text live
   played on a battle map (`Arena`) with `Battle` and `Raiders` → the field after it (`Loot`).
 - **A battle turn:** the player spends AP in `Battle`; a shot or blow goes through `Combat` (to-hit, the d100, crits, damage after
   DT and DR); a hit on a player goes through `Battle.hitPlayer` (HP, Pain, bleeding, the wound's infection by its class:
-  `Diseases.wound`); the enemies' turn is `Raiders` (the giant tick's bite also `Diseases.tickBite`).
+  `Diseases.wound`); the enemies' turn is `Raiders` (the giant tick's bite also `Diseases.tickBite`). A gun takes its calibre's rounds (a
+  rounds category a calibre); each magazine holds one load, whose damage modifier, penetration and fouling hit (`Battle.reload`,
+  `Battle.ammoMods`; old round items map to their calibre by `Production.RENAMED`).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
 `fallout_catalogue.py` (item types, recipes, research, buildings, cards, designs, hauls), `fallout_part3_json.py` (species,
 implants, chems, mutations), `fallout_diseases_json.py` (diseases, from `fallout_disease_sim.py`), `fallout_armour_json.py`,
-`fallout_perks_json.py`, `fallout_traits_json.py`, `fallout_workbook_to_json.py` (the old workbook's tables). Which tool writes a
+`fallout_perks_json.py`, `fallout_traits_json.py`, `fallout_workbook_to_json.py` (the old workbook's tables). `weapons.json` alone is kept by hand:
+the numbers of `05d` (the realism check `fallout_weapons_real.py`). Which tool writes a
 file: its docstring, or `grep -l "<name>.json" _tools/fallout_*`. The world map's `worldmap.json` (the danger simulation's export)
 holds hidden places: it lives only in the server's folder, never in the jar or this repository; the tests use the made-up
 `src/test/resources/worldmap-test*.json`.
@@ -55,7 +58,7 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
 | `Arena` | 754 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 2211 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 2260 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
 | `Character` | 2729 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
@@ -70,8 +73,8 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Icons` | 129 | pictures in hover texts |
 | `Items` | 545 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
 | `Labs` | 218 | the research pages |
-| `Loot` | 327 | the field after a fight: bodies, gear, what can be taken |
-| `MapView` | 182 | the world map drawn in Minecraft |
+| `Loot` | 337 | the field after a fight: bodies, gear, what can be taken |
+| `MapView` | 184 | the world map drawn in Minecraft |
 | `Maps` | 164 | the map worlds and their commands |
 | `Meals` | 253 | eating and drinking: the pack's portions, the base's day per person, the base's people's factors |
 | `Menus` | 1954 | every menu: actions, the patient's menu, pass time, the GM's buttons |
@@ -80,7 +83,7 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Part3` | 308 | the species and modification commands (templates, genes, implants) |
 | `Path` | 71 | how an enemy walks on the battle map |
 | `Population` | 188 | the base's people and their groups (the workbook's Population and Factions) |
-| `Production` | 1379 | buildings, jobs, recipes, power and water, the base's day (food, water, soap) |
+| `Production` | 1397 | buildings, jobs, recipes, power and water, the base's day (food, water, soap) |
 | `Raiders` | 913 | the enemies' turn: choosing, moving, shooting, melee and bites |
 | `Research` | 614 | research: inspiration, experiments, prototypes, the cards |
 | `Roster` | 525 | `/npc`, `/pop`, `/group`: statblocks, the groups' XP and levels, lessons, work |
@@ -99,5 +102,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **47 classes** | **24123** | |
+| **47 classes** | **24202** | |
 <!-- /CLASSES -->

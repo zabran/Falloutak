@@ -47,31 +47,31 @@
    "name": "Pistols",
    "group": "Ranged weapons",
    "skill": "Guns",
-   "note": "and SMGs: pistol rounds"
+   "note": "and SMGs: each its calibre's rounds"
   },
   {
    "name": "Rifles",
    "group": "Ranged weapons",
    "skill": "Guns",
-   "note": "rifle rounds"
+   "note": "each its calibre's rounds"
   },
   {
    "name": "Shotguns",
    "group": "Ranged weapons",
    "skill": "Guns",
-   "note": "shotgun shells"
+   "note": "12 ga shells"
   },
   {
    "name": "Heavy guns",
    "group": "Ranged weapons",
    "skill": "Guns",
-   "note": "heavy rounds; a flamer burns Fuel"
+   "note": "heavy rounds or their calibre; a flamer burns Fuel"
   },
   {
    "name": "Energy weapons",
    "group": "Ranged weapons",
    "skill": "Energy Weapons",
-   "note": "fires Power cells"
+   "note": "fires Power cells; the sci-fi of the wars (05d §4): R3 in service, R4 prototypes"
   },
   {
    "name": "Bows",
@@ -104,22 +104,100 @@
    "note": ""
   },
   {
-   "name": "Pistol rounds",
+   "name": "9x19 rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "note": "pistols and SMGs: a load a round"
+   "note": "1 Ammo a round"
   },
   {
-   "name": "Rifle rounds",
+   "name": "9x18 rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "note": "two loads a round (Marek: \"some types needing more than 1 piece\")"
+   "note": "1 Ammo a round"
   },
   {
-   "name": "Shotgun shells",
+   "name": "10mm rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "note": "two loads a shell"
+   "note": "1 Ammo a round"
+  },
+  {
+   "name": ".357 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "1 Ammo a round"
+  },
+  {
+   "name": ".22 LR rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "1 Ammo for 2 rounds"
+  },
+  {
+   "name": "4.6x30 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "1 Ammo a round"
+  },
+  {
+   "name": "5.56x45 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "2 Ammo a round"
+  },
+  {
+   "name": "5.45x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "2 Ammo a round"
+  },
+  {
+   "name": "7.62x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "2 Ammo a round"
+  },
+  {
+   "name": "7.62x51 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "2 Ammo a round"
+  },
+  {
+   "name": "Hunting rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "2 Ammo a round"
+  },
+  {
+   "name": "7.62x54R rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "2 Ammo a round"
+  },
+  {
+   "name": ".338 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "3 Ammo a round"
+  },
+  {
+   "name": "12.7 mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "5 Ammo a round"
+  },
+  {
+   "name": "12 ga shells",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "12/70: two Ammo a shell"
+  },
+  {
+   "name": "40 mm grenades",
+   "group": "Rounds",
+   "skill": "Grenades",
+   "note": "the grenade launcher's; the hand-made: black powder and scrap in a case [mine]"
   },
   {
    "name": "Heavy rounds",
@@ -479,7 +557,7 @@
    ],
    "per": 1
   },
-  "Pistol rounds": {
+  "9x19 rounds": {
    "parts": [
     {
      "type": "Ammo",
@@ -488,11 +566,141 @@
    ],
    "per": 1
   },
-  "Rifle rounds": {
+  "9x18 rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  "10mm rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  ".357 rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  ".22 LR rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 1
+    }
+   ],
+   "per": 2
+  },
+  "4.6x30 rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  "5.56x45 rounds": {
    "parts": [
     {
      "type": "Ammo",
      "count": 2
+    }
+   ],
+   "per": 1
+  },
+  "5.45x39 rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 2
+    }
+   ],
+   "per": 1
+  },
+  "7.62x39 rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 2
+    }
+   ],
+   "per": 1
+  },
+  "7.62x51 rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 2
+    }
+   ],
+   "per": 1
+  },
+  "Hunting rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 2
+    }
+   ],
+   "per": 1
+  },
+  "7.62x54R rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 2
+    }
+   ],
+   "per": 1
+  },
+  ".338 rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 3
+    }
+   ],
+   "per": 1
+  },
+  "12.7 mm rounds": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 5
+    }
+   ],
+   "per": 1
+  },
+  "12 ga shells": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 2
+    }
+   ],
+   "per": 1
+  },
+  "40 mm grenades": {
+   "parts": [
+    {
+     "type": "Explosives",
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "count": 1
     }
    ],
    "per": 1
@@ -532,6 +740,17 @@
    ],
    "per": 1
   }
+ },
+ "renamed": {
+  "Pistol rounds|Remanufactured pistol rounds": "9x19 rounds|9x19 remanufactured",
+  "Pistol rounds|Pistol reloads": "9x19 rounds|9x19 reloads",
+  "Pistol rounds|10mm JHP": "10mm rounds|10mm JHP",
+  "Pistol rounds|10mm AP": "10mm rounds|10mm AP",
+  "Pistol rounds|10mm ball": "10mm rounds|10mm ball",
+  "Rifle rounds|Remanufactured rifle rounds": "Hunting rounds|hunting remanufactured",
+  "Rifle rounds|Rifle reloads": "Hunting rounds|hunting reloads",
+  "Shotgun shells|Scrap-shot shells": "12 ga shells|Scrap-shot shells",
+  "Shotgun shells|Reloaded shells": "12 ga shells|Reloaded shells"
  },
  "repair": {
   "min": 25,
@@ -1085,6 +1304,72 @@
    "set": ""
   },
   {
+   "category": "Techno weapons",
+   "group": "Melee weapons",
+   "skill": "Techno Weapons",
+   "name": "Power fist",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Power",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Techno weapons",
+   "group": "Melee weapons",
+   "skill": "Techno Weapons",
+   "name": "Super sledge",
+   "tier": 4,
+   "rarity": 4,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Power",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Pistols",
    "group": "Ranged weapons",
    "skill": "Guns",
@@ -1154,6 +1439,121 @@
    "set": ""
   },
   {
+   "category": "Pistols",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "9mm pistol",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Pistols",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Makarov pistol",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Pistols",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": ".357 revolver",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Pistols",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "9mm SMG",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Pistols",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "4.6 PDW",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Rifles",
    "group": "Ranged weapons",
    "skill": "Guns",
@@ -1192,6 +1592,213 @@
     {
      "type": "Light weapon parts",
      "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": ".22 rifle",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "5.56 assault carbine",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "5.45 assault rifle",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "7.62 assault rifle",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Hunting rifle",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "7.62 battle rifle",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "SVD",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": ".338 sniper rifle",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "12.7 anti-materiel rifle",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
      "count": 2
     }
    ],
@@ -1246,6 +1853,75 @@
    "set": ""
   },
   {
+   "category": "Shotguns",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Pump shotgun",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shotguns",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Over-under shotgun",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shotguns",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Combat shotgun",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Heavy guns",
    "group": "Ranged weapons",
    "skill": "Guns",
@@ -1292,6 +1968,75 @@
    "set": ""
   },
   {
+   "category": "Heavy guns",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "5.56 light machine gun",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 6
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Heavy guns",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "7.62 machine gun",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 6
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Heavy guns",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "12.7 heavy machine gun",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 6
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Energy weapons",
    "group": "Ranged weapons",
    "skill": "Energy Weapons",
@@ -1330,6 +2075,144 @@
     {
      "type": "Electronics",
      "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Energy weapons",
+   "group": "Ranged weapons",
+   "skill": "Energy Weapons",
+   "name": "Laser pistol",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Energy weapons",
+   "group": "Ranged weapons",
+   "skill": "Energy Weapons",
+   "name": "Laser rifle",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Energy weapons",
+   "group": "Ranged weapons",
+   "skill": "Energy Weapons",
+   "name": "Plasma pistol",
+   "tier": 4,
+   "rarity": 4,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Energy weapons",
+   "group": "Ranged weapons",
+   "skill": "Energy Weapons",
+   "name": "Plasma rifle",
+   "tier": 4,
+   "rarity": 4,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Energy weapons",
+   "group": "Ranged weapons",
+   "skill": "Energy Weapons",
+   "name": "Gauss pistol",
+   "tier": 4,
+   "rarity": 4,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Energy weapons",
+   "group": "Ranged weapons",
+   "skill": "Energy Weapons",
+   "name": "Gauss rifle",
+   "tier": 4,
+   "rarity": 4,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
      "count": 2
     }
    ],
@@ -1504,6 +2387,42 @@
     {
      "type": "Firearm parts",
      "tier": 2,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rocket launchers",
+   "group": "Ranged weapons",
+   "skill": "Rockets",
+   "name": "Rocket launcher",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rocket launchers",
+   "group": "Ranged weapons",
+   "skill": "Rockets",
+   "name": "Grenade launcher",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
      "count": 3
     }
    ],
@@ -1747,10 +2666,10 @@
    "set": ""
   },
   {
-   "category": "Pistol rounds",
+   "category": "9x19 rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "name": "Remanufactured pistol rounds",
+   "name": "9x19 remanufactured",
    "tier": 1,
    "rarity": 1,
    "parts": [
@@ -1762,13 +2681,16 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
   },
   {
-   "category": "Pistol rounds",
+   "category": "9x19 rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "name": "Pistol reloads",
+   "name": "9x19 reloads",
    "tier": 2,
    "rarity": 1,
    "parts": [
@@ -1780,13 +2702,37 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
   },
   {
-   "category": "Pistol rounds",
+   "category": "9x19 rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "name": "10mm JHP",
+   "name": "9x19 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "9x19 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "9x19 ball",
    "tier": 4,
    "rarity": 1,
    "parts": [
@@ -1798,13 +2744,16 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
   },
   {
-   "category": "Pistol rounds",
+   "category": "9x19 rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "name": "10mm AP",
+   "name": "9x19 JHP",
    "tier": 4,
    "rarity": 1,
    "parts": [
@@ -1816,10 +2765,160 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": 0.6,
+   "pen": -0.2,
+   "foul": 1
   },
   {
-   "category": "Pistol rounds",
+   "category": "9x19 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "9x19 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "9x18 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "9x18 remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "9x18 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "9x18 reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "9x18 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "9x18 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "9x18 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "9x18 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "10mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "10mm remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "10mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "10mm reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "10mm rounds",
    "group": "Rounds",
    "skill": "Guns",
    "name": "10mm ball",
@@ -1834,13 +2933,310 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
   },
   {
-   "category": "Rifle rounds",
+   "category": "10mm rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "name": "Remanufactured rifle rounds",
+   "name": "10mm JHP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0.6,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "10mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "10mm AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": ".357 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".357 remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": ".357 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".357 reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".357 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".357 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".357 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".357 JHP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0.6,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".22 LR rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".22 LR remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": ".22 LR rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".22 LR reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".22 LR rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".22 LR ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".22 LR rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".22 LR hollow point",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": "",
+   "dmg": 0.6,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "4.6x30 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "4.6x30 remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "4.6x30 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "4.6x30 reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "4.6x30 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "4.6x30 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "4.6x30 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "4.6x30 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "5.56x45 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.56 remanufactured",
    "tier": 1,
    "rarity": 1,
    "parts": [
@@ -1852,13 +3248,16 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
   },
   {
-   "category": "Rifle rounds",
+   "category": "5.56x45 rounds",
    "group": "Rounds",
    "skill": "Guns",
-   "name": "Rifle reloads",
+   "name": "5.56 reloads",
    "tier": 2,
    "rarity": 1,
    "parts": [
@@ -1870,10 +3269,769 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
   },
   {
-   "category": "Shotgun shells",
+   "category": "5.56x45 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.56 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "5.56x45 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.56 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "5.56x45 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.56 soft point",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0.6,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "5.56x45 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.56 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "5.45x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.45 remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "5.45x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.45 reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "5.45x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.45 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "5.45x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.45 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "7.62x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x39 remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "7.62x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x39 reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x39 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x39 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x39 soft point",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0.6,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x39 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "7.62x51 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x51 remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "7.62x51 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x51 reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x51 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x51 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x51 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x51 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x51 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x51 soft point",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0.6,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x51 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x51 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "Hunting rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "hunting remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "Hunting rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "hunting reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "Hunting rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "hunting soft point",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0.6,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "Hunting rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "hunting ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x54R rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x54R remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "7.62x54R rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x54R reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x54R rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x54R ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x54R rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x54R AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": ".338 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".338 remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": ".338 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".338 reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".338 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".338 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".338 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".338 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "12.7 mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "12.7 remanufactured",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 5
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 3
+  },
+  {
+   "category": "12.7 mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "12.7 reloads",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 5
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "12.7 mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "12.7 ball",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 5
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.11,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "12.7 mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "12.7 AP",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 5
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "12 ga shells",
    "group": "Rounds",
    "skill": "Guns",
    "name": "Scrap-shot shells",
@@ -1888,10 +4046,13 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.1,
+   "pen": 0,
+   "foul": 3
   },
   {
-   "category": "Shotgun shells",
+   "category": "12 ga shells",
    "group": "Rounds",
    "skill": "Guns",
    "name": "Reloaded shells",
@@ -1906,7 +4067,151 @@
    ],
    "makes": 1,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.1,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "12 ga shells",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "12 ga works buckshot",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "12 ga shells",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "12 ga buckshot",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "12 ga shells",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "12 ga slug",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0.3,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "40 mm grenades",
+   "group": "Rounds",
+   "skill": "Grenades",
+   "name": "40 mm scrap shell",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 1,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.5,
+   "pen": 0,
+   "foul": 3
+  },
+  {
+   "category": "40 mm grenades",
+   "group": "Rounds",
+   "skill": "Grenades",
+   "name": "40 mm pipe shell",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.25,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "40 mm grenades",
+   "group": "Rounds",
+   "skill": "Grenades",
+   "name": "40 mm HE",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
   },
   {
    "category": "Heavy rounds",

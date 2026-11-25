@@ -100,6 +100,10 @@ final class Production {
         String category = "", group = "", skill = "", name = "", slot = "", set = "";
         int tier = 1, rarity = 1, makes = 1;
         List<Part> parts = new ArrayList<>();
+        /** A load of rounds (05d round 1, RULED 11-25: *"Ammo variants per calibre - yes."*): its damage modifier and penetration (the
+         *  workbook's form), and its fouling (black powder: the gun wears x3). Null for anything else. */
+        Double dmg, pen;
+        int foul = 1;
 
         boolean armour() { return slot != null && !slot.isEmpty(); }
 
@@ -122,6 +126,8 @@ final class Production {
     static final Map<String, Design> DESIGNS = new LinkedHashMap<>();
     static final List<Category> CATEGORIES = new ArrayList<>();
     static final Map<String, Legacy> LEGACY = new LinkedHashMap<>();
+    /** The old rounds' designs (before 0.94.0's calibres) → their calibre's load, so what the players hold still works. */
+    static final Map<String, String> RENAMED = new LinkedHashMap<>();
     /** The repair job's rule, and one repair recipe per part type and tier (id {@code repair|<type>|<tier>}): not in the recipe lists. */
     static RepairRule REPAIR = new RepairRule();
     static final Map<String, Recipe> REPAIRS = new LinkedHashMap<>();
@@ -219,6 +225,8 @@ final class Production {
         if (o != null && o.has("categories")) for (JsonElement e : o.getAsJsonArray("categories")) CATEGORIES.add(g.fromJson(e, Category.class));
         if (o != null && o.has("legacy")) for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("legacy").entrySet())
             LEGACY.put(e.getKey(), g.fromJson(e.getValue(), Legacy.class));
+        if (o != null && o.has("renamed")) for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("renamed").entrySet())
+            RENAMED.put(e.getKey(), e.getValue().getAsString());
         if (o != null && o.has("repair")) REPAIR = g.fromJson(o.get("repair"), RepairRule.class);
         for (Map.Entry<String, RepairType> e : REPAIR.types.entrySet())
             for (int t = 1; t <= 4; t++) {
@@ -257,7 +265,17 @@ final class Production {
         }
     }
 
-    static Design design(String category, String name) { return DESIGNS.get(category + "|" + name); }
+    static Design design(String category, String name) {
+        Design d = DESIGNS.get(category + "|" + name);
+        return d != null ? d : DESIGNS.get(RENAMED.getOrDefault(category + "|" + name, ""));
+    }
+
+    /** The rounds' categories: one a calibre, the heavy rounds, arrows, rockets, 40 mm (the designs' group "Rounds"). */
+    static Set<String> roundsCategories() {
+        Set<String> out = new LinkedHashSet<>();
+        for (Category c : CATEGORIES) if (c.group.equals("Rounds")) out.add(c.name);
+        return out;
+    }
 
     /** The design of an armour set's piece (05c's sets: every piece is one). */
     static Design piece(String set, String slot) {

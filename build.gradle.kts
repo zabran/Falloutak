@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "cz.lollywood"
-version = "0.93.1"
+version = "0.94.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))

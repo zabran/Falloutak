@@ -116,13 +116,13 @@ class WorksTest extends MockGame {
         Menus.actions(p);
         click("Production");
         click("Assemble items to take out");
-        click("Pistol rounds · 1 ready");
-        click("✔ Remanufactured pistol rounds (I) · 30 ready");
+        click("9x19 rounds · 1 ready");
+        click("✔ 9x19 remanufactured (I) · 30 ready");
         clickAndClose("Assemble", "n", 12f);
         assertEquals(18, plugin.base.count("Ammo", 1, 1));
         int rounds = 0;
         for (ItemStack it : p.getInventory().getStorageContents())
-            if (it != null && Items.madeId(Production.design("Pistol rounds", "Remanufactured pistol rounds")).equals(Items.id(it))) rounds += it.getAmount();
+            if (it != null && Items.madeId(Production.design("9x19 rounds", "9x19 remanufactured")).equals(Items.id(it))) rounds += it.getAmount();
         assertEquals(12, rounds);
     }
 

@@ -202,12 +202,22 @@ final class Loot {
         return null;
     }
 
+    /** The rounds a raider's gun leaves (05d round 1: its calibre): the lowest-tier load of its category, his remanufactured ones. */
+    static Production.Design roundsFor(String weapon) {
+        Battle.Weapon w = Battle.GEAR.get(weapon);
+        String kind = w != null && !w.ammoKind.isEmpty() ? w.ammoKind : "9x19 rounds";
+        Production.Design best = null;
+        for (Production.Design d : Production.DESIGNS.values())
+            if (d.category.equals(kind) && (best == null || d.tier < best.tier)) best = d;
+        return best;
+    }
+
     static String search(FalloutakPlugin pl, Player p, Body x) {
         if (!x.person || x.searched) return "! nothing to search";
         x.searched = true;
         List<ItemStack> got = new ArrayList<>();
         Production.Design gun = x.weapon.isEmpty() ? null : named(x.weapon);
-        Production.Design rounds = x.bow ? named("Metal-headed arrows") : Production.design("Pistol rounds", "Remanufactured pistol rounds");
+        Production.Design rounds = x.bow ? named("Metal-headed arrows") : roundsFor(x.weapon);
         if (x.gunCond > 0 && gun != null) got.add(Items.made(gun, 1, x.gunCond));
         if (x.rounds > 0 && rounds != null) for (int n = x.rounds; n > 0; n -= 64) got.add(Items.made(rounds, Math.min(64, n), 100));
         give(p, got);

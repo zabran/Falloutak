@@ -273,6 +273,9 @@ public final class Battle implements Listener {
         boolean own;
         final Map<String, Integer> reserve = new HashMap<>(), used = new HashMap<>(), quick = new HashMap<>();
         final Map<String, String> source = new HashMap<>();
+        /** 05d round 1 (*"Ammo variants per calibre - yes."*): the load in each weapon's magazine ("category|load"; one load a
+         *  magazine, the reload takes the load he carries most of) [the rule mine]. */
+        final Map<String, String> load = new HashMap<>();
         List<UUID> dummies = new ArrayList<>();
         Map<UUID, Target> targets = new HashMap<>();
         final Set<String> dropped = new HashSet<>(), broken = new HashSet<>();
@@ -497,7 +500,7 @@ public final class Battle implements Listener {
 
     // ------------------------------------------------------------------ his own gear (09d round 3: "your own gear in fights")
     /** The rounds' categories (part 7's designs) and what a power cell holds [EXAMPLE]. */
-    static final Set<String> ROUNDS = Set.of("Pistol rounds", "Rifle rounds", "Shotgun shells", "Heavy rounds", "Arrows", "Rockets");
+    static final Set<String> ROUNDS = Production.roundsCategories();
     static final int CELL_SHOTS = 10;
 
     /**
@@ -518,7 +521,7 @@ public final class Battle implements Listener {
             if (th != null && th[0].equals("Power")) { s.reserve.merge("Power", n * CELL_SHOTS, Integer::sum); continue; }
             Production.Design d = Items.made(id);
             if (d == null) continue;
-            if (ROUNDS.contains(d.category)) { s.reserve.merge(d.category, n, Integer::sum); continue; }
+            if (ROUNDS.contains(d.category)) { s.reserve.merge(d.key(), n, Integer::sum); continue; }
             switch (d.name) {
                 case "Frag grenade", "Pipe grenade", "Fire bottle" -> { s.quick.merge("grenade", n, Integer::sum); continue; }
                 case "Riot gas grenade" -> { s.quick.merge("gasgren", n, Integer::sum); continue; }
@@ -542,7 +545,7 @@ public final class Battle implements Listener {
             else if (!w.melee()) reload(s, w);
             Material m = w == fists ? Material.LEATHER : w.melee() || w.thrown ? Material.IRON_SWORD : Material.IRON_HORSE_ARMOR;
             String what = w.minDmg + "-" + w.maxDmg + " " + w.damageType + (w.melee() ? ", reach " + (w.range - 1) : w.thrown ? ", thrown, " + ammoOf(s, w) + " carried"
-                    : ", range " + w.range + ", " + w.magazine + " a load of " + w.ammoKind + " (" + ammoOf(s, w) + " in, " + s.reserve.getOrDefault(w.ammoKind, 0) + " more)")
+                    : ", range " + w.range + ", " + w.magazine + " a load of " + w.ammoKind + " (" + ammoOf(s, w) + " in" + loadName(s, w) + ", " + reserveOf(s, w.ammoKind) + " more)")
                     + (w.blastMax > 0 ? ", bursts " + w.blastMin + "-" + w.blastMax : "");
             inv.setItem(k, tagged(m, w.tag, w.name, (k == 0 ? "right hand" : "left hand") + " · your own · " + w.skill + " · " + what,
                     "right click: next mode · left click at an enemy: attack", "F or scroll: the other hand (0 AP)"));
@@ -582,7 +585,7 @@ public final class Battle implements Listener {
                 case "Power" -> removeIds(p, id -> { String[] t = Items.thing(id); return t != null && t[0].equals("Power"); }, (n + CELL_SHOTS - 1) / CELL_SHOTS);
                 default -> {
                     if (k.startsWith("thrown:")) { if (!held) { String name = k.substring(7); removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.name.equals(name); }, n); } }
-                    else removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.category.equals(k); }, n);
+                    else removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && (k.contains("|") ? d.key().equals(k) : d.category.equals(k)); }, n);
                 }
             }
         }
@@ -706,14 +709,56 @@ public final class Battle implements Listener {
     /** The rounds in the weapon now. */
     static int ammoOf(State s, Weapon w) { return s.ammo.getOrDefault(w.tag, 0); }
 
-    /** Loads the weapon: the demo's from nothing; his own from the rounds he carries of its category (a thrown weapon never reloads). */
+    /** The rounds he carries of a category (its calibre): every load of it; Power cells by the shots. */
+    static int reserveOf(State s, String kind) {
+        int n = s.reserve.getOrDefault(kind, 0);
+        for (Map.Entry<String, Integer> e : s.reserve.entrySet()) if (e.getKey().startsWith(kind + "|")) n += e.getValue();
+        return n;
+    }
+
+    /** The load in the magazine, for the lines (" of 9x19 JHP"), or "". */
+    static String loadName(State s, Weapon w) {
+        String k = s.load.get(w.tag);
+        return k == null ? "" : " " + k.substring(k.indexOf('|') + 1);
+    }
+
+    /** The load's design in the weapon's magazine, or null (the demo, Power, a load the data lost). */
+    static Production.Design loaded(State s, Weapon w) {
+        String k = s.load.get(w.tag);
+        if (k == null) return null;
+        int i = k.indexOf('|');
+        return Production.design(k.substring(0, i), k.substring(i + 1));
+    }
+
+    /** The ammo's damage modifier and penetration of a shot: his own load's (05d round 1), else the weapon's own (the demo). */
+    static double[] ammoMods(State s, Weapon w) {
+        Production.Design d = s.own ? loaded(s, w) : null;
+        return d != null && d.dmg != null ? new double[]{d.dmg, d.pen != null ? d.pen : 0} : new double[]{w.ammoDamage, w.ammoPenetration};
+    }
+
+    /**
+     * Loads the weapon: the demo's from nothing; his own from the rounds he carries of its calibre (a thrown weapon never reloads):
+     * one load a magazine, the one in it while he has more of it, else the load he carries most of [mine]; Power cells by the shots.
+     */
     static boolean reload(State s, Weapon w) {
         if (!s.own) { s.ammo.put(w.tag, w.magazine); return true; }
         if (w.thrown) return false;
-        int have = s.reserve.getOrDefault(w.ammoKind, 0), n = Math.min(w.magazine - ammoOf(s, w), have);
+        String key = w.ammoKind;
+        if (s.reserve.getOrDefault(key, 0) <= 0) {
+            String in = s.load.get(w.tag);
+            key = in != null && s.reserve.getOrDefault(in, 0) > 0 ? in : null;
+            if (key == null) {
+                int most = 0;
+                for (Map.Entry<String, Integer> e : s.reserve.entrySet())
+                    if (e.getKey().startsWith(w.ammoKind + "|") && e.getValue() > most) { most = e.getValue(); key = e.getKey(); }
+            }
+        }
+        if (key == null) return false;
+        int have = s.reserve.getOrDefault(key, 0), n = Math.min(w.magazine - ammoOf(s, w), have);
         if (n <= 0) return false;
-        s.reserve.put(w.ammoKind, have - n);
+        s.reserve.put(key, have - n);
         s.ammo.put(w.tag, ammoOf(s, w) + n);
+        if (key.contains("|")) s.load.put(w.tag, key);
         return true;
     }
 
@@ -803,7 +848,7 @@ public final class Battle implements Listener {
             bar = Component.text(w.name + ": " + m.name() + " · " + apOf(c, w, m) + " AP", NamedTextColor.WHITE)
                     .append(Component.text(m.toHit() != 0 ? " · to hit " + sign(m.toHit()) : "", NamedTextColor.YELLOW))
                     .append(Component.text(pen != 0 ? " · moved " + pen + " (steady: 1 AP)" : "", NamedTextColor.RED))
-                    .append(Component.text(!w.melee() ? (w.thrown ? " · " + ammoOf(s, w) + " to throw" : " · ammo " + ammoOf(s, w) + "/" + w.magazine + (s.own ? " (+" + s.reserve.getOrDefault(w.ammoKind, 0) + ")" : "")) : "", NamedTextColor.GRAY))
+                    .append(Component.text(!w.melee() ? (w.thrown ? " · " + ammoOf(s, w) + " to throw" : " · ammo " + ammoOf(s, w) + "/" + w.magazine + (s.own ? loadName(s, w) + " (+" + reserveOf(s, w.ammoKind) + ")" : "")) : "", NamedTextColor.GRAY))
                     .append(Component.text(s.jammed.contains(w.name) ? " · JAMMED (fire: clear it, " + apOf(c, w, m) + " AP)" : "", NamedTextColor.RED))
                     .append(Component.text(" · cond " + Math.round(cond(s, w) * 100) + " %" + (Combat.broken(health(s, w)) ? " BROKEN" : ""),
                             cond(s, w) >= 0.75 ? NamedTextColor.GRAY : NamedTextColor.GOLD))
@@ -898,7 +943,7 @@ public final class Battle implements Listener {
         if (pl.anomalies.hidden(a.target().getLocation(), p.getLocation())) {   // 09c §2: unseen from outside a blind spot (only area attacks reach him)
             Sfx.to(p, "ap.lacking"); show(p, s, c, "you cannot see him: he is inside a blind spot (only a grenade's blast reaches him)"); return;
         }
-        if (!w.melee() && ammoOf(s, w) < m.ammo()) { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, w.thrown ? "none left to throw" : "not enough ammo for " + m.name() + (s.own ? " (" + s.reserve.getOrDefault(w.ammoKind, 0) + " " + w.ammoKind + " left)" : "")); return; }
+        if (!w.melee() && ammoOf(s, w) < m.ammo()) { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, w.thrown ? "none left to throw" : "not enough ammo for " + m.name() + (s.own ? " (" + reserveOf(s, w.ammoKind) + " " + w.ammoKind + " left)" : "")); return; }
         if (s.broken.contains(w.name)) { show(p, s, c, "the " + w.name + " is destroyed (a critical failure)"); return; }
         if (s.dropped.contains(w.name)) {   // a critical failure dropped it: picking it up is an action [2 AP mine]
             if (pay(p, s, c, 2, "picking the weapon up")) { Sfx.at(p.getLocation(), "weapon.pickup"); s.dropped.remove(w.name); show(p, s, c, "picked the " + w.name + " up again (2 AP)"); }
@@ -991,7 +1036,8 @@ public final class Battle implements Listener {
                 for (int i = 0; i < hits; i++) {
                     double base = (w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + (w.melee() ? Rules.meleeBonus(me) : 0)) * Combat.conditionDamage(cond(s, w))
                             * perkDamage(c, w, tg) * (w.melee() ? Rules.meleeFactor(c.tpl().bonusDamage()) : 1);   // round 15: the body's melee damage
-                    int dmg = Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, tg != null ? tg.dt : 0, tg != null ? tg.dr : 0, fx.bypass());
+                    double[] am = ammoMods(s, w);
+                    int dmg = Combat.damage(base, mult, am[0], am[1], tg != null ? tg.dt : 0, tg != null ? tg.dr : 0, fx.bypass());
                     each.add(dmg);
                     total += dmg;
                 }
@@ -1019,15 +1065,16 @@ public final class Battle implements Listener {
         if (!w.melee()) {
             double h = health(s, w);
             if (w.wears && !Combat.broken(h) && !signature(c, w)) {   // FNV: 0.2 item health a round fired; a Signature Weapon never breaks
-                s.health.put(w.name, Math.max(1, h - Combat.WEAR_PER_ROUND * spent));
+                Production.Design ld = s.own ? loaded(s, w) : null;   // 05d round 1: black-powder loads foul x3
+                s.health.put(w.name, Math.max(1, h - Combat.WEAR_PER_ROUND * spent * (ld != null ? ld.foul : 1)));
                 if (Combat.broken(health(s, w))) log.append(" The ").append(w.name).append(" breaks from wear (its last health point): /sheet repair.");
             }
             s.ammo.put(w.tag, Math.max(0, ammoOf(s, w) - spent));
-            if (s.own) s.used.merge(w.thrown ? "thrown:" + w.name : w.ammoKind, spent, Integer::sum);
+            if (s.own) s.used.merge(w.thrown ? "thrown:" + w.name : s.load.getOrDefault(w.tag, w.ammoKind), spent, Integer::sum);
             if (jamRound > 0) { log.append(" THE GUN JAMS after ").append(shots).append(" round(s), the next one lost (firing again tries to clear it)."); result += " · JAMMED"; }
             if (ammoOf(s, w) <= 0 && !s.broken.contains(w.name) && !w.thrown) {   // reload automatic when out of ammo (Marek 11-14), 2 AP (Fallout 2)
-                if (s.ap >= 2 && (!s.own || s.reserve.getOrDefault(w.ammoKind, 0) > 0)) { s.ap -= 2; s.apAtAnchor = s.ap; reload(s, w); log.append(" Reloaded automatically (2 AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
-                else log.append(s.own && s.reserve.getOrDefault(w.ammoKind, 0) <= 0 ? " Empty, and no " + w.ammoKind + " left." : " Empty: reloads when you have 2 AP (or after the battle).");
+                if (s.ap >= 2 && (!s.own || reserveOf(s, w.ammoKind) > 0)) { s.ap -= 2; s.apAtAnchor = s.ap; reload(s, w); log.append(" Reloaded automatically (2 AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
+                else log.append(s.own && reserveOf(s, w.ammoKind) <= 0 ? " Empty, and no " + w.ammoKind + " left." : " Empty: reloads when you have 2 AP (or after the battle).");
             }
             s.gunfire = true;
             Rules.Gas here = c.gasHere();
@@ -1280,7 +1327,7 @@ public final class Battle implements Listener {
      * the amount EXAMPLE), the fire only from a fire weapon (Marek 11-14; Fallout 2's flamers' row).
      */
     private void critFailure(Player p, State s, Character c, Weapon w, Combat.Failure f, StringBuilder log) {
-        if (f.losesAmmo() && !w.melee() && !w.thrown) { if (s.own) s.used.merge(w.ammoKind, ammoOf(s, w), Integer::sum); s.ammo.put(w.tag, 0); log.append(" The magazine is empty."); }
+        if (f.losesAmmo() && !w.melee() && !w.thrown) { if (s.own) s.used.merge(s.load.getOrDefault(w.tag, w.ammoKind), ammoOf(s, w), Integer::sum); s.ammo.put(w.tag, 0); log.append(" The magazine is empty."); }
         if (f.dropsWeapon()) { Sfx.at(p.getLocation(), "weapon.drop"); s.dropped.add(w.name); log.append(" Left click again to pick it up (2 AP)."); }
         if ((f.weaponDamaged() || f.weaponDestroyed()) && signature(c, w)) log.append(" Your Signature Weapon takes no harm.");
         else if (f.weaponDamaged()) {
@@ -1296,7 +1343,8 @@ public final class Battle implements Listener {
                 Entity e = pl.getServer().getEntity(u);
                 Target t = s.targets.get(u);
                 if (e instanceof LivingEntity le && t != null && !t.dead) {
-                    int dmg = Combat.damage(w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1), 1, w.ammoDamage, w.ammoPenetration, t.dt, t.dr, false);
+                    double[] am = ammoMods(s, w);
+                    int dmg = Combat.damage(w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1), 1, w.melee() ? 0 : am[0], w.melee() ? 0 : am[1], t.dt, t.dr, false);
                     log.append(" It hit ").append(t.name).append(" for ").append(dmg).append(" HP.");
                     hurt(le, t, dmg, Combat.critEffects(Rules.Part.TORSO, 0, t.a), false, 0, log);
                     break;
@@ -1306,7 +1354,8 @@ public final class Battle implements Listener {
         if (f.hurt1d6()) { int d = 1 + rnd.nextInt(6); c.hp -= d; log.append(" You take ").append(d).append(" HP (").append(c.hp).append(" left)."); }
         if (f.hitsSelf()) {
             int base = w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + (w.melee() ? Rules.meleeBonus(c.attrs(false)) : 0);
-            int dmg = Combat.damage(base, 1, w.melee() ? 0 : w.ammoDamage, w.melee() ? 0 : w.ammoPenetration, 0, 0, false);
+            double[] am = ammoMods(s, w);
+            int dmg = Combat.damage(base, 1, w.melee() ? 0 : am[0], w.melee() ? 0 : am[1], 0, 0, false);
             c.hp -= dmg;
             log.append(" You hit yourself for ").append(dmg).append(" HP (").append(c.hp).append(" left)");
             if (f.onFire()) {   // Fallout 2: the flamer's own damage once, as fire; the survival sheet: fire damage x3 into Hyperthermia
