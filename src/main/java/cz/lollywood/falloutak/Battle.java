@@ -314,6 +314,8 @@ public final class Battle implements Listener {
         /** The guns jammed (05 §9, round 11): firing one again is the clearing check. */
         final Set<String> jammed = new HashSet<>();
         int round = 1, lostTurns;
+        /** The Chi Master's Occultism for the punches' names (05d round 6), -1 without the perk; set before the modes are read. */
+        double chi = -1;
         /** AP lost at the next turn (05d round 5: the shock on a player, `05d` §2e). */
         int apLoss;
         org.bukkit.scheduler.BukkitTask task;
@@ -744,8 +746,30 @@ public final class Battle implements Listener {
         int str = (int) Math.round((attrs[Rules.S] - 5) * w.strDmg);
         int per = w.skill.equals("Unarmed") ? 25 : 50;   // round 5: the fist's damage is its technique (300 = +10)
         int sk = c != null && !w.skill.isEmpty() ? (int) Math.max(0, Math.floor((weaponSkill(c, w.skill) - 50) / per)) : 0;
-        return str + sk;
+        return str + sk + chiDamage(c, w);
     }
+
+    /**
+     * CHI MASTER (05d round 6, Marek 11-25: *"Occultism perk for punches - add it. It should be nod to eastern martial arts being
+     * presented as "magic" in the media. Adding +1 per each 25 of skill and increasing reach by 1 per every 50 points (while changing
+     * the punch name ...)"*): an unarmed blow +1 a 25 points of Occultism (the hidden skill; "skill" read as Occultism), its reach +1
+     * block a 50, and its name grows every 50 [the names mine].
+     */
+    static final String CHI = "Chi Master";
+    static final String[] CHI_NAMES = {"Chi Punch", "Dragon Punch", "Tiger Palm", "Force Palm", "Hundred-Pace Fist", "Empty Hand", "Heaven-Splitting Fist"};
+
+    static double chiLevel(Character c, Weapon w) {
+        return c != null && w != null && w.skill.equals("Unarmed") && c.perks.stream().anyMatch(f -> f.name().equals(CHI)) ? Math.max(0, c.occultism()) : -1;
+    }
+
+    static int chiDamage(Character c, Weapon w) { double o = chiLevel(c, w); return o < 0 ? 0 : (int) Math.floor(o / 25); }
+
+    static int chiReach(Character c, Weapon w) { double o = chiLevel(c, w); return o < 0 ? 0 : (int) Math.floor(o / 50); }
+
+    /** A weapon's reach or range in blocks, the Chi Master's longer punch counted. */
+    static int reach(Character c, Weapon w) { return w.range + chiReach(c, w); }
+
+    static String chiName(double occ) { return CHI_NAMES[(int) Math.max(0, Math.min(CHI_NAMES.length - 1, Math.floor(occ / 50)))]; }
 
     /**
      * PUNCHES THAT SCALE (05d round 5, Marek 11-25: *"punch and unarmed weapons should be able to scale a bit ... It should not be serious
@@ -933,7 +957,9 @@ public final class Battle implements Listener {
     private List<Mode> modes(State s, Weapon w, Location at) {
         List<Mode> l = new ArrayList<>();
         if (moved(s, at) && !s.steadied && !w.melee()) l.add(new Mode("Steady yourself", 1, 0, 0, false));
-        l.addAll(w.modes);
+        for (Mode x : w.modes)   // 05d round 6: the Chi Master's punches by their names
+            l.add(s.chi >= 0 && w.skill.equals("Unarmed") && !x.aimed()
+                    ? new Mode(x.name().equals("Thrust") ? chiName(s.chi) + ", focused" : chiName(s.chi), x.ap(), x.toHit(), x.ammo(), x.aimed()) : x);
         for (String x : Accessories.attacks(s.acc.get(w.tag)))   // 05d §5: the bayonet, the launcher as modes of the gun
             l.add(x.equals("Under-barrel launcher") ? new Mode("Launcher (40 mm)", 6, 0, 1, false) : new Mode(x, 4, 0, 0, false));
         return l;
@@ -973,9 +999,10 @@ public final class Battle implements Listener {
         Weapon w = weapon(id);
         Component bar;
         if (w != null) {
+            s.chi = chiLevel(c, w);
             Mode m = mode(s, w, at);
             int pen = movePenalty(s, w, at);
-            Aim a = aim(p, w.range);
+            Aim a = aim(p, reach(c, w));
             String look = a == null ? (w.melee() ? "no enemy within reach" : "no enemy in your sights")
                     : a.part() == null ? who(a.target()) + ": aim at the body"
                     : who(a.target()) + " · " + a.part().label + (m.aimed() ? " (" + sign(a.part().toHit) + ")" : "") + " · " + Txt.f(Math.round(a.dist() * 10) / 10.0) + " bl."
@@ -1065,6 +1092,7 @@ public final class Battle implements Listener {
     /** Left click with a weapon: steady, or an attack at the enemy under the crosshair (none = refused, no AP spent). */
     private void act(Player p, State s, Character c, Weapon w) {
         Location at = p.getLocation().toBlockLocation();
+        s.chi = chiLevel(c, w);
         Mode m = mode(s, w, at);
         if (m.name().startsWith("Steady")) {
             if (pay(p, s, c, 1, "steadying")) { Sfx.to(p, "steady"); s.steadied = true; s.mode.put(w.name, 0); show(p, s, c, "steadied: no moving penalty"); }
@@ -1073,7 +1101,7 @@ public final class Battle implements Listener {
         Weapon sub = accessoryWeapon(s, w, m);   // 05d §5: the bayonet or the launcher on this gun
         if (sub != null) { w = sub; m = sub.modes.get(0); }
         if (w.melee() && s.stance() == 2) { show(p, s, c, "prone: no melee attacks (the stance table)"); return; }
-        Aim a = aim(p, w.range);
+        Aim a = aim(p, reach(c, w));
         if (a == null) {
             Sfx.to(p, "ap.lacking");
             show(p, s, c, !w.melee() ? "no enemy in your sights (range " + w.range + "): aim at one" : "no enemy within reach: step next to one");
@@ -1283,7 +1311,7 @@ public final class Battle implements Listener {
         if (gasHit != 0) sh.extra.put(c.gasHere() != null ? c.gasHere().name() : "riot gas", gasHit);   // smoke −10, riot gas −20 (03b §3c)
         veil(pl.zones, p.getEyeLocation(), a.target().getEyeLocation(), sh, w.melee());
         sh.movePenalty = pen;
-        sh.range = w.range;
+        sh.range = reach(c, w);
         return sh;
     }
 
@@ -2256,6 +2284,7 @@ public final class Battle implements Listener {
     }
 
     private void nextMode(Player p, State s, Character c, Weapon w) {
+        s.chi = chiLevel(c, w);
         List<Mode> ms = modes(s, w, p.getLocation().toBlockLocation());
         int i = Math.min(s.mode.getOrDefault(w.name, 0), ms.size() - 1);
         s.mode.put(w.name, (i + 1) % ms.size());

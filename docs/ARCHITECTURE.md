@@ -34,7 +34,8 @@ outside the game; the game itself is for the look and feel. The rules' text live
   `Battle.ammoMods`; old round items map to their calibre by `Production.RENAMED`).
   The person behind the weapon (05d rounds 3-5): `Battle.handBonus` (Strength by GURPS, the skill; Unarmed twice), `piercing`
   (Unarmed 150: the DT a fifth), `guardAc` (AC against blows from the weapon's skill), `recoilBonus`, `reloadAp`, `unaware` (the crit
-  chance x2); the shock `Battle.shock` (an NPC) and `Battle.shockPlayer` (a player: his armour's Isolation, AP lost next turn).
+  chance x2); the shock `Battle.shock` (an NPC) and `Battle.shockPlayer` (a player: his armour's Isolation, AP lost next turn); the Chi Master perk `Battle.chiLevel`, `chiDamage`, `reach`, `chiName` (Occultism, the hidden 16th skill of
+  `Rules.SKILLS`, shown as `Rules.hiddenWord`).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):

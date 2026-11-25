@@ -162,7 +162,7 @@ class SfxTest extends MockGame {
         String font = Files.readString(Path.of("pack/assets/falloutak/font/cards.json"));
         List<String> keys = new ArrayList<>();
         for (String s : Rules.SPECIAL) keys.add("attr_" + Icons.key(s));
-        for (Rules.Skill s : Rules.SKILLS) keys.add("skill_" + Icons.key(s.name()));
+        for (Rules.Skill s : Rules.SKILLS) if (!Rules.HIDDEN.contains(s.name())) keys.add("skill_" + Icons.key(s.name()));   // a hidden skill: a word, no picture
         for (Rules.Stat s : Rules.Stat.values()) keys.add("stat_" + Icons.key(s.name()));
         for (String k : keys) {
             assertTrue(Icons.CARDS.containsKey(k), "no picture: " + k);

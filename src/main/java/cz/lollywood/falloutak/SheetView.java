@@ -253,6 +253,10 @@ public final class SheetView {
             boolean tag = c.tags.contains(s.name());
             Table t = i < 8 ? l : rt;
             double bonus = c.skillBonus(s.name(), false);
+            if (Rules.HIDDEN.contains(s.name())) {   // 03f §3: the player sees a word, the GM the number (his own menus)
+                t.row(c((tag ? "◆ " : "") + s.name(), tag ? NamedTextColor.GREEN : WHITE), r(Rules.hiddenWord(now[i]), tag ? NamedTextColor.GREEN : WHITE), c("", HOW));
+                continue;
+            }
             t.row(Icons.tip(Icons.skill(s.name()), "skill_" + Icons.key(s.name()), s.formula() + " = " + f(s.base().applyAsDouble(a)) + (c.points[i] != 0 ? " + " + f(c.points[i]) + " points" : "")
                             + (bonus != 0 ? (bonus > 0 ? " + " : " − ") + f(Math.abs(bonus)) + " template and implants" : "")
                             + (perm[i] != now[i] ? "\npermanent " + f(perm[i]) + " (level-up reads it)" : "") + "\nthe next %: " + Rules.pricePerPercent(perm[i]) + " point(s)",

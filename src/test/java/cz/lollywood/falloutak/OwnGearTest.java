@@ -220,6 +220,35 @@ class OwnGearTest extends MockGame {
     }
 
     @Test
+    void round6TheChiMasterAndTheHiddenOccultism() {   // 05d round 6; 03f §3: Occultism the hidden 16th skill
+        Character c = new Character();
+        int occ = Rules.skillIndex("Occultism");
+        assertTrue(occ >= 0 && Rules.HIDDEN.contains("Occultism"));
+        int[] a = c.attrs(false);
+        assertEquals(2 * a[Rules.I] + 2 * a[Rules.L], c.occultism(), 1e-9, "the base 2 I + 2 L");
+        Battle.Weapon fists = Battle.GEAR.get("Fists");
+        int[] avg5 = {5, 5, 5, 5, 5, 5, 5};
+        int before = Battle.handBonus(c, avg5, fists);
+        assertEquals(-1, Battle.chiLevel(c, fists), 1e-9, "no perk: nothing");
+        assertEquals(fists.range, Battle.reach(c, fists));
+        c.perks.add(new Character.Feat("Chi Master", "", ""));
+        c.points[occ] += 300 - c.occultism();
+        assertEquals(300, c.occultism(), 1e-9);
+        assertEquals(before + 12, Battle.handBonus(c, avg5, fists), "+1 a 25 of Occultism");
+        assertEquals(fists.range + 6, Battle.reach(c, fists), "the reach +1 a 50");
+        assertEquals(0, Battle.chiDamage(c, Battle.GEAR.get("Combat knife")), "a knife: no chi");
+        assertEquals("Chi Punch", Battle.chiName(10));
+        assertEquals("Dragon Punch", Battle.chiName(50));
+        assertEquals("Heaven-Splitting Fist", Battle.chiName(300));
+        assertEquals("deep", Rules.hiddenWord(c.occultism()));
+        assertEquals("a little", Rules.hiddenWord(20));
+        Character old = new Character();
+        old.points = new double[15];   // a save from before 0.98.0
+        old.migrate();
+        assertEquals(Rules.SKILLS.size(), old.points.length);
+    }
+
+    @Test
     void round5TheGuardTheRecoilTheReloadTheUnaware() {   // 05d round 5
         assertEquals(25, Battle.guardAc(300), "300 = a power armour's AC against blows");
         assertEquals(5, Battle.guardAc(100));

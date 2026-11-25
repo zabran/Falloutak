@@ -35,7 +35,17 @@ public final class Rules {
             new Skill("Rhetorics", "5 C", a -> 5 * a[C]),
             new Skill("Gambling", "5 L", a -> 5 * a[L]),
             new Skill("Guns", "2 A + P", a -> 2 * a[A] + a[P]),
-            new Skill("Leadership", "4 C + P", a -> 4 * a[C] + a[P]));
+            new Skill("Leadership", "4 C + P", a -> 4 * a[C] + a[P]),
+            // 03f §3 (ACCEPTED 11-18, Marek: *"occultism is supposed to be hidden skill used for anything concerning supernatural,
+            // unknown, theology or just things I did not think about before"*): the 16th skill, base 2 I + 2 L, points at level-up, the
+            // player sees only a word ({@link #hiddenWord}); built 0.98.0 for the Chi Master perk (05d round 6)
+            new Skill("Occultism", "2 I + 2 L", a -> 2 * a[I] + 2 * a[L]));
+
+    /** The skills the player sees only in words (03f §3): the GM keeps the number. */
+    public static final java.util.Set<String> HIDDEN = java.util.Set.of("Occultism");
+
+    /** A hidden skill in words (03f §3: none, a little, much, deep) [the thresholds mine]. */
+    public static String hiddenWord(double v) { return v < 20 ? "none" : v < 60 ? "a little" : v < 150 ? "much" : "deep"; }
 
     public static int skillIndex(String name) {
         for (int i = 0; i < SKILLS.size(); i++) if (SKILLS.get(i).name().equals(name)) return i;

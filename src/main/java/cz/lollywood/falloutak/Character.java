@@ -94,7 +94,7 @@ public final class Character {
     public final List<String> handsOnSkills = new ArrayList<>();
     public final List<Feat> perks = new ArrayList<>();
     public final Set<String> tags = new LinkedHashSet<>();
-    public final double[] points = new double[Rules.SKILLS.size()];
+    public double[] points = new double[Rules.SKILLS.size()];   // not final: a save from before a new skill is lengthened (migrate)
     public int level = 1, unspentSkillPoints = 0;
     public long xp = 0;
     public int hp;
@@ -905,6 +905,9 @@ public final class Character {
     }
 
     public double skill(String name) { return skills()[Rules.skillIndex(name)]; }
+
+    /** The hidden skill (03f §3): 2 I + 2 L, its points, the template's and the implants' (its number is the GM's). */
+    public double occultism() { return skill("Occultism"); }
 
     // ------------------------------------------------------------------ derived
     /** Read from permanent values (a hangover does not cut the maximum), without the survival stages: the stages' maxima read this. */
@@ -1835,6 +1838,7 @@ public final class Character {
      * example is now outside implant category"*).
      */
     public void migrate() {
+        if (points.length < Rules.SKILLS.size()) points = java.util.Arrays.copyOf(points, Rules.SKILLS.size());   // 0.98.0: Occultism
         if (arrestCause == null) arrestCause = "";
         if (gas == null) gas = "";
         if (!survival.containsKey(Rules.Stat.OXYGEN)) survival.put(Rules.Stat.OXYGEN, max(Rules.Stat.OXYGEN));   // saves before 0.19.0

@@ -89,7 +89,7 @@ class RulesTest {
 
     @Test
     void ourPerksAndTheirGates() {
-        assertEquals(111, Data.PERKS.size());                                        // 02c §2-§3
+        assertEquals(112, Data.PERKS.size());                                        // 02c §2-§3; 0.98.0 Chi Master
         assertFalse(Data.PERKS.get("Lab Rat").parked());                             // research: offered since part 8 (0.51.0)
         assertFalse(Data.PERKS.get("Cook").parked());                                // production: offered since part 7's round 4
         assertTrue(Data.PERKS.get("Nemesis").bound());

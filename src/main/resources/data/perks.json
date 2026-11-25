@@ -1471,6 +1471,25 @@
    "other": {}
   },
   {
+   "name": "Chi Master",
+   "kind": "weapon",
+   "gate": "Unarmed 100",
+   "alts": [
+    {
+     "skills": [
+      "Unarmed"
+     ],
+     "any": "",
+     "value": 100
+    }
+   ],
+   "effect": "eastern martial arts as the media show them, as magic (05d round 6, Marek 11-25): your unarmed blows +1 a 25 points of Occultism (the hidden skill), their reach +1 block a 50, and the punch takes a new name each 50 (Chi Punch, Dragon Punch, Tiger Palm, Force Palm, Hundred-Pace Fist, Empty Hand, Heaven-Splitting Fist) [the gate and names mine]",
+   "parked": false,
+   "bound": false,
+   "mods": {},
+   "other": {}
+  },
+  {
    "name": "Home Turf",
    "kind": "bound",
    "gate": "Survival 100",
