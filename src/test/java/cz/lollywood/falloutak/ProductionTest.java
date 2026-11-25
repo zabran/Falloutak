@@ -743,7 +743,7 @@ class ProductionTest {
     // ------------------------------------------------------------------ round 4 (Marek 11-20)
     @Test
     void everyAssembledItemTakesKnownParts() {
-        assertEquals(261, Production.DESIGNS.size());   // 0.94.0: the calibres' loads, the region's guns, the sci-fi (05d)
+        assertEquals(302, Production.DESIGNS.size());   // 0.95.0: every weapon type Tier I-IV; 0.94.0: the calibres' loads, the region's guns, the sci-fi (05d)
         for (Production.Design d : Production.DESIGNS.values()) {
             assertFalse(d.parts.isEmpty(), d.key());
             for (Production.Part p : d.parts) assertTrue(Production.TYPES.containsKey(p.type), d.key() + ": " + p.type);

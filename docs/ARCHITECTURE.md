@@ -37,8 +37,8 @@ outside the game; the game itself is for the look and feel. The rules' text live
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
 `fallout_catalogue.py` (item types, recipes, research, buildings, cards, designs, hauls), `fallout_part3_json.py` (species,
 implants, chems, mutations), `fallout_diseases_json.py` (diseases, from `fallout_disease_sim.py`), `fallout_armour_json.py`,
-`fallout_perks_json.py`, `fallout_traits_json.py`, `fallout_workbook_to_json.py` (the old workbook's tables). `weapons.json` alone is kept by hand:
-the numbers of `05d` (the realism check `fallout_weapons_real.py`). Which tool writes a
+`fallout_perks_json.py`, `fallout_traits_json.py`, `fallout_workbook_to_json.py` (the old workbook's tables). `fallout_weapons_real.py` writes `weapons.json`
+(the numbers of `05d`: the realism check, every type Tier I-IV, the models). Which tool writes a
 file: its docstring, or `grep -l "<name>.json" _tools/fallout_*`. The world map's `worldmap.json` (the danger simulation's export)
 holds hidden places: it lives only in the server's folder, never in the jar or this repository; the tests use the made-up
 `src/test/resources/worldmap-test*.json`.
@@ -58,7 +58,7 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
 | `Arena` | 754 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 2260 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 2287 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
 | `Character` | 2729 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
@@ -71,7 +71,7 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Hauls` | 266 | the prologue's last-minute hauls |
 | `Hud` | 432 | each character's game hour and passing time, healing, the action bar |
 | `Icons` | 129 | pictures in hover texts |
-| `Items` | 545 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
+| `Items` | 547 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
 | `Labs` | 218 | the research pages |
 | `Loot` | 337 | the field after a fight: bodies, gear, what can be taken |
 | `MapView` | 184 | the world map drawn in Minecraft |
@@ -102,5 +102,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **47 classes** | **24202** | |
+| **47 classes** | **24231** | |
 <!-- /CLASSES -->

@@ -276,7 +276,9 @@ final class Items {
             case "supplies" -> "an operation: × " + Rules.SUPPLIES.getOrDefault(k[1], 0.6) + " (used up)";
             case "made" -> {
                 Production.Design d = made(id);
+                Battle.Weapon bw = d == null ? null : Battle.GEAR.get(d.name);   // 05d round 3: the real models in the description
                 yield d == null ? "" : d.category + " · Tier " + Rules.roman(d.tier) + ", rarity " + d.rarity + (d.skill.isEmpty() ? "" : " · " + d.skill)
+                        + (bw != null && !bw.models.isEmpty() ? "\nsuch as: " + bw.models : "")
                         + "\nassembled in the base from " + Production.partsText(d)
                         + "\nback through the Mess Chest it comes apart into its parts, at its condition" + (d.makes > 1 ? " (" + d.makes + " a batch)" : "");
             }

@@ -71,7 +71,7 @@
    "name": "Energy weapons",
    "group": "Ranged weapons",
    "skill": "Energy Weapons",
-   "note": "fires Power cells; the sci-fi of the wars (05d §4): R3 in service, R4 prototypes"
+   "note": "fires Power cells; after the cold fusion (2041) lasers in civilian hands, the wars' plasma and gauss rare (05d §4)"
   },
   {
    "name": "Bows",
@@ -750,7 +750,10 @@
   "Rifle rounds|Remanufactured rifle rounds": "Hunting rounds|hunting remanufactured",
   "Rifle rounds|Rifle reloads": "Hunting rounds|hunting reloads",
   "Shotgun shells|Scrap-shot shells": "12 ga shells|Scrap-shot shells",
-  "Shotgun shells|Reloaded shells": "12 ga shells|Reloaded shells"
+  "Shotgun shells|Reloaded shells": "12 ga shells|Reloaded shells",
+  "Knives|Machete": "Swords|Machete",
+  "Techno weapons|Power fist": "Unarmed weapons|Power fist",
+  "Techno weapons|Super sledge": "Hammers|Super sledge"
  },
  "repair": {
   "min": 25,
@@ -852,29 +855,6 @@
    "category": "Knives",
    "group": "Melee weapons",
    "skill": "Knives",
-   "name": "Machete",
-   "tier": 2,
-   "rarity": 1,
-   "parts": [
-    {
-     "type": "Hard weapon parts",
-     "tier": 2,
-     "count": 1
-    },
-    {
-     "type": "Light weapon parts",
-     "tier": 2,
-     "count": 1
-    }
-   ],
-   "makes": 1,
-   "slot": "",
-   "set": ""
-  },
-  {
-   "category": "Knives",
-   "group": "Melee weapons",
-   "skill": "Knives",
    "name": "Combat knife",
    "tier": 3,
    "rarity": 1,
@@ -887,6 +867,52 @@
     {
      "type": "Light weapon parts",
      "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Knives",
+   "group": "Melee weapons",
+   "skill": "Knives",
+   "name": "Hunting knife",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Knives",
+   "group": "Melee weapons",
+   "skill": "Knives",
+   "name": "Survival knife",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
      "count": 1
     }
    ],
@@ -921,6 +947,29 @@
    "category": "Swords",
    "group": "Melee weapons",
    "skill": "Swords",
+   "name": "Machete",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Swords",
+   "group": "Melee weapons",
+   "skill": "Swords",
    "name": "Forged sword",
    "tier": 2,
    "rarity": 1,
@@ -933,6 +982,75 @@
     {
      "type": "Light weapon parts",
      "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Swords",
+   "group": "Melee weapons",
+   "skill": "Swords",
+   "name": "Leaf-spring sword",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Swords",
+   "group": "Melee weapons",
+   "skill": "Swords",
+   "name": "Factory machete",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Swords",
+   "group": "Melee weapons",
+   "skill": "Swords",
+   "name": "Collector's sword",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
      "count": 1
     }
    ],
@@ -1002,6 +1120,52 @@
     {
      "type": "Light weapon parts",
      "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Axes",
+   "group": "Melee weapons",
+   "skill": "Axes",
+   "name": "Bearded axe",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Axes",
+   "group": "Melee weapons",
+   "skill": "Axes",
+   "name": "Felling axe",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
      "count": 1
     }
    ],
@@ -1097,6 +1261,85 @@
    "set": ""
   },
   {
+   "category": "Hammers",
+   "group": "Melee weapons",
+   "skill": "Hammers",
+   "name": "Spiked mace",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Hammers",
+   "group": "Melee weapons",
+   "skill": "Hammers",
+   "name": "Steel sledgehammer",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Hammers",
+   "group": "Melee weapons",
+   "skill": "Hammers",
+   "name": "Super sledge",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Power",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Spears",
    "group": "Melee weapons",
    "skill": "Spears",
@@ -1156,6 +1399,52 @@
    "set": ""
   },
   {
+   "category": "Spears",
+   "group": "Melee weapons",
+   "skill": "Spears",
+   "name": "Steel spear",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Spears",
+   "group": "Melee weapons",
+   "skill": "Spears",
+   "name": "Hunting spear",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Unarmed weapons",
    "group": "Melee weapons",
    "skill": "Unarmed",
@@ -1207,6 +1496,75 @@
     {
      "type": "Textile",
      "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Unarmed weapons",
+   "group": "Melee weapons",
+   "skill": "Unarmed",
+   "name": "Steel knuckles",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Unarmed weapons",
+   "group": "Melee weapons",
+   "skill": "Unarmed",
+   "name": "Tactical gloves",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Textile",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Unarmed weapons",
+   "group": "Melee weapons",
+   "skill": "Unarmed",
+   "name": "Power fist",
+   "tier": 4,
+   "rarity": 3,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Power",
+     "tier": 4,
      "count": 1
     }
    ],
@@ -1280,22 +1638,22 @@
    "group": "Melee weapons",
    "skill": "Techno Weapons",
    "name": "Ripper",
-   "tier": 2,
+   "tier": 3,
    "rarity": 1,
    "parts": [
     {
      "type": "Hard weapon parts",
-     "tier": 2,
+     "tier": 3,
      "count": 2
     },
     {
      "type": "Machinery",
-     "tier": 2,
+     "tier": 3,
      "count": 2
     },
     {
      "type": "Power",
-     "tier": 2,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -1307,9 +1665,9 @@
    "category": "Techno weapons",
    "group": "Melee weapons",
    "skill": "Techno Weapons",
-   "name": "Power fist",
+   "name": "Police stun baton",
    "tier": 4,
-   "rarity": 3,
+   "rarity": 1,
    "parts": [
     {
      "type": "Hard weapon parts",
@@ -1340,27 +1698,22 @@
    "category": "Techno weapons",
    "group": "Melee weapons",
    "skill": "Techno Weapons",
-   "name": "Super sledge",
+   "name": "Chainsaw",
    "tier": 4,
-   "rarity": 4,
+   "rarity": 1,
    "parts": [
     {
      "type": "Hard weapon parts",
      "tier": 4,
-     "count": 1
+     "count": 2
     },
     {
-     "type": "Light weapon parts",
+     "type": "Machinery",
      "tier": 4,
-     "count": 1
+     "count": 2
     },
     {
-     "type": "Electronics",
-     "tier": 4,
-     "count": 1
-    },
-    {
-     "type": "Power",
+     "type": "Fuel",
      "tier": 4,
      "count": 1
     }
@@ -1592,6 +1945,29 @@
     {
      "type": "Light weapon parts",
      "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Workshop carbine",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 3,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
      "count": 2
     }
    ],
@@ -1856,6 +2232,29 @@
    "category": "Shotguns",
    "group": "Ranged weapons",
    "skill": "Guns",
+   "name": "Workshop pump shotgun",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 3,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shotguns",
+   "group": "Ranged weapons",
+   "skill": "Guns",
    "name": "Pump shotgun",
    "tier": 4,
    "rarity": 1,
@@ -1960,6 +2359,29 @@
     {
      "type": "Machinery",
      "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Heavy guns",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Workshop machine gun",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 3,
+     "count": 6
+    },
+    {
+     "type": "Machinery",
+     "tier": 3,
      "count": 2
     }
    ],
@@ -2086,9 +2508,55 @@
    "category": "Energy weapons",
    "group": "Ranged weapons",
    "skill": "Energy Weapons",
+   "name": "Cutter laser",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Electronics",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Energy weapons",
+   "group": "Ranged weapons",
+   "skill": "Energy Weapons",
+   "name": "Civilian laser pistol",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Energy weapons",
+   "group": "Ranged weapons",
+   "skill": "Energy Weapons",
    "name": "Laser pistol",
    "tier": 4,
-   "rarity": 3,
+   "rarity": 2,
    "parts": [
     {
      "type": "Firearm parts",
@@ -2111,7 +2579,7 @@
    "skill": "Energy Weapons",
    "name": "Laser rifle",
    "tier": 4,
-   "rarity": 3,
+   "rarity": 2,
    "parts": [
     {
      "type": "Firearm parts",
@@ -2134,7 +2602,7 @@
    "skill": "Energy Weapons",
    "name": "Plasma pistol",
    "tier": 4,
-   "rarity": 4,
+   "rarity": 3,
    "parts": [
     {
      "type": "Firearm parts",
@@ -2157,7 +2625,7 @@
    "skill": "Energy Weapons",
    "name": "Plasma rifle",
    "tier": 4,
-   "rarity": 4,
+   "rarity": 3,
    "parts": [
     {
      "type": "Firearm parts",
@@ -2180,7 +2648,7 @@
    "skill": "Energy Weapons",
    "name": "Gauss pistol",
    "tier": 4,
-   "rarity": 4,
+   "rarity": 3,
    "parts": [
     {
      "type": "Firearm parts",
@@ -2295,6 +2763,108 @@
    "set": ""
   },
   {
+   "category": "Bows",
+   "group": "Ranged weapons",
+   "skill": "Bows",
+   "name": "Laminated bow",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Textile",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Bows",
+   "group": "Ranged weapons",
+   "skill": "Bows",
+   "name": "Steel crossbow",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Machinery",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Bows",
+   "group": "Ranged weapons",
+   "skill": "Bows",
+   "name": "Compound bow",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Textile",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Bows",
+   "group": "Ranged weapons",
+   "skill": "Bows",
+   "name": "Compound crossbow",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Throwing weapons",
    "group": "Ranged weapons",
    "skill": "Throwing",
@@ -2354,6 +2924,52 @@
    "set": ""
   },
   {
+   "category": "Throwing weapons",
+   "group": "Ranged weapons",
+   "skill": "Throwing",
+   "name": "Throwing axe",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Throwing weapons",
+   "group": "Ranged weapons",
+   "skill": "Throwing",
+   "name": "Tactical tomahawk",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Rocket launchers",
    "group": "Ranged weapons",
    "skill": "Rockets",
@@ -2387,6 +3003,24 @@
     {
      "type": "Firearm parts",
      "tier": 2,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rocket launchers",
+   "group": "Ranged weapons",
+   "skill": "Rockets",
+   "name": "Recoilless tube",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 3,
      "count": 3
     }
    ],
@@ -2551,6 +3185,29 @@
    "set": ""
   },
   {
+   "category": "Grenades",
+   "group": "Grenades and traps",
+   "skill": "Grenades",
+   "name": "Military frag grenade",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "Traps",
    "group": "Grenades and traps",
    "skill": "Traps",
@@ -2666,6 +3323,34 @@
    "set": ""
   },
   {
+   "category": "Traps",
+   "group": "Grenades and traps",
+   "skill": "Traps",
+   "name": "Directional mine",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
    "category": "9x19 rounds",
    "group": "Rounds",
    "skill": "Guns",
@@ -2682,8 +3367,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -2724,7 +3409,7 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.11,
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -2808,8 +3493,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -2830,6 +3515,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "9x18 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "9x18 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -2892,8 +3598,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -2914,6 +3620,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "10mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "10mm works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -2997,8 +3724,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3019,6 +3746,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".357 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".357 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3081,8 +3829,8 @@
    "makes": 2,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3103,6 +3851,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".22 LR rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".22 LR works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3165,8 +3934,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3187,6 +3956,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "4.6x30 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "4.6x30 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3249,8 +4039,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3291,7 +4081,7 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.11,
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3375,8 +4165,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3397,6 +4187,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "5.45x39 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "5.45 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3459,8 +4270,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3501,7 +4312,7 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.11,
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3585,8 +4396,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3627,7 +4438,7 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.11,
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3711,8 +4522,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3733,6 +4544,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "Hunting rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "hunting works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3795,8 +4627,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3817,6 +4649,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "7.62x54R rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "7.62x54R works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3879,8 +4732,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3901,6 +4754,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": ".338 rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": ".338 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -3963,8 +4837,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.21,
-   "pen": -0.2,
+   "dmg": -0.4,
+   "pen": -0.3,
    "foul": 3
   },
   {
@@ -3985,6 +4859,27 @@
    "slot": "",
    "set": "",
    "dmg": -0.21,
+   "pen": -0.2,
+   "foul": 1
+  },
+  {
+   "category": "12.7 mm rounds",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "12.7 works ball",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 3,
+     "count": 5
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": -0.15,
    "pen": -0.2,
    "foul": 1
   },
@@ -4047,8 +4942,8 @@
    "makes": 1,
    "slot": "",
    "set": "",
-   "dmg": -0.1,
-   "pen": 0,
+   "dmg": -0.35,
+   "pen": -0.1,
    "foul": 3
   },
   {
@@ -4329,6 +5224,52 @@
     {
      "type": "Hard weapon parts",
      "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 5,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Arrows",
+   "group": "Rounds",
+   "skill": "Bows",
+   "name": "Broadhead arrows",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 5,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Arrows",
+   "group": "Rounds",
+   "skill": "Bows",
+   "name": "Carbon arrows",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
      "count": 1
     }
    ],

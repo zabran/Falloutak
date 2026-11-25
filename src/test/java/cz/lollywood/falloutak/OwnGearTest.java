@@ -1,6 +1,7 @@
 package cz.lollywood.falloutak;
 
 import org.bukkit.inventory.ItemStack;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -140,16 +141,40 @@ class OwnGearTest extends MockGame {
     }
 
     @Test
-    void theNumbersAreRealistic() {   // 05d §2 (RULED round 2): a gun's damage its cartridge's, the stronger kind never weaker
-        assertEquals(5, Battle.GEAR.get("Pipe pistol").minDmg);
-        assertEquals(Battle.GEAR.get("9mm pistol").maxDmg, Battle.GEAR.get("Pipe pistol").maxDmg, "a pipe gun's round is the factory's");
+    void theNumbersAreRealistic() {   // 05d §2 (RULED rounds 2-3): realism, and the better tier of the same kind stronger
+        assertTrue(avg("9mm pistol") > avg("Pipe pistol"), "the same 9x19: a factory barrel over a pipe (round 3)");
         assertEquals(1, Battle.GEAR.get("Pipe pistol").magazine, "Tier I: single-shot");
         assertTrue(avg("Sledgehammer") > avg("Mace") && avg("Mace") > avg("Club"), "a maul > a mace > a club");
-        assertTrue(avg("Metal spear") > avg("Bone spear") && avg("Bone spear") > avg("Sharpened stick"));
+        assertTrue(avg("Hunting spear") > avg("Steel spear") && avg("Steel spear") > avg("Metal spear") && avg("Metal spear") > avg("Bone spear"),
+                "spears by the tier");
+        assertTrue(avg("Compound bow") > avg("Laminated bow") && avg("Laminated bow") > avg("Recurve bow") && avg("Recurve bow") > avg("Self bow"));
         assertTrue(avg("7.62 battle rifle") > avg("7.62 assault rifle") && avg("7.62 assault rifle") > avg("5.56 assault carbine"));
         assertTrue(avg(".338 sniper rifle") > avg("7.62 battle rifle") && avg("12.7 anti-materiel rifle") > avg(".338 sniper rifle"));
-        assertEquals(avg("Pump shotgun"), avg("Pipe shotgun"), 1e-9, "the same 12 ga shell");
+        assertTrue(avg("Pump shotgun") > avg("Pipe shotgun"));
+        assertTrue(avg("Survival knife") > avg("Combat knife"), "good knives kept (round 3)");
+        for (String cat : List.of("Knives", "Swords", "Axes", "Hammers", "Spears", "Unarmed weapons", "Techno weapons", "Pistols", "Rifles", "Shotguns",
+                "Heavy guns", "Energy weapons", "Bows", "Throwing weapons", "Rocket launchers", "Grenades", "Traps"))
+            for (int t = 1; t <= 4; t++) {
+                final int tier = t;
+                assertTrue(Production.DESIGNS.values().stream().anyMatch(d -> d.category.equals(cat) && d.tier == tier), cat + " has Tier " + t);
+            }
+        assertEquals("Swords", Production.design("Knives", "Machete").category, "the machete is a short sword (round 3)");
+        assertTrue(Battle.GEAR.get("9mm pistol").models.contains("CZ P-10"), "the models in the description");
     }
+
+    @Test
+    void strengthAndSkillAddToBlowsThrowsAndBows() {   // 05d round 3
+        Character c = new Character();
+        int[] a = {8, 5, 5, 5, 5, 5, 5};
+        assertEquals(3, Battle.handBonus(c, a, Battle.GEAR.get("Club")) - sk(c, "Hammers"), "melee: Str - 5");
+        assertEquals(3 + sk(c, "Throwing"), Battle.handBonus(c, a, Battle.GEAR.get("Javelin")), "a throw too");
+        assertEquals(1 + sk(c, "Bows"), Battle.handBonus(c, a, Battle.GEAR.get("Self bow")), "a bow: half");
+        assertEquals(sk(c, "Bows"), Battle.handBonus(c, a, Battle.GEAR.get("Crossbow")), "a crossbow: no Strength");
+        assertEquals(0, Battle.handBonus(c, a, Battle.GEAR.get("9mm pistol")), "a gun: none");
+        assertTrue(Battle.GEAR.get("Stun stick").shockMax > 0, "the stun stick's shock");
+    }
+
+    private static int sk(Character c, String skill) { return (int) Math.max(0, Math.floor((Battle.weaponSkill(c, skill) - 50) / 50)); }
 
     private static double avg(String w) { Battle.Weapon x = Battle.GEAR.get(w); return (x.minDmg + x.maxDmg) / 2.0; }
 

@@ -58,6 +58,11 @@ public final class Battle implements Listener {
         String tag = "", ammoKind = "";
         boolean thrown, wears = true;
         int blastMin, blastMax;
+        /** 05d round 3: a stun weapon's second damage, Electrical (Marek: *"2 weapons damages (normal+lightning) sounds OK"*); a crossbow
+         *  takes no archer's Strength; the real models (shown in the item's description). */
+        int shockMin, shockMax;
+        boolean crossbow;
+        String models = "";
         Weapon(String name, String skill, int magazine, int range, boolean twoHanded, Mode... modes) {
             this.name = name; this.skill = skill; this.magazine = magazine; this.range = range; this.twoHanded = twoHanded; this.modes = List.of(modes);
         }
@@ -138,8 +143,11 @@ public final class Battle implements Listener {
                     w.perk = o.has("perk") ? o.get("perk").getAsString() : "";
                     w.thrown = thrown;
                     if (o.has("blast")) { w.blastMin = o.getAsJsonArray("blast").get(0).getAsInt(); w.blastMax = o.getAsJsonArray("blast").get(1).getAsInt(); }
+                    if (o.has("shock")) { w.shockMin = o.getAsJsonArray("shock").get(0).getAsInt(); w.shockMax = o.getAsJsonArray("shock").get(1).getAsInt(); }
+                    w.crossbow = o.has("crossbow") && o.get("crossbow").getAsBoolean();
                 }
                 w.ammoKind = o.has("ammo") ? o.get("ammo").getAsString() : "";
+                w.models = o.has("models") ? o.get("models").getAsString() : "";
                 double hp = o.has("health") ? o.get("health").getAsDouble() : 100;
                 w.wears = hp > 0 && !w.thrown;
                 w.maxHealth = hp > 0 ? hp : 1000;
@@ -523,7 +531,7 @@ public final class Battle implements Listener {
             if (d == null) continue;
             if (ROUNDS.contains(d.category)) { s.reserve.merge(d.key(), n, Integer::sum); continue; }
             switch (d.name) {
-                case "Frag grenade", "Pipe grenade", "Fire bottle" -> { s.quick.merge("grenade", n, Integer::sum); continue; }
+                case "Frag grenade", "Military frag grenade", "Pipe grenade", "Fire bottle" -> { s.quick.merge("grenade", n, Integer::sum); continue; }
                 case "Riot gas grenade" -> { s.quick.merge("gasgren", n, Integer::sum); continue; }
                 default -> { }
             }
@@ -580,7 +588,7 @@ public final class Battle implements Listener {
             if (n <= 0) continue;
             switch (k) {
                 case "stim" -> removeIds(p, id -> id.equals("gear:Stimpak"), n);
-                case "grenade" -> removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && (d.name.equals("Frag grenade") || d.name.equals("Pipe grenade") || d.name.equals("Fire bottle")); }, n);
+                case "grenade" -> removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && (d.name.equals("Frag grenade") || d.name.equals("Military frag grenade") || d.name.equals("Pipe grenade") || d.name.equals("Fire bottle")); }, n);
                 case "gasgren" -> removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.name.equals("Riot gas grenade"); }, n);
                 case "Power" -> removeIds(p, id -> { String[] t = Items.thing(id); return t != null && t[0].equals("Power"); }, (n + CELL_SHOTS - 1) / CELL_SHOTS);
                 default -> {
@@ -708,6 +716,19 @@ public final class Battle implements Listener {
 
     /** The rounds in the weapon now. */
     static int ammoOf(State s, Weapon w) { return s.ammo.getOrDefault(w.tag, 0); }
+
+    /**
+     * The body behind a blow, a throw or a bow (05d round 3, Marek 11-25: *"strength and maybe even skill should increase the damage for
+     * them a bit"*): melee and thrown the melee bonus (Fallout 2's max(Str - 5, 1)), a bow half of Strength over 5 (the archer's own draw;
+     * a crossbow none), and the skill +1 for each full 50 over 50 (melee, thrown, bows) [the bow's and the skill's rule mine]; guns none.
+     */
+    static int handBonus(Character c, int[] attrs, Weapon w) {
+        boolean bow = w.skill.equals("Bows");
+        if (!w.melee() && !w.thrown && !bow) return 0;
+        int str = w.melee() || w.thrown ? Rules.meleeBonus(attrs) : w.crossbow ? 0 : Math.max(0, (attrs[Rules.S] - 5) / 2);
+        int sk = c != null && !w.skill.isEmpty() ? (int) Math.max(0, Math.floor((weaponSkill(c, w.skill) - 50) / 50)) : 0;
+        return str + sk;
+    }
 
     /** The rounds he carries of a category (its calibre): every load of it; Power cells by the shots. */
     static int reserveOf(State s, String kind) {
@@ -919,7 +940,10 @@ public final class Battle implements Listener {
         return n != null ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(n) : e.getType().name().toLowerCase(Locale.ROOT);
     }
 
-    private double skillOf(Character c, String skill) {
+    private double skillOf(Character c, String skill) { return weaponSkill(c, skill); }
+
+    /** A weapon skill: one of the 15 or a combination skill (Knives, Hammers ...). */
+    static double weaponSkill(Character c, String skill) {
         if (Rules.SKILLS.stream().anyMatch(x -> x.name().equals(skill))) return c.skill(skill);
         return Rules.COMBOS.stream().filter(x -> x.name().equals(skill)).findFirst().map(x -> x.value().applyAsDouble(c.skills())).orElse(0.0);
     }
@@ -1034,16 +1058,19 @@ public final class Battle implements Listener {
                 int total = 0;
                 List<Integer> each = new ArrayList<>();
                 for (int i = 0; i < hits; i++) {
-                    double base = (w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + (w.melee() ? Rules.meleeBonus(me) : 0)) * Combat.conditionDamage(cond(s, w))
+                    double base = (w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + handBonus(c, me, w)) * Combat.conditionDamage(cond(s, w))
                             * perkDamage(c, w, tg) * (w.melee() ? Rules.meleeFactor(c.tpl().bonusDamage()) : 1);   // round 15: the body's melee damage
                     double[] am = ammoMods(s, w);
                     int dmg = Combat.damage(base, mult, am[0], am[1], tg != null ? tg.dt : 0, tg != null ? tg.dr : 0, fx.bypass());
+                    if (w.shockMax > 0) dmg += w.shockMin + rnd.nextInt(w.shockMax - w.shockMin + 1);   // round 3: the shock, Electrical
                     each.add(dmg);
                     total += dmg;
                 }
                 log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + Txt.f(mult) + ")" : "HIT").append(spray).append(" Damage ")
                         .append(total).append(hits > 1 ? " " + each : "").append(" (").append(w.minDmg).append("-").append(w.maxDmg)
-                        .append(w.melee() ? " + " + Rules.meleeBonus(me) + " melee" : ", " + w.ammo)
+                        .append(handBonus(c, me, w) > 0 ? " + " + handBonus(c, me, w) + (w.melee() ? " melee" : " Strength and skill") : "")
+                        .append(w.shockMax > 0 ? " + the shock " + w.shockMin + "-" + w.shockMax + " Electrical" : "")
+                        .append(w.melee() ? "" : ", " + w.ammo)
                         .append(Combat.conditionDamage(cond(s, w)) < 1 ? "; x" + Txt.f(Math.round(Combat.conditionDamage(cond(s, w)) * 100) / 100.0) + " for its condition" : "")
                         .append(perkDamage(c, w, tg) > 1 ? "; x" + Txt.f(perkDamage(c, w, tg)) + (master(c, w) ? " Weapon Master" : "") + (nemesis(c, tg) ? " Nemesis" : "") : "")
                         .append("; DT ").append(tg != null ? tg.dt : 0)
@@ -1353,7 +1380,7 @@ public final class Battle implements Listener {
         }
         if (f.hurt1d6()) { int d = 1 + rnd.nextInt(6); c.hp -= d; log.append(" You take ").append(d).append(" HP (").append(c.hp).append(" left)."); }
         if (f.hitsSelf()) {
-            int base = w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + (w.melee() ? Rules.meleeBonus(c.attrs(false)) : 0);
+            int base = w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + handBonus(c, c.attrs(false), w);
             double[] am = ammoMods(s, w);
             int dmg = Combat.damage(base, 1, w.melee() ? 0 : am[0], w.melee() ? 0 : am[1], 0, 0, false);
             c.hp -= dmg;
