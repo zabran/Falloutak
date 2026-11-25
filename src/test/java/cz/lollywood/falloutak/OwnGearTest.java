@@ -2,6 +2,7 @@ package cz.lollywood.falloutak;
 
 import org.bukkit.inventory.ItemStack;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -153,7 +154,7 @@ class OwnGearTest extends MockGame {
         assertTrue(avg("Pump shotgun") > avg("Pipe shotgun"));
         assertTrue(avg("Survival knife") > avg("Combat knife"), "good knives kept (round 3)");
         for (String cat : List.of("Knives", "Swords", "Axes", "Hammers", "Spears", "Unarmed weapons", "Techno weapons", "Pistols", "Rifles", "Shotguns",
-                "Heavy guns", "Energy weapons", "Bows", "Throwing weapons", "Rocket launchers", "Grenades", "Traps"))
+                "Heavy guns", "Energy weapons", "Bows", "Throwing weapons", "Rocket launchers", "Grenades", "Traps", "Sights", "Muzzle devices", "Magazines", "Under-barrel"))
             for (int t = 1; t <= 4; t++) {
                 final int tier = t;
                 assertTrue(Production.DESIGNS.values().stream().anyMatch(d -> d.category.equals(cat) && d.tier == tier), cat + " has Tier " + t);
@@ -162,21 +163,73 @@ class OwnGearTest extends MockGame {
         assertTrue(Battle.GEAR.get("9mm pistol").models.contains("CZ P-10"), "the models in the description");
     }
 
-    @Test
-    void strengthAndSkillAddToBlowsThrowsAndBows() {   // 05d round 3
-        Character c = new Character();
-        int[] a = {8, 5, 5, 5, 5, 5, 5};
-        assertEquals(3, Battle.handBonus(c, a, Battle.GEAR.get("Club")) - sk(c, "Hammers"), "melee: Str - 5");
-        assertEquals(3 + sk(c, "Throwing"), Battle.handBonus(c, a, Battle.GEAR.get("Javelin")), "a throw too");
-        assertEquals(1 + sk(c, "Bows"), Battle.handBonus(c, a, Battle.GEAR.get("Self bow")), "a bow: half");
-        assertEquals(sk(c, "Bows"), Battle.handBonus(c, a, Battle.GEAR.get("Crossbow")), "a crossbow: no Strength");
-        assertEquals(0, Battle.handBonus(c, a, Battle.GEAR.get("9mm pistol")), "a gun: none");
-        assertTrue(Battle.GEAR.get("Stun stick").shockMax > 0, "the stun stick's shock");
-    }
-
     private static int sk(Character c, String skill) { return (int) Math.max(0, Math.floor((Battle.weaponSkill(c, skill) - 50) / 50)); }
 
     private static double avg(String w) { Battle.Weapon x = Battle.GEAR.get(w); return (x.minDmg + x.maxDmg) / 2.0; }
+
+    @Test
+    void strengthAddsByGurpsAndSkillALittle() {   // 05d rounds 3-4: (Str - 5) x the weapon's GURPS factor; +1 a full 50 of skill over 50
+        Character c = new Character();
+        int[] a = {8, 5, 5, 5, 5, 5, 5}, weak = {2, 5, 5, 5, 5, 5, 5};
+        Battle.Weapon club = Battle.GEAR.get("Club"), axe = Battle.GEAR.get("Fire axe");
+        assertTrue(club.strDmg > 1.4 && club.strDmg < 1.7, "a crushing swing ~1.5 a point (GURPS)");
+        assertTrue(axe.strDmg > 2.1, "a cutting swing ~2.3 a point");
+        assertEquals(Math.round(3 * club.strDmg) + sk(c, "Hammers"), Battle.handBonus(c, a, club));
+        assertEquals(Math.round(-3 * club.strDmg) + sk(c, "Hammers"), Battle.handBonus(c, weak, club), "a weak arm takes");
+        assertEquals(Math.round(3 * Battle.GEAR.get("Javelin").strDmg) + sk(c, "Throwing"), Battle.handBonus(c, a, Battle.GEAR.get("Javelin")));
+        assertEquals(Math.round(3 * Battle.GEAR.get("Self bow").strDmg) + sk(c, "Bows"), Battle.handBonus(c, a, Battle.GEAR.get("Self bow")), "a bow by its draw");
+        assertEquals(sk(c, "Bows"), Battle.handBonus(c, a, Battle.GEAR.get("Crossbow")), "a crossbow: no Strength");
+        assertEquals(0, Battle.handBonus(c, a, Battle.GEAR.get("9mm pistol")), "a gun: none");
+        assertTrue(Battle.GEAR.get("Monomolecular knife").pen > Battle.GEAR.get("Titanium knife").pen, "the 2040s' edges penetrate");
+    }
+
+    @Test
+    void theShockOnlyWhenItPassesIsStrongAndNotEndured() {   // 05d §2e (round 4)
+        Battle.Target t = new Battle.Target("raider");   // Endurance 3
+        assertTrue(Battle.shock(t, 1, false, false, () -> 1).contains("endures"), "a weak shock endured");
+        assertEquals(0, t.apLoss);
+        assertTrue(Battle.shock(t, 6, false, false, () -> 100).contains("AP -6"));
+        assertEquals(6, t.apLoss);
+        assertFalse(t.down, "6 does not knock him down");
+        Battle.Target wet = new Battle.Target("raider");
+        assertTrue(Battle.shock(wet, 6, false, true, () -> 1).contains("knocked down"), "9 when wet: the muscles lock whoever you are");
+        assertTrue(wet.down);
+        Battle.Target bot = new Battle.Target("robot");
+        assertTrue(Battle.shock(bot, 2, true, false, () -> 1).contains("electronics reset"), "a machine x2, no roll");
+        assertEquals("", Battle.shock(bot, 0, true, false, () -> 1), "nothing passed the armour: nothing");
+    }
+
+    @Test
+    void accessoriesFitAndWorkInTheFight() {   // 05d §5 (RULED round 3)
+        PlayerMock p = player();
+        Character c = plugin.character(p);
+        c.points[Rules.skillIndex("Crafting")] += 30;
+        p.getInventory().setItemInMainHand(made("Rifles", "Hunting rifle", 1, 100));
+        p.getInventory().setItem(9, made("Sights", "Telescopic sight", 1, 100));
+        p.getInventory().setItem(10, made("Magazines", "Extended magazine", 1, 100));
+        p.getInventory().setItem(11, made("Magazines", "Speed loader", 1, 100));
+        p.getInventory().setItem(12, made("Under-barrel", "Bayonet", 1, 100));
+        assertTrue(Accessories.command(p, c, new String[]{"fit", "9"}).startsWith("Fitted the Telescopic sight"));
+        assertTrue(Accessories.command(p, c, new String[]{"fit", "11"}).startsWith("!"), "a speed loader fits revolvers only");
+        assertTrue(Accessories.command(p, c, new String[]{"fit", "10"}).startsWith("Fitted the Extended magazine"));
+        assertTrue(Accessories.command(p, c, new String[]{"fit", "12"}).startsWith("Fitted the Bayonet"));
+        Map<String, String> fit = Accessories.fitted(p.getInventory().getItemInMainHand());
+        assertEquals("Telescopic sight", fit.get("Sights"));
+        assertEquals("Scope Range", Accessories.perk("", fit));
+        assertTrue(Accessories.command(p, c, new String[]{"fit", "off", "Under-barrel"}).startsWith("Took the Bayonet off"));
+        assertFalse(Accessories.fitted(p.getInventory().getItemInMainHand()).containsKey("Under-barrel"));
+        p.getInventory().addItem(made("Hunting rounds", "hunting soft point", 20, 100));
+        Battle.State s = fight(p);
+        Battle.Weapon w = Battle.GEAR.get("Hunting rifle");
+        assertEquals(10, Battle.cap(s, w), "the extended magazine: x2");
+        assertEquals(10, Battle.ammoOf(s, w));
+        plugin.battle.stop(p);
+        boolean kept = false;
+        for (ItemStack it : p.getInventory().getContents()) if (it != null && "Telescopic sight".equals(Accessories.fitted(it).get("Sights"))) kept = true;
+        assertTrue(kept, "its accessories stay on it after the fight");
+        Character weakling = new Character();
+        assertTrue(Accessories.command(p, weakling, new String[]{"fit", "9"}).startsWith("!"), "no accessory there any more, or no Crafting");
+    }
 
     @Test
     void aThrownWeaponIsPickedUpByThoseWhoHoldTheField() {

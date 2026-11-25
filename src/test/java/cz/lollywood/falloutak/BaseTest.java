@@ -167,7 +167,7 @@ class BaseTest {
         assertEquals(List.of("Soft armour parts", "Hard armour parts"), Base.types().subList(0, 2));
         assertEquals(26, Base.types().size());                                         // part 7's catalogue: a chest a type
         assertTrue(Base.category("Body armour"));                                      // round 5: a chest of an item category too
-        assertEquals(40, Base.categories().size());                                    // 0.94.0: a rounds category a calibre (05d)
+        assertEquals(44, Base.categories().size());   // 0.96.0: + the accessories' four slots;                                 // 0.94.0: a rounds category a calibre (05d)
     }
 
     @Test

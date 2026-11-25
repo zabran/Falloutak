@@ -90,6 +90,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
         Npcs.SIDE = new org.bukkit.NamespacedKey(this, "fo_side");     // the GM's NPC tools (Marek 11-24)
         Npcs.FOLLOW = new org.bukkit.NamespacedKey(this, "fo_follow");
         Items.COND = new org.bukkit.NamespacedKey(this, "fo_cond");
+        Accessories.KEY = new org.bukkit.NamespacedKey(this, "fo_acc");   // 05d §5: the accessories on a weapon
         Items.FIT = new org.bukkit.NamespacedKey(this, "fo_fit");
         Menus.pl = this;
         hud = new Hud(this);
@@ -303,6 +304,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
                     args.length > 2 ? args[2].toLowerCase(Locale.ROOT) : ""), NamedTextColor.RED));
             case "firstaid", "bandage" -> p.sendMessage(Component.text(battle.firstAid(p, c), NamedTextColor.GREEN));
             case "repair" -> p.sendMessage(Component.text(battle.repair(p, c), NamedTextColor.GREEN));
+            case "fit" -> say(p, Accessories.command(p, c, args));   // 05d §5: the accessories
             case "legs" -> {
                 c.brokenLegs = Math.max(0, Math.min(2, args.length > 1 ? Integer.parseInt(args[1]) : 0));
                 p.sendMessage(Component.text("broken legs: " + c.brokenLegs + " (movement " + Txt.f(Rules.stepAp(0, c.brokenLegs, c.has("Brittle Bones")))

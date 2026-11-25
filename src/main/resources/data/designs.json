@@ -92,6 +92,30 @@
    "note": ""
   },
   {
+   "name": "Sights",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "note": "the sight slot"
+  },
+  {
+   "name": "Muzzle devices",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "note": "the muzzle slot"
+  },
+  {
+   "name": "Magazines",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "note": "the magazine slot"
+  },
+  {
+   "name": "Under-barrel",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "note": "the under-barrel slot"
+  },
+  {
    "name": "Grenades",
    "group": "Grenades and traps",
    "skill": "Grenades",
@@ -531,6 +555,54 @@
    ],
    "per": 1
   },
+  "Sights": {
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "count": 1
+    },
+    {
+     "type": "Stone and glass",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  "Muzzle devices": {
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  "Magazines": {
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  "Under-barrel": {
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
   "Grenades": {
    "parts": [
     {
@@ -879,6 +951,52 @@
    "group": "Melee weapons",
    "skill": "Knives",
    "name": "Hunting knife",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Knives",
+   "group": "Melee weapons",
+   "skill": "Knives",
+   "name": "Survival knife",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Knives",
+   "group": "Melee weapons",
+   "skill": "Knives",
+   "name": "Titanium knife",
    "tier": 4,
    "rarity": 1,
    "parts": [
@@ -901,9 +1019,32 @@
    "category": "Knives",
    "group": "Melee weapons",
    "skill": "Knives",
-   "name": "Survival knife",
+   "name": "Diamond-edge knife",
    "tier": 4,
    "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Knives",
+   "group": "Melee weapons",
+   "skill": "Knives",
+   "name": "Monomolecular knife",
+   "tier": 4,
+   "rarity": 3,
    "parts": [
     {
      "type": "Hard weapon parts",
@@ -1017,13 +1158,59 @@
    "group": "Melee weapons",
    "skill": "Swords",
    "name": "Factory machete",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Swords",
+   "group": "Melee weapons",
+   "skill": "Swords",
+   "name": "Collector's sword",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Swords",
+   "group": "Melee weapons",
+   "skill": "Swords",
+   "name": "Titanium sword",
    "tier": 4,
    "rarity": 1,
    "parts": [
     {
      "type": "Hard weapon parts",
      "tier": 4,
-     "count": 1
+     "count": 2
     },
     {
      "type": "Light weapon parts",
@@ -1039,9 +1226,32 @@
    "category": "Swords",
    "group": "Melee weapons",
    "skill": "Swords",
-   "name": "Collector's sword",
+   "name": "Diamond-edge sword",
    "tier": 4,
    "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Swords",
+   "group": "Melee weapons",
+   "skill": "Swords",
+   "name": "Monomolecular blade",
+   "tier": 4,
+   "rarity": 3,
    "parts": [
     {
      "type": "Hard weapon parts",
@@ -1155,8 +1365,54 @@
    "group": "Melee weapons",
    "skill": "Axes",
    "name": "Felling axe",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Axes",
+   "group": "Melee weapons",
+   "skill": "Axes",
+   "name": "Titanium axe",
    "tier": 4,
    "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Axes",
+   "group": "Melee weapons",
+   "skill": "Axes",
+   "name": "Diamond-edge axe",
+   "tier": 4,
+   "rarity": 2,
    "parts": [
     {
      "type": "Hard weapon parts",
@@ -1288,6 +1544,29 @@
    "group": "Melee weapons",
    "skill": "Hammers",
    "name": "Steel sledgehammer",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Hammers",
+   "group": "Melee weapons",
+   "skill": "Hammers",
+   "name": "Tungsten maul",
    "tier": 4,
    "rarity": 1,
    "parts": [
@@ -1426,8 +1705,54 @@
    "group": "Melee weapons",
    "skill": "Spears",
    "name": "Hunting spear",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Spears",
+   "group": "Melee weapons",
+   "skill": "Spears",
+   "name": "Carbon spear",
    "tier": 4,
    "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Spears",
+   "group": "Melee weapons",
+   "skill": "Spears",
+   "name": "Diamond-tipped spear",
+   "tier": 4,
+   "rarity": 2,
    "parts": [
     {
      "type": "Hard weapon parts",
@@ -1526,6 +1851,29 @@
    "group": "Melee weapons",
    "skill": "Unarmed",
    "name": "Tactical gloves",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Textile",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Unarmed weapons",
+   "group": "Melee weapons",
+   "skill": "Unarmed",
+   "name": "Servo gloves",
    "tier": 4,
    "rarity": 1,
    "parts": [
@@ -1536,6 +1884,11 @@
     },
     {
      "type": "Textile",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Machinery",
      "tier": 4,
      "count": 1
     }
@@ -1666,6 +2019,67 @@
    "group": "Melee weapons",
    "skill": "Techno Weapons",
    "name": "Police stun baton",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Power",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Techno weapons",
+   "group": "Melee weapons",
+   "skill": "Techno Weapons",
+   "name": "Chainsaw",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Machinery",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Fuel",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Techno weapons",
+   "group": "Melee weapons",
+   "skill": "Techno Weapons",
+   "name": "Arc baton",
    "tier": 4,
    "rarity": 1,
    "parts": [
@@ -1698,9 +2112,9 @@
    "category": "Techno weapons",
    "group": "Melee weapons",
    "skill": "Techno Weapons",
-   "name": "Chainsaw",
+   "name": "Vibro-blade",
    "tier": 4,
-   "rarity": 1,
+   "rarity": 2,
    "parts": [
     {
      "type": "Hard weapon parts",
@@ -1708,12 +2122,12 @@
      "count": 2
     },
     {
-     "type": "Machinery",
+     "type": "Electronics",
      "tier": 4,
-     "count": 2
+     "count": 1
     },
     {
-     "type": "Fuel",
+     "type": "Power",
      "tier": 4,
      "count": 1
     }
@@ -2818,6 +3232,57 @@
    "group": "Ranged weapons",
    "skill": "Bows",
    "name": "Compound bow",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Textile",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Bows",
+   "group": "Ranged weapons",
+   "skill": "Bows",
+   "name": "Compound crossbow",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Machinery",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Bows",
+   "group": "Ranged weapons",
+   "skill": "Bows",
+   "name": "Carbon bow",
    "tier": 4,
    "rarity": 1,
    "parts": [
@@ -2840,9 +3305,9 @@
    "category": "Bows",
    "group": "Ranged weapons",
    "skill": "Bows",
-   "name": "Compound crossbow",
+   "name": "Smart crossbow",
    "tier": 4,
-   "rarity": 1,
+   "rarity": 2,
    "parts": [
     {
      "type": "Light weapon parts",
@@ -2856,6 +3321,11 @@
     },
     {
      "type": "Machinery",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
      "tier": 4,
      "count": 1
     }
@@ -2951,6 +3421,29 @@
    "group": "Ranged weapons",
    "skill": "Throwing",
    "name": "Tactical tomahawk",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Throwing weapons",
+   "group": "Ranged weapons",
+   "skill": "Throwing",
+   "name": "Titanium tomahawk",
    "tier": 4,
    "rarity": 1,
    "parts": [
@@ -3058,6 +3551,415 @@
      "type": "Firearm parts",
      "tier": 4,
      "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Sights",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Peep sight",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Sights",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Salvaged scope",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Sights",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Telescopic sight",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Sights",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Red-dot sight",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Sights",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Night sight",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Sights",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Smart scope",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Stone and glass",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Muzzle devices",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Oil-filter suppressor",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Salvage",
+     "tier": 1,
+     "count": 1
+    },
+    {
+     "type": "Firearm parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Muzzle devices",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Long barrel",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Muzzle devices",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Suppressor",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Muzzle devices",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Factory suppressor",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Magazines",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Taped magazines",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 1,
+     "count": 1
+    },
+    {
+     "type": "Textile",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Magazines",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Speed loader",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Magazines",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Extended magazine",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Magazines",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Drum magazine",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Under-barrel",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Spike bayonet",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Under-barrel",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Bipod",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Under-barrel",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Bayonet",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Under-barrel",
+   "group": "Accessories",
+   "skill": "Crafting",
+   "name": "Under-barrel launcher",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 1
     }
    ],
    "makes": 1,
@@ -5183,7 +6085,10 @@
    ],
    "makes": 5,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.3,
+   "pen": -0.3,
+   "foul": 1
   },
   {
    "category": "Arrows",
@@ -5206,7 +6111,10 @@
    ],
    "makes": 5,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.1,
+   "pen": -0.1,
+   "foul": 1
   },
   {
    "category": "Arrows",
@@ -5229,7 +6137,10 @@
    ],
    "makes": 5,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": -0.1,
+   "pen": 0,
+   "foul": 1
   },
   {
    "category": "Arrows",
@@ -5252,7 +6163,10 @@
    ],
    "makes": 5,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
   },
   {
    "category": "Arrows",
@@ -5275,7 +6189,10 @@
    ],
    "makes": 5,
    "slot": "",
-   "set": ""
+   "set": "",
+   "dmg": 0.1,
+   "pen": 0.3,
+   "foul": 1
   },
   {
    "category": "Rockets",

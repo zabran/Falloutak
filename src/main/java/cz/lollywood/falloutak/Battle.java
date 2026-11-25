@@ -62,6 +62,9 @@ public final class Battle implements Listener {
          *  takes no archer's Strength; the real models (shown in the item's description). */
         int shockMin, shockMax;
         boolean crossbow;
+        /** 05d round 4 (Marek: *"lets follow GURPS here"*): the damage a point of Strength over 5 adds (under 5 takes), GURPS's
+         *  thrust or swing slope x the wound; the armour's DR a 2040s edge ignores (titanium 0.2, diamond 0.4, monomolecular 0.8). */
+        double strDmg, pen;
         String models = "";
         Weapon(String name, String skill, int magazine, int range, boolean twoHanded, Mode... modes) {
             this.name = name; this.skill = skill; this.magazine = magazine; this.range = range; this.twoHanded = twoHanded; this.modes = List.of(modes);
@@ -145,6 +148,8 @@ public final class Battle implements Listener {
                     if (o.has("blast")) { w.blastMin = o.getAsJsonArray("blast").get(0).getAsInt(); w.blastMax = o.getAsJsonArray("blast").get(1).getAsInt(); }
                     if (o.has("shock")) { w.shockMin = o.getAsJsonArray("shock").get(0).getAsInt(); w.shockMax = o.getAsJsonArray("shock").get(1).getAsInt(); }
                     w.crossbow = o.has("crossbow") && o.get("crossbow").getAsBoolean();
+                    w.strDmg = o.has("str_dmg") ? o.get("str_dmg").getAsDouble() : 0;
+                    w.pen = o.has("pen") ? o.get("pen").getAsDouble() : 0;
                 }
                 w.ammoKind = o.has("ammo") ? o.get("ammo").getAsString() : "";
                 w.models = o.has("models") ? o.get("models").getAsString() : "";
@@ -284,6 +289,8 @@ public final class Battle implements Listener {
         /** 05d round 1 (*"Ammo variants per calibre - yes."*): the load in each weapon's magazine ("category|load"; one load a
          *  magazine, the reload takes the load he carries most of) [the rule mine]. */
         final Map<String, String> load = new HashMap<>();
+        /** 05d §5: the accessories on each of his own weapons (slot -> name), from its item. */
+        final Map<String, Map<String, String>> acc = new HashMap<>();
         List<UUID> dummies = new ArrayList<>();
         Map<UUID, Target> targets = new HashMap<>();
         final Set<String> dropped = new HashSet<>(), broken = new HashSet<>();
@@ -541,6 +548,7 @@ public final class Battle implements Listener {
             if (!hands.contains(w) && hands.size() < 2) {
                 hands.add(w);
                 s.source.put(w.tag, id);
+                s.acc.put(w.tag, Accessories.fitted(it));
                 if (w.wears) s.health.put(w.name, Items.madeCondition(it) / 100.0 * w.maxHealth);
             }
         }
@@ -551,9 +559,10 @@ public final class Battle implements Listener {
             Weapon w = hands.get(k);
             if (w.thrown) s.ammo.put(w.tag, thrown.getOrDefault(w.name, 0));
             else if (!w.melee()) reload(s, w);
+            for (String at : Accessories.attacks(s.acc.get(w.tag))) { Weapon x = GEAR.get(at); if (x != null && !x.melee()) reload(s, x); }   // the launcher
             Material m = w == fists ? Material.LEATHER : w.melee() || w.thrown ? Material.IRON_SWORD : Material.IRON_HORSE_ARMOR;
             String what = w.minDmg + "-" + w.maxDmg + " " + w.damageType + (w.melee() ? ", reach " + (w.range - 1) : w.thrown ? ", thrown, " + ammoOf(s, w) + " carried"
-                    : ", range " + w.range + ", " + w.magazine + " a load of " + w.ammoKind + " (" + ammoOf(s, w) + " in" + loadName(s, w) + ", " + reserveOf(s, w.ammoKind) + " more)")
+                    : ", range " + w.range + ", " + cap(s, w) + " a load of " + w.ammoKind + " (" + ammoOf(s, w) + " in" + loadName(s, w) + ", " + reserveOf(s, w.ammoKind) + " more)")
                     + (w.blastMax > 0 ? ", bursts " + w.blastMin + "-" + w.blastMax : "");
             inv.setItem(k, tagged(m, w.tag, w.name, (k == 0 ? "right hand" : "left hand") + " · your own · " + w.skill + " · " + what,
                     "right click: next mode · left click at an enemy: attack", "F or scroll: the other hand (0 AP)"));
@@ -605,7 +614,9 @@ public final class Battle implements Listener {
             if (!w.wears || !s.health.containsKey(w.name)) continue;
             double cond = Math.max(0, Math.min(100, s.health.get(w.name) / w.maxHealth * 100));
             if (removeIds(p, id -> id.equals(e.getValue()), 1) > 0)
-                for (ItemStack rest : p.getInventory().addItem(Items.made(d, 1, cond)).values()) p.getWorld().dropItem(p.getLocation(), rest);
+                { ItemStack back = Items.made(d, 1, cond);   // 05d §5: its accessories stay on it
+                    if (s.acc.containsKey(e.getKey()) && !s.acc.get(e.getKey()).isEmpty()) Accessories.set(back, s.acc.get(e.getKey()));
+                    for (ItemStack rest : p.getInventory().addItem(back).values()) p.getWorld().dropItem(p.getLocation(), rest); }
         }
     }
 
@@ -718,16 +729,53 @@ public final class Battle implements Listener {
     static int ammoOf(State s, Weapon w) { return s.ammo.getOrDefault(w.tag, 0); }
 
     /**
-     * The body behind a blow, a throw or a bow (05d round 3, Marek 11-25: *"strength and maybe even skill should increase the damage for
-     * them a bit"*): melee and thrown the melee bonus (Fallout 2's max(Str - 5, 1)), a bow half of Strength over 5 (the archer's own draw;
-     * a crossbow none), and the skill +1 for each full 50 over 50 (melee, thrown, bows) [the bow's and the skill's rule mine]; guns none.
+     * The body behind a blow, a throw or a bow (05d rounds 3-4, Marek 11-25: *"strength and maybe even skill should increase the damage"*
+     * · *"lets follow GURPS here, it seems more realistic"*): (Strength - 5) x the weapon's GURPS factor (a swing 1.5-2.3, a thrust
+     * 0.8-1.7, a bow 0.84 by its draw; a crossbow, a chainsaw, a gun none; under 5 it takes), rounded; and the skill +1 for each full 50
+     * over 50 (melee, thrown, bows) [the skill's rule mine, RULED round 4]. The numbers of `data/weapons.json` are an average person's.
      */
     static int handBonus(Character c, int[] attrs, Weapon w) {
         boolean bow = w.skill.equals("Bows");
         if (!w.melee() && !w.thrown && !bow) return 0;
-        int str = w.melee() || w.thrown ? Rules.meleeBonus(attrs) : w.crossbow ? 0 : Math.max(0, (attrs[Rules.S] - 5) / 2);
+        int str = (int) Math.round((attrs[Rules.S] - 5) * w.strDmg);
         int sk = c != null && !w.skill.isEmpty() ? (int) Math.max(0, Math.floor((weaponSkill(c, w.skill) - 50) / 50)) : 0;
         return str + sk;
+    }
+
+    /**
+     * THE SHOCK (05d §2e, round 4, Marek: *"The effect should not arrive always, just when it passes armor, does enough lightning damage
+     * and the target does not endure it. Try to make it somewhat realistic."*) [the numbers mine]: the Electrical damage that passed the
+     * armour's Isolation (a weapon's arc jumps cloth: an NPC's clothes stop none) x2 on a robot or drone, x1.5 wet; a living target
+     * endures it on d100 <= End x 10 + 20 - 10 x the damage (a strong current locks the muscles whoever you are); not endured: it loses
+     * that many AP next turn (at least 2), and 8+ knocks it down; a machine has no roll: 4+ resets it the same way. Returns the log's part.
+     */
+    static String shock(Target t, int passed, boolean machine, boolean wet, java.util.function.IntSupplier d100) {
+        int e = (int) Math.round(passed * (machine ? 2 : 1) * (wet ? 1.5 : 1));
+        if (e <= 0) return "";
+        boolean hit;
+        String why;
+        if (machine) { hit = e >= 4; why = hit ? "its electronics reset" : "it shrugs it off"; }
+        else {
+            int need = t.a[Rules.E] * 10 + 20 - 10 * e, roll = d100.getAsInt();
+            hit = roll > need;
+            why = hit ? "he does not endure it (d100 " + roll + " > " + Math.max(0, need) + ")" : "he endures it (d100 " + roll + " <= " + need + ")";
+        }
+        if (!hit) return " The shock: " + e + " Electrical, " + why + ".";
+        t.apLoss = Math.max(t.apLoss, Math.max(2, e));
+        if (e >= 8) t.down = true;
+        return " The shock: " + e + " Electrical, " + why + ": AP -" + Math.max(2, e) + " next turn" + (e >= 8 ? ", knocked down" : "") + ".";
+    }
+
+    static boolean machine(Target t) { String k = t.kind.toLowerCase(Locale.ROOT); return k.contains("robot") || k.contains("drone"); }
+
+    /** The magazine with its accessory (05d §5: an extended magazine x2, a drum x3). */
+    static int cap(State s, Weapon w) { return w.magazine * Accessories.magazine(s.acc.get(w.tag)); }
+
+    /** An accessory's own attack chosen as the mode (05d §5: the bayonet, the launcher): its weapon, or null. */
+    static Weapon accessoryWeapon(State s, Weapon w, Mode m) {
+        for (String at : Accessories.attacks(s.acc.get(w.tag)))
+            if (m.name().equals(at) || (at.equals("Under-barrel launcher") && m.name().startsWith("Launcher"))) return GEAR.get(at);
+        return null;
     }
 
     /** The rounds he carries of a category (its calibre): every load of it; Power cells by the shots. */
@@ -753,6 +801,7 @@ public final class Battle implements Listener {
 
     /** The ammo's damage modifier and penetration of a shot: his own load's (05d round 1), else the weapon's own (the demo). */
     static double[] ammoMods(State s, Weapon w) {
+        if (w.melee() || w.thrown) return new double[]{0, w.pen};
         Production.Design d = s.own ? loaded(s, w) : null;
         return d != null && d.dmg != null ? new double[]{d.dmg, d.pen != null ? d.pen : 0} : new double[]{w.ammoDamage, w.ammoPenetration};
     }
@@ -762,7 +811,7 @@ public final class Battle implements Listener {
      * one load a magazine, the one in it while he has more of it, else the load he carries most of [mine]; Power cells by the shots.
      */
     static boolean reload(State s, Weapon w) {
-        if (!s.own) { s.ammo.put(w.tag, w.magazine); return true; }
+        if (!s.own) { s.ammo.put(w.tag, cap(s, w)); return true; }
         if (w.thrown) return false;
         String key = w.ammoKind;
         if (s.reserve.getOrDefault(key, 0) <= 0) {
@@ -775,7 +824,7 @@ public final class Battle implements Listener {
             }
         }
         if (key == null) return false;
-        int have = s.reserve.getOrDefault(key, 0), n = Math.min(w.magazine - ammoOf(s, w), have);
+        int have = s.reserve.getOrDefault(key, 0), n = Math.min(cap(s, w) - ammoOf(s, w), have);
         if (n <= 0) return false;
         s.reserve.put(key, have - n);
         s.ammo.put(w.tag, ammoOf(s, w) + n);
@@ -822,6 +871,8 @@ public final class Battle implements Listener {
         List<Mode> l = new ArrayList<>();
         if (moved(s, at) && !s.steadied && !w.melee()) l.add(new Mode("Steady yourself", 1, 0, 0, false));
         l.addAll(w.modes);
+        for (String x : Accessories.attacks(s.acc.get(w.tag)))   // 05d §5: the bayonet, the launcher as modes of the gun
+            l.add(x.equals("Under-barrel launcher") ? new Mode("Launcher (40 mm)", 6, 0, 1, false) : new Mode(x, 4, 0, 0, false));
         return l;
     }
 
@@ -869,7 +920,7 @@ public final class Battle implements Listener {
             bar = Component.text(w.name + ": " + m.name() + " · " + apOf(c, w, m) + " AP", NamedTextColor.WHITE)
                     .append(Component.text(m.toHit() != 0 ? " · to hit " + sign(m.toHit()) : "", NamedTextColor.YELLOW))
                     .append(Component.text(pen != 0 ? " · moved " + pen + " (steady: 1 AP)" : "", NamedTextColor.RED))
-                    .append(Component.text(!w.melee() ? (w.thrown ? " · " + ammoOf(s, w) + " to throw" : " · ammo " + ammoOf(s, w) + "/" + w.magazine + (s.own ? loadName(s, w) + " (+" + reserveOf(s, w.ammoKind) + ")" : "")) : "", NamedTextColor.GRAY))
+                    .append(Component.text(!w.melee() ? (w.thrown ? " · " + ammoOf(s, w) + " to throw" : " · ammo " + ammoOf(s, w) + "/" + cap(s, w) + (s.own ? loadName(s, w) + " (+" + reserveOf(s, w.ammoKind) + ")" : "")) : "", NamedTextColor.GRAY))
                     .append(Component.text(s.jammed.contains(w.name) ? " · JAMMED (fire: clear it, " + apOf(c, w, m) + " AP)" : "", NamedTextColor.RED))
                     .append(Component.text(" · cond " + Math.round(cond(s, w) * 100) + " %" + (Combat.broken(health(s, w)) ? " BROKEN" : ""),
                             cond(s, w) >= 0.75 ? NamedTextColor.GRAY : NamedTextColor.GOLD))
@@ -956,6 +1007,8 @@ public final class Battle implements Listener {
             if (pay(p, s, c, 1, "steadying")) { Sfx.to(p, "steady"); s.steadied = true; s.mode.put(w.name, 0); show(p, s, c, "steadied: no moving penalty"); }
             return;
         }
+        Weapon sub = accessoryWeapon(s, w, m);   // 05d §5: the bayonet or the launcher on this gun
+        if (sub != null) { w = sub; m = sub.modes.get(0); }
         if (w.melee() && s.stance() == 2) { show(p, s, c, "prone: no melee attacks (the stance table)"); return; }
         Aim a = aim(p, w.range);
         if (a == null) {
@@ -1008,7 +1061,8 @@ public final class Battle implements Listener {
         log.append(!w.melee() ? "Fired at " : "Struck at ").append(tg != null ? tg.name : who(a.target())).append(", ").append(sh.blocks).append(" blocks: ")
                 .append(m.name()).append(m.aimed() ? " at the " + a.part().label : "").append(" (").append(apOf(c, w, m)).append(" AP). To hit ")
                 .append(th.chance()).append(" % =");
-        th.terms().forEach((k, v) -> log.append(" ").append(k.equals("skill") ? w.skill + " " + v : sign(v) + " " + k));
+        final String wskill = w.skill;
+        th.terms().forEach((k, v) -> log.append(" ").append(k.equals("skill") ? wskill + " " + v : sign(v) + " " + k));
         log.append(". Rolled ").append(r.d100()).append(r.d100() >= 100 ? " (a 100 always misses)" : "").append(": ");
         String result;
         if (!w.melee() && shots == 0) {
@@ -1057,18 +1111,22 @@ public final class Battle implements Listener {
                 double mult = Combat.critMultiplier(part, deg);
                 int total = 0;
                 List<Integer> each = new ArrayList<>();
+                StringBuilder shocks = new StringBuilder();   // 05d §2e: what the shocks did
                 for (int i = 0; i < hits; i++) {
                     double base = (w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + handBonus(c, me, w)) * Combat.conditionDamage(cond(s, w))
                             * perkDamage(c, w, tg) * (w.melee() ? Rules.meleeFactor(c.tpl().bonusDamage()) : 1);   // round 15: the body's melee damage
                     double[] am = ammoMods(s, w);
-                    int dmg = Combat.damage(base, mult, am[0], am[1], tg != null ? tg.dt : 0, tg != null ? tg.dr : 0, fx.bypass());
-                    if (w.shockMax > 0) dmg += w.shockMin + rnd.nextInt(w.shockMax - w.shockMin + 1);   // round 3: the shock, Electrical
+                    boolean arc = w.damageType.equals("Electrical");   // 05d §2e: through the Isolation, not the armour (an NPC's: none yet)
+                    int dmg = Combat.damage(Math.max(1, base), mult, am[0], am[1], tg != null && !arc ? tg.dt : 0, tg != null && !arc ? tg.dr : 0, fx.bypass());
+                    int elec = arc ? dmg : 0;
+                    if (w.shockMax > 0) { int zap = w.shockMin + rnd.nextInt(w.shockMax - w.shockMin + 1); dmg += zap; elec += zap; }   // round 3
+                    if (elec > 0 && tg != null && !tg.dead) shocks.append(shock(tg, elec, machine(tg), a.target().isInWaterOrRain(), d100));
                     each.add(dmg);
                     total += dmg;
                 }
                 log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + Txt.f(mult) + ")" : "HIT").append(spray).append(" Damage ")
                         .append(total).append(hits > 1 ? " " + each : "").append(" (").append(w.minDmg).append("-").append(w.maxDmg)
-                        .append(handBonus(c, me, w) > 0 ? " + " + handBonus(c, me, w) + (w.melee() ? " melee" : " Strength and skill") : "")
+                        .append(handBonus(c, me, w) != 0 ? (handBonus(c, me, w) > 0 ? " + " : " - ") + Math.abs(handBonus(c, me, w)) + " Strength and skill" : "")
                         .append(w.shockMax > 0 ? " + the shock " + w.shockMin + "-" + w.shockMax + " Electrical" : "")
                         .append(w.melee() ? "" : ", " + w.ammo)
                         .append(Combat.conditionDamage(cond(s, w)) < 1 ? "; x" + Txt.f(Math.round(Combat.conditionDamage(cond(s, w)) * 100) / 100.0) + " for its condition" : "")
@@ -1076,6 +1134,7 @@ public final class Battle implements Listener {
                         .append("; DT ").append(tg != null ? tg.dt : 0)
                         .append(", DR ").append(tg != null ? Math.round(tg.dr * 100) : 0).append(" %").append(fx.bypass() ? ", through the armour" : "").append(").");
                 if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
+                log.append(shocks);
                 result = (r.crit() ? "CRIT " : "hit ") + total + " HP";
                 Sfx.at(a.target().getLocation(), w.melee() ? "knife.flesh" : "bullet.flesh");
                 if (r.crit()) {   // the hit's own sound and the narrator (Marek 11-19: "Just make crits have normal sound + the narrator speach")
@@ -1100,10 +1159,11 @@ public final class Battle implements Listener {
             if (s.own) s.used.merge(w.thrown ? "thrown:" + w.name : s.load.getOrDefault(w.tag, w.ammoKind), spent, Integer::sum);
             if (jamRound > 0) { log.append(" THE GUN JAMS after ").append(shots).append(" round(s), the next one lost (firing again tries to clear it)."); result += " · JAMMED"; }
             if (ammoOf(s, w) <= 0 && !s.broken.contains(w.name) && !w.thrown) {   // reload automatic when out of ammo (Marek 11-14), 2 AP (Fallout 2)
-                if (s.ap >= 2 && (!s.own || reserveOf(s, w.ammoKind) > 0)) { s.ap -= 2; s.apAtAnchor = s.ap; reload(s, w); log.append(" Reloaded automatically (2 AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
+                int rap = Accessories.fastReload(s.acc.get(w.tag)) ? 1 : 2;   // 05d §5: taped magazines, a speed loader (F2's Fast Reload)
+                if (s.ap >= rap && (!s.own || reserveOf(s, w.ammoKind) > 0)) { s.ap -= rap; s.apAtAnchor = s.ap; reload(s, w); log.append(" Reloaded automatically (" + rap + " AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
                 else log.append(s.own && reserveOf(s, w.ammoKind) <= 0 ? " Empty, and no " + w.ammoKind + " left." : " Empty: reloads when you have 2 AP (or after the battle).");
             }
-            s.gunfire = true;
+            if (!Accessories.quiet(s.acc.get(w.tag))) s.gunfire = true;   // 05d §5: a suppressor
             Rules.Gas here = c.gasHere();
             if (here != null && here.ignites()) {   // 03b §3c: a spark or a flame sets it off, a blast as a grenade's over the pocket
                 log.append(" The muzzle flash sets off the ").append(here.name()).append("!");
@@ -1127,7 +1187,7 @@ public final class Battle implements Listener {
         sh.perception = me[Rules.P];
         sh.strength = me[Rules.S];
         sh.minStrength = w.minStrength;
-        sh.weaponPerk = w.perk;
+        sh.weaponPerk = Accessories.perk(w.perk, s.acc.get(w.tag));   // 05d §5: a scope, a long barrel
         sh.melee = w.melee();
         sh.aimed = m.aimed();
         sh.part = a.part();
@@ -1141,6 +1201,10 @@ public final class Battle implements Listener {
         sh.stance = s.stance();
         sh.senses = c.senses();
         sh.extra.put("prosthetic arm", c.armToHit(w.twoHanded));
+        Map<String, String> fit = s.acc.get(w.tag);   // 05d §5: the sights, the bipod
+        if (Accessories.night(fit)) sh.senses = Math.max(sh.senses, 2);
+        if (Accessories.toHit(fit) != 0) sh.extra.put("sight", Accessories.toHit(fit));
+        if (Accessories.bipod(fit) && m.ammo() > 1 && !moved(s, p.getLocation().toBlockLocation())) sh.extra.put("bipod", 10);
         if (signature(c, w)) sh.extra.put("Signature Weapon", 15);
         if (nemesis(c, tg)) sh.extra.put("Nemesis", 15);
         if (tg != null && tg.surprised) sh.extra.put("caught mid-talk", TALK_SURPRISE);
