@@ -46,6 +46,8 @@ outside the game; the game itself is for the look and feel. The rules' text live
   the item after the fight), facing = his yaw as his turn ends (`State.faceYaw`), `Battle.frontal`, `shieldHit`, `shieldTake` (called by
   `Raiders` on a shot and a blow before his armour), `shieldObscures` (a holed shield: -10); the unused AP saved at the turn's end
   (`State.carry`).
+  The throws, blows and darts (05d round 7): `Weapon.entangle` (bolas, net: `Target.entangled`, freed in `Raiders.plan` by `Battle.tearsFree`),
+  `throwsName` (the spear-thrower's javelins), `noGuard` (the war flail), the sedative dart (`Target.sedatedAt`, `SEDATIVE_ROUNDS`).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):

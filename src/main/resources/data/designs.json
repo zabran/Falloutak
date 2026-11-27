@@ -242,6 +242,18 @@
    "note": "the grenade launcher's; the hand-made: black powder and scrap in a case [mine]"
   },
   {
+   "name": "Sling stones",
+   "group": "Rounds",
+   "skill": "Throwing",
+   "note": "a sling's: picked stones, or lead cast in a mould (heavier, a little more)"
+  },
+  {
+   "name": "Darts",
+   "group": "Rounds",
+   "skill": "Bows",
+   "note": "a blowgun's or a dart gun's; a sedative dart carries a vet's dose: asleep after ~3 minutes"
+  },
+  {
    "name": "Heavy rounds",
    "group": "Rounds",
    "skill": "Guns",
@@ -825,6 +837,24 @@
     }
    ],
    "per": 1
+  },
+  "Sling stones": {
+   "parts": [
+    {
+     "type": "Stone and glass",
+     "count": 1
+    }
+   ],
+   "per": 5
+  },
+  "Darts": {
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "count": 1
+    }
+   ],
+   "per": 3
   },
   "Heavy rounds": {
    "parts": [
@@ -1526,6 +1556,29 @@
    "category": "Hammers",
    "group": "Melee weapons",
    "skill": "Hammers",
+   "name": "War flail",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 2
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Hammers",
+   "group": "Melee weapons",
+   "skill": "Hammers",
    "name": "Sledgehammer",
    "tier": 2,
    "rarity": 1,
@@ -1696,6 +1749,29 @@
    "tier": 1,
    "rarity": 1,
    "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Spears",
+   "group": "Melee weapons",
+   "skill": "Spears",
+   "name": "War scythe",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    },
     {
      "type": "Light weapon parts",
      "tier": 1,
@@ -2565,6 +2641,29 @@
    "category": "Rifles",
    "group": "Ranged weapons",
    "skill": "Guns",
+   "name": "Dart gun",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 3,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
    "name": ".22 rifle",
    "tier": 4,
    "rarity": 1,
@@ -3301,6 +3400,29 @@
    "category": "Bows",
    "group": "Ranged weapons",
    "skill": "Bows",
+   "name": "Blowgun",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 2
+    },
+    {
+     "type": "Textile",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Bows",
+   "group": "Ranged weapons",
+   "skill": "Bows",
    "name": "Recurve bow",
    "tier": 2,
    "rarity": 1,
@@ -3521,6 +3643,78 @@
     }
    ],
    "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Throwing weapons",
+   "group": "Ranged weapons",
+   "skill": "Throwing",
+   "name": "Sling",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Throwing weapons",
+   "group": "Ranged weapons",
+   "skill": "Throwing",
+   "name": "Spear-thrower",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Throwing weapons",
+   "group": "Ranged weapons",
+   "skill": "Throwing",
+   "name": "Bolas",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 2,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Throwing weapons",
+   "group": "Ranged weapons",
+   "skill": "Throwing",
+   "name": "Net",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 2,
    "slot": "",
    "set": ""
   },
@@ -6398,6 +6592,90 @@
     }
    ],
    "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Sling stones",
+   "group": "Rounds",
+   "skill": "Throwing",
+   "name": "Picked stones",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Stone and glass",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 5,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Sling stones",
+   "group": "Rounds",
+   "skill": "Throwing",
+   "name": "Cast lead bullets",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Stone and glass",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 5,
+   "slot": "",
+   "set": "",
+   "dmg": 0.2,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Darts",
+   "group": "Rounds",
+   "skill": "Bows",
+   "name": "Plain darts",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 3,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Darts",
+   "group": "Rounds",
+   "skill": "Bows",
+   "name": "Sedative darts",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 3,
    "slot": "",
    "set": "",
    "dmg": 0,

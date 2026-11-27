@@ -272,6 +272,21 @@ final class Raiders {
             else q.add(() -> say(p, t.name + " is out cold."));
             return;
         }
+        int now = s.fight != null ? s.fight.round : s.round;
+        if (t.sedatedAt >= 0 && now >= t.sedatedAt) {   // 05d round 7: the dart's sedative has worked: asleep (taken alive)
+            t.out = true;
+            t.outRounds = 9999;
+            t.sedatedAt = -1;
+            q.add(() -> { say(p, t.name + " falls asleep: the dart's sedative (taken alive while he sleeps)."); b.label(le, t); });
+            return;
+        }
+        if (t.entangled > 0) {   // 05d round 7: the bolas or the net: the turn goes on tearing free
+            int d = 1 + b.rnd.nextInt(100), str = t.a[Rules.S], kind = t.entangled;
+            boolean free = Battle.tearsFree(str, d);
+            if (free) t.entangled = 0;
+            q.add(() -> say(p, t.name + (free ? " tears free of the " : " struggles in the ") + (kind == 2 ? "net" : "bolas") + " (d100 " + d + (free ? " <= " : " > ") + 10 * str + ")."));
+            return;
+        }
         if (t.down) {   // Fallout 2: standing up costs 3 AP at the start of the turn
             t.ap -= 3;
             t.down = false;

@@ -74,6 +74,10 @@ public final class Battle implements Listener {
         int reload;
         String lock = "";
         boolean powder, pierce;
+        /** 05d round 7 (RULED 11-27, §7b): the bolas and the net entangle (legs, body); the spear-thrower throws what it names (the
+         *  javelins carried); the war flail ignores the guard (it wraps round a blocking blade). */
+        String entangle = "", throwsName = "";
+        boolean noGuard;
         String models = "";
         Weapon(String name, String skill, int magazine, int range, boolean twoHanded, Mode... modes) {
             this.name = name; this.skill = skill; this.magazine = magazine; this.range = range; this.twoHanded = twoHanded; this.modes = List.of(modes);
@@ -164,6 +168,9 @@ public final class Battle implements Listener {
                     w.lock = o.has("lock") ? o.get("lock").getAsString() : "";
                     w.powder = o.has("powder") && o.get("powder").getAsBoolean();
                     w.pierce = o.has("pierce") && o.get("pierce").getAsBoolean();
+                    w.entangle = o.has("entangle") ? o.get("entangle").getAsString() : "";
+                    w.throwsName = o.has("throws") ? o.get("throws").getAsString() : "";
+                    w.noGuard = o.has("noguard") && o.get("noguard").getAsBoolean();
                 }
                 w.ammoKind = o.has("ammo") ? o.get("ammo").getAsString() : "";
                 w.models = o.has("models") ? o.get("models").getAsString() : "";
@@ -226,6 +233,8 @@ public final class Battle implements Listener {
         /** A creature of the world map's encounters (09d round 2): its own attack in melee instead of the gun; a HUNTED one that is not
          *  hostile runs from the party (and is gone once it is far enough: escaped). */
         boolean melee, flees, escaped;
+        /** 05d round 7: entangled (1 the bolas: the legs, 2 the net: the body); the round a sedative dart puts him to sleep (-1 none). */
+        int entangled, sedatedAt = -1;
         int minDmg = 5, maxDmg = 12, reach = 1, attackAp = 4;
         String attack = "bite";
         /** The battle map's ground (null in the demo): a running animal at its edge is gone. */
@@ -597,7 +606,7 @@ public final class Battle implements Listener {
         var inv = p.getInventory();
         for (int k = 0; k < 2; k++) {
             Weapon w = hands.get(k);
-            if (w.thrown) s.ammo.put(w.tag, thrown.getOrDefault(w.name, 0));
+            if (w.thrown) s.ammo.put(w.tag, thrown.getOrDefault(w.throwsName.isEmpty() ? w.name : w.throwsName, 0));   // the spear-thrower: the javelins
             else if (!w.melee() || w.cell > 0) reload(s, w);   // 05d round 7: the saber's cell
             for (String at : Accessories.attacks(s.acc.get(w.tag))) { Weapon x = GEAR.get(at); if (x != null && !x.melee()) reload(s, x); }   // the launcher
             Material m = w == fists ? Material.LEATHER : w.melee() || w.thrown ? Material.IRON_SWORD : Material.IRON_HORSE_ARMOR;
@@ -784,7 +793,7 @@ public final class Battle implements Listener {
      */
     static int handBonus(Character c, int[] attrs, Weapon w) {
         boolean bow = w.skill.equals("Bows");
-        if (!w.melee() && !w.thrown && !bow) return 0;
+        if (!w.melee() && !w.thrown && !bow && w.strDmg == 0) return 0;   // 05d round 7: the sling's swing counts the arm too
         int str = (int) Math.round((attrs[Rules.S] - 5) * w.strDmg);
         int per = w.skill.equals("Unarmed") ? 25 : 50;   // round 5: the fist's damage is its technique (300 = +10)
         int sk = c != null && !w.skill.isEmpty() ? (int) Math.max(0, Math.floor((weaponSkill(c, w.skill) - 50) / per)) : 0;
@@ -962,6 +971,12 @@ public final class Battle implements Listener {
         if (sd == null || held != null && held.twoHanded || s.shieldHealth <= 0 || s.shieldHealth >= sd.health() * 0.5) return 0;
         return frontal(s.faceYaw, p.getLocation().getX(), p.getLocation().getZ(), from.getX(), from.getZ()) ? 1 : 0;
     }
+
+    /** 05d round 7: a vet's dose in a muscle takes minutes (ketamine IM ~3-4 [real]); a round is 6 s. */
+    static final int SEDATIVE_ROUNDS = 30;
+
+    /** 05d round 7: tearing free of the bolas or the net, a turn: d100 <= 10 x Strength. */
+    static boolean tearsFree(int strength, int d100) { return d100 <= 10 * strength; }
 
     /** A long action's payment (05d round 7: *"very long actions ... in parts"*): {pay now, paid after}; done when paid after = need. */
     static int[] partPay(int need, int done, int ap) {
@@ -1418,6 +1433,7 @@ public final class Battle implements Listener {
                     int dtv = tg != null && !arc ? tg.dt : 0;
                     if (piercing(c, w)) dtv = (int) Math.round(dtv / 5.0);   // round 5: Unarmed 150 pierces (Fallout 2's Force Punch)
                     int dmg = Combat.damage(Math.max(1, base), mult, am[0], am[1], dtv, tg != null && !arc ? tg.dr : 0, fx.bypass() || w.pierce);
+                    if (w.maxDmg <= 0) dmg = 0;   // 05d round 7: the net does no harm, it entangles
                     int elec = arc ? dmg : 0;
                     if (w.shockMax > 0) { int zap = w.shockMin + rnd.nextInt(w.shockMax - w.shockMin + 1); dmg += zap; elec += zap; }   // round 3
                     if (elec > 0 && tg != null && !tg.dead) shocks.append(shock(tg, elec, machine(tg), a.target().isInWaterOrRain(), d100));
@@ -1442,6 +1458,14 @@ public final class Battle implements Listener {
                 }
                 if (tg != null) {
                     hurt(a.target(), tg, total, fx, r.crit(), deg, log);
+                    if (!tg.dead && !w.entangle.isEmpty()) {   // 05d round 7: the bolas the legs, the net the whole body
+                        tg.entangled = Math.max(tg.entangled, w.entangle.equals("body") ? 2 : 1);
+                        log.append(" ENTANGLED (").append(tg.entangled == 2 ? "the net" : "the bolas").append("): his turns go on tearing free (d100 <= 10 x Strength).");
+                    }
+                    if (!tg.dead && w.ammoKind.equals("Darts") && s.load.getOrDefault(w.tag, "").contains("Sedative") && tg.sedatedAt < 0) {
+                        tg.sedatedAt = (s.fight != null ? s.fight.round : s.round) + SEDATIVE_ROUNDS;   // 05d round 7: the dose
+                        log.append(" The dart's sedative is in him: asleep in ~3 minutes (").append(SEDATIVE_ROUNDS).append(" rounds), unless the fight ends first.");
+                    }
                     int kb = Combat.knockback(total);
                     if (kb > 0 && !tg.dead) knockback(p.getLocation(), a.target(), kb, log);
                     result += " · " + tg.label().substring(tg.name.length() + 3);
@@ -1462,7 +1486,7 @@ public final class Battle implements Listener {
                 p.getWorld().spawnParticle(org.bukkit.Particle.CAMPFIRE_COSY_SMOKE, p.getLocation().add(0, 1.4, 0), 25, 0.6, 0.5, 0.6, 0.01);
                 if (s.fired.get(w.tag) == FOUL_SHOTS) log.append(" The bore is FOULED: each reload +50 % AP until it is cleaned (a mode, ").append(CLEAN_AP).append(" AP).");
             }
-            if (s.own) s.used.merge(w.thrown ? "thrown:" + w.name : s.load.getOrDefault(w.tag, w.ammoKind), spent, Integer::sum);
+            if (s.own) s.used.merge(w.thrown ? "thrown:" + (w.throwsName.isEmpty() ? w.name : w.throwsName) : s.load.getOrDefault(w.tag, w.ammoKind), spent, Integer::sum);
             if (jamRound > 0) { log.append(" THE GUN JAMS after ").append(shots).append(" round(s), the next one lost (firing again tries to clear it)."); result += " · JAMMED"; }
             if (ammoOf(s, w) <= 0 && !s.broken.contains(w.name) && !w.thrown) {   // reload automatic when out of ammo (Marek 11-14), 2 AP (Fallout 2)
                 int rap = reloadAp(c, w, Accessories.fastReload(s.acc.get(w.tag)), fouled(s, w));   // 05d §5 taped magazines, a speed loader; round 5 the skill
@@ -1522,7 +1546,7 @@ public final class Battle implements Listener {
         if (Accessories.toHit(fit) != 0) sh.extra.put("sight", Accessories.toHit(fit));
         if (Accessories.bipod(fit) && m.ammo() > 1 && !moved(s, p.getLocation().toBlockLocation())) sh.extra.put("bipod", 10);
         if (m.ammo() > 1 && recoilBonus(me[Rules.S], w) > 0) sh.extra.put("Strength over the minimum", recoilBonus(me[Rules.S], w));   // round 5
-        if (w.melee() && tg != null && !tg.lying() && tg.gun != null && tg.gun.melee() && guardAc(tg.skill) > 0)
+        if (w.melee() && !w.noGuard && tg != null && !tg.lying() && tg.gun != null && tg.gun.melee() && guardAc(tg.skill) > 0)   // 05d round 7: not a flail
             sh.extra.put("his guard", -guardAc(tg.skill));   // round 5: his blade turns blows aside
         if (signature(c, w)) sh.extra.put("Signature Weapon", 15);
         if (nemesis(c, tg)) sh.extra.put("Nemesis", 15);

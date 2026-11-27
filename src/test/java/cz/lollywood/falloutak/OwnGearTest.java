@@ -51,7 +51,7 @@ class OwnGearTest extends MockGame {
             if (cat == null || !(cat.group.equals("Melee weapons") || cat.group.equals("Ranged weapons"))) continue;
             Battle.Weapon w = Battle.GEAR.get(d.name);
             assertNotNull(w, "a battle row for " + d.name);
-            assertTrue(w.minDmg >= 1 && w.minDmg <= w.maxDmg, d.name + " damage");
+            assertTrue(w.minDmg >= 1 && w.minDmg <= w.maxDmg || w.maxDmg == 0 && !w.entangle.isEmpty(), d.name + " damage");   // the net: none, it entangles
             assertTrue(w.range >= 2 && !w.modes.isEmpty(), d.name + " range and modes");
             if (cat.group.equals("Ranged weapons") && !w.thrown)
                 assertTrue(Battle.ROUNDS.contains(w.ammoKind) || w.ammoKind.equals("Power"), d.name + " loads " + w.ammoKind);
@@ -382,6 +382,32 @@ class OwnGearTest extends MockGame {
         assertTrue(Battle.fouled(st, musket));
         assertFalse(Battle.fouled(st, Battle.GEAR.get("Pipe rifle")), "smokeless: never")
         ;
+    }
+
+    @Test
+    void throwsBlowsAndDarts() {   // 05d round 7 (RULED 11-27, §7b)
+        Battle.Weapon sling = Battle.GEAR.get("Sling"), atlatl = Battle.GEAR.get("Spear-thrower"), bolas = Battle.GEAR.get("Bolas"),
+                net = Battle.GEAR.get("Net"), flail = Battle.GEAR.get("War flail"), scythe = Battle.GEAR.get("War scythe"),
+                blowgun = Battle.GEAR.get("Blowgun"), dartGun = Battle.GEAR.get("Dart gun");
+        assertEquals("Sling stones", sling.ammoKind);
+        int[] weak = {5, 5, 5, 5, 5, 5, 5}, strong = {10, 5, 5, 5, 5, 5, 5};
+        assertTrue(Battle.handBonus(null, strong, sling) > Battle.handBonus(null, weak, sling), "the sling's swing: Strength counts");
+        assertTrue(atlatl.thrown);
+        assertEquals("Javelin", atlatl.throwsName);
+        assertTrue(atlatl.maxDmg > Battle.GEAR.get("Javelin").maxDmg, "the spear-thrower throws harder than the hand");
+        assertEquals("legs", bolas.entangle);
+        assertEquals("body", net.entangle);
+        assertEquals(0, net.maxDmg, "the net does no harm");
+        assertTrue(flail.noGuard && !Battle.GEAR.get("Mace").noGuard);
+        assertEquals(3, scythe.range, "a pole's reach");
+        assertEquals("Darts", blowgun.ammoKind);
+        assertEquals("Darts", dartGun.ammoKind);
+        assertEquals("Guns", dartGun.skill);
+        assertEquals(3, Production.design("Rifles", "Dart gun").tier, "today's factory: Tier III");
+        assertEquals(1, Production.design("Throwing weapons", "Sling").tier);
+        assertTrue(Battle.tearsFree(5, 50));
+        assertFalse(Battle.tearsFree(5, 51));
+        assertEquals(30, Battle.SEDATIVE_ROUNDS, "minutes, not a round: a dart ends a hunt, not a fight");
     }
 
     @Test
