@@ -952,7 +952,7 @@ public final class Character {
      * the Raccoon frame's ×½, + the artifacts' kg (the feather stone +15, the float −10). The Hoarder's own −1 does not lower it.
      */
     public double capacityKg() {
-        int st = attr(Rules.S, false) - (int) Math.round(effectMod("hoarder", Rules.S));
+        int st = attr(Rules.S, false) - (int) Math.round(effectMod("hoarder", Rules.S)) + (int) Math.round(carryStrength());
         double ath = skills()[Rules.skillIndex("Athletics")];
         double lb = 25 + (has("Small Frame") ? 15 : 25) * st + ath + (hasPerk("Strong Back") ? 50 : 0) + (has("Hoarder") ? 25 : 0);
         double kg = lb * LB;
@@ -2429,6 +2429,13 @@ public final class Character {
      * × (0.66 + min(0.34 × condition / 0.5, 0.34)).
      */
     public static double conditionShare(double conditionPct) { return 0.66 + Math.min(0.34 * (conditionPct / 100) / 0.5, 0.34); }
+
+    /** Strength for carrying only, from a worn piece (05c §12: the load exoskeleton, +2; 05d round 8). */
+    public double carryStrength() {
+        double s = 0;
+        for (Worn w : armour.values()) { Data.Armour a = setOf(w); if (a != null) s += a.carryStr(); }
+        return s;
+    }
 
     /** The piece's set, or null when nothing is worn or it does not fit this body (a misfit gives nothing but its weight, 05c §9.5). */
     private Data.Armour setOf(Worn w) { return w == null || !fits(w) ? null : Data.ARMOUR.get(w.set()); }

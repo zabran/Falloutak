@@ -87,7 +87,7 @@ public final class Data {
     public record Armour(String name, String source, int ac, Map<String, Double> dt, Map<String, Double> dr, Map<String, Double> shares,
                          List<String> pieces, double weightKg, int value, int health, int[] mods, double radRes, double poisonRes,
                          Map<String, Double> skills, boolean sealed, String repair, String material, String colour, int gasDr,
-                         int tier, int rarity, boolean cooled, boolean powerArmour) {
+                         int tier, int rarity, boolean cooled, boolean powerArmour, double carryStr) {
         public int pieceAc(String slot) { return (int) Math.round(ac * shares.getOrDefault(slot, 0.0)); }
         public double pieceHealth(String slot) { return Math.max(10, health * shares.getOrDefault(slot, 0.0)); }
         public double pieceWeight(String slot) { return Math.round(weightKg * shares.getOrDefault(slot, 0.0) * 10) / 10.0; }
@@ -95,7 +95,16 @@ public final class Data {
         public double dr(String type) { return dr.getOrDefault(type, 0.0); }
     }
 
-    public static final Map<String, Armour> ARMOUR = new LinkedHashMap<>();
+    /** The armour sets by name; an old name (a renamed set, armour.json's "was": the Brotherhood Armor, 05d round 8) still finds its set,
+     *  so pieces worn or stored under it keep working. */
+    public static final Map<String, Armour> ARMOUR = new LinkedHashMap<>() {
+        @Override
+        public Armour get(Object k) {
+            Armour a = super.get(k);
+            return a != null ? a : super.get(ARMOUR_WAS.get(k));
+        }
+    };
+    static final Map<String, String> ARMOUR_WAS = new HashMap<>();
 
     /** A gene set of the shop (03d §9, DRAFT 2 11-18): one course; an adult gets it without its puberty-only (shape) and ORGAN genes. */
     public record GeneSet(String name, List<String> genes, List<String> pubertyOnly, String shop) {}
@@ -764,7 +773,9 @@ public final class Data {
                     d(o, "weight_kg"), (int) d(o, "value"), (int) d(o, "health"), attrs(o, "mods"), d(o, "rad_res"), d(o, "poison_res"),
                     nums(o, "skills"), o.has("sealed") && o.get("sealed").getAsBoolean(), s(o, "repair", "Crafting"), s(o, "material", "leather"),
                     s(o, "colour", ""), (int) d(o, "gas_dr"), (int) d(o, "tier", 1), (int) d(o, "rarity", 1),
-                    o.has("cooled") && o.get("cooled").getAsBoolean(), o.has("power_armour") && o.get("power_armour").getAsBoolean()));
+                    o.has("cooled") && o.get("cooled").getAsBoolean(), o.has("power_armour") && o.get("power_armour").getAsBoolean(),
+                    d(o, "carry_str")));
+            if (o.has("was")) for (JsonElement w : o.getAsJsonArray("was")) ARMOUR_WAS.put(w.getAsString(), name);
         }
         for (JsonElement e : rows("chems")) {
             JsonObject o = e.getAsJsonObject();

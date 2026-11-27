@@ -844,6 +844,9 @@
   }
  },
  "renamed": {
+  "Head armour|Brotherhood Armor": "Head armour|Special forces armour",
+  "Body armour|Brotherhood Armor": "Body armour|Special forces armour",
+  "Leg armour|Brotherhood Armor": "Leg armour|Special forces armour",
   "Pistol rounds|Remanufactured pistol rounds": "9x19 rounds|9x19 remanufactured",
   "Pistol rounds|Pistol reloads": "9x19 rounds|9x19 reloads",
   "Pistol rounds|10mm JHP": "10mm rounds|10mm JHP",
@@ -6845,17 +6848,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Combat Armor",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -6868,17 +6871,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Combat Armor",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 3
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 3
     }
    ],
@@ -6891,17 +6894,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Combat Armor",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 2
     }
    ],
@@ -6914,17 +6917,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Combat Armor Mk II",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -6937,17 +6940,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Combat Armor Mk II",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 3
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 4
     }
    ],
@@ -6960,17 +6963,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Combat Armor Mk II",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 2
     }
    ],
@@ -6982,70 +6985,70 @@
    "category": "Head armour",
    "group": "Armour",
    "skill": "",
-   "name": "Brotherhood Armor",
-   "tier": 4,
+   "name": "Special forces armour",
+   "tier": 3,
    "rarity": 3,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
    "makes": 1,
    "slot": "Head",
-   "set": "Brotherhood Armor"
+   "set": "Special forces armour"
   },
   {
    "category": "Body armour",
    "group": "Armour",
    "skill": "",
-   "name": "Brotherhood Armor",
-   "tier": 4,
+   "name": "Special forces armour",
+   "tier": 3,
    "rarity": 3,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 3
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 4
     }
    ],
    "makes": 1,
    "slot": "Chest",
-   "set": "Brotherhood Armor"
+   "set": "Special forces armour"
   },
   {
    "category": "Leg armour",
    "group": "Armour",
    "skill": "",
-   "name": "Brotherhood Armor",
-   "tier": 4,
+   "name": "Special forces armour",
+   "tier": 3,
    "rarity": 3,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 2
     }
    ],
    "makes": 1,
    "slot": "Legs",
-   "set": "Brotherhood Armor"
+   "set": "Special forces armour"
   },
   {
    "category": "Head armour",
@@ -7570,17 +7573,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Environmental Armor",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -7593,17 +7596,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Environmental Armor",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 4
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -7616,17 +7619,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Environmental Armor",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 2
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -7639,12 +7642,12 @@
    "group": "Armour",
    "skill": "",
    "name": "Environmental Armor",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -7657,17 +7660,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Environmental Armor Mk II",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -7680,17 +7683,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Environmental Armor Mk II",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 4
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 2
     }
    ],
@@ -7703,17 +7706,17 @@
    "group": "Armour",
    "skill": "",
    "name": "Environmental Armor Mk II",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 2
     },
     {
      "type": "Hard armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -7726,12 +7729,12 @@
    "group": "Armour",
    "skill": "",
    "name": "Environmental Armor Mk II",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "parts": [
     {
      "type": "Soft armour parts",
-     "tier": 4,
+     "tier": 3,
      "count": 1
     }
    ],
@@ -8692,6 +8695,647 @@
    "makes": 1,
    "slot": "Head",
    "set": "Gas mask"
+  },
+  {
+   "category": "Head armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Motorbike helmet",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "Head",
+   "set": "Motorbike helmet"
+  },
+  {
+   "category": "Head armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Ballistic helmet",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "Head",
+   "set": "Ballistic helmet"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Welding leathers",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 1,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Welding leathers"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Workshop steel plates",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 8
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Workshop steel plates"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Work trousers with knee pads",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Work trousers with knee pads"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Chainsaw trousers",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Chainsaw trousers"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Motocross pants",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Motocross pants"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Ballistic leg plates",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 3,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Ballistic leg plates"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Load exoskeleton",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 6
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Load exoskeleton"
+  },
+  {
+   "category": "Footwear",
+   "group": "Armour",
+   "skill": "",
+   "name": "Hiking boots",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Feet",
+   "set": "Hiking boots"
+  },
+  {
+   "category": "Footwear",
+   "group": "Armour",
+   "skill": "",
+   "name": "Safety boots",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Feet",
+   "set": "Safety boots"
+  },
+  {
+   "category": "Footwear",
+   "group": "Armour",
+   "skill": "",
+   "name": "Motocross boots",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 3,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "Feet",
+   "set": "Motocross boots"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Gambeson",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 1,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Gambeson"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Gambeson",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Gambeson"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Mail",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 8
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Mail"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Mail",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 4
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Mail"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Brigandine",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 2,
+     "count": 2
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 6
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Brigandine"
+  },
+  {
+   "category": "Head armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Forged plate harness",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 4
+    }
+   ],
+   "makes": 1,
+   "slot": "Head",
+   "set": "Forged plate harness"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Forged plate harness",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 13
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Forged plate harness"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Forged plate harness",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 6
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Forged plate harness"
+  },
+  {
+   "category": "Footwear",
+   "group": "Armour",
+   "skill": "",
+   "name": "Forged plate harness",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "Feet",
+   "set": "Forged plate harness"
+  },
+  {
+   "category": "Head armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Forged helmet",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "Head",
+   "set": "Forged helmet"
+  },
+  {
+   "category": "Head armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Combat Armor 2040s",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Head",
+   "set": "Combat Armor 2040s"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Combat Armor 2040s",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Combat Armor 2040s"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Combat Armor 2040s",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Combat Armor 2040s"
+  },
+  {
+   "category": "Head armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Combat Armor 2040s Mk II",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Head",
+   "set": "Combat Armor 2040s Mk II"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Combat Armor 2040s Mk II",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 3
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 3
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Combat Armor 2040s Mk II"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Combat Armor 2040s Mk II",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Combat Armor 2040s Mk II"
+  },
+  {
+   "category": "Head armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Sealed suit 2040s",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Head",
+   "set": "Sealed suit 2040s"
+  },
+  {
+   "category": "Body armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Sealed suit 2040s",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 4
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Chest",
+   "set": "Sealed suit 2040s"
+  },
+  {
+   "category": "Leg armour",
+   "group": "Armour",
+   "skill": "",
+   "name": "Sealed suit 2040s",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Legs",
+   "set": "Sealed suit 2040s"
+  },
+  {
+   "category": "Footwear",
+   "group": "Armour",
+   "skill": "",
+   "name": "Sealed suit 2040s",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "Feet",
+   "set": "Sealed suit 2040s"
   }
  ]
 }

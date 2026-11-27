@@ -37,6 +37,38 @@ class ArmourTest {
     }
 
     @Test
+    void roundSevenAndEight() {   // 05d rounds 7-8 (RULED 11-27, 05c §12)
+        assertEquals(57, Data.ARMOUR.size());
+        // today's gear Tier III, the 2040s Tier IV (Marek: *"transport them to T3 and add new T4 equivalent"*)
+        assertEquals(3, Data.ARMOUR.get("Combat Armor").tier());
+        assertEquals(3, Data.ARMOUR.get("Environmental Armor Mk II").tier());
+        assertEquals(4, Data.ARMOUR.get("Combat Armor 2040s").tier());
+        assertTrue(Data.ARMOUR.get("Combat Armor 2040s").dt("Normal") > Data.ARMOUR.get("Combat Armor Mk II").dt("Normal"));
+        assertTrue(Data.ARMOUR.get("Sealed suit 2040s").sealed() && Data.ARMOUR.get("Sealed suit 2040s").cooled());
+        // the Brotherhood Armor renamed; the old name still finds it (worn or stored pieces)
+        Data.Armour sf = Data.ARMOUR.get("Special forces armour");
+        assertEquals(3, sf.tier());
+        assertEquals(3, sf.rarity());
+        assertSame(sf, Data.ARMOUR.get("Brotherhood Armor"));
+        assertEquals(57, Data.ARMOUR.values().size(), "the old name is no second set");
+        // the slots that had nothing alone, the improvised full armours
+        assertEquals(java.util.List.of("Legs"), Data.ARMOUR.get("Chainsaw trousers").pieces());
+        assertEquals(java.util.List.of("Feet"), Data.ARMOUR.get("Hiking boots").pieces());
+        assertEquals(2, Data.ARMOUR.get("Forged helmet").tier());
+        assertEquals(4, Data.ARMOUR.get("Forged plate harness").pieces().size());
+        assertTrue(Data.ARMOUR.get("Brigandine").dt("Normal") >= Data.ARMOUR.get("Mail").dt("Normal"), "cloth < mail < brigandine < plate");
+        assertTrue(Data.ARMOUR.get("Forged plate harness").dt("Normal") > Data.ARMOUR.get("Brigandine").dt("Normal"));
+        // the load exoskeleton: Strength +2 for carrying only
+        Character c = human();
+        double cap = c.capacityKg();
+        int st = c.attrs(false)[Rules.S];
+        c.setArmour(set("Load exoskeleton", 100, "Legs"), false, false);
+        assertEquals(2, c.carryStrength(), 1e-9);
+        assertTrue(c.capacityKg() > cap, "it carries more");
+        assertEquals(st, c.attrs(false)[Rules.S], "but the Strength itself is not raised");
+    }
+
+    @Test
     void protectionByPartAndCondition() {
         Character c = human();
         int dt0 = c.dtAt(Rules.Part.TORSO, "Normal");
@@ -152,7 +184,7 @@ class ArmourTest {
         assertEquals(10.0, orc.wornKg(), 0.05);                                   // but still weighs (Fallout's 20 lb x 0.5, round 13)
         assertFalse(orc.complete("Combat Armor"));
         String r = orc.refit("Chest");
-        assertTrue(r.contains("refitted") || r.contains("needs Crafting 100"), r);
+        assertTrue(r.contains("refitted") || r.contains("needs Crafting 75"), r);   // 05d round 8: Combat Armor is Tier III (25 a tier)
         if (r.contains("refitted")) assertEquals("large", orc.armour.get("Chest").fit());
         Character ent = AirTest.human();
         ent.applyTemplate("Ent");

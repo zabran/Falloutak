@@ -102,8 +102,8 @@ class WorksTest extends MockGame {
         Menus.actions(p);
         click("Production");
         Ui.Page pg = click("Assemble items to take out");
-        assertTrue(pg.labels().contains("Body armour · 2 ready"), pg.labels().toString());
-        pg = click("Body armour · 2 ready");
+        assertTrue(pg.labels().contains("Body armour · 4 ready"), pg.labels().toString());   // 0.101.0: + the brigandine and the mail (Tier II R1, 05d round 8)
+        pg = click("Body armour · 4 ready");
         assertTrue(pg.labels().contains("✔ Metal Armor (II) · 1 ready"), pg.labels().toString());
         assertTrue(pg.labels().contains("Leather Armor (I R2) · locked"), pg.labels().toString());
         click("✔ Metal Armor (II) · 1 ready");

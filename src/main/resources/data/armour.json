@@ -35,6 +35,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "6B3A2A",
    "tier": 1,
@@ -74,6 +76,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "4A2E1E",
    "tier": 1,
@@ -113,6 +117,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "2E2A26",
    "tier": 3,
@@ -154,6 +160,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "7A5230",
    "tier": 1,
@@ -195,6 +203,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "5C3D22",
    "tier": 1,
@@ -238,6 +248,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "iron",
    "colour": "",
    "tier": 2,
@@ -281,6 +293,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "iron",
    "colour": "",
    "tier": 2,
@@ -324,6 +338,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Engineering",
+   "carry_str": 0,
+   "was": [],
    "material": "golden",
    "colour": "",
    "tier": 3,
@@ -367,9 +383,11 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "1E1E1E",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "cooled": false,
    "power_armour": false
@@ -410,15 +428,17 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "2B2B33",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "cooled": false,
    "power_armour": false
   },
   {
-   "name": "Brotherhood Armor",
+   "name": "Special forces armour",
    "source": "Fallout 2 (and Fallout 1)",
    "ac": 20,
    "dt": {
@@ -453,9 +473,13 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [
+    "Brotherhood Armor"
+   ],
    "material": "chainmail",
    "colour": "",
-   "tier": 4,
+   "tier": 3,
    "rarity": 3,
    "cooled": false,
    "power_armour": false
@@ -503,6 +527,8 @@
    },
    "sealed": false,
    "repair": "Engineering",
+   "carry_str": 0,
+   "was": [],
    "material": "iron",
    "colour": "",
    "tier": 4,
@@ -553,6 +579,8 @@
    },
    "sealed": false,
    "repair": "Engineering",
+   "carry_str": 0,
+   "was": [],
    "material": "diamond",
    "colour": "",
    "tier": 4,
@@ -603,6 +631,8 @@
    },
    "sealed": false,
    "repair": "Engineering",
+   "carry_str": 0,
+   "was": [],
    "material": "netherite",
    "colour": "",
    "tier": 4,
@@ -653,6 +683,8 @@
    },
    "sealed": false,
    "repair": "Engineering",
+   "carry_str": 0,
+   "was": [],
    "material": "netherite",
    "colour": "",
    "tier": 4,
@@ -702,9 +734,11 @@
    },
    "sealed": true,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "9DB33A",
-   "tier": 4,
+   "tier": 3,
    "rarity": 1,
    "cooled": false,
    "power_armour": false
@@ -751,9 +785,11 @@
    },
    "sealed": true,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "B8C94A",
-   "tier": 4,
+   "tier": 3,
    "rarity": 2,
    "cooled": false,
    "power_armour": false
@@ -792,6 +828,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "7A2A1E",
    "tier": 1,
@@ -833,6 +871,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "5E2418",
    "tier": 2,
@@ -874,6 +914,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "chainmail",
    "colour": "",
    "tier": 2,
@@ -915,6 +957,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "iron",
    "colour": "",
    "tier": 2,
@@ -956,6 +1000,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "8C6A4A",
    "tier": 1,
@@ -1001,6 +1047,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "8A7A66",
    "tier": 1,
@@ -1046,6 +1094,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "EDEDED",
    "tier": 2,
@@ -1089,6 +1139,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "D9C49A",
    "tier": 1,
@@ -1128,6 +1180,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "golden",
    "colour": "",
    "tier": 1,
@@ -1167,6 +1221,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "5A3A1E",
    "tier": 1,
@@ -1206,6 +1262,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "3A5A2A",
    "tier": 1,
@@ -1249,6 +1307,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "B02020",
    "tier": 1,
@@ -1292,6 +1352,8 @@
    },
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "4E5B2E",
    "tier": 2,
@@ -1337,6 +1399,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "C8A040",
    "tier": 3,
@@ -1376,6 +1440,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "1E2A4A",
    "tier": 3,
@@ -1421,6 +1487,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "101820",
    "tier": 3,
@@ -1460,6 +1528,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "2E3020",
    "tier": 3,
@@ -1505,6 +1575,8 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "3E4A2E",
    "tier": 4,
@@ -1550,6 +1622,8 @@
    "skills": {},
    "sealed": true,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "leather",
    "colour": "E0C020",
    "tier": 3,
@@ -1589,11 +1663,857 @@
    "skills": {},
    "sealed": false,
    "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
    "material": "chainmail",
    "colour": "",
    "tier": 3,
    "rarity": 1,
    "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Motorbike helmet",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 3,
+   "dt": {
+    "Normal": 2,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 30,
+    "Heat": 10,
+    "Fire": 20,
+    "Isolation": 10
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.5,
+   "value": 200,
+   "pieces": [
+    "Head"
+   ],
+   "shares": {
+    "Head": 1.0
+   },
+   "health": 50,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "202020",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Ballistic helmet",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 3,
+   "dt": {
+    "Normal": 4,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 40,
+    "Heat": 10,
+    "Fire": 20,
+    "Isolation": 10
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.5,
+   "value": 600,
+   "pieces": [
+    "Head"
+   ],
+   "shares": {
+    "Head": 1.0
+   },
+   "health": 50,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "iron",
+   "colour": "",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Welding leathers",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 5,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 2,
+    "Isolation": 1
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 10,
+    "Fire": 40,
+    "Isolation": 30
+   },
+   "gas_dr": 0,
+   "weight_kg": 3.0,
+   "value": 150,
+   "pieces": [
+    "Chest"
+   ],
+   "shares": {
+    "Chest": 1.0
+   },
+   "health": 99,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "6E5236",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Workshop steel plates",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 5,
+   "dt": {
+    "Normal": 5,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 35,
+    "Heat": 10,
+    "Fire": 20,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 8.0,
+   "value": 500,
+   "pieces": [
+    "Chest"
+   ],
+   "shares": {
+    "Chest": 1.0
+   },
+   "health": 265,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "iron",
+   "colour": "",
+   "tier": 2,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Work trousers with knee pads",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 1,
+   "dt": {
+    "Normal": 0,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 1
+   },
+   "dr": {
+    "Normal": 10,
+    "Heat": 5,
+    "Fire": 5,
+    "Isolation": 20
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.0,
+   "value": 40,
+   "pieces": [
+    "Legs"
+   ],
+   "shares": {
+    "Legs": 1.0
+   },
+   "health": 40,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "2E3A5A",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Chainsaw trousers",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 2,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 1
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 5,
+    "Fire": 10,
+    "Isolation": 20
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.5,
+   "value": 150,
+   "pieces": [
+    "Legs"
+   ],
+   "shares": {
+    "Legs": 1.0
+   },
+   "health": 50,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "D46A1A",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Motocross pants",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 3,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 1
+   },
+   "dr": {
+    "Normal": 25,
+    "Heat": 10,
+    "Fire": 15,
+    "Isolation": 20
+   },
+   "gas_dr": 0,
+   "weight_kg": 2.5,
+   "value": 250,
+   "pieces": [
+    "Legs"
+   ],
+   "shares": {
+    "Legs": 1.0
+   },
+   "health": 83,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "1E4AA0",
+   "tier": 2,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Ballistic leg plates",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 2,
+   "dt": {
+    "Normal": 4,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 35,
+    "Heat": 10,
+    "Fire": 20,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 3.0,
+   "value": 600,
+   "pieces": [
+    "Legs"
+   ],
+   "shares": {
+    "Legs": 1.0
+   },
+   "health": 99,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "3A3A2E",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Load exoskeleton",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 0,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 10,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 6.0,
+   "value": 5000,
+   "pieces": [
+    "Legs"
+   ],
+   "shares": {
+    "Legs": 1.0
+   },
+   "health": 198,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Engineering",
+   "carry_str": 2,
+   "was": [],
+   "material": "iron",
+   "colour": "",
+   "tier": 4,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Hiking boots",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 1,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 3
+   },
+   "dr": {
+    "Normal": 10,
+    "Heat": 5,
+    "Fire": 10,
+    "Isolation": 40
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.2,
+   "value": 120,
+   "pieces": [
+    "Feet"
+   ],
+   "shares": {
+    "Feet": 1.0
+   },
+   "health": 40,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "6A4A2A",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Safety boots",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 2,
+   "dt": {
+    "Normal": 2,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 4
+   },
+   "dr": {
+    "Normal": 15,
+    "Heat": 10,
+    "Fire": 15,
+    "Isolation": 60
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.6,
+   "value": 100,
+   "pieces": [
+    "Feet"
+   ],
+   "shares": {
+    "Feet": 1.0
+   },
+   "health": 53,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "2A2A2A",
+   "tier": 2,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Motocross boots",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 2,
+   "dt": {
+    "Normal": 3,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 3
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 10,
+    "Fire": 15,
+    "Isolation": 40
+   },
+   "gas_dr": 0,
+   "weight_kg": 2.5,
+   "value": 300,
+   "pieces": [
+    "Feet"
+   ],
+   "shares": {
+    "Feet": 1.0
+   },
+   "health": 83,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "E0E0E0",
+   "tier": 3,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Gambeson",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 8,
+   "dt": {
+    "Normal": 1,
+    "Heat": 0,
+    "Fire": 0,
+    "Isolation": 5
+   },
+   "dr": {
+    "Normal": 20,
+    "Heat": 10,
+    "Fire": -10,
+    "Isolation": 40
+   },
+   "gas_dr": 0,
+   "weight_kg": 4.0,
+   "value": 100,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 132,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "C8B48A",
+   "tier": 1,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Mail",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 10,
+   "dt": {
+    "Normal": 3,
+    "Heat": 0,
+    "Fire": 1,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 35,
+    "Heat": 10,
+    "Fire": 20,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 12.0,
+   "value": 400,
+   "pieces": [
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Chest": 0.6667,
+    "Legs": 0.3333
+   },
+   "health": 397,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "chainmail",
+   "colour": "",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Brigandine",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 10,
+   "dt": {
+    "Normal": 4,
+    "Heat": 1,
+    "Fire": 2,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 35,
+    "Heat": 20,
+    "Fire": 30,
+    "Isolation": 10
+   },
+   "gas_dr": 0,
+   "weight_kg": 8.0,
+   "value": 350,
+   "pieces": [
+    "Chest"
+   ],
+   "shares": {
+    "Chest": 1.0
+   },
+   "health": 265,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "6A1E1E",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Forged plate harness",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 15,
+   "dt": {
+    "Normal": 5,
+    "Heat": 3,
+    "Fire": 3,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 40,
+    "Heat": 40,
+    "Fire": 40,
+    "Isolation": 0
+   },
+   "gas_dr": 0,
+   "weight_kg": 25.0,
+   "value": 1500,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 827,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "iron",
+   "colour": "",
+   "tier": 2,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Forged helmet",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 3,
+   "dt": {
+    "Normal": 3,
+    "Heat": 1,
+    "Fire": 1,
+    "Isolation": 0
+   },
+   "dr": {
+    "Normal": 30,
+    "Heat": 20,
+    "Fire": 20,
+    "Isolation": 10
+   },
+   "gas_dr": 0,
+   "weight_kg": 1.5,
+   "value": 120,
+   "pieces": [
+    "Head"
+   ],
+   "shares": {
+    "Head": 1.0
+   },
+   "health": 50,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "iron",
+   "colour": "",
+   "tier": 2,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Combat Armor 2040s",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 25,
+   "dt": {
+    "Normal": 8,
+    "Heat": 8,
+    "Fire": 6,
+    "Isolation": 4
+   },
+   "dr": {
+    "Normal": 45,
+    "Heat": 60,
+    "Fire": 40,
+    "Isolation": 55
+   },
+   "gas_dr": 0,
+   "weight_kg": 9.0,
+   "value": 8000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 298,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "netherite",
+   "colour": "",
+   "tier": 4,
+   "rarity": 1,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Combat Armor 2040s Mk II",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 30,
+   "dt": {
+    "Normal": 9,
+    "Heat": 9,
+    "Fire": 7,
+    "Isolation": 5
+   },
+   "dr": {
+    "Normal": 50,
+    "Heat": 62,
+    "Fire": 45,
+    "Isolation": 60
+   },
+   "gas_dr": 0,
+   "weight_kg": 10.0,
+   "value": 11000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs"
+   ],
+   "shares": {
+    "Head": 0.1667,
+    "Chest": 0.5556,
+    "Legs": 0.2778
+   },
+   "health": 331,
+   "mods": {},
+   "rad_res": 0,
+   "poison_res": 0,
+   "skills": {},
+   "sealed": false,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "netherite",
+   "colour": "",
+   "tier": 4,
+   "rarity": 2,
+   "cooled": false,
+   "power_armour": false
+  },
+  {
+   "name": "Sealed suit 2040s",
+   "source": "ours (05c §12, 05d rounds 7-8)",
+   "ac": 15,
+   "dt": {
+    "Normal": 6,
+    "Heat": 6,
+    "Fire": 6,
+    "Isolation": 2
+   },
+   "dr": {
+    "Normal": 45,
+    "Heat": 60,
+    "Fire": 50,
+    "Isolation": 30
+   },
+   "gas_dr": 0,
+   "weight_kg": 10.0,
+   "value": 9000,
+   "pieces": [
+    "Head",
+    "Chest",
+    "Legs",
+    "Feet"
+   ],
+   "shares": {
+    "Head": 0.15,
+    "Chest": 0.5,
+    "Legs": 0.25,
+    "Feet": 0.1
+   },
+   "health": 331,
+   "mods": {},
+   "rad_res": 75,
+   "poison_res": 75,
+   "skills": {},
+   "sealed": true,
+   "repair": "Crafting",
+   "carry_str": 0,
+   "was": [],
+   "material": "leather",
+   "colour": "D8DC6A",
+   "tier": 4,
+   "rarity": 1,
+   "cooled": true,
    "power_armour": false
   }
  ]

@@ -40,6 +40,8 @@ outside the game; the game itself is for the look and feel. The rules' text live
   the Plasma saber, 05d round 7); black powder and the AP rules (05d round 7): `Weapon.reload`, `lock`, `powder`, `pierce`,
   `Battle.reloadAp` (the skill's scale, fouled +50 %), `misfire`, `fouled`, `turnAp` (unused AP carried), `partPay` + `reloadStep`,
   `cleanStep` (long actions in parts), the smoke (`State.smokeRound`, read by `Raiders`).
+  The armour's renamed sets resolve by their old name (`Data.ARMOUR`'s `get` + `ARMOUR_WAS`, armour.json "was"); a piece's Strength for
+  carrying only (`Armour.carryStr`, `Character.carryStrength`: the load exoskeleton, 05c §12).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
