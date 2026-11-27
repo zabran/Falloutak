@@ -208,9 +208,16 @@ public final class Rules {
         return b;
     }
 
-    /** A perk's gate is met when any of its alternatives is (02c §2). */
+    /** A perk's gate is met when any of its alternatives is (02c §2), and every further condition too ("and", 05d round 7: Chi Master's
+     *  Unarmed 100 and Occultism 50, Marek 11-27: *"let it also need Occultism 50"*). */
     public static boolean gateMet(double[] skills, Data.Perk p) {
-        for (Data.Alt a : p.alts()) if (best(skills, a) >= a.value()) return true;
+        if (!anyMet(skills, p.alts())) return false;
+        for (List<Data.Alt> g : p.also()) if (!anyMet(skills, g)) return false;
+        return true;
+    }
+
+    private static boolean anyMet(double[] skills, List<Data.Alt> alts) {
+        for (Data.Alt a : alts) if (best(skills, a) >= a.value()) return true;
         return false;
     }
 

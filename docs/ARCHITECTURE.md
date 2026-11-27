@@ -35,7 +35,9 @@ outside the game; the game itself is for the look and feel. The rules' text live
   The person behind the weapon (05d rounds 3-5): `Battle.handBonus` (Strength by GURPS, the skill; Unarmed twice), `piercing`
   (Unarmed 150: the DT a fifth), `guardAc` (AC against blows from the weapon's skill), `recoilBonus`, `reloadAp`, `unaware` (the crit
   chance x2); the shock `Battle.shock` (an NPC) and `Battle.shockPlayer` (a player: his armour's Isolation, AP lost next turn); the Chi Master perk `Battle.chiLevel`, `chiDamage`, `reach`, `chiName` (Occultism, the hidden 16th skill of
-  `Rules.SKILLS`, shown as `Rules.hiddenWord`).
+  `Rules.SKILLS`, shown as `Rules.hiddenWord`; its gate two conditions, `Data.Perk.also` + `Rules.gateMet`) and from Occultism 200
+  its Kamehameha (`Battle.KAME`, `kamehameha`, the beam `onBeam` + `beam`); a melee weapon on a Power cell (`Weapon.cell`, `CELL_DRAW`:
+  the Plasma saber, 05d round 7).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
@@ -63,13 +65,13 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
 | `Arena` | 755 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 2423 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 2556 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
-| `Character` | 2729 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
+| `Character` | 2733 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
 | `Conditions` | 256 | the conditions with their own clocks: scurvy, trench foot, scabies, latent tuberculosis |
 | `Creatures` | 160 | the game's creatures in the world (spawning, their sounds and motion) |
-| `Data` | 935 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
+| `Data` | 944 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
 | `Diseases` | 608 | the diseases' race, catching, vaccines, the treatments and the tending check |
 | `FalloutakPlugin` | 427 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
 | `Forms` | 425 | the dialog forms: create a character, spend points, the level-up |
@@ -92,10 +94,10 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Raiders` | 927 | the enemies' turn: choosing, moving, shooting, melee and bites |
 | `Research` | 614 | research: inspiration, experiments, prototypes, the cards |
 | `Roster` | 525 | `/npc`, `/pop`, `/group`: statblocks, the groups' XP and levels, lessons, work |
-| `Rules` | 691 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
+| `Rules` | 708 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
 | `Saves` | 134 | saved games (the whole state copied and restored) |
 | `Sfx` | 149 | every action's sound |
-| `SheetView` | 465 | the character sheet as a text screen, its pages |
+| `SheetView` | 469 | the character sheet as a text screen, its pages |
 | `Spoil` | 116 | food spoiling by tier, rarity and place |
 | `Storage` | 336 | the base's store as Minecraft chests |
 | `Store` | 123 | character files and THE SAVING HELPER for every saved file |
@@ -107,5 +109,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **48 classes** | **24612** | |
+| **48 classes** | **24779** | |
 <!-- /CLASSES -->

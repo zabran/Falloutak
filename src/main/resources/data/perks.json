@@ -1473,7 +1473,7 @@
   {
    "name": "Chi Master",
    "kind": "weapon",
-   "gate": "Unarmed 100",
+   "gate": "Unarmed 100 and Occultism 50",
    "alts": [
     {
      "skills": [
@@ -1483,11 +1483,22 @@
      "value": 100
     }
    ],
-   "effect": "eastern martial arts as the media show them, as magic (05d round 6, Marek 11-25): your unarmed blows +1 a 25 points of Occultism (the hidden skill), their reach +1 block a 50, and the punch takes a new name each 50 (Chi Punch, Dragon Punch, Tiger Palm, Force Palm, Hundred-Pace Fist, Empty Hand, Heaven-Splitting Fist) [the gate and names mine]",
+   "effect": "eastern martial arts as the media show them, as magic (05d round 6, Marek 11-25): your unarmed blows +1 a 25 points of Occultism (the hidden skill), their reach +1 block a 50, and the punch takes a new name each 50 (Chi Punch, Dragon Punch, Tiger Palm, Force Palm, Hundred-Pace Fist, Empty Hand, Heaven-Splitting Fist); from Occultism 200 the Kamehameha (05d round 7, Marek 11-27: \"more AP heavy AoE version\"): a beam as long as the punch's reach, striking everyone on it with the punch's damage, 8 AP [the names, the level and the AP mine]",
    "parked": false,
    "bound": false,
    "mods": {},
-   "other": {}
+   "other": {},
+   "also": [
+    [
+     {
+      "skills": [
+       "Occultism"
+      ],
+      "any": "",
+      "value": 50
+     }
+    ]
+   ]
   },
   {
    "name": "Home Turf",

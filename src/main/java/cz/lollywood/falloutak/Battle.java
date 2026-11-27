@@ -65,6 +65,9 @@ public final class Battle implements Listener {
         /** 05d round 4 (Marek: *"lets follow GURPS here"*): the damage a point of Strength over 5 adds (under 5 takes), GURPS's
          *  thrust or swing slope x the wound; the armour's DR a 2040s edge ignores (titanium 0.2, diamond 0.4, monomolecular 0.8). */
         double strDmg, pen;
+        /** 05d round 7 (Marek 11-27: the Plasma saber *"Powerful, but with large energy needs - user may need to reload in middle of
+         *  fight."*): a melee weapon's blows on one Power cell (0 = none); the cell is its magazine, swapped as a reload. */
+        int cell;
         String models = "";
         Weapon(String name, String skill, int magazine, int range, boolean twoHanded, Mode... modes) {
             this.name = name; this.skill = skill; this.magazine = magazine; this.range = range; this.twoHanded = twoHanded; this.modes = List.of(modes);
@@ -150,6 +153,7 @@ public final class Battle implements Listener {
                     w.crossbow = o.has("crossbow") && o.get("crossbow").getAsBoolean();
                     w.strDmg = o.has("str_dmg") ? o.get("str_dmg").getAsDouble() : 0;
                     w.pen = o.has("pen") ? o.get("pen").getAsDouble() : 0;
+                    w.cell = o.has("cell") ? o.get("cell").getAsInt() : 0;
                 }
                 w.ammoKind = o.has("ammo") ? o.get("ammo").getAsString() : "";
                 w.models = o.has("models") ? o.get("models").getAsString() : "";
@@ -523,6 +527,9 @@ public final class Battle implements Listener {
     /** The rounds' categories (part 7's designs) and what a power cell holds [EXAMPLE]. */
     static final Set<String> ROUNDS = Production.roundsCategories();
     static final int CELL_SHOTS = 10;
+    /** 05d round 7 (Marek 11-27: the Plasma saber's *"large energy needs"*): a plasma blade's blow draws 2 Power shots, so its 6-blow
+     *  charge is a laser pistol's 12-shot magazine [mine]. */
+    static final int CELL_DRAW = 2;
 
     /**
      * The battle's hotbar from what he carries [the form mine]: his first two weapons (part 7's designs with a row in
@@ -564,10 +571,10 @@ public final class Battle implements Listener {
         for (int k = 0; k < 2; k++) {
             Weapon w = hands.get(k);
             if (w.thrown) s.ammo.put(w.tag, thrown.getOrDefault(w.name, 0));
-            else if (!w.melee()) reload(s, w);
+            else if (!w.melee() || w.cell > 0) reload(s, w);   // 05d round 7: the saber's cell
             for (String at : Accessories.attacks(s.acc.get(w.tag))) { Weapon x = GEAR.get(at); if (x != null && !x.melee()) reload(s, x); }   // the launcher
             Material m = w == fists ? Material.LEATHER : w.melee() || w.thrown ? Material.IRON_SWORD : Material.IRON_HORSE_ARMOR;
-            String what = w.minDmg + "-" + w.maxDmg + " " + w.damageType + (w.melee() ? ", reach " + (w.range - 1) : w.thrown ? ", thrown, " + ammoOf(s, w) + " carried"
+            String what = w.minDmg + "-" + w.maxDmg + " " + w.damageType + (w.melee() ? ", reach " + (w.range - 1) + (w.cell > 0 ? ", " + ammoOf(s, w) + " blows on its cell" : "") : w.thrown ? ", thrown, " + ammoOf(s, w) + " carried"
                     : ", range " + w.range + ", " + cap(s, w) + " a load of " + w.ammoKind + " (" + ammoOf(s, w) + " in" + loadName(s, w) + ", " + reserveOf(s, w.ammoKind) + " more)")
                     + (w.blastMax > 0 ? ", bursts " + w.blastMin + "-" + w.blastMax : "");
             inv.setItem(k, tagged(m, w.tag, w.name, (k == 0 ? "right hand" : "left hand") + " · your own · " + w.skill + " · " + what,
@@ -772,6 +779,31 @@ public final class Battle implements Listener {
     static String chiName(double occ) { return CHI_NAMES[(int) Math.max(0, Math.min(CHI_NAMES.length - 1, Math.floor(occ / 50)))]; }
 
     /**
+     * KAMEHAMEHA (05d round 7, Marek 11-27: *"add unlock of more AP heavy AoE version (Kamehameha) from some high Occultism level"*): the
+     * Chi Master's blow as a beam from Occultism 200: along the line toward the enemy aimed at, as long as the punch's reach (the Chi
+     * Master's longer reach counted), it strikes EVERYONE on it (allies too) with the punch's damage until a solid block stops it; the
+     * aimed one's roll decides whether it flies true; 8 AP [the level, the AP and the beam's width mine].
+     */
+    static final String KAME = "Kamehameha";
+    static final int KAME_OCC = 200, KAME_AP = 8;
+
+    static boolean kamehameha(double chi) { return chi >= KAME_OCC; }
+
+    /** The bodies on a beam from {@code eye} along {@code dir} for {@code stop} blocks: their centre within half their width + 0.5 of
+     *  the line and ahead of the eye (indices into {@code mids}). */
+    static List<Integer> onBeam(Vector eye, Vector dir, double stop, List<Vector> mids, List<Double> halfWidths) {
+        Vector d = dir.clone().normalize();
+        List<Integer> out = new ArrayList<>();
+        for (int i = 0; i < mids.size(); i++) {
+            Vector rel = mids.get(i).clone().subtract(eye);
+            double t = rel.dot(d);
+            if (t < 0.3 || t > stop + 0.5) continue;
+            if (rel.clone().subtract(d.clone().multiply(t)).length() <= halfWidths.get(i) + 0.5) out.add(i);
+        }
+        return out;
+    }
+
+    /**
      * PUNCHES THAT SCALE (05d round 5, Marek 11-25: *"punch and unarmed weapons should be able to scale a bit ... It should not be serious
      * option, but I would still like the maxed character in unarmed (300 skill, 10 strength ...) to punch through power armor."*):
      * Unarmed's skill adds +1 a 25 points over 50 (the melee families a 50, {@link #handBonus}), and from Unarmed 150 every unarmed blow
@@ -856,7 +888,7 @@ public final class Battle implements Listener {
     static boolean machine(Target t) { String k = t.kind.toLowerCase(Locale.ROOT); return k.contains("robot") || k.contains("drone"); }
 
     /** The magazine with its accessory (05d §5: an extended magazine x2, a drum x3). */
-    static int cap(State s, Weapon w) { return w.magazine * Accessories.magazine(s.acc.get(w.tag)); }
+    static int cap(State s, Weapon w) { return (w.cell > 0 ? w.cell : w.magazine) * Accessories.magazine(s.acc.get(w.tag)); }
 
     /** An accessory's own attack chosen as the mode (05d §5: the bayonet, the launcher): its weapon, or null. */
     static Weapon accessoryWeapon(State s, Weapon w, Mode m) {
@@ -911,9 +943,10 @@ public final class Battle implements Listener {
             }
         }
         if (key == null) return false;
-        int have = s.reserve.getOrDefault(key, 0), n = Math.min(cap(s, w) - ammoOf(s, w), have);
+        int per = w.cell > 0 ? CELL_DRAW : 1;   // 05d round 7: a blade's blow draws more than a shot
+        int have = s.reserve.getOrDefault(key, 0), n = Math.min(cap(s, w) - ammoOf(s, w), have / per);
         if (n <= 0) return false;
-        s.reserve.put(key, have - n);
+        s.reserve.put(key, have - n * per);
         s.ammo.put(w.tag, ammoOf(s, w) + n);
         if (key.contains("|")) s.load.put(w.tag, key);
         return true;
@@ -960,6 +993,7 @@ public final class Battle implements Listener {
         for (Mode x : w.modes)   // 05d round 6: the Chi Master's punches by their names
             l.add(s.chi >= 0 && w.skill.equals("Unarmed") && !x.aimed()
                     ? new Mode(x.name().equals("Thrust") ? chiName(s.chi) + ", focused" : chiName(s.chi), x.ap(), x.toHit(), x.ammo(), x.aimed()) : x);
+        if (w.skill.equals("Unarmed") && kamehameha(s.chi)) l.add(new Mode(KAME, KAME_AP, 0, 0, false));   // 05d round 7
         for (String x : Accessories.attacks(s.acc.get(w.tag)))   // 05d §5: the bayonet, the launcher as modes of the gun
             l.add(x.equals("Under-barrel launcher") ? new Mode("Launcher (40 mm)", 6, 0, 1, false) : new Mode(x, 4, 0, 0, false));
         return l;
@@ -1111,6 +1145,12 @@ public final class Battle implements Listener {
         if (pl.anomalies.hidden(a.target().getLocation(), p.getLocation())) {   // 09c §2: unseen from outside a blind spot (only area attacks reach him)
             Sfx.to(p, "ap.lacking"); show(p, s, c, "you cannot see him: he is inside a blind spot (only a grenade's blast reaches him)"); return;
         }
+        if (w.cell > 0 && ammoOf(s, w) <= 0) {   // 05d round 7: the cell is spent: this click swaps it (a reload's AP)
+            if (s.own && reserveOf(s, w.ammoKind) <= 0) { show(p, s, c, "the " + w.name + "'s cell is spent and you carry no other " + w.ammoKind); return; }
+            int rap = reloadAp(c, w, false);
+            if (pay(p, s, c, rap, "swapping the cell")) { reload(s, w); Sfx.at(p.getLocation(), "pistol.reload"); show(p, s, c, "a fresh cell (" + rap + " AP): " + ammoOf(s, w) + " blows"); }
+            return;
+        }
         if (!w.melee() && ammoOf(s, w) < m.ammo()) { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, w.thrown ? "none left to throw" : "not enough ammo for " + m.name() + (s.own ? " (" + reserveOf(s, w.ammoKind) + " " + w.ammoKind + " left)" : "")); return; }
         if (s.broken.contains(w.name)) { show(p, s, c, "the " + w.name + " is destroyed (a critical failure)"); return; }
         if (s.dropped.contains(w.name)) {   // a critical failure dropped it: picking it up is an action [2 AP mine]
@@ -1173,6 +1213,9 @@ public final class Battle implements Listener {
             critFailure(p, s, c, w, f, log);
             Sfx.at(p.getLocation(), "crit.fail");
             Narrator.fumble(p.getLocation(), f, c.female);
+        } else if (m.name().equals(KAME)) {   // 05d round 7: the beam strikes everyone on its line
+            result = beam(p, s, c, w, a, r, me, log);
+            if (!inBattle(p)) { p.sendMessage(Component.text(log.toString(), NamedTextColor.GRAY)); return; }
         } else if (w.blastMax > 0) {   // a rocket: it explodes where it lands (on him if it hit, 1-3 blocks off if it missed)
             Location boom = a.target().getLocation().toBlockLocation();
             if (!r.hit()) boom.add(rnd.nextInt(5) - 2, 0, rnd.nextInt(5) - 2);
@@ -1265,6 +1308,11 @@ public final class Battle implements Listener {
                 explode(p, s, c, p.getLocation().toBlockLocation(), null, 0, log);
                 if (!inBattle(p)) { p.sendMessage(Component.text(log.toString(), NamedTextColor.GRAY)); return; }
             }
+        }
+        if (w.cell > 0) {   // 05d round 7: each blow drains the cell
+            s.ammo.put(w.tag, Math.max(0, ammoOf(s, w) - 1));
+            if (s.own) s.used.merge(s.load.getOrDefault(w.tag, w.ammoKind), CELL_DRAW, Integer::sum);
+            if (ammoOf(s, w) <= 0) log.append(" The cell is spent: the next click swaps it (").append(reloadAp(c, w, false)).append(" AP).");
         }
         p.sendMessage(Component.text(log.toString(), NamedTextColor.GRAY));
         show(p, s, c, result);
@@ -1825,6 +1873,62 @@ public final class Battle implements Listener {
     /** The burst: everyone within 2 blocks whom no block shields (a line from the burst to his middle) takes 20-35, less DT and DR. */
     private void explode(Player p, State s, Character c, Location boom, LivingEntity direct, int critDegree, StringBuilder log) {
         explode(p, s, c, boom, direct, critDegree, log, Combat.GRENADE_MIN, Combat.GRENADE_MAX);
+    }
+
+    /** The Kamehameha's beam ({@link #KAME}): each body on its line takes the punch's damage, each its own roll. Returns the result. */
+    private String beam(Player p, State s, Character c, Weapon w, Aim a, Combat.Roll r, int[] me, StringBuilder log) {
+        if (!r.hit()) { log.append("MISS: the beam flies wide."); Sfx.at(a.target().getLocation(), "melee.miss"); return "the beam missed"; }
+        org.bukkit.World wd = p.getWorld();
+        Location eye = p.getEyeLocation();
+        Vector dir = a.target().getLocation().add(0, a.target().getHeight() / 2, 0).toVector().subtract(eye.toVector());
+        if (dir.lengthSquared() < 1e-6) dir = eye.getDirection();
+        dir.normalize();
+        double len = reach(c, w) + 0.5;
+        org.bukkit.util.RayTraceResult wall = wd.rayTraceBlocks(eye, dir, len, FluidCollisionMode.NEVER, true);
+        double stop = wall != null ? wall.getHitPosition().distance(eye.toVector()) : len;
+        for (double d = 0.5; d <= stop; d += 0.5) wd.spawnParticle(org.bukkit.Particle.END_ROD, eye.clone().add(dir.clone().multiply(d)), 3, 0.08, 0.08, 0.08, 0.0);
+        Sfx.at(p.getLocation(), "explosion");
+        Location centre = eye.clone().add(dir.clone().multiply(stop / 2));
+        List<LivingEntity> bodies = new ArrayList<>();
+        List<Vector> mids = new ArrayList<>();
+        List<Double> hw = new ArrayList<>();
+        for (Entity e : wd.getNearbyEntities(centre, stop / 2 + 1.5, stop / 2 + 2, stop / 2 + 1.5)) {
+            if (!(e instanceof LivingEntity le) || le.isDead() || le.equals(p)) continue;
+            bodies.add(le);
+            mids.add(le.getLocation().add(0, le.getHeight() / 2, 0).toVector());
+            hw.add(le.getWidth() / 2);
+        }
+        log.append(r.crit() ? "CRITICAL: " : "").append("the beam flies ").append(Txt.f(Math.round(stop * 10) / 10.0)).append(" blocks")
+                .append(wall != null ? " to a wall" : "").append(".");
+        List<String> hit = new ArrayList<>();
+        for (int i : onBeam(eye.toVector(), dir, stop, mids, hw)) {
+            LivingEntity le = bodies.get(i);
+            int base = Math.max(1, w.minDmg + rnd.nextInt(w.maxDmg - w.minDmg + 1) + handBonus(c, me, w));
+            Target t = s.targets.get(le.getUniqueId());
+            if (t != null) {
+                if (t.dead) continue;
+                int dtv = piercing(c, w) ? (int) Math.round(t.dt / 5.0) : t.dt;
+                int dmg = Combat.damage(base, 1, 0, w.pen, dtv, t.dr, false);
+                hit.add(t.name + " " + dmg + " HP");
+                StringBuilder sub = new StringBuilder();
+                hurt(le, t, dmg, Combat.critEffects(Rules.Part.TORSO, 0, t.a), false, 0, sub);
+                if (!t.dead) knockback(p.getLocation(), le, Combat.knockback(dmg), sub);
+                log.append(sub);
+            } else if (le instanceof Player pp) {   // a player on the line is hit as by a raider's blow (the chest piece)
+                Character pc = pl.character(pp);
+                int dmg = Combat.damage(base, 1, 0, 0, pc.dtAt(Rules.Part.TORSO, "Normal"), pc.drAt(Rules.Part.TORSO, "Normal"), false);
+                if (!pc.wearArmour(Rules.Part.TORSO, base).isEmpty()) Items.writeArmour(pp, pc);
+                hit.add(pp.getName() + " " + dmg + " HP");
+                State ps = states.get(pp.getUniqueId());
+                StringBuilder sub = new StringBuilder();
+                if (ps != null) hitPlayer(pp, ps, pc, p.getLocation(), dmg, Combat.critEffects(Rules.Part.TORSO, 0, pc.attrs(false)), false, 0, sub);
+                else sub.append(" ").append(pp.getName()).append(": ").append(Hud.hit(pc, dmg, "normal")).append(".");
+                pp.sendMessage(Component.text("A Kamehameha's beam:" + sub, NamedTextColor.RED));
+                if (!inBattle(p)) return "the beam";
+            }
+        }
+        log.append(" The beam hits: ").append(hit.isEmpty() ? "nobody" : String.join("; ", hit)).append(".");
+        return "the beam: " + (hit.isEmpty() ? "nobody hit" : hit.size() + " hit");
     }
 
     private void explode(Player p, State s, Character c, Location boom, LivingEntity direct, int critDegree, StringBuilder log, int dmgMin, int dmgMax) {

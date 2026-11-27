@@ -102,6 +102,17 @@ class RulesTest {
         assertFalse(Rules.gateMet(v, slayer));                                        // Unarmed or a melee family 150
         v[Rules.skillIndex("Athletics")] = 150;                                       // Unarmed = Athletics
         assertTrue(Rules.gateMet(v, slayer));
+        // 05d round 7 (Marek 11-27: *"let it also need Occultism 50"*): a gate of two conditions, both needed
+        Data.Perk chi = Data.PERKS.get("Chi Master");
+        assertEquals("Unarmed 100 and Occultism 50", chi.gate());
+        v[Rules.skillIndex("Occultism")] = 49;
+        assertFalse(Rules.gateMet(v, chi), "Unarmed 150 but Occultism 49");
+        v[Rules.skillIndex("Occultism")] = 50;
+        assertTrue(Rules.gateMet(v, chi));
+        v[Rules.skillIndex("Athletics")] = 99;
+        v[Rules.skillIndex("Occultism")] = 300;
+        assertFalse(Rules.gateMet(v, chi), "Occultism 300 but Unarmed 99");
+        v[Rules.skillIndex("Athletics")] = 150;
         assertEquals(1, Data.PERKS.get("Gain Strength").mods()[Rules.S]);
         // taking them
         assertTrue(c.takePerk(tough, "").startsWith("!"));                           // level 1: none due

@@ -240,6 +240,15 @@ class OwnGearTest extends MockGame {
         assertEquals("Chi Punch", Battle.chiName(10));
         assertEquals("Dragon Punch", Battle.chiName(50));
         assertEquals("Heaven-Splitting Fist", Battle.chiName(300));
+        // 05d round 7 (Marek 11-27): the Kamehameha from Occultism 200, 8 AP, a beam striking everyone on its line
+        assertFalse(Battle.kamehameha(199));
+        assertTrue(Battle.kamehameha(200));
+        assertEquals(8, Battle.KAME_AP);
+        org.bukkit.util.Vector eye = new org.bukkit.util.Vector(0, 1.6, 0), east = new org.bukkit.util.Vector(1, 0, 0);
+        List<org.bukkit.util.Vector> mids = List.of(new org.bukkit.util.Vector(2, 1, 0), new org.bukkit.util.Vector(4, 1, 0.4),
+                new org.bukkit.util.Vector(3, 1, 1.8), new org.bukkit.util.Vector(-1, 1, 0), new org.bukkit.util.Vector(7, 1, 0));
+        assertEquals(List.of(0, 1), Battle.onBeam(eye, east, 5, mids, List.of(0.3, 0.3, 0.3, 0.3, 0.3)),
+                "on the line within its reach: yes; beside it, behind the fighter, past its end: no");
         assertEquals("deep", Rules.hiddenWord(c.occultism()));
         assertEquals("a little", Rules.hiddenWord(20));
         Character old = new Character();
@@ -305,6 +314,19 @@ class OwnGearTest extends MockGame {
         Battle.Weapon saber = Battle.GEAR.get("Plasma saber");
         assertEquals("Plasma", saber.damageType, "the lightsaber: a plasma blade");
         assertTrue(saber.pen >= 0.5 && saber.melee());
+        // 05d round 7 (Marek 11-27: *"Powerful, but with large energy needs - user may need to reload in middle of fight."*)
+        assertEquals(6, saber.cell);
+        assertEquals("Power", saber.ammoKind);
+        Battle.State st = new Battle.State();
+        st.own = true;
+        st.reserve.put("Power", 15);
+        assertTrue(Battle.reload(st, saber));
+        assertEquals(6, Battle.ammoOf(st, saber), "a full charge: 6 blows");
+        assertEquals(3, st.reserve.get("Power"), "6 blows drew 12 Power shots, 2 a blow");
+        st.ammo.put(saber.tag, 0);
+        assertTrue(Battle.reload(st, saber));
+        assertEquals(1, Battle.ammoOf(st, saber), "3 shots left: one blow");
+        assertFalse(Battle.reload(st, saber), "1 shot left: not a blow");
     }
 
     @Test

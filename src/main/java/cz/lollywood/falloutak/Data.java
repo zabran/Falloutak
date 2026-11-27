@@ -258,13 +258,23 @@ public final class Data {
     /** A perk's gate alternative: a skill of {@code skills} (or the best of {@code any}: skill, weapon, science, melee) at {@code value}. */
     public record Alt(List<String> skills, String any, double value) {}
 
+    /** A gate's alternatives from the perks' JSON ({@code [{"skills": [...], "any": "", "value": N}]}). */
+    static List<Alt> altsOf(com.google.gson.JsonArray arr) {
+        List<Alt> l = new ArrayList<>();
+        for (JsonElement a : arr) {
+            JsonObject x = a.getAsJsonObject();
+            l.add(new Alt(strs(x, "skills"), s(x, "any", ""), x.get("value").getAsDouble()));
+        }
+        return List.copyOf(l);
+    }
+
     /**
      * A perk of part 2 (`02c` §2-§3, ACCEPTED 11-14; `data/perks.json`, made by `_tools/fallout_perks_json.py`; Marek 11-20: *"please,
      * add our perks"*): its gate, its effect, {@code parked} until parts 7-8, {@code bound} = the player names the thing at the pick;
      * the numbers the sheet applies as a permanent effect, the rest is the GM's until its rule runs in the plugin.
      */
     public record Perk(String name, String kind, String gate, List<Alt> alts, String effect, boolean parked, boolean bound,
-                       int[] mods, Map<String, Double> other) {
+                       int[] mods, Map<String, Double> other, List<List<Alt>> also) {
         public boolean hasNumbers() {
             for (int m : mods) if (m != 0) return true;
             return !other.isEmpty();
@@ -801,14 +811,13 @@ public final class Data {
         }
         for (JsonElement e : rows("perks")) {
             JsonObject o = e.getAsJsonObject();
-            List<Alt> alts = new ArrayList<>();
-            for (JsonElement a : o.getAsJsonArray("alts")) {
-                JsonObject x = a.getAsJsonObject();
-                alts.add(new Alt(strs(x, "skills"), s(x, "any", ""), x.get("value").getAsDouble()));
-            }
+            List<Alt> alts = altsOf(o.getAsJsonArray("alts"));
+            List<List<Alt>> also = new ArrayList<>();   // 05d round 7: a gate of several conditions, all to be met (Chi Master)
+            if (o.has("also")) for (JsonElement g : o.getAsJsonArray("also")) also.add(altsOf(g.getAsJsonArray()));
             String name = o.get("name").getAsString();
-            PERKS.put(name, new Perk(name, s(o, "kind", ""), s(o, "gate", ""), List.copyOf(alts), s(o, "effect", ""),
-                    o.has("parked") && o.get("parked").getAsBoolean(), o.has("bound") && o.get("bound").getAsBoolean(), attrs(o, "mods"), nums(o, "other")));
+            PERKS.put(name, new Perk(name, s(o, "kind", ""), s(o, "gate", ""), alts, s(o, "effect", ""),
+                    o.has("parked") && o.get("parked").getAsBoolean(), o.has("bound") && o.get("bound").getAsBoolean(), attrs(o, "mods"), nums(o, "other"),
+                    List.copyOf(also)));
         }
         for (JsonElement e : rows("foes")) {
             JsonObject o = e.getAsJsonObject();
