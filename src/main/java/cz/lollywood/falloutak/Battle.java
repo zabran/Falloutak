@@ -68,6 +68,12 @@ public final class Battle implements Listener {
         /** 05d round 7 (Marek 11-27: the Plasma saber *"Powerful, but with large energy needs - user may need to reload in middle of
          *  fight."*): a melee weapon's blows on one Power cell (0 = none); the cell is its magazine, swapped as a reload. */
         int cell;
+        /** 05d round 7 (RULED 11-27: black powder; *"reload must have cost in AP"*): its own reload's AP (0 = Fallout 2's 2), its lock
+         *  (flint, match, cap: the misfires), black powder (fouls after {@link #FOUL_SHOTS}, smokes); the mono edge PIERCES (the
+         *  armour's DT and DR a fifth, *"Should the mono edge pierce? - yes."*). */
+        int reload;
+        String lock = "";
+        boolean powder, pierce;
         String models = "";
         Weapon(String name, String skill, int magazine, int range, boolean twoHanded, Mode... modes) {
             this.name = name; this.skill = skill; this.magazine = magazine; this.range = range; this.twoHanded = twoHanded; this.modes = List.of(modes);
@@ -154,6 +160,10 @@ public final class Battle implements Listener {
                     w.strDmg = o.has("str_dmg") ? o.get("str_dmg").getAsDouble() : 0;
                     w.pen = o.has("pen") ? o.get("pen").getAsDouble() : 0;
                     w.cell = o.has("cell") ? o.get("cell").getAsInt() : 0;
+                    w.reload = o.has("reload") ? o.get("reload").getAsInt() : 0;
+                    w.lock = o.has("lock") ? o.get("lock").getAsString() : "";
+                    w.powder = o.has("powder") && o.get("powder").getAsBoolean();
+                    w.pierce = o.has("pierce") && o.get("pierce").getAsBoolean();
                 }
                 w.ammoKind = o.has("ammo") ? o.get("ammo").getAsString() : "";
                 w.models = o.has("models") ? o.get("models").getAsString() : "";
@@ -322,6 +332,10 @@ public final class Battle implements Listener {
         double chi = -1;
         /** AP lost at the next turn (05d round 5: the shock on a player, `05d` §2e). */
         int apLoss;
+        /** 05d round 7: the AP already paid into a long action ("reload:" or "clean:" + the weapon's tag); the shots each black-powder
+         *  gun fired since it was cleaned; the round his black-powder smoke hangs over him. */
+        final Map<String, Integer> progress = new HashMap<>(), fired = new HashMap<>();
+        int smokeRound = -1;
         org.bukkit.scheduler.BukkitTask task;
         Deque<Runnable> pending = new ArrayDeque<>();
         /** The character as the demo began: given back if he dies in it (it is a demo). */
@@ -839,8 +853,77 @@ public final class Battle implements Listener {
      * 2 AP (Fallout 2), 1 with taped magazines or a speed loader, 1 less over 100 in the gun's skill (Guns; an energy weapon's or a
      * launcher's own) [that reading mine], at least 1.
      */
-    static int reloadAp(Character c, Weapon w, boolean fast) {
-        return Math.max(1, (fast ? 1 : 2) - (c != null && weaponSkill(c, w.skill) > 100 ? 1 : 0));
+    static int reloadAp(Character c, Weapon w, boolean fast) { return reloadAp(c, w, fast, false); }
+
+    /**
+     * A reload's AP (05d round 7, RULED 11-27): the weapon's own (a muzzle-loader's 20-70) or Fallout 2's 2 (1 with taped magazines or
+     * a speed loader); +50 % while a black-powder gun is fouled; the skill takes **1/4 at 100, rising to 1/2 at 200, at least 1 AP**
+     * (Marek: *"1/4, at least -1 ... Maybe scale it to 1/2, with at least -1 in 200 Guns"*; for a 2-AP magazine the old -1); at least 1.
+     */
+    static int reloadAp(Character c, Weapon w, boolean fast, boolean fouled) {
+        int base = w.reload > 0 ? w.reload : (fast ? 1 : 2);
+        if (fouled) base = (int) Math.ceil(base * 1.5);
+        double sk = c != null && !w.skill.isEmpty() ? weaponSkill(c, w.skill) : 0;
+        if (sk < 100) return base;
+        double f = 0.25 + 0.25 * Math.min(1, (sk - 100) / 100.0);
+        return Math.max(1, base - Math.max(1, (int) Math.floor(base * f)));
+    }
+
+    /** 05d round 7: fouled after ~10 shots (Mäll's rebuilt handgonne: the bore had to be cleaned after about ten). */
+    static final int FOUL_SHOTS = 10, CLEAN_AP = 35;
+    static final String CLEAN = "Clean the bore";
+
+    static boolean fouled(State s, Weapon w) { return w.powder && s.fired.getOrDefault(w.tag, 0) >= FOUL_SHOTS; }
+
+    /**
+     * A misfire (05d round 7): a flint 1 in 6.5 (the British trials of 1834 as quoted), twice that wet; a cap 1 in 165; a match none
+     * (in rain it does not fire at all, {@link #act}). {@code roll} in [0, 1).
+     */
+    static boolean misfire(String lock, boolean wet, double roll) {
+        return switch (lock) {
+            case "flint" -> roll < (wet ? 2 : 1) / 6.5;
+            case "cap" -> roll < 1 / 165.0;
+            default -> false;
+        };
+    }
+
+    /** The next turn's AP (05d round 7, RULED: *"Max AP is needed due to stealth"*): the max, the unused AP carried (at most the max
+     *  again), less a shock's; none on a lost turn. */
+    static int turnAp(int apMax, int left, int shock, boolean lost) {
+        return lost ? 0 : apMax - shock + Math.max(0, Math.min(left, apMax));
+    }
+
+    /** A long action's payment (05d round 7: *"very long actions ... in parts"*): {pay now, paid after}; done when paid after = need. */
+    static int[] partPay(int need, int done, int ap) {
+        int pay = Math.max(0, Math.min(ap, need - done));
+        return new int[]{pay, done + pay};
+    }
+
+    /** A reload, in parts across turns when it is longer than the AP at hand. */
+    private void reloadStep(Player p, State s, Character c, Weapon w) {
+        int need = reloadAp(c, w, Accessories.fastReload(s.acc.get(w.tag)), fouled(s, w));
+        String key = "reload:" + w.tag;
+        int[] pp = partPay(need, s.progress.getOrDefault(key, 0), s.ap);
+        if (pp[0] <= 0) { Sfx.to(p, "ap.lacking"); show(p, s, c, "no AP left: the reload goes on next turn (" + pp[1] + " of " + need + " AP)"); return; }
+        if (!pay(p, s, c, pp[0], "reloading")) return;
+        Sfx.at(p.getLocation(), "pistol.reload");
+        if (pp[1] < need) { s.progress.put(key, pp[1]); show(p, s, c, "reloading the " + w.name + ": " + pp[1] + " of " + need + " AP (it goes on next turn)"); return; }
+        s.progress.remove(key);
+        reload(s, w);
+        show(p, s, c, "reloaded the " + w.name + " (" + need + " AP)");
+    }
+
+    /** Cleaning a fouled black-powder bore: 35 AP, in parts; the shots counted from nothing again. */
+    private void cleanStep(Player p, State s, Character c, Weapon w) {
+        String key = "clean:" + w.tag;
+        int[] pp = partPay(CLEAN_AP, s.progress.getOrDefault(key, 0), s.ap);
+        if (pp[0] <= 0) { Sfx.to(p, "ap.lacking"); show(p, s, c, "no AP left: the cleaning goes on next turn (" + pp[1] + " of " + CLEAN_AP + " AP)"); return; }
+        if (!pay(p, s, c, pp[0], "cleaning")) return;
+        if (pp[1] < CLEAN_AP) { s.progress.put(key, pp[1]); show(p, s, c, "cleaning the " + w.name + ": " + pp[1] + " of " + CLEAN_AP + " AP"); return; }
+        s.progress.remove(key);
+        s.fired.remove(w.tag);
+        s.mode.put(w.name, 0);
+        show(p, s, c, "the " + w.name + "'s bore is clean (" + CLEAN_AP + " AP)");
     }
 
     /**
@@ -994,6 +1077,7 @@ public final class Battle implements Listener {
             l.add(s.chi >= 0 && w.skill.equals("Unarmed") && !x.aimed()
                     ? new Mode(x.name().equals("Thrust") ? chiName(s.chi) + ", focused" : chiName(s.chi), x.ap(), x.toHit(), x.ammo(), x.aimed()) : x);
         if (w.skill.equals("Unarmed") && kamehameha(s.chi)) l.add(new Mode(KAME, KAME_AP, 0, 0, false));   // 05d round 7
+        if (fouled(s, w)) l.add(new Mode(CLEAN + " (" + CLEAN_AP + " AP)", CLEAN_AP, 0, 0, false));   // 05d round 7: black powder
         for (String x : Accessories.attacks(s.acc.get(w.tag)))   // 05d §5: the bayonet, the launcher as modes of the gun
             l.add(x.equals("Under-barrel launcher") ? new Mode("Launcher (40 mm)", 6, 0, 1, false) : new Mode(x, 4, 0, 0, false));
         return l;
@@ -1132,6 +1216,7 @@ public final class Battle implements Listener {
             if (pay(p, s, c, 1, "steadying")) { Sfx.to(p, "steady"); s.steadied = true; s.mode.put(w.name, 0); show(p, s, c, "steadied: no moving penalty"); }
             return;
         }
+        if (m.name().startsWith(CLEAN)) { cleanStep(p, s, c, w); return; }   // 05d round 7
         Weapon sub = accessoryWeapon(s, w, m);   // 05d §5: the bayonet or the launcher on this gun
         if (sub != null) { w = sub; m = sub.modes.get(0); }
         if (w.melee() && s.stance() == 2) { show(p, s, c, "prone: no melee attacks (the stance table)"); return; }
@@ -1151,6 +1236,7 @@ public final class Battle implements Listener {
             if (pay(p, s, c, rap, "swapping the cell")) { reload(s, w); Sfx.at(p.getLocation(), "pistol.reload"); show(p, s, c, "a fresh cell (" + rap + " AP): " + ammoOf(s, w) + " blows"); }
             return;
         }
+        if (!w.melee() && !w.thrown && ammoOf(s, w) == 0 && (!s.own || reserveOf(s, w.ammoKind) > 0)) { reloadStep(p, s, c, w); return; }   // 05d round 7
         if (!w.melee() && ammoOf(s, w) < m.ammo()) { Sfx.at(p.getLocation(), "pistol.empty"); show(p, s, c, w.thrown ? "none left to throw" : "not enough ammo for " + m.name() + (s.own ? " (" + reserveOf(s, w.ammoKind) + " " + w.ammoKind + " left)" : "")); return; }
         if (s.broken.contains(w.name)) { show(p, s, c, "the " + w.name + " is destroyed (a critical failure)"); return; }
         if (s.dropped.contains(w.name)) {   // a critical failure dropped it: picking it up is an action [2 AP mine]
@@ -1175,7 +1261,14 @@ public final class Battle implements Listener {
         Combat.Shot sh = shot(p, s, c, w, m, a, pen);
         Combat.ToHit th = Combat.toHit(sh);
         if (th.outOfRange()) { Sfx.to(p, "ap.lacking"); show(p, s, c, "out of range (" + w.range + " blocks)"); return; }
+        if (w.lock.equals("match") && p.isInWaterOrRain()) { Sfx.to(p, "ap.lacking"); show(p, s, c, "the match is out in the wet: the " + w.name + " cannot fire"); return; }
         if (!pay(p, s, c, apOf(c, w, m), m.name())) return;
+        if (misfire(w.lock, p.isInWaterOrRain(), rnd.nextDouble())) {   // 05d round 7: a flash in the pan; the charge stays in
+            Sfx.at(p.getLocation(), "pistol.empty");
+            p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE, p.getEyeLocation(), 8, 0.2, 0.2, 0.2, 0.01);
+            show(p, s, c, "MISFIRE: a flash in the pan, the " + w.name + " stays loaded (" + apOf(c, w, m) + " AP)");
+            return;
+        }
         Sfx.at(p.getLocation(), w.melee() ? (m.name().startsWith("Thrust") ? "knife.thrust" : "knife.swing") : w.skill.equals("Bows") ? "bow.shot" : m.ammo() > 1 ? "pistol.burst" : "pistol.single");
         int[] me = c.attrs(false);
         boolean off = unaware(s.fight, s.targets.get(a.target().getUniqueId()));
@@ -1254,7 +1347,7 @@ public final class Battle implements Listener {
                     boolean arc = w.damageType.equals("Electrical");   // 05d §2e: through the Isolation, not the armour (an NPC's: none yet)
                     int dtv = tg != null && !arc ? tg.dt : 0;
                     if (piercing(c, w)) dtv = (int) Math.round(dtv / 5.0);   // round 5: Unarmed 150 pierces (Fallout 2's Force Punch)
-                    int dmg = Combat.damage(Math.max(1, base), mult, am[0], am[1], dtv, tg != null && !arc ? tg.dr : 0, fx.bypass());
+                    int dmg = Combat.damage(Math.max(1, base), mult, am[0], am[1], dtv, tg != null && !arc ? tg.dr : 0, fx.bypass() || w.pierce);
                     int elec = arc ? dmg : 0;
                     if (w.shockMax > 0) { int zap = w.shockMin + rnd.nextInt(w.shockMax - w.shockMin + 1); dmg += zap; elec += zap; }   // round 3
                     if (elec > 0 && tg != null && !tg.dead) shocks.append(shock(tg, elec, machine(tg), a.target().isInWaterOrRain(), d100));
@@ -1293,12 +1386,19 @@ public final class Battle implements Listener {
                 if (Combat.broken(health(s, w))) log.append(" The ").append(w.name).append(" breaks from wear (its last health point): /sheet repair.");
             }
             s.ammo.put(w.tag, Math.max(0, ammoOf(s, w) - spent));
+            if (w.powder && spent > 0) {   // 05d round 7: black powder fouls the bore and hangs a white cloud over the shooter for the round
+                s.fired.merge(w.tag, spent, Integer::sum);
+                s.smokeRound = s.round;
+                p.getWorld().spawnParticle(org.bukkit.Particle.CAMPFIRE_COSY_SMOKE, p.getLocation().add(0, 1.4, 0), 25, 0.6, 0.5, 0.6, 0.01);
+                if (s.fired.get(w.tag) == FOUL_SHOTS) log.append(" The bore is FOULED: each reload +50 % AP until it is cleaned (a mode, ").append(CLEAN_AP).append(" AP).");
+            }
             if (s.own) s.used.merge(w.thrown ? "thrown:" + w.name : s.load.getOrDefault(w.tag, w.ammoKind), spent, Integer::sum);
             if (jamRound > 0) { log.append(" THE GUN JAMS after ").append(shots).append(" round(s), the next one lost (firing again tries to clear it)."); result += " · JAMMED"; }
             if (ammoOf(s, w) <= 0 && !s.broken.contains(w.name) && !w.thrown) {   // reload automatic when out of ammo (Marek 11-14), 2 AP (Fallout 2)
-                int rap = reloadAp(c, w, Accessories.fastReload(s.acc.get(w.tag)));   // 05d §5 taped magazines, a speed loader; round 5 the skill
+                int rap = reloadAp(c, w, Accessories.fastReload(s.acc.get(w.tag)), fouled(s, w));   // 05d §5 taped magazines, a speed loader; round 5 the skill
                 if (s.ap >= rap && (!s.own || reserveOf(s, w.ammoKind) > 0)) { s.ap -= rap; s.apAtAnchor = s.ap; reload(s, w); log.append(" Reloaded automatically (" + rap + " AP)."); Sfx.at(p.getLocation(), "pistol.reload"); }
-                else log.append(s.own && reserveOf(s, w.ammoKind) <= 0 ? " Empty, and no " + w.ammoKind + " left." : " Empty: reloads when you have 2 AP (or after the battle).");
+                else log.append(s.own && reserveOf(s, w.ammoKind) <= 0 ? " Empty, and no " + w.ammoKind + " left."
+                        : " Empty: click it to reload (" + rap + " AP" + (rap > c.apMax() ? ", over several turns" : "") + ").");
             }
             if (!Accessories.quiet(s.acc.get(w.tag))) s.gunfire = true;   // 05d §5: a suppressor
             Rules.Gas here = c.gasHere();
@@ -2374,7 +2474,9 @@ public final class Battle implements Listener {
         if (s.lostTurns > 0) s.lostTurns--;
         int shockAp = lost ? 0 : Math.min(c.apMax(), s.apLoss);   // 05d round 5: a shock last round
         s.apLoss = 0;
-        s.ap = s.apAtAnchor = lost ? 0 : c.apMax() - shockAp;
+        int carry = lost ? 0 : Math.max(0, Math.min(s.ap, c.apMax()));   // 05d round 7: unused AP carried, at most the max
+        s.ap = s.apAtAnchor = turnAp(c.apMax(), s.ap, shockAp, lost);
+        if (carry > 0) p.sendMessage(Component.text(carry + " AP carried over from your last turn.", NamedTextColor.GRAY));
         if (shockAp > 0) p.sendMessage(Component.text("The shock still in your muscles: " + shockAp + " AP less this turn.", NamedTextColor.RED));
         Sfx.to(p, lost ? "ap.lacking" : "turn.start");
         String pass = s.env ? "end the round from the Pip-Boy" : "click the clock to pass it";

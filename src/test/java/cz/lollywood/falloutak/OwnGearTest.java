@@ -327,6 +327,61 @@ class OwnGearTest extends MockGame {
         assertTrue(Battle.reload(st, saber));
         assertEquals(1, Battle.ammoOf(st, saber), "3 shots left: one blow");
         assertFalse(Battle.reload(st, saber), "1 shot left: not a blow");
+        // 05d round 7 (RULED 11-27): the mono edge pierces
+        assertTrue(Battle.GEAR.get("Monomolecular blade").pierce && Battle.GEAR.get("Monomolecular knife").pierce);
+        assertFalse(Battle.GEAR.get("Vibro-blade").pierce);
+    }
+
+    @Test
+    void blackPowderAndTheApRules() {   // 05d round 7 (RULED 11-27)
+        Battle.Weapon musket = Battle.GEAR.get("Pipe musket"), breech = Battle.GEAR.get("Black-powder breech-loader"),
+                inline = Battle.GEAR.get("Inline muzzle-loader"), cannon = Battle.GEAR.get("Hand cannon");
+        assertEquals(1, Production.design("Rifles", "Pipe musket").tier, "black powder: Tier I-II only");
+        assertEquals(2, Production.design("Rifles", "Black-powder breech-loader").tier);
+        assertEquals(2, Production.design("Rifles", "Inline muzzle-loader").tier);
+        assertEquals("flint", musket.lock);
+        assertEquals("match", cannon.lock);
+        assertEquals("cap", breech.lock);
+        assertTrue(musket.powder && breech.powder && inline.powder);
+        assertEquals("Black-powder charges", musket.ammoKind);
+        assertEquals("Black-powder cartridges", breech.ammoKind);
+        assertTrue(musket.minDmg > Battle.GEAR.get("Pipe rifle").minDmg, "per shot more than a pipe rifle");
+        // the reload's AP: its own, the skill -1/4 at 100 to -1/2 at 200 (at least 1), +50 % fouled
+        Character c = new Character();
+        int g = Rules.skillIndex("Guns");
+        c.points[g] += 50 - c.skill("Guns");
+        assertEquals(23, Battle.reloadAp(c, musket, false));
+        assertEquals(35, Battle.reloadAp(c, musket, false, true), "fouled: +50 %");
+        assertEquals(2, Battle.reloadAp(c, breech, false), "a single shot: Fallout 2's 2");
+        c.points[g] += 100 - c.skill("Guns");
+        assertEquals(18, Battle.reloadAp(c, musket, false), "Guns 100: -1/4");
+        assertEquals(1, Battle.reloadAp(c, breech, false), "Guns 100: at least -1");
+        c.points[g] += 200 - c.skill("Guns");
+        assertEquals(12, Battle.reloadAp(c, musket, false), "Guns 200: -1/2");
+        // the misfires
+        assertTrue(Battle.misfire("flint", false, 0.10));
+        assertFalse(Battle.misfire("flint", false, 0.20));
+        assertTrue(Battle.misfire("flint", true, 0.20), "wet: twice as often");
+        assertTrue(Battle.misfire("cap", false, 0.005));
+        assertFalse(Battle.misfire("cap", false, 0.01));
+        assertFalse(Battle.misfire("match", false, 0.0));
+        assertFalse(Battle.misfire("", false, 0.0));
+        // unused AP carried, at most the max; long actions in parts
+        assertEquals(10, Battle.turnAp(8, 2, 0, false));
+        assertEquals(16, Battle.turnAp(8, 12, 0, false), "at most the max carried");
+        assertEquals(13, Battle.turnAp(8, 7, 2, false));
+        assertEquals(0, Battle.turnAp(8, 7, 0, true));
+        assertArrayEquals(new int[]{8, 8}, Battle.partPay(23, 0, 8));
+        assertArrayEquals(new int[]{15, 23}, Battle.partPay(23, 8, 16), "finished in the second turn");
+        assertArrayEquals(new int[]{0, 23}, Battle.partPay(23, 23, 5));
+        // fouling after ten shots
+        Battle.State st = new Battle.State();
+        st.fired.put(musket.tag, 9);
+        assertFalse(Battle.fouled(st, musket));
+        st.fired.put(musket.tag, 10);
+        assertTrue(Battle.fouled(st, musket));
+        assertFalse(Battle.fouled(st, Battle.GEAR.get("Pipe rifle")), "smokeless: never")
+        ;
     }
 
     @Test

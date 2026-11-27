@@ -212,6 +212,18 @@
    "note": "5 Ammo a round"
   },
   {
+   "name": "Black-powder charges",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "a muzzle-loader's: powder and a ball in paper, or the inline's pellets and a sabot bullet with its cap"
+  },
+  {
+   "name": "Black-powder cartridges",
+   "group": "Rounds",
+   "skill": "Guns",
+   "note": "the black-powder breech-loader's reusable steel case: powder, a cast bullet and a cap"
+  },
+  {
    "name": "12 ga shells",
    "group": "Rounds",
    "skill": "Guns",
@@ -751,6 +763,24 @@
     {
      "type": "Ammo",
      "count": 5
+    }
+   ],
+   "per": 1
+  },
+  "Black-powder charges": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  "Black-powder cartridges": {
+   "parts": [
+    {
+     "type": "Ammo",
+     "count": 2
     }
    ],
    "per": 1
@@ -2375,9 +2405,101 @@
    "category": "Rifles",
    "group": "Ranged weapons",
    "skill": "Guns",
+   "name": "Pipe musket",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 1,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Hand cannon",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 1,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
    "name": "Pipe bolt-action rifle",
    "tier": 2,
    "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 2,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Black-powder breech-loader",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Firearm parts",
+     "tier": 2,
+     "count": 3
+    },
+    {
+     "type": "Light weapon parts",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Rifles",
+   "group": "Ranged weapons",
+   "skill": "Guns",
+   "name": "Inline muzzle-loader",
+   "tier": 2,
+   "rarity": 2,
    "parts": [
     {
      "type": "Firearm parts",
@@ -5853,6 +5975,90 @@
    "set": "",
    "dmg": -0.25,
    "pen": 0.5,
+   "foul": 1
+  },
+  {
+   "category": "Black-powder charges",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "Paper charges",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Black-powder charges",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "Pre-measured charges",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Black-powder cartridges",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "Home-loaded cases",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 1,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Black-powder cartridges",
+   "group": "Rounds",
+   "skill": "Guns",
+   "name": "Workshop-loaded cases",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Ammo",
+     "tier": 2,
+     "count": 2
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
    "foul": 1
   },
   {

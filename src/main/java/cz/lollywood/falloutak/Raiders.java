@@ -645,7 +645,7 @@ final class Raiders {
         sh.lightLevel = p.getEyeLocation().getBlock().getLightLevel();
         sh.targetAc = Rules.ac(c.attrs(false)) + Rules.STANCE_AC[s.stance()] + c.armourAc();   // + the armour's AC (05c)
         sh.targetProne = s.stance() == 2;
-        sh.obstacles = inTheWay(eye, p, le);
+        sh.obstacles = inTheWay(eye, p, le) + (s.smokeRound == s.round ? 1 : 0);   // 05d round 7: his black-powder smoke hides him
         sh.huge = c.tpl().huge();   // the Ent (03b §2d): +15 to hit it, obstacles x 2
         sh.stance = t.stance;
         sh.movePenalty = t.moved && !t.steadied ? -10 : 0;

@@ -37,7 +37,9 @@ outside the game; the game itself is for the look and feel. The rules' text live
   chance x2); the shock `Battle.shock` (an NPC) and `Battle.shockPlayer` (a player: his armour's Isolation, AP lost next turn); the Chi Master perk `Battle.chiLevel`, `chiDamage`, `reach`, `chiName` (Occultism, the hidden 16th skill of
   `Rules.SKILLS`, shown as `Rules.hiddenWord`; its gate two conditions, `Data.Perk.also` + `Rules.gateMet`) and from Occultism 200
   its Kamehameha (`Battle.KAME`, `kamehameha`, the beam `onBeam` + `beam`); a melee weapon on a Power cell (`Weapon.cell`, `CELL_DRAW`:
-  the Plasma saber, 05d round 7).
+  the Plasma saber, 05d round 7); black powder and the AP rules (05d round 7): `Weapon.reload`, `lock`, `powder`, `pierce`,
+  `Battle.reloadAp` (the skill's scale, fouled +50 %), `misfire`, `fouled`, `turnAp` (unused AP carried), `partPay` + `reloadStep`,
+  `cleanStep` (long actions in parts), the smoke (`State.smokeRound`, read by `Raiders`).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
@@ -65,7 +67,7 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
 | `Arena` | 755 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 2556 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 2658 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
 | `Character` | 2733 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
@@ -109,5 +111,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **48 classes** | **24779** | |
+| **48 classes** | **24881** | |
 <!-- /CLASSES -->
