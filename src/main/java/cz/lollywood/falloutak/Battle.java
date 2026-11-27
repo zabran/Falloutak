@@ -654,6 +654,12 @@ public final class Battle implements Listener {
         quick(inv, s, 5, "gasgren", Material.SLIME_BALL, "Riot gas grenade", "4 AP: right click throws it");
         for (int i = 6; i < 8; i++) inv.setItem(i, tagged(Material.GRAY_STAINED_GLASS_PANE, "locked", "no quick slot", "a belt or bandolier gives more quick slots"));
         inv.setItem(8, tagged(Material.CLOCK, "end", "End turn", "click: end your turn; when everyone has, it is theirs"));
+        for (int i = BELT_FIRST; i <= BELT_LAST; i++) {   // the belt: what is not carried is a free slot for the pack's items
+            ItemStack q = inv.getItem(i);
+            if ("locked".equals(id(q))) inv.setItem(i, null);
+        }
+        p.sendMessage(Component.text("Your belt (hotbar keys 3-6): open your pack (4 AP) and drag a Super Stimpak, a Hypo, a chem or a medicine onto a free "
+                + "belt slot; right click uses it on you, " + BELT_AP + " AP.", NamedTextColor.GRAY));
         inv.setHeldItemSlot(0);
         s.kits = 0;
         show(p, s, pl.character(p), null);
@@ -682,7 +688,8 @@ public final class Battle implements Listener {
                 case "gasgren" -> removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.name.equals("Riot gas grenade"); }, n);
                 case "Power" -> removeIds(p, id -> { String[] t = Items.thing(id); return t != null && t[0].equals("Power"); }, (n + CELL_SHOTS - 1) / CELL_SHOTS);
                 default -> {
-                    if (k.startsWith("thrown:")) { if (!held) { String name = k.substring(7); removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.name.equals(name); }, n); } }
+                    if (k.startsWith("item:")) { String want = k.substring(5); removeIds(p, id -> id.equals(want), n); }   // the belt's own items
+                    else if (k.startsWith("thrown:")) { if (!held) { String name = k.substring(7); removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && d.name.equals(name); }, n); } }
                     else removeIds(p, id -> { Production.Design d = Items.made(id); return d != null && (k.contains("|") ? d.key().equals(k) : d.category.equals(k)); }, n);
                 }
             }
@@ -1218,6 +1225,7 @@ public final class Battle implements Listener {
                 }
                 at.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION, at, 1);
                 Sfx.at(at, "explosion");
+                flash(at);
             }
             case "shock" -> {
                 int zap = Combat.damage(d.shockMin() + rnd.nextInt(Math.max(1, d.shockMax() - d.shockMin() + 1)), 1, 0, 0, 0, 0, false);
@@ -1377,6 +1385,59 @@ public final class Battle implements Listener {
     }
 
     private static boolean quickItem(String id) { return id.equals("stim") || id.equals("grenade") || id.equals("gasgren") || id.equals("flare"); }
+
+    // ------------------------------------------------------------------ the belt (Marek 11-27, verbatim: *"it should be possible for players
+    // to change what is on their belts by getting it from inventory."*)
+    /** The belt's quick slots of the hotbar (slots 6-7 wait for a belt or bandolier item). */
+    static final int BELT_FIRST = 2, BELT_LAST = 5;
+    /** Fallout 2: using an item in a fight, 2 AP (its Stimpak's). */
+    static final int BELT_AP = 2;
+
+    static boolean onBelt(int slot) { return slot >= BELT_FIRST && slot <= BELT_LAST; }
+
+    /**
+     * A real item the player put on a belt slot from his pack (the pack opened for 4 AP, Fallout 2's): right click uses it on himself
+     * for {@value #BELT_AP} AP: the Super Stimpak and the Hypo (`Meds.inject`), a chem (its dose), a medicine taken by oneself (the Blood
+     * Pack, antivenom, the salts, Virex ...). One of the stack is used; the fight's end takes it from his gear (`settleGear`). The
+     * Stimpak keeps its own belt slot (counted at the start), so a Stimpak stack moved there is not a second supply.
+     */
+    String useBelt(Player p, State s, Character c, int slot) {
+        ItemStack it = p.getInventory().getItem(slot);
+        String iid = Items.id(it);
+        if (iid == null || it == null) { show(p, s, c, null); return null; }
+        String med = Meds.name(iid), what;
+        if (iid.equals("gear:Stimpak")) { show(p, s, c, "the Stimpaks are on your belt already (their own slot)"); return null; }
+        boolean injector = med != null && Meds.INJECTORS.contains(med), self = med != null && Meds.SELF.contains(med) || med != null && Meds.VACCINES.containsKey(med);
+        boolean chem = iid.startsWith("chem:") && Data.CHEMS.containsKey(iid.substring(5));
+        if (!injector && !self && !chem) { show(p, s, c, Items.title(iid) + " is not used from the belt"); return null; }
+        if (!pay(p, s, c, BELT_AP, Items.title(iid))) return null;
+        if (injector) what = Meds.inject(c, med, rnd);
+        else if (self) what = Meds.useSelf(c, med, rnd);
+        else what = c.dose(Data.CHEMS.get(iid.substring(5)), rnd);
+        Sfx.at(p.getLocation(), injector ? "stimpak" : "chem");
+        it.setAmount(it.getAmount() - 1);
+        p.getInventory().setItem(slot, it.getAmount() > 0 ? it : null);
+        s.used.merge("item:" + iid, 1, Integer::sum);
+        show(p, s, c, what + " (" + BELT_AP + " AP)");
+        return what;
+    }
+
+    /** Cateye's flash (04i §6a): every player with Cateye in his eyes who sees a blast within this many blocks [mine]. */
+    static final double FLASH_RANGE = 32;
+
+    void flash(Location at) {
+        if (at.getWorld() == null) return;
+        for (Player pp : at.getWorld().getPlayers()) {
+            if (pp.getLocation().distanceSquared(at) > FLASH_RANGE * FLASH_RANGE) continue;
+            Character ch = pl.character(pp);
+            if (ch.other("light_sensitive") <= 0) continue;
+            Location eye = pp.getEyeLocation();
+            Vector to = at.clone().add(0, 0.5, 0).toVector().subtract(eye.toVector());
+            if (to.lengthSquared() > 1e-6 && at.getWorld().rayTraceBlocks(eye, to.clone().normalize(), to.length(), FluidCollisionMode.NEVER, true) != null) continue;
+            ch.flashUntil = ch.now() + 1;
+            pp.sendMessage(Component.text("The blast's flash in your Cateye eyes: Perception −2 for an hour.", NamedTextColor.GOLD));
+        }
+    }
 
     // ------------------------------------------------------------------ movement: legs since the last action
     private double stepCost(int stance, Character c) { return Rules.stepAp(stance, Math.max(c.brokenLegs, c.missingLegs()), c.has("Brittle Bones")) * c.legFactor() * c.loadMoveFactor(); }   // round 11: overloaded, half speed
@@ -2393,6 +2454,7 @@ public final class Battle implements Listener {
         org.bukkit.World w = boom.getWorld();
         w.spawnParticle(org.bukkit.Particle.EXPLOSION, boom.clone().add(0, 0.5, 0), 1);
         Sfx.at(boom, "explosion");
+        flash(boom);
         Location centre = boom.clone().add(0, 0.5, 0);
         int r = Combat.GRENADE_RADIUS;
         List<String> hit = new ArrayList<>();
@@ -2551,6 +2613,7 @@ public final class Battle implements Listener {
             return;
         }
         if (right && quickItem(id)) useItem(p, s, c, id);
+        else if (right && id.isEmpty() && s.own && onBelt(p.getInventory().getHeldItemSlot())) useBelt(p, s, c, p.getInventory().getHeldItemSlot());
         else show(p, s, c, null);
     }
 
@@ -2888,6 +2951,7 @@ public final class Battle implements Listener {
         Weapon w = weapon(id);
         if (w != null) nextMode(p, s, pl.character(p), w);
         else if (quickItem(id)) useItem(p, s, pl.character(p), id);
+        else if (id.isEmpty() && s.own && onBelt(p.getInventory().getHeldItemSlot())) useBelt(p, s, pl.character(p), p.getInventory().getHeldItemSlot());
         else if (id.equals("end")) endTurn(p, s, pl.character(p));   // Marek 11-14: end turn could not be clicked at an enemy
     }
 

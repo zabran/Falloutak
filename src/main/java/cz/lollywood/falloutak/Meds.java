@@ -308,9 +308,17 @@ final class Meds {
         t.survival.put(Rules.Stat.BLOOD, Math.min(max, b + TRAUMA_BLOOD * max));
         keepStronger(t, fx("Trauma pack (ketamine, blocks)", "treatment:trauma-pain", "pain_felt", -40, 4), "pain_felt");
         keepStronger(t, fx("Trauma pack (healing)", "treatment:heal-boost", "healing_rate", 2, 72), "healing_rate");
+        String splint = t.brokenLegs > t.splints.size() ? "; " + t.splint() : "";   // its splints (0.108.0)
         return "the Trauma pack (10 minutes): every bleeding stopped, Blood " + Math.round(b) + " → " + Math.round(t.survival.get(Rules.Stat.BLOOD))
-                + ", +" + (t.hp - before) + " HP, Pain −40 for 4 hours, the healing rate +2 for 3 days"
-                + (t.brokenLegs > 0 ? "; the broken leg splinted (it still has to knit)" : "");
+                + ", +" + (t.hp - before) + " HP, Pain −40 for 4 hours, the healing rate +2 for 3 days" + splint;
+    }
+
+    /** First aid's splint (0.108.0): a broken leg splinted with a Splint item, at the medic's Medicine 20 (as a dressing) [the 20 mine]. */
+    static final int SPLINT_NEED = 20;
+
+    static String splint(double medicine, Character t) {
+        if (!Rules.check(medicine, SPLINT_NEED)) return "! splinting a leg needs Medicine " + SPLINT_NEED + " (a check, no roll): " + Math.round(medicine);
+        return t.splint();
     }
 
     /** Atropine (`04i` §6c: the antidote for the farms' pesticide poisoning): Poison −30; its overdose kills, so the medic needs Medicine 50. */
@@ -350,6 +358,7 @@ final class Meds {
             case "Home ORS" -> "boiled water, salt and sugar: the runs' water loss halved for 6 hours";
             case "Maggots" -> "maggots in the wound (a disease's action): the growth × 0.5 while it is local";
             case "Atropine" -> "the pesticide antidote: Poison −30, given at Medicine 50 (an overdose kills)";
+            case "Splint" -> "a broken leg splinted (Medicine 20): it knits in 6 weeks (your Actions or a medic's)";
             case "Ephedra" -> "ma huang: the old way to pervitin (Pervitin kitchen)";
             default -> null;
         };

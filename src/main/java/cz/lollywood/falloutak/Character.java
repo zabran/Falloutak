@@ -122,6 +122,14 @@ public final class Character {
      */
     public boolean holding = false;
     public int heldReal = 0;
+    /**
+     * 0.108.0 (Marek 11-27, verbatim: *""The Trauma pack's splint is text only." - why? We do have broken legs and splinting, right?"*):
+     * the game hour each splinted broken leg was splinted; a splinted leg knits in {@link #SPLINT_HOURS}. Cateye's flash: until when
+     * (`flashUntil`). A smoker caught in a Critical cold (nicotine's cold hands): the frostbite comes one stage sooner (`smokerCold`).
+     */
+    public List<Double> splints = new ArrayList<>();
+    public double flashUntil = -1;
+    public boolean smokerCold = false;
     public double breathHelpUntil = -1;
     public int oxygenExtra = 0;
     /** Part 3: the group (part 6), the premium templates bought for this PC himself (03b §2b). */
@@ -792,6 +800,7 @@ public final class Character {
                 if (r != null && !Rules.gated(st)) v += r.mods()[i];
             }
             if (i == Rules.P) v += gasPenalty()[0] - hearingLoss();   // 03b §3c: the gas, the ears
+            if (i == Rules.P && lightHurts()) v -= 2;   // Cateye (04i §6a): in the sun or after a flash
             if ((i == Rules.P || i == Rules.I) && badAirRounds >= 600) v -= 1;   // an hour of bad air (03b §3c)
         }
         return v;
@@ -1093,7 +1102,14 @@ public final class Character {
     public String stageHour(List<String> before) {
         if (dead || inArrest()) return null;
         String scar = before.contains(FATAL_RADIATION) && !stages().contains(FATAL_RADIATION) ? surviveFatal() : null;
-        if (before.contains(DEADLY_COLD) && !stages().contains(DEADLY_COLD)) scar = (scar == null ? "" : scar + " · ") + frostbite();
+        List<String> now = stages();
+        if (before.contains(DEADLY_COLD) && !now.contains(DEADLY_COLD)) { scar = (scar == null ? "" : scar + " · ") + frostbite(); smokerCold = false; }
+        // nicotine (04i §6b, Marek 11-27: "add it please"): cold hands in a Critical cold, the frostbite one stage sooner
+        if (now.contains(CRITICAL_COLD) && other("cold_hands") > 0) smokerCold = true;
+        if (smokerCold && !now.contains(CRITICAL_COLD) && !now.contains(DEADLY_COLD)) {
+            if (before.contains(CRITICAL_COLD)) scar = (scar == null ? "" : scar + " · ") + frostbite() + " (a smoker's cold hands: one stage sooner)";
+            smokerCold = false;
+        }
         int loss = 0;
         List<String> why = new ArrayList<>();
         boolean ignore = ignoresPain();
@@ -1126,7 +1142,36 @@ public final class Character {
         return FATAL_SCAR + ": Endurance −1 and HP Max −5 for good";
     }
 
-    static final String DEADLY_COLD = "Deadly Hypothermia", FROSTBITE = "Frostbite";
+    static final String DEADLY_COLD = "Deadly Hypothermia", CRITICAL_COLD = "Critical Hypothermia", FROSTBITE = "Frostbite";
+
+    /** Cateye's eyes hurt (04i §6a; Marek 11-27: *"sunlight is trivial to get in MC, it is light level. Flash from explosion can be explosion effect."*). */
+    public boolean lightHurts() { return other("light_sensitive") > 0 && (inSun || flashUntil > now()); }
+
+    /** A splinted broken leg knits in 6 weeks [real, approx: a simple lower-leg fracture in plaster 6-8 weeks; the 6 mine]. */
+    static final double SPLINT_HOURS = 6 * 7 * 24;
+
+    /** Splints one unsplinted broken leg; the news, or "! ..." if none. */
+    public String splint() {
+        trimSplints();
+        if (brokenLegs <= splints.size()) return brokenLegs == 0 ? "! no broken leg" : "! every broken leg is splinted already";
+        splints.add(now());
+        return "the broken leg splinted: it knits in 6 weeks (still broken till then)";
+    }
+
+    /** Splints beyond the broken legs go (a leg mended another way: Hydra, the GM). */
+    void trimSplints() { while (splints.size() > brokenLegs) splints.remove(splints.size() - 1); }
+
+    /** An hour of the splinted legs: one that has had its 6 weeks has knit. The news, or null. */
+    public String splintHour() {
+        trimSplints();
+        for (Iterator<Double> it = splints.iterator(); it.hasNext(); ) {
+            if (now() - it.next() < SPLINT_HOURS - 1e-9) continue;
+            it.remove();
+            brokenLegs = Math.max(0, brokenLegs - 1);
+            return "a splinted leg has knit (" + brokenLegs + " broken)";
+        }
+        return null;
+    }
 
     /**
      * Out of Deadly Hypothermia alive: the workbook's own Frostbite (its row: *"After Deadly Hypothermia"*, the stage's note

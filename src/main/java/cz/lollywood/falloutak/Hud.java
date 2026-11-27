@@ -218,6 +218,8 @@ public final class Hud {
         if (arrest != null) c.news.add(arrest);
         String rebound = c.reboundHour();   // 04i §6a: propranolol stopped after a week
         if (rebound != null) c.news.add(rebound);
+        String knit = c.splintHour();       // 0.108.0: a splinted leg knits in 6 weeks
+        if (knit != null) c.news.add(knit);
         List<Character.Effect> next = new ArrayList<>();
         boolean release = false;
         for (Character.Effect e : new ArrayList<>(c.effects)) {
@@ -226,6 +228,7 @@ public final class Hud {
             if (e.slot().equals("held_hp")) { release = true; continue; }   // 04i §6a: the hold's hour ends
             if (e.other().getOrDefault("mend_limb", 0.0) > 0 && c.brokenLegs > 0) {   // 04i §6a: Hydra's bone knits in its 3 days
                 c.brokenLegs--;
+                c.trimSplints();
                 c.news.add("Hydra: a broken leg has mended (" + c.brokenLegs + " broken)");
             }
             Character.Effect follow = c.afterStage(e);

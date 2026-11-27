@@ -79,6 +79,12 @@ outside the game; the game itself is for the look and feel. The rules' text live
   naloxone ending the opioids, an addict into withdrawal); Fixer's `withdrawal_off` (`fixerOn` in `other` and `attr`), Hydra's
   `mend_limb` (in `Hud.hour`), propranolol's `reboundHour`, Psycho's `no_knockdown` (in `Battle.hitPlayer`), Virex's
   `viral_immunity` (in `Diseases.hour`). Tests: `ChemsRoundTwoTest`.
+- **0.108.0** (Marek 11-27 on 0.107.0's gaps): the splint (`Character.splints`, `splint`, `splintHour` in `Hud.hour`: a splinted broken
+  leg knits in `SPLINT_HOURS`, an unsplinted one never by itself; `trimSplints` when a leg mends another way; `Meds.splint` at
+  Medicine 20, the Trauma pack splints one leg; `Menus.splintWith`); Cateye's `light_sensitive` (`Character.lightHurts`: `inSun` or
+  `flashUntil`, read in `attr`; `Battle.flash` at both blasts); nicotine's `cold_hands` (`smokerCold` in `stageHour`: the frostbite
+  from a Critical cold); THE BELT (`Battle.BELT_FIRST`-`BELT_LAST`: an own-gear fight frees the belt's empty slots, a real item dragged
+  there from the pack is used by `useBelt` for `BELT_AP`, `settleGear` takes the "item:" uses). Tests: `BeltSplintTest`.
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):

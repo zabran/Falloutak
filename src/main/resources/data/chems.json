@@ -64,6 +64,9 @@
     "hours": 1,
     "mods": {
      "perception": 1
+    },
+    "other": {
+     "cold_hands": 1
     }
    },
    "withdrawal": {
@@ -76,7 +79,7 @@
    "dependence": {
     "hours": 504
    },
-   "source": "attention and reaction time better (Heishman et al. 2010, a meta-analysis); the most addictive of the common drugs: 32 % of those who ever smoke become dependent, twice alcohol's 15 % (Anthony, Warner & Kessler 1994); the withdrawal irritable and unfocused (DSM-5); lengths RULED"
+   "source": "attention and reaction time better (Heishman et al. 2010, a meta-analysis); the most addictive of the common drugs: 32 % of those who ever smoke become dependent, twice alcohol's 15 % (Anthony, Warner & Kessler 1994); the withdrawal irritable and unfocused (DSM-5); lengths RULED; 04i §6b (RULED 11-27, Marek 11-27: *\"Nicotine's earlier frostbite isn't tied in.\" - add it please.*): it narrows the skin's vessels (cold hands [real]): smoked in a Critical cold, the frostbite scar comes one stage sooner"
   },
   {
    "name": "Codeine",
@@ -679,10 +682,11 @@
    "effect": {
     "hours": 4,
     "other": {
-     "senses": 1
+     "senses": 1,
+     "light_sensitive": 1
     }
    },
-   "source": "New Vegas's Cateye, made real (04i §6a): eye drops that sensitise the retina (chlorin e6, tried in 2015, unproven [real]): the dark halved for 4 h; a flash or the sun: Perception -2 that hour (the GM's)"
+   "source": "New Vegas's Cateye, made real (04i §6a): eye drops that sensitise the retina (chlorin e6, tried in 2015, unproven [real]): the dark halved for 4 h; in the sun (the open sky by day) Perception -2, and an hour after a blast seen within 32 blocks [the 32 mine] (Marek 11-27: *\"sunlight is trivial to get in MC, it is light level. Flash from explosion can be explosion effect.\"*)"
   },
   {
    "name": "Steady",

@@ -224,6 +224,8 @@ final class Menus {
                 if (c.dead || c.inArrest() || (!in.equals("Hypo") && c.hp >= c.hpMax() && c.bleeding <= 0)) continue;
                 b.add(btn("Use " + in + " (" + e.getValue() + ")", injectorText(in), x -> { say(x, inject(x, c, "you", in)); actions(x); }));
             }
+            if (Meds.count(p, "Splint") > 0 && c.brokenLegs > c.splints.size() && !c.dead)   // 0.108.0
+                b.add(btn("Splint your leg (" + Meds.count(p, "Splint") + ")", "your Medicine 20 (a check): it knits in 6 weeks", x -> { say(x, splintWith(x, c, c)); actions(x); }));
             if (Meds.count(p, "Trauma pack") > 0 && !c.dead && !c.inArrest())
                 b.add(btn("Trauma pack (" + Meds.count(p, "Trauma pack") + ")", "on yourself: 10 minutes, your Medicine 40 (a check)", x -> { say(x, trauma(x, c, c)); actions(x); }));
             for (Map.Entry<String, Integer> e : Meds.selfUse(p).entrySet()) {   // 04i: vitamin C, a blood bag, antivenom, the vaccines
@@ -516,6 +518,13 @@ final class Menus {
                 o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
                 on(x, whoOf(o.entity()));
             }));
+        if (!t.dead && t.brokenLegs > t.splints.size() && Meds.count(p, "Splint") > 0)   // 0.108.0
+            b.add(btn("Splint the broken leg", "your Medicine " + Math.round(med) + " (20 needed, a check): it knits in 6 weeks", x -> {
+                String r = splintWith(x, me, t);
+                say(x, r);
+                o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
+                on(x, whoOf(o.entity()));
+            }));
         if (!t.dead && !t.inArrest() && Meds.count(p, "Atropine") > 0)
             b.add(btn("Atropine", "the pesticide antidote: Poison −30; your Medicine " + Math.round(med) + " (50 needed: an overdose kills)", x -> {
                 String r = Meds.atropine(me.skill("Medicine"), t);
@@ -668,6 +677,14 @@ final class Menus {
         if (t.dead || t.inArrest()) return "! " + who + ": " + (t.dead ? "dead" : "clinical death: revive first");
         if (!Meds.takeInjector(user, name)) return "! no " + name;
         return who + ": " + Meds.inject(t, name, pl.rnd);
+    }
+
+    /** A Splint from the user's pack on {@code t}'s broken leg, by the medic {@code me}'s Medicine; kept if it cannot. */
+    static String splintWith(Player user, Character me, Character t) {
+        if (Meds.count(user, "Splint") < 1) return "! no Splint";
+        String r = Meds.splint(me.skill("Medicine"), t);
+        if (!r.startsWith("!")) Meds.take(user, "Splint", 1);
+        return r;
     }
 
     /** The Trauma pack from the user's pack, by the medic {@code me}'s Medicine; kept if his check fails. */

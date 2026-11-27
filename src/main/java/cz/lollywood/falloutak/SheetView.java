@@ -197,7 +197,7 @@ public final class SheetView {
 
     /** The keys shown by their name only (switches, not amounts). */
     static final java.util.Set<String> SWITCHES = java.util.Set.of("senses", "sleep_stages", "opioid", "depressant", "tolerant", "no_knockdown",
-            "withdrawal_off", "mend_limb", "rest_double", "sleep_aid", "rebound", "now_naloxone");
+            "withdrawal_off", "mend_limb", "rest_double", "sleep_aid", "rebound", "now_naloxone", "light_sensitive", "cold_hands");
 
     /** An effect's numbers as they work now (an implant's scaled by its condition). */
     static String effText(Character.Effect e) {
@@ -219,6 +219,7 @@ public final class SheetView {
                 case "cold_gain" -> "cold gained (share)"; case "heat_gain" -> "heat gained (share)"; case "viral_immunity" -> "a virus's immunity %";
                 case "now_food" -> "Food at once"; case "now_poison" -> "Poison at once"; case "now_oxygen" -> "rounds of breath, the Oxygen bar full";
                 case "now_naloxone" -> "ends the opioids (the breathing stage)";
+                case "light_sensitive" -> "Perception −2 in the sun or an hour after a flash"; case "cold_hands" -> "the frostbite a stage sooner (cold hands)";
                 case "senses" -> v >= 2 ? "night vision" : "the dark halved"; case "pain_floor" -> "Pain never below";
                 case "heal_factor" -> "healing (share)";
                 default -> k.startsWith("skill:") ? k.substring(6) + " %" : k.replace('_', ' ');
