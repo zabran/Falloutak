@@ -336,6 +336,12 @@ public final class Battle implements Listener {
          *  gun fired since it was cleaned; the round his black-powder smoke hangs over him. */
         final Map<String, Integer> progress = new HashMap<>(), fired = new HashMap<>();
         int smokeRound = -1;
+        /** The AP he left unused at his turn's end (carried, `turnAp`); the way he faced then (05c §11: facing, yaw); his shield (its
+         *  name, its item's id, its health now). */
+        int carry;
+        float faceYaw;
+        String shield, shieldSource;
+        double shieldHealth;
         org.bukkit.scheduler.BukkitTask task;
         Deque<Runnable> pending = new ArrayDeque<>();
         /** The character as the demo began: given back if he dies in it (it is a demo). */
@@ -505,6 +511,7 @@ public final class Battle implements Listener {
             p.getInventory().setArmorContents(worn);   // the armour stays on in the demo (05c)
         }
         s.ap = s.apAtAnchor = c.apMax();
+        s.faceYaw = p.getLocation().getYaw();
         s.legs.add(new Leg(0, p.getLocation().toBlockLocation()));
         s.ammo.put("smg", SMG.magazine);
         s.hp0 = c.hp; s.bleeding0 = c.bleeding; s.legs0 = c.brokenLegs; s.survival0.putAll(c.survival);
@@ -563,6 +570,12 @@ public final class Battle implements Listener {
             if (th != null && th[0].equals("Power")) { s.reserve.merge("Power", n * CELL_SHOTS, Integer::sum); continue; }
             Production.Design d = Items.made(id);
             if (d == null) continue;
+            if (d.category.equals("Shields") && s.shield == null && Data.SHIELDS.containsKey(d.name)) {   // 05c §11: the off hand
+                s.shield = d.name;
+                s.shieldSource = id;
+                s.shieldHealth = Items.madeCondition(it) / 100.0 * Data.SHIELDS.get(d.name).health();
+                continue;
+            }
             if (ROUNDS.contains(d.category)) { s.reserve.merge(d.key(), n, Integer::sum); continue; }
             switch (d.name) {
                 case "Frag grenade", "Military frag grenade", "Pipe grenade", "Fire bottle" -> { s.quick.merge("grenade", n, Integer::sum); continue; }
@@ -644,6 +657,14 @@ public final class Battle implements Listener {
                 { ItemStack back = Items.made(d, 1, cond);   // 05d §5: its accessories stay on it
                     if (s.acc.containsKey(e.getKey()) && !s.acc.get(e.getKey()).isEmpty()) Accessories.set(back, s.acc.get(e.getKey()));
                     for (ItemStack rest : p.getInventory().addItem(back).values()) p.getWorld().dropItem(p.getLocation(), rest); }
+        }
+        if (s.shield != null && s.shieldSource != null) {   // 05c §11: the shield goes back at its condition (broken = 0 %, repairable)
+            Data.Shield sd = Data.SHIELDS.get(s.shield);
+            Production.Design d = Items.made(s.shieldSource);
+            if (sd != null && d != null && removeIds(p, id -> id.equals(s.shieldSource), 1) > 0) {
+                ItemStack back = Items.made(d, 1, Math.max(0, Math.min(100, s.shieldHealth / sd.health() * 100)));
+                for (ItemStack rest : p.getInventory().addItem(back).values()) p.getWorld().dropItem(p.getLocation(), rest);
+            }
         }
     }
 
@@ -891,6 +912,55 @@ public final class Battle implements Listener {
      *  again), less a shock's; none on a lost turn. */
     static int turnAp(int apMax, int left, int shock, boolean lost) {
         return lost ? 0 : apMax - shock + Math.max(0, Math.min(left, apMax));
+    }
+
+    /** 05c §11 (RULED: *"they should work only in one direction"*): the attacker is in front of him, within the three front directions of
+     *  eight (67.5 degrees either side of where he faces; Minecraft's yaw 0 = +z). */
+    static boolean frontal(float yaw, double mx, double mz, double fx, double fz) {
+        double r = Math.toRadians(yaw), ax = -Math.sin(r), az = Math.cos(r), dx = fx - mx, dz = fz - mz, len = Math.hypot(dx, dz);
+        if (len < 1e-6) return true;
+        return (ax * dx + az * dz) / len >= Math.cos(Math.toRadians(67.5)) - 1e-9;
+    }
+
+    /** What a shield does to a hit (the ammo's penetration on its DR as on armour's): {what goes on, what it stopped}. */
+    static double[] shieldHit(int dt, double dr, double raw, double pen) {
+        double after = Math.max(0, raw - dt) * (1 - Math.max(0, Math.min(1, (1 - pen) * dr)));
+        return new double[]{after, raw - after};
+    }
+
+    /** His shield covers this attack: held (not with a two-handed weapon), whole (50 % and over), from the front. */
+    private Data.Shield covering(Player p, State s, Location from) {
+        if (s.shield == null) return null;
+        Data.Shield sd = Data.SHIELDS.get(s.shield);
+        Weapon held = heldWeapon(p);
+        if (sd == null || held != null && held.twoHanded || s.shieldHealth < sd.health() * 0.5) return null;
+        return frontal(s.faceYaw, p.getLocation().getX(), p.getLocation().getZ(), from.getX(), from.getZ()) ? sd : null;
+    }
+
+    /**
+     * A hit from the front strikes his shield first (05c §11, RULED: *"everything the shield block strikes it"*): its DT and DR, the rest
+     * goes on into his armour; it wears by all it stopped; under 50 % it no longer covers (it only obscures); at 0 broken. A gun's hit
+     * passes a shield that is not bullet-rated (the riot shield). Returns the raw damage that goes on.
+     */
+    double shieldTake(Player p, State s, Character c, Location from, double raw, double pen, boolean bullet, StringBuilder log) {
+        Data.Shield sd = covering(p, s, from);
+        if (sd == null || bullet && sd.bulletsPass() || raw <= 0) return raw;
+        double[] h = shieldHit(sd.dt(), sd.dr(), raw, pen);
+        s.shieldHealth = Math.max(0, s.shieldHealth - h[1]);
+        int pct = (int) Math.round(s.shieldHealth / sd.health() * 100);
+        log.append(" Your ").append(sd.name()).append(" takes it: ").append(Math.round(h[1])).append(" stopped, ").append(Math.round(h[0]))
+                .append(" goes on (its condition ").append(pct).append(" %").append(pct <= 0 ? ": BROKEN" : pct < 50 ? ": holed, it only obscures you now" : "").append(").");
+        p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ITEM_SHIELD_BLOCK, 1f, 1f);
+        return h[0];
+    }
+
+    /** 05c §11: a holed shield (under 50 %, not broken) still hides him from the front: one more "in the way" (-10, Fallout 2's). */
+    int shieldObscures(Player p, State s, Location from) {
+        if (s.shield == null) return 0;
+        Data.Shield sd = Data.SHIELDS.get(s.shield);
+        Weapon held = heldWeapon(p);
+        if (sd == null || held != null && held.twoHanded || s.shieldHealth <= 0 || s.shieldHealth >= sd.health() * 0.5) return 0;
+        return frontal(s.faceYaw, p.getLocation().getX(), p.getLocation().getZ(), from.getX(), from.getZ()) ? 1 : 0;
     }
 
     /** A long action's payment (05d round 7: *"very long actions ... in parts"*): {pay now, paid after}; done when paid after = need. */
@@ -1443,6 +1513,10 @@ public final class Battle implements Listener {
         sh.stance = s.stance();
         sh.senses = c.senses();
         sh.extra.put("prosthetic arm", c.armToHit(w.twoHanded));
+        if (s.shield != null && !w.twoHanded && Data.SHIELDS.containsKey(s.shield)) {   // 05c §11: a shield too heavy for him
+            int shortOf = Data.SHIELDS.get(s.shield).minStr() - me[Rules.S];
+            if (shortOf > 0) sh.extra.put("shield too heavy", -20 * shortOf);
+        }
         Map<String, String> fit = s.acc.get(w.tag);   // 05d §5: the sights, the bipod
         if (Accessories.night(fit)) sh.senses = Math.max(sh.senses, 2);
         if (Accessories.toHit(fit) != 0) sh.extra.put("sight", Accessories.toHit(fit));
@@ -1780,6 +1854,7 @@ public final class Battle implements Listener {
         if (why != null) { s.hold = true; s.holdWhy = why; }
         s.sceneRound = pl.zones.round;
         s.ap = s.apAtAnchor = c.apMax();
+        s.faceYaw = p.getLocation().getYaw();
         s.legs.add(new Leg(0, p.getLocation().toBlockLocation()));
         s.bar = BossBar.bossBar(Component.text(""), 1f, BossBar.Color.YELLOW, BossBar.Overlay.NOTCHED_10);
         p.showBossBar(s.bar);
@@ -2203,6 +2278,8 @@ public final class Battle implements Listener {
      */
     private void endTurn(Player p, State s, Character c) {
         if (s.enemyTurn) { show(p, s, c, "the raiders' turn: wait"); return; }
+        s.carry = Math.max(0, s.ap);   // 05d round 7: the unused AP, carried into the next turn (at most the max)
+        s.faceYaw = p.getLocation().getYaw();   // 05c §11: facing = where he looks as his turn ends
         s.ap = s.apAtAnchor = 0;
         Sfx.to(p, "turn.end");
         pl.zones.apply(c, p);
@@ -2474,8 +2551,9 @@ public final class Battle implements Listener {
         if (s.lostTurns > 0) s.lostTurns--;
         int shockAp = lost ? 0 : Math.min(c.apMax(), s.apLoss);   // 05d round 5: a shock last round
         s.apLoss = 0;
-        int carry = lost ? 0 : Math.max(0, Math.min(s.ap, c.apMax()));   // 05d round 7: unused AP carried, at most the max
-        s.ap = s.apAtAnchor = turnAp(c.apMax(), s.ap, shockAp, lost);
+        int carry = lost ? 0 : Math.max(0, Math.min(s.carry, c.apMax()));   // 05d round 7: unused AP carried, at most the max
+        s.ap = s.apAtAnchor = turnAp(c.apMax(), s.carry, shockAp, lost);
+        s.carry = 0;
         if (carry > 0) p.sendMessage(Component.text(carry + " AP carried over from your last turn.", NamedTextColor.GRAY));
         if (shockAp > 0) p.sendMessage(Component.text("The shock still in your muscles: " + shockAp + " AP less this turn.", NamedTextColor.RED));
         Sfx.to(p, lost ? "ap.lacking" : "turn.start");

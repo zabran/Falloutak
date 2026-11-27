@@ -122,6 +122,12 @@
    "note": ""
   },
   {
+   "name": "Shields",
+   "group": "Shields",
+   "skill": "Crafting",
+   "note": "held in the off hand (never with a two-handed weapon); covers the front"
+  },
+  {
    "name": "Traps",
    "group": "Grenades and traps",
    "skill": "Traps",
@@ -627,6 +633,19 @@
     }
    ],
    "per": 2
+  },
+  "Shields": {
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "count": 2
+    },
+    {
+     "type": "Soft armour parts",
+     "count": 1
+    }
+   ],
+   "per": 1
   },
   "Traps": {
    "parts": [
@@ -4259,6 +4278,144 @@
     }
    ],
    "makes": 2,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shields",
+   "group": "Shields",
+   "skill": "Crafting",
+   "name": "Road-sign shield",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 1,
+     "count": 2
+    },
+    {
+     "type": "Soft armour parts",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shields",
+   "group": "Shields",
+   "skill": "Crafting",
+   "name": "Pavise",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 2
+    },
+    {
+     "type": "Soft armour parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shields",
+   "group": "Shields",
+   "skill": "Crafting",
+   "name": "Workshop steel shield",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 2,
+     "count": 2
+    },
+    {
+     "type": "Soft armour parts",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shields",
+   "group": "Shields",
+   "skill": "Crafting",
+   "name": "Riot shield",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Soft armour parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shields",
+   "group": "Shields",
+   "skill": "Crafting",
+   "name": "Ballistic shield",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Soft armour parts",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Shields",
+   "group": "Shields",
+   "skill": "Crafting",
+   "name": "Composite shield",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard armour parts",
+     "tier": 4,
+     "count": 2
+    },
+    {
+     "type": "Soft armour parts",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
    "slot": "",
    "set": ""
   },

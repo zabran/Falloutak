@@ -1,0 +1,83 @@
+{
+ "source": "Fallouťák 05c §11 (RULED 05d rounds 7-8): the shields; the Normal DT/DR on everything from the front, the health what the material holds (hits to fail x a hit's stopped share), min_str 1 + kg / 3; written by LollyWood-Lore _tools/fallout_armour_json.py",
+ "rows": [
+  {
+   "name": "Road-sign shield",
+   "tier": 1,
+   "rarity": 1,
+   "dt": 1,
+   "dr": 20,
+   "weight_kg": 4,
+   "health": 17,
+   "min_str": 2,
+   "bullets_pass": false,
+   "stands": false,
+   "models": "an aluminium road sign with a strap: 2 mm, it folds after a few heavy blows"
+  },
+  {
+   "name": "Pavise",
+   "tier": 2,
+   "rarity": 1,
+   "dt": 3,
+   "dr": 30,
+   "weight_kg": 9,
+   "health": 156,
+   "min_str": 4,
+   "bullets_pass": false,
+   "stands": true,
+   "models": "the Hussites' standing shield (pavéza): planks and rawhide; set down it is a wall"
+  },
+  {
+   "name": "Workshop steel shield",
+   "tier": 2,
+   "rarity": 2,
+   "dt": 6,
+   "dr": 50,
+   "weight_kg": 17,
+   "health": 1012,
+   "min_str": 7,
+   "bullets_pass": false,
+   "stands": false,
+   "models": "a cut Hardox or AR500 plate with a viewport: stops a rifle ball"
+  },
+  {
+   "name": "Riot shield",
+   "tier": 3,
+   "rarity": 1,
+   "dt": 2,
+   "dr": 40,
+   "weight_kg": 5,
+   "health": 162,
+   "min_str": 3,
+   "bullets_pass": true,
+   "stands": false,
+   "models": "the police's polycarbonate: blows and throws; a bullet goes through"
+  },
+  {
+   "name": "Ballistic shield",
+   "tier": 3,
+   "rarity": 2,
+   "dt": 6,
+   "dr": 45,
+   "weight_kg": 9,
+   "health": 160,
+   "min_str": 4,
+   "bullets_pass": false,
+   "stands": false,
+   "models": "the police's NIJ IIIA panel with a window: pistol rounds"
+  },
+  {
+   "name": "Composite shield",
+   "tier": 4,
+   "rarity": 2,
+   "dt": 10,
+   "dr": 60,
+   "weight_kg": 6,
+   "health": 1330,
+   "min_str": 3,
+   "bullets_pass": false,
+   "stands": false,
+   "models": "the 2040s' composite: rifle-proof and light"
+  }
+ ]
+}

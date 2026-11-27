@@ -645,7 +645,8 @@ final class Raiders {
         sh.lightLevel = p.getEyeLocation().getBlock().getLightLevel();
         sh.targetAc = Rules.ac(c.attrs(false)) + Rules.STANCE_AC[s.stance()] + c.armourAc();   // + the armour's AC (05c)
         sh.targetProne = s.stance() == 2;
-        sh.obstacles = inTheWay(eye, p, le) + (s.smokeRound == s.round ? 1 : 0);   // 05d round 7: his black-powder smoke hides him
+        sh.obstacles = inTheWay(eye, p, le) + (s.smokeRound == s.round ? 1 : 0)   // 05d round 7: his black-powder smoke hides him
+                + b.shieldObscures(p, s, le.getLocation());   // 05c §11: a holed shield in front of him
         sh.huge = c.tpl().huge();   // the Ent (03b §2d): +15 to hit it, obstacles x 2
         sh.stance = t.stance;
         sh.movePenalty = t.moved && !t.steadied ? -10 : 0;
@@ -684,18 +685,21 @@ final class Raiders {
             // the piece over the torso (an unaimed shot, Fallout 2), Normal damage; it wears when the hit beats its DT (05c)
             boolean arc = w.damageType.equals("Electrical");   // 05d round 5: his armour's Isolation stops it, not its plates
             String kind = arc ? "Isolation" : "Normal";
-            int dmg = Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, c.dtAt(Rules.Part.TORSO, kind), c.drAt(Rules.Part.TORSO, kind), fx.bypass());
+            StringBuilder held = new StringBuilder();   // 05c §11: his shield, if it covers this side
+            double raw = base * Math.max(1, mult) * (1 + w.ammoDamage);
+            if (!arc) raw = b.shieldTake(p, s, c, le.getLocation(), raw, w.ammoPenetration, w.skill.equals("Guns") || w.skill.equals("Energy Weapons"), held);
+            int dmg = Combat.damage(raw, 1, 0, w.ammoPenetration, c.dtAt(Rules.Part.TORSO, kind), c.drAt(Rules.Part.TORSO, kind), fx.bypass());
             int elec = arc ? dmg : 0;
             if (w.shockMax > 0) {   // a stun weapon's shock (round 3), through the Isolation
                 int zap = Combat.damage(w.shockMin + b.rnd.nextInt(w.shockMax - w.shockMin + 1), 1, 0, 0, c.dtAt(Rules.Part.TORSO, "Isolation"), c.drAt(Rules.Part.TORSO, "Isolation"), false);
                 dmg += zap;
                 elec += zap;
             }
-            String wear = c.wearArmour(Rules.Part.TORSO, Combat.damage(base, mult, w.ammoDamage, w.ammoPenetration, 0, 0, false));
+            String wear = c.wearArmour(Rules.Part.TORSO, (int) Math.round(raw));
             if (!wear.isEmpty()) Items.writeArmour(p, c);
             log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + Txt.f(mult) + ")" : "HIT").append(", ").append(dmg)
                     .append(" HP (").append(w.minDmg).append("-").append(w.maxDmg).append(", ").append(w.ammo).append("; your DT ").append(c.dtAt(Rules.Part.TORSO, "Normal")).append(", DR ").append(Math.round(c.drAt(Rules.Part.TORSO, "Normal") * 100))
-                    .append(" %").append(c.armourAt(Rules.Part.TORSO) == null ? ", no armour" : ", " + c.armourAt(Rules.Part.TORSO).set()).append(").").append(wear);
+                    .append(" %").append(c.armourAt(Rules.Part.TORSO) == null ? ", no armour" : ", " + c.armourAt(Rules.Part.TORSO).set()).append(").").append(held).append(wear);
             if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
             result = (r.crit() ? "CRIT on you, " : "hit, ") + dmg + " HP";
             if (elec > 0) log.append(b.shockPlayer(p, s, c, elec, p.isInWaterOrRain()));   // 05d round 5
@@ -864,12 +868,14 @@ final class Raiders {
             Combat.CritEffects fx = Combat.critEffects(Rules.Part.TORSO, deg, c.attrs(false));
             double mult = Combat.critMultiplier(Rules.Part.TORSO, deg);
             double base = t.minDmg + b.rnd.nextInt(t.maxDmg - t.minDmg + 1);
-            int dmg = Combat.damage(base, mult, 0, 0, c.dtAt(Rules.Part.TORSO, "Normal"), c.drAt(Rules.Part.TORSO, "Normal"), fx.bypass());
-            String wear = c.wearArmour(Rules.Part.TORSO, Combat.damage(base, mult, 0, 0, 0, 0, false));
+            StringBuilder onShield = new StringBuilder();   // 05c §11: his shield, if it covers this side
+            double raw = b.shieldTake(p, s, c, le.getLocation(), base * Math.max(1, mult), 0, false, onShield);
+            int dmg = Combat.damage(raw, 1, 0, 0, c.dtAt(Rules.Part.TORSO, "Normal"), c.drAt(Rules.Part.TORSO, "Normal"), fx.bypass());
+            String wear = c.wearArmour(Rules.Part.TORSO, (int) Math.round(raw));
             if (!wear.isEmpty()) Items.writeArmour(p, c);
             log.append(r.crit() ? "CRITICAL HIT, degree " + deg + " (x" + Txt.f(mult) + ")" : "HIT").append(", ").append(dmg).append(" HP (")
                     .append(t.minDmg).append("-").append(t.maxDmg).append("; your DT ").append(c.dtAt(Rules.Part.TORSO, "Normal")).append(", DR ")
-                    .append(Math.round(c.drAt(Rules.Part.TORSO, "Normal") * 100)).append(" %).").append(wear);
+                    .append(Math.round(c.drAt(Rules.Part.TORSO, "Normal") * 100)).append(" %).").append(onShield).append(wear);
             if (!fx.names().isEmpty()) log.append(" The crit: ").append(String.join(", ", fx.names())).append(".");
             result = (r.crit() ? "CRIT on you, " : "hit, ") + dmg + " HP";
             Sfx.at(p.getLocation(), "knife.flesh");

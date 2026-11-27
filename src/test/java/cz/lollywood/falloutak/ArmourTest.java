@@ -37,6 +37,31 @@ class ArmourTest {
     }
 
     @Test
+    void shields() {   // 05c §11 (RULED 05d rounds 7-8, 11-27)
+        assertEquals(6, Data.SHIELDS.size());
+        Data.Shield steel = Data.SHIELDS.get("Workshop steel shield"), comp = Data.SHIELDS.get("Composite shield"), riot = Data.SHIELDS.get("Riot shield");
+        assertEquals(1012, steel.health(), "what a 6 mm Hardox plate holds: ~150 pistol rounds");
+        assertTrue(comp.health() > steel.health(), "the better shield is not weaker for being lighter");
+        assertEquals(7, steel.minStr(), "1 + kg / 3");
+        assertTrue(riot.bulletsPass());
+        assertTrue(Data.SHIELDS.get("Pavise").stands());
+        assertEquals(4, comp.tier());
+        assertEquals(3, Data.SHIELDS.get("Ballistic shield").tier(), "today's police shield: Tier III");
+        // the front only: the three front directions of eight (67.5 degrees either side; yaw 0 faces +z)
+        assertTrue(Battle.frontal(0, 0, 0, 0, 5));
+        assertTrue(Battle.frontal(0, 0, 0, 2, 5));
+        assertFalse(Battle.frontal(0, 0, 0, 5, 1), "beside him");
+        assertFalse(Battle.frontal(0, 0, 0, 0, -5), "behind him");
+        assertTrue(Battle.frontal(90, 0, 0, -5, 0), "yaw 90 faces -x");
+        // a hit on it: its DT and DR, the rest goes on; what it stopped wears it
+        double[] h = Battle.shieldHit(6, 0.45, 15.5, 0);
+        assertEquals(5.225, h[0], 1e-9);
+        assertEquals(10.275, h[1], 1e-9);
+        assertEquals(0, Battle.shieldHit(10, 0.6, 7.5, 0)[0], 1e-9, "the composite stops a pistol round whole");
+        assertTrue(Production.design("Shields", "Road-sign shield") != null && Production.design("Shields", "Composite shield") != null);
+    }
+
+    @Test
     void roundSevenAndEight() {   // 05d rounds 7-8 (RULED 11-27, 05c §12)
         assertEquals(57, Data.ARMOUR.size());
         // today's gear Tier III, the 2040s Tier IV (Marek: *"transport them to T3 and add new T4 equivalent"*)

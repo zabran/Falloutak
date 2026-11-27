@@ -185,6 +185,7 @@ final class Items {
             case "Melee weapons" -> Material.IRON_SWORD;
             case "Ranged weapons" -> cat.equals("Bows") ? Material.BOW : Material.CROSSBOW;
             case "Grenades and traps" -> cat.equals("Traps") ? Material.TRIPWIRE_HOOK : Material.FIRE_CHARGE;
+            case "Shields" -> Material.SHIELD;
             default -> Material.PAPER;
         };
         return Material.PAPER;

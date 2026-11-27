@@ -106,6 +106,13 @@ public final class Data {
     };
     static final Map<String, String> ARMOUR_WAS = new HashMap<>();
 
+    /** A shield (05c §11, RULED 05d rounds 7-8): its Normal DT/DR on everything from the front, its health what the material holds, the
+     *  Strength to carry it, a gun's hit passing (the riot shield), standing (the pavise); `data/shields.json`. */
+    public record Shield(String name, int tier, int rarity, int dt, double dr, double kg, int health, int minStr, boolean bulletsPass,
+                         boolean stands, String models) {}
+
+    public static final Map<String, Shield> SHIELDS = new LinkedHashMap<>();
+
     /** A gene set of the shop (03d §9, DRAFT 2 11-18): one course; an adult gets it without its puberty-only (shape) and ORGAN genes. */
     public record GeneSet(String name, List<String> genes, List<String> pubertyOnly, String shop) {}
 
@@ -776,6 +783,13 @@ public final class Data {
                     o.has("cooled") && o.get("cooled").getAsBoolean(), o.has("power_armour") && o.get("power_armour").getAsBoolean(),
                     d(o, "carry_str")));
             if (o.has("was")) for (JsonElement w : o.getAsJsonArray("was")) ARMOUR_WAS.put(w.getAsString(), name);
+        }
+        for (JsonElement e : rows("shields")) {
+            JsonObject o = e.getAsJsonObject();
+            String name = o.get("name").getAsString();
+            SHIELDS.put(name, new Shield(name, (int) d(o, "tier", 1), (int) d(o, "rarity", 1), (int) d(o, "dt"), d(o, "dr") / 100.0, d(o, "weight_kg"),
+                    (int) d(o, "health"), (int) d(o, "min_str"), o.has("bullets_pass") && o.get("bullets_pass").getAsBoolean(),
+                    o.has("stands") && o.get("stands").getAsBoolean(), s(o, "models", "")));
         }
         for (JsonElement e : rows("chems")) {
             JsonObject o = e.getAsJsonObject();

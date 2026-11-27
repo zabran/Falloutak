@@ -42,6 +42,10 @@ outside the game; the game itself is for the look and feel. The rules' text live
   `cleanStep` (long actions in parts), the smoke (`State.smokeRound`, read by `Raiders`).
   The armour's renamed sets resolve by their old name (`Data.ARMOUR`'s `get` + `ARMOUR_WAS`, armour.json "was"); a piece's Strength for
   carrying only (`Armour.carryStr`, `Character.carryStrength`: the load exoskeleton, 05c §12).
+  Shields (05c §11): `Data.SHIELDS` (`data/shields.json`), the off hand from his own kit (`State.shield`, `shieldHealth`, written back to
+  the item after the fight), facing = his yaw as his turn ends (`State.faceYaw`), `Battle.frontal`, `shieldHit`, `shieldTake` (called by
+  `Raiders` on a shot and a blow before his armour), `shieldObscures` (a holed shield: -10); the unused AP saved at the turn's end
+  (`State.carry`).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
