@@ -48,6 +48,9 @@ outside the game; the game itself is for the look and feel. The rules' text live
   (`State.carry`).
   The throws, blows and darts (05d round 7): `Weapon.entangle` (bolas, net: `Target.entangled`, freed in `Raiders.plan` by `Battle.tearsFree`),
   `throwsName` (the spear-thrower's javelins), `noGuard` (the war flail), the sedative dart (`Target.sedatedAt`, `SEDATIVE_ROUNDS`).
+  The traps (05d §7c): `Data.TRAPS` (`data/traps.json`), the skills Traps, Mines, Alarms (`Rules.COMBOS`), `Battle.Trap` in `Fight.traps`,
+  `setTrap` (`/sheet trap`), `trapAt`, `knownTraps` (blocked cells in `Raiders.taken`), `spots`, `inCone`, `spring`; `Raiders.trapCut` on the
+  raider's and the beast's walk.
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):

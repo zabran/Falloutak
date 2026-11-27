@@ -282,9 +282,10 @@ final class Raiders {
         }
         if (t.entangled > 0) {   // 05d round 7: the bolas or the net: the turn goes on tearing free
             int d = 1 + b.rnd.nextInt(100), str = t.a[Rules.S], kind = t.entangled;
-            boolean free = Battle.tearsFree(str, d);
-            if (free) t.entangled = 0;
-            q.add(() -> say(p, t.name + (free ? " tears free of the " : " struggles in the ") + (kind == 2 ? "net" : "bolas") + " (d100 " + d + (free ? " <= " : " > ") + 10 * str + ")."));
+            boolean free = Battle.tearsFree(str, d, t.hold);
+            if (free) { t.entangled = 0; t.hold = 0; }
+            int need = 10 * str - t.hold;
+            q.add(() -> say(p, t.name + (free ? " tears free" : " struggles to get free") + (kind == 2 ? " of the net" : "") + " (d100 " + d + (free ? " <= " : " > ") + need + ")."));
             return;
         }
         if (t.down) {   // Fallout 2: standing up costs 3 AP at the start of the turn
@@ -359,10 +360,13 @@ final class Raiders {
                 Zones.Zone z2 = b.pl.anomalies.at(new Location(w, cell.x() + 0.5, cell.y() + 0.5, cell.z() + 0.5));
                 if (z2 != null && !z2.id.equals(inZone)) { into = z2; steps = i + 1; }
             }
+            Battle.Trap sprung = null;   // 05d §7c: a trap of the party's on his way
+            if (into == null) { int[] cut = trapCut(p, s, t, path, steps); steps = cut[0]; sprung = cut[1] >= 0 ? s.fight.traps.get(cut[1]) : null; }
             for (int i = 0; i < steps; i++) {
                 Path.P to = path.get(i);
                 q.add(() -> moveTo(le, to, p));
             }
+            if (sprung != null) { Battle.Trap tr = sprung; q.add(() -> b.spring(p, s, tr, le, t)); }
             if (steps > 0) {
                 t.ap -= (int) Math.ceil(steps * per - 1e-9);
                 t.moved = true;
@@ -580,6 +584,7 @@ final class Raiders {
             Entity e = b.pl.getServer().getEntity(o);
             if (e != null) { Location x = e.getLocation(); l.add(new Path.P(x.getBlockX(), x.getBlockY(), x.getBlockZ())); }
         }
+        l.addAll(Battle.knownTraps(s.fight));   // 05d §7c: the traps they spotted, walked round
         return l;
     }
 
@@ -591,6 +596,29 @@ final class Raiders {
         if (d > range || d < 1e-6) return d < 1e-6;
         RayTraceResult r = w.rayTraceBlocks(eye, to.normalize(), d, FluidCollisionMode.NEVER, true);
         return r == null;
+    }
+
+    /**
+     * The party's traps on his way (05d §7c): at each, he spots it (d100 <= 10 x Perception + 1/2 his skill - 1/2 the setter's + its
+     * modifier) and stops before it, or walks onto it and it springs (his move ends there). A friend-safe trap never fires on the party.
+     * Returns {the steps he takes, the trap's index in the fight or -1}.
+     */
+    private int[] trapCut(Player p, Battle.State s, Battle.Target t, List<Path.P> path, int steps) {
+        if (s.fight == null || s.fight.traps.isEmpty()) return new int[]{steps, -1};
+        for (int i = 0; i < steps; i++) {
+            Path.P cell = path.get(i);
+            Battle.Trap tr = Battle.trapAt(s.fight, cell.x(), cell.y(), cell.z());
+            if (tr == null) continue;
+            if (tr.known) return new int[]{i, -1};
+            int d = 1 + b.rnd.nextInt(100);
+            if (Battle.spots(t.a[Rules.P], t.skill, tr.setterSkill, tr.def.spot(), d)) {
+                tr.known = true;
+                say(p, t.name + " spots your " + tr.def.name() + " and stops short of it.");
+                return new int[]{i, -1};
+            }
+            return new int[]{i + 1, s.fight.traps.indexOf(tr)};
+        }
+        return new int[]{steps, -1};
     }
 
     private void moveTo(LivingEntity le, Path.P to, Player p) {
@@ -808,7 +836,10 @@ final class Raiders {
             if (path == null) { q.add(() -> say(p, t.name + " finds no way to you.")); return; }
             int steps = Math.min(can, path.size());
             if (Math.ceil(path.size() * per - 1e-9) <= t.ap - t.attackAp) steps = path.size();
+            int[] cut = trapCut(p, s, t, path, steps);   // 05d §7c: a trap of the party's on its way
+            steps = cut[0];
             for (int i = 0; i < steps; i++) { Path.P to = path.get(i); q.add(() -> moveTo(le, to, p)); }
+            if (cut[1] >= 0) { Battle.Trap tr = s.fight.traps.get(cut[1]); q.add(() -> b.spring(p, s, tr, le, t)); }
             if (steps > 0) {
                 t.ap -= (int) Math.ceil(steps * per - 1e-9);
                 t.moved = true;

@@ -234,7 +234,7 @@ public final class Battle implements Listener {
          *  hostile runs from the party (and is gone once it is far enough: escaped). */
         boolean melee, flees, escaped;
         /** 05d round 7: entangled (1 the bolas: the legs, 2 the net: the body); the round a sedative dart puts him to sleep (-1 none). */
-        int entangled, sedatedAt = -1;
+        int entangled, sedatedAt = -1, hold;
         int minDmg = 5, maxDmg = 12, reach = 1, attackAp = 4;
         String attack = "bite";
         /** The battle map's ground (null in the demo): a running animal at its edge is gone. */
@@ -368,7 +368,23 @@ public final class Battle implements Listener {
      * between) can play simultanously"*): a round is the party's turn and the enemies' turn, whichever side attacked first; the party's
      * turn ends when every player in it has ended his. The battle demo is a fight of one player.
      */
+    /** A trap set in this fight (05d §7c): where, by whom (his skill of its kind then), the way he faced (a directional mine); known =
+     *  an enemy spotted it (they walk round it now); sprung = gone. */
+    static final class Trap {
+        final Data.TrapDef def;
+        final int x, y, z;
+        final UUID setter;
+        final double setterSkill;
+        final float yaw;
+        boolean known, sprung;
+        Trap(Data.TrapDef def, int x, int y, int z, UUID setter, double setterSkill, float yaw) {
+            this.def = def; this.x = x; this.y = y; this.z = z; this.setter = setter; this.setterSkill = setterSkill; this.yaw = yaw;
+        }
+    }
+
     static final class Fight {
+        /** 05d §7c: the traps the party set in this fight. */
+        final List<Trap> traps = new ArrayList<>();
         final Map<UUID, Target> targets = new HashMap<>();
         final List<UUID> dummies = new ArrayList<>();
         final List<UUID> players = new ArrayList<>();
@@ -975,8 +991,115 @@ public final class Battle implements Listener {
     /** 05d round 7: a vet's dose in a muscle takes minutes (ketamine IM ~3-4 [real]); a round is 6 s. */
     static final int SEDATIVE_ROUNDS = 30;
 
-    /** 05d round 7: tearing free of the bolas or the net, a turn: d100 <= 10 x Strength. */
-    static boolean tearsFree(int strength, int d100) { return d100 <= 10 * strength; }
+    /** 05d round 7: tearing free of the bolas or the net, a turn: d100 <= 10 x Strength (a jaw trap harder by its hold). */
+    static boolean tearsFree(int strength, int d100) { return tearsFree(strength, d100, 0); }
+
+    static boolean tearsFree(int strength, int d100, int hold) { return d100 <= 10 * strength - hold; }
+
+    // ------------------------------------------------------------------ THE TRAPS (05d §7c, RULED rounds 7-8)
+    /** A walker spots a trap on d100 <= 10 x Perception + 1/2 his skill of its kind - 1/2 the setter's + its spot modifier. */
+    static boolean spots(int perception, double walkerSkill, double setterSkill, int spotMod, int d100) {
+        return d100 <= 10 * perception + walkerSkill / 2 - setterSkill / 2 + spotMod;
+    }
+
+    /** Inside a directional mine's cone: within its range and half its angle either side of the way it faces (yaw 0 = +z). */
+    static boolean inCone(float yaw, double tx, double tz, double x, double z, int coneDeg, int range) {
+        double dx = x - tx, dz = z - tz, d = Math.hypot(dx, dz);
+        if (d > range + 0.5 || d < 1e-6) return d < 1e-6;
+        double r = Math.toRadians(yaw);
+        return (-Math.sin(r) * dx + Math.cos(r) * dz) / d >= Math.cos(Math.toRadians(coneDeg / 2.0)) - 1e-9;
+    }
+
+    /** A trap of the party's on this cell, not sprung. */
+    static Trap trapAt(Fight f, int x, int y, int z) {
+        if (f == null) return null;
+        for (Trap t : f.traps) if (!t.sprung && t.x == x && t.y == y && t.z == z) return t;
+        return null;
+    }
+
+    /** The cells of the traps the enemies have spotted: they walk round them. */
+    static Set<Path.P> knownTraps(Fight f) {
+        Set<Path.P> l = new HashSet<>();
+        if (f != null) for (Trap t : f.traps) if (!t.sprung && t.known) l.add(new Path.P(t.x, t.y, t.z));
+        return l;
+    }
+
+    /** /sheet trap [name]: sets the first trap of his own (or the one named) on the block he looks at, within 2 blocks, its AP. */
+    String setTrap(Player p, Character c, String[] args) {
+        State s = state(p);
+        if (s == null || s.fight == null) return "! traps are set in a fight (/sheet trap); a pit or a deadfall is dug before one (not built yet)";
+        String want = args.length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length)).toLowerCase(Locale.ROOT) : "";
+        Production.Design pick = null;
+        for (ItemStack it : s.saved) {
+            Production.Design d = Items.made(Items.id(it));
+            if (d == null || !Data.TRAPS.containsKey(d.name) || !want.isEmpty() && !d.name.toLowerCase(Locale.ROOT).startsWith(want)) continue;
+            int have = 0;
+            for (ItemStack x : s.saved) { Production.Design e = Items.made(Items.id(x)); if (e != null && e.key().equals(d.key())) have += x.getAmount(); }
+            if (have > s.used.getOrDefault(d.key(), 0)) { pick = d; break; }
+        }
+        if (pick == null) return "! no trap of yours left to set" + (want.isEmpty() ? "" : " named " + want);
+        Data.TrapDef def = Data.TRAPS.get(pick.name);
+        if (def.ap() < 0) return "! a " + def.name() + " is dug before a fight, not in one";
+        RayTraceResult r = p.rayTraceBlocks(3, FluidCollisionMode.NEVER);
+        if (r == null || r.getHitBlock() == null || r.getHitPosition().distance(p.getEyeLocation().toVector()) > 3.5) return "! look at the ground within 2 blocks";
+        org.bukkit.block.Block cell = r.getHitBlock().getRelative(org.bukkit.block.BlockFace.UP);
+        if (!cell.isPassable()) return "! no room there";
+        if (trapAt(s.fight, cell.getX(), cell.getY(), cell.getZ()) != null) return "! a trap is there already";
+        if (!pay(p, s, c, def.ap(), "setting the " + def.name())) return "! not enough AP (" + def.ap() + ")";
+        s.used.merge(pick.key(), 1, Integer::sum);
+        double skill = weaponSkill(c, def.kind());
+        s.fight.traps.add(new Trap(def, cell.getX(), cell.getY(), cell.getZ(), p.getUniqueId(), skill, p.getLocation().getYaw()));
+        p.spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, cell.getLocation().add(0.5, 0.2, 0.5), 6, 0.3, 0.1, 0.3, 0);
+        Sfx.to(p, "mode.next");
+        show(p, s, c, "the " + def.name() + " is set (" + def.ap() + " AP; your " + def.kind() + " " + Math.round(skill) + ")");
+        return "Set the " + def.name() + " at " + cell.getX() + " " + cell.getY() + " " + cell.getZ() + " (" + def.kind() + " " + Math.round(skill) + ").";
+    }
+
+    /** An enemy walks onto a trap he did not spot: it springs on him. */
+    void spring(Player p, State s, Trap tr, LivingEntity le, Target t) {
+        if (tr.sprung || t.dead) return;
+        Data.TrapDef d = tr.def;
+        tr.sprung = !d.effect().equals("noise") && !d.effect().equals("alert");   // an alarm sounds again
+        Fight f = s.fight;
+        StringBuilder log = new StringBuilder("YOUR " + d.name().toUpperCase(Locale.ROOT) + " springs on " + t.name + ": ");
+        Location at = new Location(le.getWorld(), tr.x + 0.5, tr.y, tr.z + 0.5);
+        switch (d.effect()) {
+            case "held", "fall", "knock", "cut" -> {
+                int dmg = d.max() <= 0 ? 0 : Combat.damage(d.min() + rnd.nextInt(d.max() - d.min() + 1), 1, 0, d.pen(), t.dt, t.dr, d.pen() >= 0.8);
+                log.append(dmg).append(" HP");
+                if (dmg > 0) hurt(le, t, dmg, Combat.critEffects(Rules.Part.LEFT_LEG, 0, t.a), false, 0, log);
+                if (!t.dead && d.effect().equals("held")) { t.entangled = 1; t.hold = d.hold(); log.append("; HELD by a leg (he tears free on d100 <= 10 x Strength").append(d.hold() > 0 ? " - " + d.hold() : "").append(")"); }
+                if (!t.dead && d.effect().equals("knock")) { t.down = true; log.append("; knocked down"); }
+                if (!t.dead && d.effect().equals("fall")) { t.down = true; log.append("; in the pit (out next turn)"); }
+            }
+            case "blast" -> { log.append("it blows."); explode(p, s, pl.character(p), at, le, 0, log, d.min(), d.max()); }
+            case "cone" -> {
+                log.append("the steel balls sweep the cone:");
+                for (Map.Entry<UUID, Target> en : f.targets.entrySet()) {
+                    Entity e = pl.getServer().getEntity(en.getKey());
+                    Target x = en.getValue();
+                    if (x.dead || !(e instanceof LivingEntity xe) || !inCone(tr.yaw, at.getX(), at.getZ(), xe.getLocation().getX(), xe.getLocation().getZ(), d.cone(), d.range())) continue;
+                    int dmg = Combat.damage(d.min() + rnd.nextInt(d.max() - d.min() + 1), 1, 0, 0, x.dt, x.dr, false);
+                    log.append(" ").append(x.name).append(" ").append(dmg).append(" HP;");
+                    hurt(xe, x, dmg, Combat.critEffects(Rules.Part.TORSO, 0, x.a), false, 0, log);
+                }
+                at.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION, at, 1);
+                Sfx.at(at, "explosion");
+            }
+            case "shock" -> {
+                int zap = Combat.damage(d.shockMin() + rnd.nextInt(Math.max(1, d.shockMax() - d.shockMin() + 1)), 1, 0, 0, 0, 0, false);
+                log.append(zap).append(" Electrical");
+                hurt(le, t, zap, Combat.critEffects(Rules.Part.LEFT_LEG, 0, t.a), false, 0, log);
+                if (!t.dead) log.append(shock(t, zap, machine(t), le.isInWaterOrRain(), d100));
+            }
+            default -> {   // noise, alert: he is seen where he is for a round
+                le.setGlowing(true);
+                pl.getServer().getScheduler().runTaskLater(pl, () -> le.setGlowing(false), 20L * 6);
+                log.append(d.effect().equals("noise") ? "it rattles: he is there." : "a silent alert on your radio: he is there.");
+            }
+        }
+        tell(f, log.toString(), NamedTextColor.GOLD);
+    }
 
     /** A long action's payment (05d round 7: *"very long actions ... in parts"*): {pay now, paid after}; done when paid after = need. */
     static int[] partPay(int need, int done, int ap) {

@@ -113,6 +113,13 @@ public final class Data {
 
     public static final Map<String, Shield> SHIELDS = new LinkedHashMap<>();
 
+    /** A trap (05d §7c, RULED rounds 7-8): its kind (= its skill: Traps, Mines, Alarms), the AP to set it in a fight (-1: only dug before
+     *  one), its damage and effect (held, fall, knock, cut, blast, cone, noise, alert, shock) and their numbers; `data/traps.json`. */
+    public record TrapDef(String name, String kind, int tier, int rarity, int ap, int min, int max, String effect, int hold, double pen, int spot,
+                          int radius, int cone, int range, int shockMin, int shockMax, boolean friendSafe) {}
+
+    public static final Map<String, TrapDef> TRAPS = new LinkedHashMap<>();
+
     /** A gene set of the shop (03d §9, DRAFT 2 11-18): one course; an adult gets it without its puberty-only (shape) and ORGAN genes. */
     public record GeneSet(String name, List<String> genes, List<String> pubertyOnly, String shop) {}
 
@@ -783,6 +790,14 @@ public final class Data {
                     o.has("cooled") && o.get("cooled").getAsBoolean(), o.has("power_armour") && o.get("power_armour").getAsBoolean(),
                     d(o, "carry_str")));
             if (o.has("was")) for (JsonElement w : o.getAsJsonArray("was")) ARMOUR_WAS.put(w.getAsString(), name);
+        }
+        for (JsonElement e : rows("traps")) {
+            JsonObject o = e.getAsJsonObject();
+            String name = o.get("name").getAsString();
+            int[] sh = o.has("shock") ? new int[]{o.getAsJsonArray("shock").get(0).getAsInt(), o.getAsJsonArray("shock").get(1).getAsInt()} : new int[2];
+            TRAPS.put(name, new TrapDef(name, s(o, "kind", "Traps"), (int) d(o, "tier", 1), (int) d(o, "rarity", 1), (int) d(o, "ap", 4), (int) d(o, "min"),
+                    (int) d(o, "max"), s(o, "effect", "held"), (int) d(o, "hold"), d(o, "pen"), (int) d(o, "spot"), (int) d(o, "radius"), (int) d(o, "cone"),
+                    (int) d(o, "range"), sh[0], sh[1], o.has("friend_safe") && o.get("friend_safe").getAsBoolean()));
         }
         for (JsonElement e : rows("shields")) {
             JsonObject o = e.getAsJsonObject();

@@ -134,6 +134,18 @@
    "note": ""
   },
   {
+   "name": "Mines",
+   "group": "Grenades and traps",
+   "skill": "Mines",
+   "note": ""
+  },
+  {
+   "name": "Alarms",
+   "group": "Grenades and traps",
+   "skill": "Alarms",
+   "note": ""
+  },
+  {
    "name": "9x19 rounds",
    "group": "Rounds",
    "skill": "Guns",
@@ -672,6 +684,36 @@
    ],
    "per": 1
   },
+  "Mines": {
+   "parts": [
+    {
+     "type": "Explosives",
+     "count": 1
+    },
+    {
+     "type": "Machinery",
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
+  "Alarms": {
+   "parts": [
+    {
+     "type": "Electronics",
+     "count": 1
+    },
+    {
+     "type": "Machinery",
+     "count": 1
+    }
+   ],
+   "per": 1
+  },
   "9x19 rounds": {
    "parts": [
     {
@@ -893,6 +935,9 @@
   }
  },
  "renamed": {
+  "Traps|Fused mine": "Mines|Fused mine",
+  "Traps|Directional mine": "Mines|Directional mine",
+  "Traps|Tripwire bell": "Alarms|Battery bell",
   "Head armour|Brotherhood Armor": "Head armour|Special forces armour",
   "Body armour|Brotherhood Armor": "Body armour|Special forces armour",
   "Leg armour|Brotherhood Armor": "Leg armour|Special forces armour",
@@ -4658,6 +4703,29 @@
    "category": "Traps",
    "group": "Grenades and traps",
    "skill": "Traps",
+   "name": "Deadfall",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 1,
+     "count": 3
+    },
+    {
+     "type": "Textile",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Traps",
+   "group": "Grenades and traps",
+   "skill": "Traps",
    "name": "Bear trap",
    "tier": 2,
    "rarity": 1,
@@ -4681,7 +4749,173 @@
    "category": "Traps",
    "group": "Grenades and traps",
    "skill": "Traps",
-   "name": "Tripwire bell",
+   "name": "Factory leg-hold trap",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 2
+    },
+    {
+     "type": "Machinery",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Traps",
+   "group": "Grenades and traps",
+   "skill": "Traps",
+   "name": "Monofilament tripwire",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Hard weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Mines",
+   "group": "Grenades and traps",
+   "skill": "Mines",
+   "name": "Tripwire grenade",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 1,
+     "count": 1
+    },
+    {
+     "type": "Textile",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Mines",
+   "group": "Grenades and traps",
+   "skill": "Mines",
+   "name": "Fused mine",
+   "tier": 2,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Mines",
+   "group": "Grenades and traps",
+   "skill": "Mines",
+   "name": "Directional mine",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Hard weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 3,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Mines",
+   "group": "Grenades and traps",
+   "skill": "Mines",
+   "name": "Smart mine",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Explosives",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Machinery",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Electronics",
+     "tier": 4,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Alarms",
+   "group": "Grenades and traps",
+   "skill": "Alarms",
+   "name": "Tin-can line",
+   "tier": 1,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Textile",
+     "tier": 1,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Alarms",
+   "group": "Grenades and traps",
+   "skill": "Alarms",
+   "name": "Battery bell",
    "tier": 2,
    "rarity": 1,
    "parts": [
@@ -4701,25 +4935,43 @@
    "set": ""
   },
   {
-   "category": "Traps",
+   "category": "Alarms",
    "group": "Grenades and traps",
-   "skill": "Traps",
-   "name": "Fused mine",
+   "skill": "Alarms",
+   "name": "Electric wire",
+   "tier": 2,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Electronics",
+     "tier": 2,
+     "count": 1
+    },
+    {
+     "type": "Machinery",
+     "tier": 2,
+     "count": 1
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Alarms",
+   "group": "Grenades and traps",
+   "skill": "Alarms",
+   "name": "Motion sensor",
    "tier": 3,
    "rarity": 1,
    "parts": [
     {
-     "type": "Explosives",
+     "type": "Electronics",
      "tier": 3,
      "count": 1
     },
     {
      "type": "Machinery",
-     "tier": 3,
-     "count": 1
-    },
-    {
-     "type": "Electronics",
      "tier": 3,
      "count": 1
     }
@@ -4729,25 +4981,43 @@
    "set": ""
   },
   {
-   "category": "Traps",
+   "category": "Alarms",
    "group": "Grenades and traps",
-   "skill": "Traps",
-   "name": "Directional mine",
-   "tier": 4,
-   "rarity": 1,
+   "skill": "Alarms",
+   "name": "Stun mine",
+   "tier": 3,
+   "rarity": 2,
    "parts": [
     {
-     "type": "Explosives",
-     "tier": 4,
+     "type": "Electronics",
+     "tier": 3,
      "count": 1
     },
     {
-     "type": "Hard weapon parts",
-     "tier": 4,
+     "type": "Machinery",
+     "tier": 3,
      "count": 1
-    },
+    }
+   ],
+   "makes": 1,
+   "slot": "",
+   "set": ""
+  },
+  {
+   "category": "Alarms",
+   "group": "Grenades and traps",
+   "skill": "Alarms",
+   "name": "Linked sensor net",
+   "tier": 4,
+   "rarity": 2,
+   "parts": [
     {
      "type": "Electronics",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Machinery",
      "tier": 4,
      "count": 1
     }

@@ -154,7 +154,7 @@ class OwnGearTest extends MockGame {
         assertTrue(avg("Pump shotgun") > avg("Pipe shotgun"));
         assertTrue(avg("Survival knife") > avg("Combat knife"), "good knives kept (round 3)");
         for (String cat : List.of("Knives", "Swords", "Axes", "Hammers", "Spears", "Unarmed weapons", "Techno weapons", "Pistols", "Rifles", "Shotguns",
-                "Heavy guns", "Energy weapons", "Bows", "Throwing weapons", "Rocket launchers", "Grenades", "Traps", "Sights", "Muzzle devices", "Magazines", "Under-barrel"))
+                "Heavy guns", "Energy weapons", "Bows", "Throwing weapons", "Rocket launchers", "Grenades", "Traps", "Mines", "Alarms", "Sights", "Muzzle devices", "Magazines", "Under-barrel"))
             for (int t = 1; t <= 4; t++) {
                 final int tier = t;
                 assertTrue(Production.DESIGNS.values().stream().anyMatch(d -> d.category.equals(cat) && d.tier == tier), cat + " has Tier " + t);
@@ -408,6 +408,46 @@ class OwnGearTest extends MockGame {
         assertTrue(Battle.tearsFree(5, 50));
         assertFalse(Battle.tearsFree(5, 51));
         assertEquals(30, Battle.SEDATIVE_ROUNDS, "minutes, not a round: a dart ends a hunt, not a fight");
+    }
+
+    @Test
+    void traps() {   // 05d §7c (RULED rounds 7-8, 11-27)
+        assertEquals(16, Data.TRAPS.size());
+        assertEquals("Traps", Data.TRAPS.get("Snare").kind());
+        assertEquals("Mines", Data.TRAPS.get("Fused mine").kind());
+        assertEquals("Alarms", Data.TRAPS.get("Tin-can line").kind());
+        assertEquals(-1, Data.TRAPS.get("Spike pit").ap(), "dug before a fight");
+        assertEquals(2, Production.design("Mines", "Fused mine").tier, "re-tiered: the fused mine II");
+        assertEquals(3, Production.design("Mines", "Directional mine").tier, "today's claymore: III");
+        assertNotNull(Production.design("Traps", "Fused mine"), "the old name still finds it");
+        assertTrue(Data.TRAPS.get("Smart mine").friendSafe());
+        // the three skills (Marek: *"I would see them as new combined skills"*)
+        Character c = new Character();
+        double sv = c.skill("Survival"), cr = c.skill("Crafting"), ch = c.skill("Chemistry"), en = c.skill("Engineering");
+        assertEquals(sv + cr - 25, Battle.weaponSkill(c, "Traps"), 1e-9);
+        assertEquals(2.0 / 3 * sv + 2.0 / 3 * ch, Battle.weaponSkill(c, "Mines"), 1e-9);
+        assertEquals(sv / 2 + en / 2 + 15, Battle.weaponSkill(c, "Alarms"), 1e-9);
+        // spotting: 10 x Perception + 1/2 his skill - 1/2 the setter's + the modifier
+        assertTrue(Battle.spots(5, 40, 60, 0, 40));
+        assertFalse(Battle.spots(5, 40, 60, 0, 41));
+        assertFalse(Battle.spots(5, 40, 60, -30, 11), "the monofilament: -30");
+        // a held leg: harder out of a jaw trap
+        assertTrue(Battle.tearsFree(5, 30, 20));
+        assertFalse(Battle.tearsFree(5, 31, 20));
+        // the directional mine's cone: 60 degrees, 8 blocks, the way its setter faced (yaw 0 = +z)
+        assertTrue(Battle.inCone(0, 0, 0, 0, 6, 60, 8));
+        assertTrue(Battle.inCone(0, 0, 0, 2, 6, 60, 8));
+        assertFalse(Battle.inCone(0, 0, 0, 6, 2, 60, 8), "outside the cone");
+        assertFalse(Battle.inCone(0, 0, 0, 0, 12, 60, 8), "beyond its reach");
+        // a trap on a cell; the spotted ones are walked round
+        Battle.Fight f = new Battle.Fight();
+        Battle.Trap tr = new Battle.Trap(Data.TRAPS.get("Bear trap"), 3, 64, 5, java.util.UUID.randomUUID(), 50, 0);
+        f.traps.add(tr);
+        assertSame(tr, Battle.trapAt(f, 3, 64, 5));
+        assertNull(Battle.trapAt(f, 3, 64, 6));
+        assertTrue(Battle.knownTraps(f).isEmpty());
+        tr.known = true;
+        assertEquals(1, Battle.knownTraps(f).size());
     }
 
     @Test

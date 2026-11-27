@@ -62,7 +62,12 @@ public final class Rules {
             new Combo("Bows", "¾ Guns + ¾ Crafting − 10", v -> 0.75 * sk(v, "Guns") + 0.75 * sk(v, "Crafting") - 10),
             new Combo("Throwing", "= Athletics", v -> sk(v, "Athletics")),
             new Combo("Unarmed", "= Athletics", v -> sk(v, "Athletics")),
-            new Combo("Traps", "= Survival", v -> sk(v, "Survival")),
+            // 05d §7c (RULED rounds 7-8, Marek 11-27: *"all of them need some survival to know how to spot or hide them and not activate
+            // them. Mechanical traps should also use some crafting, explosive chemistry and alarms/advanced traps engineering"*): each
+            // kind its family's learning curve (the hunters' craft easy, the explosives' middle, the engineering's hard)
+            new Combo("Traps", "Survival + Crafting − 25", v -> sk(v, "Survival") + sk(v, "Crafting") - 25),
+            new Combo("Mines", "⅔ Survival + ⅔ Chemistry", v -> 2.0 / 3 * sk(v, "Survival") + 2.0 / 3 * sk(v, "Chemistry")),
+            new Combo("Alarms", "½ Survival + ½ Engineering + 15", v -> sk(v, "Survival") / 2 + sk(v, "Engineering") / 2 + 15),
             new Combo("Explosives", "= Chemistry", v -> sk(v, "Chemistry")),
             new Combo("Knives", "¾ Medicine + ¾ Survival − 10", v -> 0.75 * sk(v, "Medicine") + 0.75 * sk(v, "Survival") - 10),
             new Combo("Hammers", "Crafting + Athletics − 25", v -> sk(v, "Crafting") + sk(v, "Athletics") - 25),

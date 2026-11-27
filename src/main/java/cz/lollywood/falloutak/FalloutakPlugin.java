@@ -305,6 +305,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
             case "firstaid", "bandage" -> p.sendMessage(Component.text(battle.firstAid(p, c), NamedTextColor.GREEN));
             case "repair" -> p.sendMessage(Component.text(battle.repair(p, c), NamedTextColor.GREEN));
             case "fit" -> say(p, Accessories.command(p, c, args));   // 05d §5: the accessories
+            case "trap" -> say(p, battle.setTrap(p, c, args));   // 05d §7c: set a trap in a fight
             case "legs" -> {
                 c.brokenLegs = Math.max(0, Math.min(2, args.length > 1 ? Integer.parseInt(args[1]) : 0));
                 p.sendMessage(Component.text("broken legs: " + c.brokenLegs + " (movement " + Txt.f(Rules.stepAp(0, c.brokenLegs, c.has("Brittle Bones")))

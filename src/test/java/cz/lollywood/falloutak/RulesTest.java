@@ -154,7 +154,7 @@ class RulesTest {
         w[Rules.skillIndex("Chemistry")] = 0;
         w[Rules.skillIndex("Athletics")] = 100;                                        // "athletics is unarmed"
         assertTrue(Rules.gateMet(w, crits));
-        assertEquals(15, Rules.weaponSkills().size());                                 // Guns + the 14 combinations
+        assertEquals(17, Rules.weaponSkills().size());                                 // Guns + the 16 combinations (05d §7c: Traps split into Traps, Mines, Alarms)
         // the bound perks the battle runs
         Character c = Character.sample("x");
         c.level = 9;                                                                   // a human: 3 due
