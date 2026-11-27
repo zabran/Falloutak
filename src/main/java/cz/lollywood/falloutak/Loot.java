@@ -76,6 +76,9 @@ final class Loot {
         final double gunCond;
         final int rounds;
         boolean searched, butchered, treated, sampled;
+        /** 05d round 7, the dart: asleep (alive, taken unhurt), or it ran off the map with the dose in it (a TRAIL: followed by Survival
+         *  it is found asleep, else lost); taken alive. */
+        boolean asleep, trail, lost, taken;
         final Set<String> organs = new java.util.HashSet<>();
         /** A person's blood group (the donor organ's match), drawn by Central Europe's shares [EXAMPLE]. */
         final String blood;
@@ -89,13 +92,16 @@ final class Loot {
             gunCond = !person || t.broken ? 0 : ranged ? Math.max(1, 100 * t.gunHealth / t.gun.maxHealth) : 30 + rnd.nextInt(41);
             rounds = person && ranged ? Math.max(0, t.ammo) + Math.max(0, Math.min(99, t.reserve)) : 0;
             blood = person ? bloodGroup(rnd) : "";
+            asleep = !t.dead && t.asleep;
+            trail = t.escaped && !t.dead && t.sedatedAt >= 0;
         }
 
         boolean creature() { return !person; }
 
         String state() {
             List<String> l = new ArrayList<>();
-            l.add(dead ? "dead" : treated ? "stabilised" : "dying");
+            if (trail && !asleep && !dead) return lost ? "the trail lost" : "ran off with your dart in " + (person ? "him" : "it") + ": a trail to follow";
+            l.add(dead ? "dead" : taken ? "taken alive" : asleep ? "asleep" : treated ? "stabilised" : "dying");
             if (searched) l.add("searched");
             if (butchered) l.add("butchered");
             if (sampled) l.add("sampled");
@@ -114,11 +120,18 @@ final class Loot {
     }
 
     static final List<Body> bodies = new ArrayList<>();
+    /** The fight's party (the kill XP of one found asleep after it). */
+    static final List<java.util.UUID> team = new ArrayList<>();
+    /** Following a darted one's trail [mine, EXAMPLE: the dose drops it within ~3 minutes, a few hundred metres off]: Survival, 20 min. */
+    static final int TRAIL_NEED = 30;
 
     /** The fight's bodies: every figure dead or dying on the field (not one that got away, nor an ally of convenience still standing). */
     static int collect(Battle.Fight f, Random rnd) {
         bodies.clear();
-        for (Battle.Target t : f.targets.values()) if (!t.escaped && (t.dead || t.dying())) bodies.add(new Body(t, rnd));
+        team.clear();
+        team.addAll(f.members);
+        for (Battle.Target t : f.targets.values())
+            if (!t.escaped && (t.dead || t.dying() || t.asleep) || t.escaped && !t.dead && t.sedatedAt >= 0) bodies.add(new Body(t, rnd));
         return bodies.size();
     }
 
@@ -153,6 +166,18 @@ final class Loot {
         List<Component> lines = new ArrayList<>();
         List<Ui.Btn> b = new ArrayList<>();
         lines.add(line(x.name + ": " + x.state() + (x.person ? "; blood group " + x.blood : "") + ".", NamedTextColor.GOLD));
+        if (x.trail && !x.lost && !x.asleep) {   // first found: the dart's dose drops it a few minutes off
+            b.add(btn("Follow the trail (Survival " + TRAIL_NEED + ")", "your Survival " + Math.round(c.skill("Survival")) + ", 20 minutes: found asleep, or the trail is lost",
+                    q -> { say(q, track(pl, q, x)); body(pl, q, x); }));
+        }
+        if (x.trail && !x.asleep || x.taken) {
+            b.add(btn("Back to the field", bodies.size() + " bodies", q -> menu(pl, q)));
+            Menus.menu(p, "The field: " + x.name, lines, b, q -> menu(pl, q));
+            return;
+        }
+        if (x.asleep && !x.dead)
+            b.add(btn("Take " + (x.person ? "him" : "it") + " alive (bound)", (x.person ? "a captive" : "for the pens or the lab") + ": the GM places " + (x.person ? "him" : "it"),
+                    q -> { say(q, takeAlive(pl, q, x)); body(pl, q, x); }));
         if (x.person && !x.searched)
             b.add(btn("Search him", "his " + (x.weapon.isEmpty() ? "weapon" : x.weapon) + " and what he had left", q -> { say(q, search(pl, q, x)); body(pl, q, x); }));
         if (x.creature() && !x.butchered && (x.meatKg > 0 || !parts(x).isEmpty())) {
@@ -163,12 +188,13 @@ final class Loot {
             b.add(btn("Butcher it: parts first", "the bones, glands, claws need " + FOCUS + " less (+15 min); a tenth of the meat is lost round them",
                     q -> { say(q, butcher(pl, q, x, Focus.PARTS)); body(pl, q, x); }));
         }
-        if (!x.dead && !x.treated) {
+        if (!x.dead && !x.treated && x.hp <= 0) {
             b.add(btn("Treat " + (x.person ? "him" : "it") + " (Medicine " + treatNeed(x) + ")", "your Medicine " + Math.round(c.skill("Medicine"))
                     + (reaches(c, "Medicine", treatNeed(x)) ? ": you can keep " + (x.person ? "him" : "it") + " alive (a captive: the GM's)" : ": beyond you; " + (x.person ? "he" : "it") + " would die"),
                     q -> { say(q, treat(pl, q, x)); body(pl, q, x); }));
-            b.add(btn("Finish " + (x.person ? "him" : "it") + " off", "dead", q -> { x.dead = true; say(q, x.name + " is dead."); body(pl, q, x); }));
         }
+        if (!x.dead && !x.treated)
+            b.add(btn("Finish " + (x.person ? "him" : "it") + " off", "dead", q -> { x.dead = true; say(q, x.name + " is dead."); body(pl, q, x); }));
         if (!x.sampled)
             b.add(btn("Take a tissue sample (Medicine " + SAMPLE_NEED + ")", "15 minutes: its genes for the base's research", q -> { say(q, sample(pl, q, x)); body(pl, q, x); }));
         if (x.person && !x.treated) {
@@ -283,6 +309,31 @@ final class Loot {
         return "You butcher " + x.name + (focus == null ? "" : " (" + focus.name().toLowerCase(java.util.Locale.ROOT) + " first)") + ", Survival " + Math.round(sv)
                 + ": " + (all.isEmpty() ? "nothing usable" : Arena.spoilsText(all)) + "." + (lost.isEmpty() ? "" : " Lost: " + String.join(", ", lost) + ".") + xpText
                 + spend(c, minutes);
+    }
+
+    /** Following the trail of one that ran off darted: Survival against {@value #TRAIL_NEED}; found asleep it counts as beaten (its kill XP). */
+    static String track(FalloutakPlugin pl, Player p, Body x) {
+        if (!x.trail || x.lost || x.asleep) return "! no trail to follow";
+        Character c = pl.character(p);
+        long sv = Math.round(c.skill("Survival"));
+        if (sv < TRAIL_NEED) { x.lost = true; return "You lose " + x.name + "'s trail (Survival " + sv + " of " + TRAIL_NEED + "): it wakes somewhere and is gone." + spend(c, 20); }
+        x.asleep = true;
+        String xp = pl.roster.award(p, TRAIL_NEED, "a darted " + x.name + " tracked (the Survival check, difficulty " + TRAIL_NEED + ")");
+        List<Player> on = new ArrayList<>();
+        for (java.util.UUID u : team) { Player q = pl.getServer().getPlayer(u); if (q != null) on.add(q); }
+        if (on.isEmpty()) on.add(p);
+        String kill = pl.roster.killAward(on, List.of((double) x.hpMax), x.name + " found asleep");
+        return "You follow " + x.name + "'s trail (Survival " + sv + " of " + TRAIL_NEED + ") and find " + (x.person ? "him" : "it") + " asleep under the dart's dose. "
+                + xp + " Beaten: " + kill + spend(c, 20);
+    }
+
+    /** One asleep from the dart, bound and taken alive (the GM places a creature in the pens or the lab, a person as a captive). */
+    static String takeAlive(FalloutakPlugin pl, Player p, Body x) {
+        if (!x.asleep || x.dead || x.taken) return "! nothing asleep to take";
+        x.taken = true;
+        tellGm("the field: " + p.getName() + " took " + x.name + " (" + x.foe + ") alive, asleep from a dart: " + (x.person ? "a captive" : "for the pens or the lab"));
+        return "You bind " + x.name + " and take " + (x.person ? "him" : "it") + " alive, still asleep: " + (x.person ? "a captive" : "for the pens or the lab")
+                + "; the GM places " + (x.person ? "him" : "it") + "." + spend(pl.character(p), 10);
     }
 
     /** Treating a dying one: 30 + 20 x how deep below 0 HP he is (to −Endurance) [mine, EXAMPLE]. */

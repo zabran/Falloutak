@@ -93,6 +93,15 @@ final class Travel {
 
     /** The scene that stopped the journey (every meeting of that window), the terrain where they met, and where they were going. */
     static final List<Met> scene = new ArrayList<>();
+    /**
+     * 05d §7c (*"Spike pit: outside a fight (dug ~30 min)"*, *"Deadfall: outside a fight"*): the pits and deadfalls the party dug while
+     * the scene waited (an ambush seen in time, or a hunt): the trap, its digger and his skill of its kind then. Laid on the battle map on
+     * the enemies' way ({@link Arena#layDug}); left behind when the party goes round or on.
+     */
+    record Dug(Data.TrapDef def, java.util.UUID setter, double skill) {}
+    static final List<Dug> dug = new ArrayList<>();
+    /** The digging's minutes [the pit's ~30 RULED with the table; the deadfall's 20 mine, EXAMPLE]. */
+    static int digMinutes(String trap) { return trap.equals("Spike pit") ? 30 : 20; }
     static String sceneTerrain = "field";
     /** The spotting check's difficulty where and when the scene met the party (the go-round's XP). */
     static int sceneDifficulty;
@@ -119,7 +128,7 @@ final class Travel {
     static void load(Path dataFolder) {
         file = dataFolder.resolve("travel.json");
         map = WorldMap.load(dataFolder.resolve("worldmap.json"));
-        pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); dest = ""; cleared.clear(); feuds.clear();
+        pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); dug.clear(); dest = ""; cleared.clear(); feuds.clear();
         tickFile = dataFolder.resolve("worldmap-state.json");
         tick = map != null && map.tick != null ? Tick.load(map, tickFile, new Random()) : null;
         tickDay = Integer.MIN_VALUE;
@@ -138,7 +147,7 @@ final class Travel {
     }
 
     static void use(WorldMap m) {
-        map = m; pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); cleared.clear(); feuds.clear();
+        map = m; pi = pj = Double.NaN; season = 3; marched = 0; marchDay = Integer.MIN_VALUE; scene.clear(); dug.clear(); cleared.clear(); feuds.clear();
         tick = m != null && m.tick != null ? new Tick(m, new Random(1)) : null; tickFile = null; tickDay = Integer.MIN_VALUE;
         start();
     }
@@ -155,7 +164,7 @@ final class Travel {
     static boolean here(String name) {
         WorldMap.Place q = map == null ? null : map.place(name);
         if (q == null) return false;
-        pi = q.i() + 0.5; pj = q.j() + 0.5; scene.clear(); save();
+        pi = q.i() + 0.5; pj = q.j() + 0.5; scene.clear(); dug.clear(); save();
         MapView.moved();
         return true;
     }
@@ -380,6 +389,7 @@ final class Travel {
             int cond = conditions(sceneTerrain, lead.hourOfDay(), weather);
             double scout = Math.min(95, best(cs, "Survival")), avoid = Math.min(95, best(cs, "Survival") + AVOID_BONUS);
             scene.clear();
+            dug.clear();
             sceneDifficulty = cond;
             List<String> passed = new ArrayList<>();
             for (WorldMap.Encounter e : wk.encs()) {
@@ -467,6 +477,7 @@ final class Travel {
         String r = pl.roster.award(scout, xp, "an encounter dodged (the Survival checks, difficulty " + ds + ")");
         tellGm("travel: went round " + String.join(", ", what) + ". " + r);
         scene.removeIf(Met::hostile);
+        dug.clear();   // what was dug for them stays behind
         return "You go round them unseen: " + scout.getName() + "'s Survival check" + (ds.contains("+") ? "s" : "") + " (difficulty " + ds + "), " + xp + " XP.";
     }
 
@@ -551,7 +562,42 @@ final class Travel {
         if (scene.isEmpty()) return "! no encounter waits";
         String t = sceneShort();
         scene.clear();
+        dug.clear();
         return "Done with: " + t;
+    }
+
+    /** The party may dig before this scene's fight: an ambush seen in time (they have not seen the party), or a hunt. */
+    static boolean canDig() { return anyHostile() ? !ambushed() && allSeen() : anyHunted(); }
+
+    /** The dug-only traps (a pit, a deadfall) he carries, by name, with the id of one of each. */
+    static java.util.Map<String, String> diggable(Player p) {
+        java.util.Map<String, String> l = new java.util.LinkedHashMap<>();
+        for (org.bukkit.inventory.ItemStack it : p.getInventory().getContents()) {
+            String id = Items.id(it);
+            Production.Design d = id == null ? null : Items.made(id);
+            if (d != null && Data.TRAPS.containsKey(d.name) && Data.TRAPS.get(d.name).ap() < 0) l.putIfAbsent(d.name, id);
+        }
+        return l;
+    }
+
+    /** /travel dig [name]: one of his pits or deadfalls dug on the enemies' way while the scene waits (his time passes). */
+    static String dig(FalloutakPlugin pl, Player p, String want) {
+        if (scene.isEmpty()) return "! no encounter waits";
+        if (!canDig()) return ambushed() || glimpsedOnly() ? "! no time to dig: they are on you" : "! nothing to dig for (an ambush seen in time, or a hunt)";
+        String name = null, id = null;
+        for (var e : diggable(p).entrySet())
+            if (want.isEmpty() || e.getKey().toLowerCase(Locale.ROOT).startsWith(want.toLowerCase(Locale.ROOT))) { name = e.getKey(); id = e.getValue(); break; }
+        if (name == null) return "! no pit or deadfall with you" + (want.isEmpty() ? "" : " named " + want);
+        String one = id;
+        if (Battle.removeIds(p, x -> x.equals(one), 1) < 1) return "! no " + name + " with you";
+        Data.TrapDef def = Data.TRAPS.get(name);
+        Character c = pl.character(p);
+        double skill = Battle.weaponSkill(c, def.kind());
+        dug.add(new Dug(def, p.getUniqueId(), skill));
+        int min = digMinutes(name);
+        String r = Hud.pass(c, min);
+        return "You " + (name.equals("Spike pit") ? "dig a spike pit" : "set a " + name.toLowerCase(Locale.ROOT)) + " on their way (" + min + " min; your "
+                + def.kind() + " " + Math.round(skill) + "): it waits for them on the battle map (" + dug.size() + " dug)." + (r == null ? "" : " " + r);
     }
 
     // ------------------------------------------------------------------ the GM's
@@ -632,11 +678,12 @@ final class Travel {
                 return anyHostile() ? "The sights are hunted: they join an ambush." : battleMap(pl, p, Arena.Mode.HUNT);
             }
             case "on" -> { return resolved(); }
+            case "dig" -> { return dig(pl, p, a.length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(a, 1, a.length)) : ""); }
             case "map", "look" -> { return MapView.viewing(p) ? MapView.back(p) : MapView.look(pl, p); }
             case "depots" -> { return depots(); }
             default -> { }
         }
-        if (!gm) return "/travel [where|to <place>|push <place>|round|ambush|hunt|on|map|depots]";
+        if (!gm) return "/travel [where|to <place>|push <place>|round|ambush|hunt|dig [pit|deadfall]|on|map|depots]";
         switch (arg) {
             case "table" -> { return String.join("\n", table()); }
             case "attack" -> { return gmAttack(pl); }
@@ -674,7 +721,24 @@ final class Travel {
                 if (tickFile != null) tick.save(tickFile);
                 return tick.summary();
             }
-            default -> { return "/travel [where|to|push|round|ambush|hunt|on|map|depots] · GM: table|season <s>|weather <w>|attack|feud [kind|clear]|here <place>|clear [km]|hold [km]|tick [weeks]"; }
+            default -> { return "/travel [where|to|push|round|ambush|hunt|dig [pit|deadfall]|on|map|depots] · GM: table|season <s>|weather <w>|attack|feud [kind|clear]|here <place>|clear [km]|hold [km]|tick [weeks]"; }
+        }
+    }
+
+    /** The menu's dig buttons (05d §7c): one for each kind of pit or deadfall he carries, and what is dug already. */
+    static void digButtons(FalloutakPlugin pl, Player p, List<Component> lines, List<Ui.Btn> b) {
+        if (!dug.isEmpty()) {
+            List<String> l = new ArrayList<>();
+            for (Dug d : dug) l.add(d.def().name().toLowerCase(Locale.ROOT));
+            lines.add(line("Dug on their way: " + String.join(", ", l) + ".", NamedTextColor.GOLD));
+        }
+        for (String name : diggable(p).keySet()) {
+            Data.TrapDef def = Data.TRAPS.get(name);
+            b.add(btn((name.equals("Spike pit") ? "Dig a spike pit" : "Set a " + name.toLowerCase(Locale.ROOT)) + " on their way (" + digMinutes(name) + " min)",
+                    def.min() + "-" + def.max() + " damage, " + (def.effect().equals("fall") ? "in the pit: its next turn lost climbing out" : "knocked down")
+                    + "; your " + def.kind() + " " + Math.round(Battle.weaponSkill(pl.character(p), def.kind())) + " against their eyes; "
+                    + (anyHostile() ? "half-way to them (where they charge)" : "past the animals (where they run)"),
+                    x -> { say(x, dig(pl, x, name)); menu(pl, x); }));
         }
     }
 
@@ -724,6 +788,7 @@ final class Travel {
                     b.add(btn("Talk to " + m.e.kind().name(), "on the battle map: one of you speaks, Rhetorics " + Battle.sign(Talks.SEEN_FIRST + Talks.HOSTILE)
                             + " (+20 the first sight, −20 they came to fight); the rest get into position; talked down = their full kill XP",
                             x -> Talks.speakerMenu(pl, x, m)));
+                digButtons(pl, p, lines, b);
                 b.add(btn("Ambush them", "the battle map (" + sceneTerrain + "): you in cover, YOU act first" + (anyHunted() ? "; the hunted animals too" : ""),
                         x -> { say(x, battleMap(pl, x, Arena.Mode.AMBUSH)); }));
             }
@@ -734,6 +799,7 @@ final class Travel {
             for (Met m : scene) if (m.e.type().equals("sight"))
                 b.add(btn((m.hunt ? "Do not hunt: " : "Hunt: ") + m.e.kind().name(), "a sight turned into a hunt: it runs unless it is the hostile kind"
                         + (anyHostile() ? " (it joins the ambush)" : ""), x -> { m.hunt = !m.hunt; menu(pl, x); }));
+            if (!anyHostile() && anyHunted()) digButtons(pl, p, lines, b);
             if (!anyHostile() && anyHunted()) b.add(btn("Hunt now", "the battle map (" + sceneTerrain + "): you downwind, you act first", x -> { say(x, battleMap(pl, x, Arena.Mode.HUNT)); }));
             b.add(btn(anyHostile() ? "It is over (the GM ran it)" : "Done (go on)", "the encounter is played out: the way is free", x -> { say(x, resolved()); menu(pl, x); }));
             if (!dest.isEmpty() && !anyHostile()) b.add(btn("Then on to " + dest, "after the encounter", x -> { say(x, resolved()); say(x, go(pl, x, dest, false, pl.rnd)); menu(pl, x); }));

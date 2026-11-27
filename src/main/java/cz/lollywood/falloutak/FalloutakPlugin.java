@@ -306,6 +306,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
             case "repair" -> p.sendMessage(Component.text(battle.repair(p, c), NamedTextColor.GREEN));
             case "fit" -> say(p, Accessories.command(p, c, args));   // 05d §5: the accessories
             case "trap" -> say(p, battle.setTrap(p, c, args));   // 05d §7c: set a trap in a fight
+            case "pavise" -> say(p, battle.pavise(p, c));   // 05c §11: the standing shield set down, or taken up
             case "legs" -> {
                 c.brokenLegs = Math.max(0, Math.min(2, args.length > 1 ? Integer.parseInt(args[1]) : 0));
                 p.sendMessage(Component.text("broken legs: " + c.brokenLegs + " (movement " + Txt.f(Rules.stepAp(0, c.brokenLegs, c.has("Brittle Bones")))
@@ -338,7 +339,7 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
                 for (SheetView.Page pg : SheetView.Page.values())
                     if (pg.name().toLowerCase(Locale.ROOT).startsWith(a)) { SheetView.open(p, c, pg); return true; }
                 p.sendMessage(Component.text("The Pip-Boy (right click) opens your actions; right-click someone to act on him; the GM: /gm. "
-                        + "/sheet [overview|skills|weapons|traits|body|survival|combat|achievements] · actions · create · spend · hud · demo · hit <n> [crit|stab] · firstaid · repair · legs <0-2> · battle · reset"
+                        + "/sheet [overview|skills|weapons|traits|body|survival|combat|achievements] · actions · create · spend · hud · demo · hit <n> [crit|stab] · firstaid · repair · trap [name] · pavise · legs <0-2> · battle · reset"
                         + " · implant · surgery · revive · dose · wait <hours> · mutate <rads> · limb", NamedTextColor.GRAY));
             }
         }

@@ -276,8 +276,15 @@ final class Raiders {
         if (t.sedatedAt >= 0 && now >= t.sedatedAt) {   // 05d round 7: the dart's sedative has worked: asleep (taken alive)
             t.out = true;
             t.outRounds = 9999;
+            t.asleep = true;
             t.sedatedAt = -1;
-            q.add(() -> { say(p, t.name + " falls asleep: the dart's sedative (taken alive while he sleeps)."); b.label(le, t); });
+            q.add(() -> { say(p, t.name + " falls asleep: the dart's sedative. Out of the fight: take " + (t.melee ? "it" : "him") + " alive on the field after it."); b.label(le, t); });
+            return;
+        }
+        if (t.inPit) {   // 05d §7c: the spike pit, "out next turn (all its AP)"
+            t.inPit = false;
+            t.down = false;
+            q.add(() -> { say(p, t.name + " climbs out of the pit (all " + (t.melee ? "its" : "his") + " AP)."); b.label(le, t); });
             return;
         }
         if (t.entangled > 0) {   // 05d round 7: the bolas or the net: the turn goes on tearing free
@@ -585,6 +592,7 @@ final class Raiders {
             if (e != null) { Location x = e.getLocation(); l.add(new Path.P(x.getBlockX(), x.getBlockY(), x.getBlockZ())); }
         }
         l.addAll(Battle.knownTraps(s.fight));   // 05d §7c: the traps they spotted, walked round
+        l.addAll(b.wallCells(s.fight));   // 05c §11: a pavise set down stands in the way
         return l;
     }
 
@@ -689,7 +697,8 @@ final class Raiders {
         sh.targetAc = Rules.ac(c.attrs(false)) + Rules.STANCE_AC[s.stance()] + c.armourAc();   // + the armour's AC (05c)
         sh.targetProne = s.stance() == 2;
         sh.obstacles = inTheWay(eye, p, le) + (s.smokeRound == s.round ? 1 : 0)   // 05d round 7: his black-powder smoke hides him
-                + b.shieldObscures(p, s, le.getLocation());   // 05c §11: a holed shield in front of him
+                + b.shieldObscures(p, s, le.getLocation())   // 05c §11: a holed shield in front of him
+                + b.wallObscures(p, le.getLocation());   // ... or a holed pavise set down in front of him
         sh.huge = c.tpl().huge();   // the Ent (03b §2d): +15 to hit it, obstacles x 2
         sh.stance = t.stance;
         sh.movePenalty = t.moved && !t.steadied ? -10 : 0;
@@ -730,7 +739,9 @@ final class Raiders {
             String kind = arc ? "Isolation" : "Normal";
             StringBuilder held = new StringBuilder();   // 05c §11: his shield, if it covers this side
             double raw = base * Math.max(1, mult) * (1 + w.ammoDamage);
-            if (!arc) raw = b.shieldTake(p, s, c, le.getLocation(), raw, w.ammoPenetration, w.skill.equals("Guns") || w.skill.equals("Energy Weapons"), held);
+            boolean bullet = w.skill.equals("Guns") || w.skill.equals("Energy Weapons");
+            if (!arc) raw = b.wallTake(p, le.getLocation(), raw, w.ammoPenetration, bullet, held);   // 05c §11: a pavise set down in front of him first
+            if (!arc) raw = b.shieldTake(p, s, c, le.getLocation(), raw, w.ammoPenetration, bullet, held);
             int dmg = Combat.damage(raw, 1, 0, w.ammoPenetration, c.dtAt(Rules.Part.TORSO, kind), c.drAt(Rules.Part.TORSO, kind), fx.bypass());
             int elec = arc ? dmg : 0;
             if (w.shockMax > 0) {   // a stun weapon's shock (round 3), through the Isolation
@@ -817,12 +828,17 @@ final class Raiders {
             if (path == null) path = Path.find(world, start, (x, y, z) -> nearest(s, p, new Location(w, x + 0.5, y, z + 0.5)) > now + 1, SEARCH);
             if (path == null || path.isEmpty()) { q.add(() -> say(p, t.name + " is cornered.")); return; }
             int steps = Math.min(can, path.size());
+            int[] cut = trapCut(p, s, t, path, steps);   // 05d §7c: a pit or a snare on the way it runs (the hunters' trick)
+            steps = cut[0];
             for (int i = 0; i < steps; i++) { Path.P to = path.get(i); q.add(() -> away(le, to, p)); }
+            if (cut[1] >= 0) { Battle.Trap tr = s.fight.traps.get(cut[1]); q.add(() -> b.spring(p, s, tr, le, t)); }
             t.ap -= (int) Math.ceil(steps * per - 1e-9);
             final int n = steps;
+            final boolean caught = cut[1] >= 0;
             q.add(() -> {
                 Location l = le.getLocation();
-                if (nearest(s, p, l) >= GONE - 1e-9 || edge(t, l.getBlockX(), l.getBlockZ())) {
+                if (caught) say(p, t.name + " runs " + n + " block(s) into your trap.");
+                else if (nearest(s, p, l) >= GONE - 1e-9 || edge(t, l.getBlockX(), l.getBlockZ())) {
                     t.escaped = true;
                     say(p, t.name + " runs " + n + " block(s) and GETS AWAY.");
                     le.remove();

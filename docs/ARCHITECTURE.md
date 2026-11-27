@@ -50,7 +50,15 @@ outside the game; the game itself is for the look and feel. The rules' text live
   `throwsName` (the spear-thrower's javelins), `noGuard` (the war flail), the sedative dart (`Target.sedatedAt`, `SEDATIVE_ROUNDS`).
   The traps (05d §7c): `Data.TRAPS` (`data/traps.json`), the skills Traps, Mines, Alarms (`Rules.COMBOS`), `Battle.Trap` in `Fight.traps`,
   `setTrap` (`/sheet trap`), `trapAt`, `knownTraps` (blocked cells in `Raiders.taken`), `spots`, `inCone`, `spring`; `Raiders.trapCut` on the
-  raider's and the beast's walk.
+  raider's and the beast's walk and on a hunted animal's flight; a pit's victim loses its next turn (`Target.inPit`).
+  Dug before a fight (a pit, a deadfall): `Travel.dig` (`/travel dig`, the scene's Dig buttons, only before an ambush seen in time or a
+  hunt; `Travel.Dug` in `Travel.dug`), laid by `Arena.layDug` (half-way to them, or past the hunted animals short of the edge; `standNear`,
+  `toEdge`) into `Fight.traps` when the battle map starts.
+  The pavise set down (05c §11): `Battle.pavise` (`/sheet pavise`, 4 AP down or up), `State.wall` (`Battle.Wall`, a display entity),
+  `behindWall`, `wallCovering`, `wallTake` and `wallObscures` (called by `Raiders` on a shot, before a held shield), `wallCells` (in
+  `Raiders.taken`), `removeWall` (taken up, or at `stop`).
+  The dart's sleep: `Target.asleep` (out of the fight: `inFight`), on the field `Loot.Body.asleep` (taken alive: `Loot.takeAlive`), one
+  that ran off darted a trail (`Loot.Body.trail`, `Loot.track`: Survival `TRAIL_NEED`, found = its kill XP, `Loot.team`).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
@@ -63,7 +71,7 @@ holds hidden places: it lives only in the server's folder, never in the jar or t
 `src/test/resources/worldmap-test*.json`.
 
 ## Tests and build
-`./gradlew build` (JDK 21): about 390 tests in three JVMs, ~40 s. One test class per rule area (`DiseasesTest`, `ConditionsTest`,
+`./gradlew build` (JDK 21): about 420 tests in three JVMs, ~40 s. One test class per rule area (`DiseasesTest`, `ConditionsTest`,
 `MealsTest`, `ProductionTest`, `BattleTest`, ...); MockBukkit for the menus. Coverage only when asked: `./gradlew test
 jacocoTestReport`. While working, run only the touched classes: `./gradlew test --tests '*MealsTest'`.
 
@@ -76,24 +84,24 @@ javadoc's first sentence marked NEW (then describe it here).
 |---|---|---|
 | `Accessories` | 228 | the weapons' accessories (05d §5): their effects, what fits what, `/sheet fit`, kept on the weapon's item |
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
-| `Arena` | 755 | the battle maps of world-map encounters (terrain, size, placing the sides) |
+| `Arena` | 826 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 2658 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 3016 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
-| `Character` | 2733 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
+| `Character` | 2740 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
 | `Conditions` | 256 | the conditions with their own clocks: scurvy, trench foot, scabies, latent tuberculosis |
 | `Creatures` | 160 | the game's creatures in the world (spawning, their sounds and motion) |
-| `Data` | 944 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
+| `Data` | 984 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
 | `Diseases` | 608 | the diseases' race, catching, vaccines, the treatments and the tending check |
-| `FalloutakPlugin` | 427 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
+| `FalloutakPlugin` | 429 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
 | `Forms` | 425 | the dialog forms: create a character, spend points, the level-up |
 | `Hauls` | 266 | the prologue's last-minute hauls |
 | `Hud` | 432 | each character's game hour and passing time, healing, the action bar |
 | `Icons` | 129 | pictures in hover texts |
-| `Items` | 547 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
+| `Items` | 548 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
 | `Labs` | 218 | the research pages |
-| `Loot` | 337 | the field after a fight: bodies, gear, what can be taken |
+| `Loot` | 388 | the field after a fight: bodies, gear, what can be taken |
 | `MapView` | 184 | the world map drawn in Minecraft |
 | `Maps` | 164 | the map worlds and their commands |
 | `Meals` | 253 | eating and drinking: the pack's portions, the base's day per person, the base's people's factors |
@@ -104,10 +112,10 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Path` | 71 | how an enemy walks on the battle map |
 | `Population` | 188 | the base's people and their groups (the workbook's Population and Factions) |
 | `Production` | 1397 | buildings, jobs, recipes, power and water, the base's day (food, water, soap) |
-| `Raiders` | 927 | the enemies' turn: choosing, moving, shooting, melee and bites |
+| `Raiders` | 995 | the enemies' turn: choosing, moving, shooting, melee and bites |
 | `Research` | 614 | research: inspiration, experiments, prototypes, the cards |
 | `Roster` | 525 | `/npc`, `/pop`, `/group`: statblocks, the groups' XP and levels, lessons, work |
-| `Rules` | 708 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
+| `Rules` | 713 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
 | `Saves` | 134 | saved games (the whole state copied and restored) |
 | `Sfx` | 149 | every action's sound |
 | `SheetView` | 469 | the character sheet as a text screen, its pages |
@@ -116,11 +124,11 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Store` | 123 | character files and THE SAVING HELPER for every saved file |
 | `Talks` | 306 | an encounter's talk: tolls, threats, allies |
 | `Tick` | 386 | the weekly world tick (bases, lairs, the raiders' strength) |
-| `Travel` | 768 | world-map travel: steps by terrain, the encounter roll, weather and season, the scene |
+| `Travel` | 834 | world-map travel: steps by terrain, the encounter roll, weather and season, the scene |
 | `Txt` | 276 | text in columns inside a dialog (pixel widths), the sheet's number format `Txt.f` |
 | `Ui` | 181 | pages as plain data (lines, inputs, buttons), shown as Paper dialogs or clicked in tests |
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **48 classes** | **24881** | |
+| **48 classes** | **25550** | |
 <!-- /CLASSES -->

@@ -539,7 +539,9 @@ final class Arena {
         theirs = new ArrayList<>(theirs);
         theirs.sort(Comparator.comparingInt(Spot::x));   // a group stands together, left to right
         Random r = new Random(seed ^ 0x5DEECE66DL);
-        int k = 0, total = 0, gi = 0;
+        int k = 0, total = 0, gi = 0, en = 0, pn = 0;
+        double ex = 0, ez = 0, px = 0, pz = 0, py = 0;   // the enemies' and the party's middles (the dug traps between them)
+        java.util.Set<Long> stand = new java.util.HashSet<>();   // where they stand (no trap under their feet)
         for (Group g : groups) total += g.count();
         int stride = Math.max(1, theirs.size() / Math.max(1, total));
         for (Group g : groups) {
@@ -547,9 +549,11 @@ final class Arena {
             for (int n = 0; n < g.count(); n++) {
                 Foe foe = kitFor(g.kind().key(), years, r);
                 if (theirs.isEmpty()) break;
-                Spot sp = theirs.get(Math.min(theirs.size() - 1, (k++ * stride) % theirs.size()));
+                Spot sp = theirs.get(Math.min(theirs.size() - 1, (k++ * stride + stride / 2) % theirs.size()));   // spread from the middle (a lone one not at the edge)
                 Location at = sp.at(w);
                 at.setDirection(lay.centre(w).toVector().subtract(at.toVector()).setY(0));
+                ex += at.getX(); ez += at.getZ(); en++;
+                stand.add(((long) sp.x() << 32) ^ (sp.z() & 0xffffffffL));
                 String name = (g.count() > 1 ? foe.name() + " " + (n + 1) : foe.name());
                 LivingEntity e = spawn(w, foe, at, name);
                 Battle.Target t = new Battle.Target(name, foe.hp() > 0 ? foe.hp() : (int) Math.round(g.kind().hp()), foe.ac(), foe.dt(), foe.dr(), foe.a(), foe.skill());
@@ -596,6 +600,7 @@ final class Arena {
             Location at = sp.at(w);
             at.setDirection(lay.centre(w).toVector().subtract(at.toVector()).setY(0));
             if (mode == Mode.AMBUSHED) at.setDirection(theirs.isEmpty() ? at.getDirection() : theirs.get(0).at(w).toVector().subtract(at.toVector()).setY(0));
+            px += at.getX(); pz += at.getZ(); py += at.getY(); pn++;
             q.teleport(at);
             border(q, lay);
             Character c = pl.character(q);
@@ -603,12 +608,78 @@ final class Arena {
             q.sendMessage(Component.text(intro + " Left click AT AN ENEMY = fire, right click = mode, shift = stance, the clock = end your turn; when every one "
                     + "of you has ended his, it is their turn. Walk to the map's edge to get away; the dangers also fight each other.", NamedTextColor.AQUA));
         }
+        if ((mode == Mode.AMBUSH || mode == Mode.HUNT) && en > 0 && pn > 0 && !Travel.dug.isEmpty()) {   // 05d §7c: dug before the fight
+            List<Battle.Trap> laid = layDug(w, lay, px / pn, pz / pn, py / pn, ex / en, ez / en, mode == Mode.HUNT, Travel.dug, stand);
+            f.traps.addAll(laid);
+            for (Player q : party) q.sendMessage(Component.text(laid.size() + " trap(s) you dug wait on their way" + (mode == Mode.HUNT ? " (past the animals, where they will run)" : " (half-way to them)") + ".", NamedTextColor.GOLD));
+        }
+        Travel.dug.clear();
         f.onLeave = q -> { unborder(q); Location l = back.remove(q.getUniqueId()); if (l != null) q.teleport(l); };
         f.onEnd = () -> { current = null; Runnable a = afterAll; afterAll = () -> { }; a.run(); };
         f.started = true;
         if (f.enemiesFirst) pl.battle.enemyPhase(f, () -> pl.battle.partyPhase(f));
         else for (Player q : party) { Battle.State s = pl.battle.state(q); if (s != null) pl.battle.show(q, s, pl.character(q), "round 1: your turn"); }
         return intro;
+    }
+
+    /** A hunt's pits lie this far past the animals; dug traps side by side this far apart [mine, EXAMPLE]. */
+    static final double HUNT_PAST = 5, DUG_APART = 2;
+
+    /**
+     * 05d §7c: the pits and deadfalls dug before the fight laid on the enemies' way [mine, EXAMPLE]: an ambush half-way between the party
+     * and them (where they charge), a hunt {@value #HUNT_PAST} blocks past the animals (where they run from the party); several side by
+     * side {@value #DUG_APART} blocks apart across the way; each on the nearest cell where a figure can stand (the party's height first).
+     */
+    static List<Battle.Trap> layDug(World w, Layout lay, double px, double pz, double py, double ex, double ez, boolean hunt, List<Travel.Dug> dug,
+                                    java.util.Set<Long> occupied) {
+        List<Battle.Trap> out = new ArrayList<>();
+        double dx = ex - px, dz = ez - pz, len = Math.hypot(dx, dz);
+        if (len < 1e-6 || dug.isEmpty()) return out;
+        double ux = dx / len, uz = dz / len;
+        double past = Math.max(1.5, Math.min(HUNT_PAST, toEdge(lay, ex, ez, ux, uz) - 0.5));   // short of the edge, where they would be gone
+        double bx = hunt ? ex + ux * past : px + dx * 0.5, bz = hunt ? ez + uz * past : pz + dz * 0.5;
+        float yaw = (float) Math.toDegrees(Math.atan2(-ux, uz));
+        java.util.Set<Long> used = new java.util.HashSet<>(occupied);
+        int n = dug.size();
+        for (int k = 0; k < n; k++) {
+            double off = (k - (n - 1) / 2.0) * DUG_APART;
+            int[] c = standNear(w, lay, bx - uz * off, bz + ux * off, (int) Math.round(py), used);
+            if (c == null) continue;
+            Travel.Dug d = dug.get(k);
+            out.add(new Battle.Trap(d.def(), c[0], c[1], c[2], d.setter(), d.skill(), yaw));
+        }
+        return out;
+    }
+
+    /** How far from (x, z) along (ux, uz) the map's walkable inside goes (2 blocks from each edge). */
+    static double toEdge(Layout lay, double x, double z, double ux, double uz) {
+        double lo = 2, hi = lay.size() - 2, t = Double.MAX_VALUE, rx = x - lay.x0(), rz = z - lay.z0();
+        if (ux > 1e-9) t = Math.min(t, (hi - rx) / ux); else if (ux < -1e-9) t = Math.min(t, (lo - rx) / ux);
+        if (uz > 1e-9) t = Math.min(t, (hi - rz) / uz); else if (uz < -1e-9) t = Math.min(t, (lo - rz) / uz);
+        return Math.max(0, t);
+    }
+
+    /** The cell nearest the point (tx, tz) inside the map where a figure can stand (air for the feet and the head, solid ground), the
+     *  height nearest {@code refY} first; within 4 blocks, or null. */
+    static int[] standNear(World w, Layout lay, double tx, double tz, int refY, java.util.Set<Long> used) {
+        int cx = (int) Math.floor(tx), cz = (int) Math.floor(tz);
+        int[] best = null;
+        double bestD = Double.MAX_VALUE;
+        for (int dx = -4; dx <= 4; dx++) for (int dz = -4; dz <= 4; dz++) {
+            int x = cx + dx, z = cz + dz;
+            double d = Math.hypot(x + 0.5 - tx, z + 0.5 - tz);
+            long key = ((long) x << 32) ^ (z & 0xffffffffL);
+            if (d >= bestD || d > 4.5 || used.contains(key) || x < lay.x0() + 2 || z < lay.z0() + 2 || x > lay.x0() + lay.size() - 3 || z > lay.z0() + lay.size() - 3) continue;
+            int y0 = Integer.MIN_VALUE;
+            for (int y = lay.y0() + 1; y <= lay.y1(); y++) {
+                Block f = w.getBlockAt(x, y, z);
+                if (f.isPassable() && f.getRelative(0, 1, 0).isPassable() && f.getRelative(0, -1, 0).getType().isSolid()
+                        && (y0 == Integer.MIN_VALUE || Math.abs(y - refY) < Math.abs(y0 - refY))) y0 = y;
+            }
+            if (y0 != Integer.MIN_VALUE) { best = new int[]{x, y0, z}; bestD = d; }
+        }
+        if (best != null) used.add(((long) best[0] << 32) ^ (best[2] & 0xffffffffL));
+        return best;
     }
 
     /**

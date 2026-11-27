@@ -235,6 +235,9 @@ public final class Battle implements Listener {
         boolean melee, flees, escaped;
         /** 05d round 7: entangled (1 the bolas: the legs, 2 the net: the body); the round a sedative dart puts him to sleep (-1 none). */
         int entangled, sedatedAt = -1, hold;
+        /** 05d round 7: asleep from the dart's sedative (out of the fight; the party takes him alive on the field after it); 05d §7c: in
+         *  a pit (his next turn goes on climbing out). */
+        boolean asleep, inPit;
         int minDmg = 5, maxDmg = 12, reach = 1, attackAp = 4;
         String attack = "bite";
         /** The battle map's ground (null in the demo): a running animal at its edge is gone. */
@@ -273,13 +276,14 @@ public final class Battle implements Listener {
             this.hp = hpMax; this.blood = 4.0 * hpMax;
         }
         /** Can still take part: neither dead, dying, beaten (a raider's gun gone) nor escaped. */
-        boolean inFight() { return !escaped && (melee ? !dead && !dying() : canFight(this)); }
+        boolean inFight() { return !escaped && !asleep && (melee ? !dead && !dying() : canFight(this)); }
         boolean dying() { return !dead && hp <= 0; }
         String label() {
             List<String> st = new ArrayList<>();
             if (dead) st.add("dead");
             else if (dying()) st.add("dying");
-            if (!dead && out) st.add("out"); else if (!dead && down) st.add("down"); else if (!dead && stance == 1) st.add("crouched");
+            if (!dead && asleep) st.add("asleep"); else if (!dead && out) st.add("out"); else if (!dead && inPit) st.add("in a pit");
+            else if (!dead && down) st.add("down"); else if (!dead && stance == 1) st.add("crouched");
             if (blind) st.add("blind");
             if (armCrippled) st.add("arm crippled");
             if (legCrippled) st.add("leg crippled");
@@ -351,6 +355,8 @@ public final class Battle implements Listener {
         float faceYaw;
         String shield, shieldSource;
         double shieldHealth;
+        /** 05c §11: his standing shield set down as a wall (null while he holds it). */
+        Wall wall;
         org.bukkit.scheduler.BukkitTask task;
         Deque<Runnable> pending = new ArrayDeque<>();
         /** The character as the demo began: given back if he dies in it (it is a demo). */
@@ -370,6 +376,16 @@ public final class Battle implements Listener {
      */
     /** A trap set in this fight (05d §7c): where, by whom (his skill of its kind then), the way he faced (a directional mine); known =
      *  an enemy spotted it (they walk round it now); sprung = gone. */
+    /** A standing shield set down (05c §11, the pavise: *"set down 4 AP: a wall for whoever is behind it"*): where it stands, the way it
+     *  faces (its front toward the enemy), its look on the field (a display entity, gone when it is taken up or the fight ends). */
+    static final class Wall {
+        final double x, z;
+        final int y;
+        final float yaw;
+        UUID display;
+        Wall(double x, int y, double z, float yaw) { this.x = x; this.y = y; this.z = z; this.yaw = yaw; }
+    }
+
     static final class Trap {
         final Data.TrapDef def;
         final int x, y, z;
@@ -751,6 +767,7 @@ public final class Battle implements Listener {
             f.pending.clear();
             if (!f.settled) settle(f, f.died.isEmpty() && f.fled.containsAll(f.members));   // all got away = slipped past
         }
+        removeWall(s);   // 05c §11: the pavise goes back with him
         if (s.burning) p.setVisualFire(false);
         if (s.gunfire && roofed(p)) {   // 03b §3c: a gunfight indoors without ear protection rings the ears for an hour
             String r = pl.character(p).ring(1);
@@ -955,7 +972,7 @@ public final class Battle implements Listener {
 
     /** His shield covers this attack: held (not with a two-handed weapon), whole (50 % and over), from the front. */
     private Data.Shield covering(Player p, State s, Location from) {
-        if (s.shield == null) return null;
+        if (s.shield == null || s.wall != null) return null;   // set down: a wall now ({@link #wallTake})
         Data.Shield sd = Data.SHIELDS.get(s.shield);
         Weapon held = heldWeapon(p);
         if (sd == null || held != null && held.twoHanded || s.shieldHealth < sd.health() * 0.5) return null;
@@ -981,11 +998,127 @@ public final class Battle implements Listener {
 
     /** 05c §11: a holed shield (under 50 %, not broken) still hides him from the front: one more "in the way" (-10, Fallout 2's). */
     int shieldObscures(Player p, State s, Location from) {
-        if (s.shield == null) return 0;
+        if (s.shield == null || s.wall != null) return 0;
         Data.Shield sd = Data.SHIELDS.get(s.shield);
         Weapon held = heldWeapon(p);
         if (sd == null || held != null && held.twoHanded || s.shieldHealth <= 0 || s.shieldHealth >= sd.health() * 0.5) return 0;
         return frontal(s.faceYaw, p.getLocation().getX(), p.getLocation().getZ(), from.getX(), from.getZ()) ? 1 : 0;
+    }
+
+    // ------------------------------------------------------------------ THE PAVISE SET DOWN (05c §11)
+    /** Setting a standing shield down, or taking it up again [the 4 AP RULED with the table; taking it up the same, mine]. */
+    static final int PAVISE_AP = 4;
+
+    /**
+     * Behind a set-down shield [mine, EXAMPLE: a pavise ~0.6 m wide hides one man crouched or standing close behind it]: within
+     * {@value #WALL_BEHIND} blocks behind its face and {@value #WALL_SIDE} to either side of its middle line.
+     */
+    static final double WALL_BEHIND = 2.0, WALL_SIDE = 0.7;
+
+    static boolean behindWall(double wx, double wz, float yaw, double px, double pz) {
+        double r = Math.toRadians(yaw), ax = -Math.sin(r), az = Math.cos(r), dx = px - wx, dz = pz - wz;
+        double along = dx * ax + dz * az, side = Math.abs(dx * az - dz * ax);
+        return along < -0.2 && along >= -WALL_BEHIND && side <= WALL_SIDE;
+    }
+
+    /** The set-down shield of the party that stands between this attacker and him: its bearer's state, or null. */
+    State wallCovering(Player p, Location from) {
+        State me = states.get(p.getUniqueId());
+        if (me == null || me.fight == null) return null;
+        for (Player q : players(me.fight)) {
+            State sq = states.get(q.getUniqueId());
+            if (sq == null || sq.wall == null || sq.shield == null) continue;
+            Wall wl = sq.wall;
+            if (behindWall(wl.x, wl.z, wl.yaw, p.getLocation().getX(), p.getLocation().getZ()) && frontal(wl.yaw, wl.x, wl.z, from.getX(), from.getZ())) return sq;
+        }
+        return null;
+    }
+
+    /**
+     * A shot at him from the front of a set-down shield he stands behind strikes it first, as a held one (its DT and DR, the rest goes
+     * on; it wears by what it stopped; under 50 % it only obscures; a gun's hit passes one that is not bullet-rated). Returns the raw
+     * damage that goes on.
+     */
+    double wallTake(Player p, Location from, double raw, double pen, boolean bullet, StringBuilder log) {
+        State sq = wallCovering(p, from);
+        if (sq == null || raw <= 0) return raw;
+        Data.Shield sd = Data.SHIELDS.get(sq.shield);
+        if (sd == null || bullet && sd.bulletsPass() || sq.shieldHealth < sd.health() * 0.5) return raw;
+        double[] h = shieldHit(sd.dt(), sd.dr(), raw, pen);
+        sq.shieldHealth = Math.max(0, sq.shieldHealth - h[1]);
+        int pct = (int) Math.round(sq.shieldHealth / sd.health() * 100);
+        log.append(" The ").append(sd.name()).append(" set down in front of you takes it: ").append(Math.round(h[1])).append(" stopped, ").append(Math.round(h[0]))
+                .append(" goes on (its condition ").append(pct).append(" %").append(pct <= 0 ? ": BROKEN" : pct < 50 ? ": holed, it only hides you now" : "").append(").");
+        p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ITEM_SHIELD_BLOCK, 1f, 1f);
+        return h[0];
+    }
+
+    /** A holed set-down shield (under 50 %, not broken) still hides whoever is behind it: one more "in the way". */
+    int wallObscures(Player p, Location from) {
+        State sq = wallCovering(p, from);
+        if (sq == null) return 0;
+        Data.Shield sd = Data.SHIELDS.get(sq.shield);
+        return sd != null && sq.shieldHealth > 0 && sq.shieldHealth < sd.health() * 0.5 ? 1 : 0;
+    }
+
+    /** The cells of the set-down shields: the enemies walk round them. */
+    Set<Path.P> wallCells(Fight f) {
+        Set<Path.P> l = new HashSet<>();
+        if (f != null) for (Player q : players(f)) {
+            State sq = states.get(q.getUniqueId());
+            if (sq != null && sq.wall != null) l.add(new Path.P((int) Math.floor(sq.wall.x), sq.wall.y, (int) Math.floor(sq.wall.z)));
+        }
+        return l;
+    }
+
+    /** /sheet pavise: his standing shield set down a block in front of him, facing where he looks (4 AP), or taken up again (4 AP). */
+    String pavise(Player p, Character c) {
+        State s = state(p);
+        if (s == null || s.fight == null) return "! a pavise is set down in a fight (/sheet pavise)";
+        Data.Shield sd = s.shield == null ? null : Data.SHIELDS.get(s.shield);
+        if (sd == null || !sd.stands()) return "! no standing shield (a pavise) with you";
+        if (s.wall != null) {
+            if (Math.hypot(p.getLocation().getX() - s.wall.x, p.getLocation().getZ() - s.wall.z) > 2.5) return "! go back to your " + sd.name() + " first (within 2 blocks)";
+            if (!pay(p, s, c, PAVISE_AP, "taking up the " + sd.name())) return "! not enough AP (" + PAVISE_AP + ")";
+            removeWall(s);
+            show(p, s, c, "the " + sd.name() + " taken up (" + PAVISE_AP + " AP)");
+            return "You take up the " + sd.name() + " again (" + PAVISE_AP + " AP).";
+        }
+        if (s.shieldHealth <= 0) return "! your " + sd.name() + " is broken";
+        Location l = p.getLocation();
+        float yaw = l.getYaw();
+        double r = Math.toRadians(yaw);
+        Location at = l.clone().add(-Math.sin(r), 0, Math.cos(r));
+        if (!at.getBlock().isPassable()) return "! no room in front of you";
+        if (!pay(p, s, c, PAVISE_AP, "setting down the " + sd.name())) return "! not enough AP (" + PAVISE_AP + ")";
+        s.wall = new Wall(at.getX(), at.getBlockY(), at.getZ(), yaw);
+        s.wall.display = wallDisplay(at, yaw);
+        Sfx.to(p, "mode.next");
+        show(p, s, c, "the " + sd.name() + " set down: a wall in front of you (" + PAVISE_AP + " AP)");
+        return "You set the " + sd.name() + " down in front of you (" + PAVISE_AP + " AP): whoever stands close behind it is covered from its front "
+                + "(" + sd.dt() + "/" + Math.round(sd.dr() * 100) + " %, its condition " + Math.round(s.shieldHealth / sd.health() * 100) + " %); your hands are free.";
+    }
+
+    /** The set-down shield's look: planks standing on the ground (cosmetic; a server without display entities shows none). */
+    private UUID wallDisplay(Location at, float yaw) {
+        try {
+            Location base = new Location(at.getWorld(), at.getX(), at.getBlockY(), at.getZ(), yaw, 0);
+            org.bukkit.entity.BlockDisplay d = at.getWorld().spawn(base, org.bukkit.entity.BlockDisplay.class, x -> {
+                x.setBlock(Material.SPRUCE_PLANKS.createBlockData());
+                x.setTransformation(new org.bukkit.util.Transformation(new org.joml.Vector3f(-0.35f, 0f, -0.08f), new org.joml.AxisAngle4f(),
+                        new org.joml.Vector3f(0.7f, 1.3f, 0.16f), new org.joml.AxisAngle4f()));
+            });
+            return d.getUniqueId();
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /** The set-down shield back in his hands (its look gone from the field). */
+    void removeWall(State s) {
+        if (s.wall == null) return;
+        if (s.wall.display != null) { Entity e = pl.getServer().getEntity(s.wall.display); if (e != null) e.remove(); }
+        s.wall = null;
     }
 
     /** 05d round 7: a vet's dose in a muscle takes minutes (ketamine IM ~3-4 [real]); a round is 6 s. */
@@ -1027,7 +1160,7 @@ public final class Battle implements Listener {
     /** /sheet trap [name]: sets the first trap of his own (or the one named) on the block he looks at, within 2 blocks, its AP. */
     String setTrap(Player p, Character c, String[] args) {
         State s = state(p);
-        if (s == null || s.fight == null) return "! traps are set in a fight (/sheet trap); a pit or a deadfall is dug before one (not built yet)";
+        if (s == null || s.fight == null) return "! traps are set in a fight (/sheet trap); a pit or a deadfall is dug before one (the encounter's menu: Dig)";
         String want = args.length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length)).toLowerCase(Locale.ROOT) : "";
         Production.Design pick = null;
         for (ItemStack it : s.saved) {
@@ -1039,7 +1172,7 @@ public final class Battle implements Listener {
         }
         if (pick == null) return "! no trap of yours left to set" + (want.isEmpty() ? "" : " named " + want);
         Data.TrapDef def = Data.TRAPS.get(pick.name);
-        if (def.ap() < 0) return "! a " + def.name() + " is dug before a fight, not in one";
+        if (def.ap() < 0) return "! a " + def.name() + " is dug before a fight, not in one (the encounter's menu: Dig, before an ambush or a hunt)";
         RayTraceResult r = p.rayTraceBlocks(3, FluidCollisionMode.NEVER);
         if (r == null || r.getHitBlock() == null || r.getHitPosition().distance(p.getEyeLocation().toVector()) > 3.5) return "! look at the ground within 2 blocks";
         org.bukkit.block.Block cell = r.getHitBlock().getRelative(org.bukkit.block.BlockFace.UP);
@@ -1070,7 +1203,7 @@ public final class Battle implements Listener {
                 if (dmg > 0) hurt(le, t, dmg, Combat.critEffects(Rules.Part.LEFT_LEG, 0, t.a), false, 0, log);
                 if (!t.dead && d.effect().equals("held")) { t.entangled = 1; t.hold = d.hold(); log.append("; HELD by a leg (he tears free on d100 <= 10 x Strength").append(d.hold() > 0 ? " - " + d.hold() : "").append(")"); }
                 if (!t.dead && d.effect().equals("knock")) { t.down = true; log.append("; knocked down"); }
-                if (!t.dead && d.effect().equals("fall")) { t.down = true; log.append("; in the pit (out next turn)"); }
+                if (!t.dead && d.effect().equals("fall")) { t.down = true; t.inPit = true; log.append("; in the pit (his next turn goes on climbing out)"); }
             }
             case "blast" -> { log.append("it blows."); explode(p, s, pl.character(p), at, le, 0, log, d.min(), d.max()); }
             case "cone" -> {
@@ -1660,7 +1793,7 @@ public final class Battle implements Listener {
         sh.stance = s.stance();
         sh.senses = c.senses();
         sh.extra.put("prosthetic arm", c.armToHit(w.twoHanded));
-        if (s.shield != null && !w.twoHanded && Data.SHIELDS.containsKey(s.shield)) {   // 05c §11: a shield too heavy for him
+        if (s.shield != null && s.wall == null && !w.twoHanded && Data.SHIELDS.containsKey(s.shield)) {   // 05c §11: a shield too heavy for him
             int shortOf = Data.SHIELDS.get(s.shield).minStr() - me[Rules.S];
             if (shortOf > 0) sh.extra.put("shield too heavy", -20 * shortOf);
         }
@@ -1787,7 +1920,7 @@ public final class Battle implements Listener {
         if (!ps.contains(p)) ps.add(p);
         List<String> why = new ArrayList<>();
         for (Target t : f.targets.values())
-            why.add(t.name + ": " + (t.escaped ? "got away" : t.dead ? "dead" : t.dying() ? "dying" : t.broken ? "gun destroyed" : "gun broken"));
+            why.add(t.name + ": " + (t.escaped ? "got away" : t.dead ? "dead" : t.dying() ? "dying" : t.asleep ? "asleep" : t.broken ? "gun destroyed" : "gun broken"));
         String text = "The fight is over: " + (f.them.equals("the raiders") ? "no raider" : "no enemy") + " can fight (" + String.join("; ", why) + "). Round " + f.round + ".";
         for (Player q : ps) {
             State sq = states.get(q.getUniqueId());
