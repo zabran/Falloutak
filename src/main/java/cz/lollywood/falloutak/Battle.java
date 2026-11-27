@@ -1807,7 +1807,7 @@ public final class Battle implements Listener {
         if (signature(c, w)) sh.extra.put("Signature Weapon", 15);
         if (nemesis(c, tg)) sh.extra.put("Nemesis", 15);
         if (tg != null && tg.surprised) sh.extra.put("caught mid-talk", TALK_SURPRISE);
-        if (m.aimed()) sh.extra.put("targeting eyes", (int) Math.round(c.other("aimed")));
+        if (m.aimed()) sh.extra.put("aimed (targeting eyes, Steady, propranolol)", (int) Math.round(c.other("aimed")));
         if (c.other("to_hit") != 0) sh.extra.put("Twitchy", (int) Math.round(c.other("to_hit")));   // the trait as a gene (03c §8)
         int gasHit = c.gasPenalty()[1];
         if (gasHit != 0) sh.extra.put(c.gasHere() != null ? c.gasHere().name() : "riot gas", gasHit);   // smoke −10, riot gas −20 (03b §3c)
@@ -2303,9 +2303,12 @@ public final class Battle implements Listener {
         else Sfx.at(p.getLocation(), Sfx.body(c.hp <= 0 ? "dying" : "hurt", c.female));
         log.append(c.wearOnHit(Rules.Part.TORSO, dmg, crit));
         Location here = p.getLocation().toBlockLocation();
-        if (fx.knockedDown() && !c.has("Stonewall")) { s.legs.clear(); s.legs.add(new Leg(2, here)); log.append(" You are knocked down: prone."); }
+        boolean psycho = c.other("no_knockdown") > 0;   // 04i §6a (RULED 11-27): Psycho ignores being knocked down and stunned
+        if (fx.knockedDown() && psycho) log.append(" Psycho: you stay on your feet.");
+        else if (fx.knockedDown() && !c.has("Stonewall")) { s.legs.clear(); s.legs.add(new Leg(2, here)); log.append(" You are knocked down: prone."); }
         if (fx.knockedOut()) { s.lostTurns = Math.max(s.lostTurns, 1); s.legs.clear(); s.legs.add(new Leg(2, here)); log.append(" You are knocked out: your next turn is lost."); }
-        if (fx.losesTurn()) { s.lostTurns = Math.max(s.lostTurns, 1); log.append(" You lose your next turn."); }
+        if (fx.losesTurn() && psycho) log.append(" Psycho: the stun does not take.");
+        else if (fx.losesTurn()) { s.lostTurns = Math.max(s.lostTurns, 1); log.append(" You lose your next turn."); }
         if (fx.crippledArm()) { s.armCrippled = true; log.append(" Your arm is crippled."); }
         if (fx.crippledLeg()) { c.brokenLegs = Math.min(2, c.brokenLegs + 1); log.append(" A leg is crippled (").append(c.brokenLegs).append(" broken)."); }
         if (fx.blinded()) { s.blind = true; log.append(" You are blinded."); }
@@ -2479,10 +2482,9 @@ public final class Battle implements Listener {
         switch (id) {
             case "stim" -> {
                 if (!pay(p, s, c, 2, "the Stimpak")) return;
-                int before = c.hp;
-                c.hp = Combat.stimpak(c.hp, c.hpMax(), (lo, hi) -> lo + rnd.nextInt(hi - lo + 1));
+                String r = Meds.inject(c, "Stimpak", rnd);   // 04i §6a: it stops the bleeding now
                 Sfx.at(p.getLocation(), "stimpak");
-                show(p, s, c, "the Stimpak: +" + (c.hp - before) + " HP, " + c.hp + " / " + c.hpMax() + " (2 AP; it does not stop bleeding: first aid does)");
+                show(p, s, c, r + " (2 AP)");
             }
             case "grenade" -> grenade(p, s, c, throwRange(c), false);
             case "gasgren" -> grenade(p, s, c, throwRange(c), true);

@@ -626,6 +626,107 @@
    "basic": false
   },
   {
+   "id": "herbal-extracts",
+   "name": "Herbal extracts",
+   "recipes": [
+    "atropine",
+    "willow-bark-extract"
+   ],
+   "science": "Medicine",
+   "tier": 2,
+   "rarity": 2,
+   "points": 800,
+   "gate": 50,
+   "lab": 2,
+   "lines": [
+    "medicine"
+   ],
+   "needs": [],
+   "eureka": {
+    "kind": "gm",
+    "text": "Meet a herbalist or a wise woman (a farm town's, a camp's) who shows the healing herbs",
+    "model": "Meet another civilization → Writing",
+    "auto": false
+   },
+   "notes": [],
+   "experiment": {
+    "electronics": 2,
+    "machinery": 1
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "ephedra",
+   "name": "Ephedra",
+   "recipes": [
+    "grow-ephedra"
+   ],
+   "science": "Biology",
+   "tier": 1,
+   "rarity": 3,
+   "points": 300,
+   "gate": 30,
+   "lab": 1,
+   "lines": [
+    "medicine",
+    "chems"
+   ],
+   "needs": [],
+   "eureka": {
+    "kind": "gm",
+    "text": "Find a living ephedra plant (a botanical garden's glasshouse, a herbalist's garden) and keep it",
+    "model": "— (ma huang, the Chinese herb)",
+    "auto": false
+   },
+   "notes": [],
+   "experiment": {
+    "electronics": 1,
+    "machinery": 1
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "pervitin-kitchen",
+   "name": "Pervitin kitchen",
+   "recipes": [
+    "pervitin-kitchen",
+    "pervitin-from-ephedra"
+   ],
+   "science": "Chemistry",
+   "tier": 2,
+   "rarity": 1,
+   "points": 400,
+   "gate": 50,
+   "lab": 2,
+   "lines": [
+    "chems"
+   ],
+   "needs": [
+    "prussian-blue",
+    "immunosuppressants"
+   ],
+   "eureka": {
+    "kind": "gm",
+    "text": "Find a raiders' or a Pirates' kitchen, or question its cook",
+    "model": "— (the Czech home kitchens since the 1970s)",
+    "auto": false
+   },
+   "notes": [
+    "1 Chemicals III: found only (no way makes it)"
+   ],
+   "experiment": {
+    "electronics": 1,
+    "machinery": 2
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
    "id": "prussian-blue",
    "name": "Prussian blue",
    "recipes": [
@@ -702,37 +803,6 @@
    "better": "the made anti-rejection drug: a graft kept a month on it, at the made drug's worse rejection rate (5 % an organ, 10 % a limb)",
    "parked": false,
    "basic": true
-  },
-  {
-   "id": "herbal-extracts",
-   "name": "Herbal extracts",
-   "recipes": [
-    "willow-bark-extract"
-   ],
-   "science": "Medicine",
-   "tier": 2,
-   "rarity": 1,
-   "points": 400,
-   "gate": 50,
-   "lab": 2,
-   "lines": [
-    "medicine"
-   ],
-   "needs": [],
-   "eureka": {
-    "kind": "gm",
-    "text": "Meet a herbalist or a wise woman (a farm town's, a camp's) who shows the healing herbs",
-    "model": "Meet another civilization → Writing",
-    "auto": false
-   },
-   "notes": [],
-   "experiment": {
-    "electronics": 2,
-    "machinery": 1
-   },
-   "better": "the willow-bark painkiller (Chems II: Pain -10 for 6 h) from gathered bark",
-   "parked": false,
-   "basic": false
   },
   {
    "id": "chicory",

@@ -8,7 +8,8 @@
    "effect": {
     "hours": 4,
     "other": {
-     "sleep_stage_off": 1
+     "sleep_stages": 1,
+     "tolerant": 1
     }
    },
    "withdrawal": {
@@ -20,7 +21,7 @@
    "dependence": {
     "hours": 168
    },
-   "source": "04c (the sleep stage off); withdrawal: headache, fatigue, poor concentration from 12-24 h, in about half of regular users (Juliano & Griffiths 2004, a review); the 10 % a day and the -1 Intelligence [mine]; lengths RULED (03b §8)"
+   "source": "04j §7a (RULED 11-27): the sleep stage shown one better (an adenosine blocker masks the pressure, the debt stays), none for a daily user (tolerant: in its own dependence); withdrawal: headache, fatigue, poor concentration from 12-24 h, in about half of regular users (Juliano & Griffiths 2004, a review); the 10 % a day and the -1 Intelligence [mine]; lengths RULED (03b §8)"
   },
   {
    "name": "Alcohol",
@@ -32,7 +33,15 @@
     },
     "other": {
      "pain_felt": -10,
-     "cold_gain": 0.5
+     "cold_gain": 0.5,
+     "water_need": 0.25,
+     "depressant": 1
+    }
+   },
+   "crash": {
+    "hours": 5,
+    "other": {
+     "water_need": 0.25
     }
    },
    "withdrawal": {
@@ -45,7 +54,7 @@
    "dependence": {
     "hours": 504
    },
-   "source": "Fallout 2's beer (-1 Perception, no hangover); 1 h = a drink cleared (the liver ~1 a hour); Pain -10 (04c); 5 % a drink as New Vegas (Fallout 2 20 %, Fallout 4 15-25 %; our 7-day count raises it with every drink); the addiction -1 Agility -1 Charisma (New Vegas and Fallout 4 alike); lengths RULED; colder in the cold (04g §5, RULED): the cold bar's gain x1.5 for its hour [the 0.5 mine]"
+   "source": "Fallout 2's beer (-1 Perception, no hangover); 1 h = a drink cleared (the liver ~1 a hour); Pain -10 (04c); 5 % a drink as New Vegas (Fallout 2 20 %, Fallout 4 15-25 %; our 7-day count raises it with every drink); the addiction -1 Agility -1 Charisma (New Vegas and Fallout 4 alike); lengths RULED; colder in the cold (04g §5, RULED): the cold bar's gain x1.5 for its hour [the 0.5 mine]; 04i §6b (RULED 11-27): a diuretic, the water need +25 % for 6 h a drink (its hour and 5 after), a depressant (with an opioid: the breathing stage)"
   },
   {
    "name": "Nicotine",
@@ -77,7 +86,9 @@
     "hours": 6,
     "other": {
      "pain_felt": -20,
-     "runs": -0.5
+     "runs": -0.5,
+     "opioid": 1,
+     "depressant": 1
     }
    },
    "withdrawal": {
@@ -98,7 +109,9 @@
    "effect": {
     "hours": 4,
     "other": {
-     "pain_felt": -40
+     "pain_felt": -40,
+     "opioid": 1,
+     "depressant": 1
     }
    },
    "withdrawal": {
@@ -160,7 +173,9 @@
    "effect": {
     "hours": 6,
     "other": {
-     "pain_felt": -20
+     "pain_felt": -20,
+     "opioid": 1,
+     "depressant": 1
     }
    },
    "withdrawal": {
@@ -179,7 +194,11 @@
    "chance": 0.05,
    "roll": "day",
    "effect": {
-    "hours": 24
+    "hours": 24,
+    "other": {
+     "opioid": 1,
+     "depressant": 1
+    }
    },
    "relieves": [
     "Morphine",
@@ -209,7 +228,9 @@
      "perception": 1
     },
     "other": {
-     "sleep_stage_off": 1
+     "sleep_stages": 2,
+     "water_need": 0.25,
+     "heat_per_hour": 1
     }
    },
    "crash": {
@@ -229,7 +250,7 @@
    "dependence": {
     "hours": 8760
    },
-   "source": "04i §3c: the raiders' and Pirates' home-cooked stimulant, the Czech word for methamphetamine since the 1940s [real]; found or bought, never a recipe here; the numbers mine, EXAMPLE (amphetamine's, stronger and longer)"
+   "source": "04i §3c: the raiders' and Pirates' home-cooked stimulant, the Czech word for methamphetamine since the 1940s [real]; made by the kitchen's recipe or from ephedra (04j §7e, RULED 11-27); the numbers mine, EXAMPLE (amphetamine's, stronger and longer); the sleep stage shown two better, water +25 %, heat +1 an hour at work (04j §7a, 04i §6b, RULED 11-27)"
   },
   {
    "name": "Paracetamol",
@@ -273,7 +294,9 @@
     "hours": 6,
     "other": {
      "pain_felt": -30,
-     "runs": -0.5
+     "runs": -0.5,
+     "opioid": 1,
+     "depressant": 1
     }
    },
    "withdrawal": {
@@ -350,7 +373,8 @@
    "effect": {
     "hours": 6,
     "other": {
-     "sedation": 1
+     "sedation": 1,
+     "depressant": 1
     }
    },
    "withdrawal": {
@@ -374,7 +398,9 @@
      "agility": 1
     },
     "other": {
-     "sleep_stage_off": 1
+     "sleep_stages": 2,
+     "water_need": 0.25,
+     "heat_per_hour": 1
     }
    },
    "crash": {
@@ -405,6 +431,10 @@
      "strength": 2,
      "endurance": 3,
      "agility": 2
+    },
+    "other": {
+     "food_need": 0.5,
+     "heat_per_hour": 1
     }
    },
    "crash": {
@@ -426,7 +456,7 @@
    "dependence": {
     "hours": 2160
    },
-   "source": "Fallout 2 (fallout.wiki; the addiction's -2 S -2 E -3 A from its engine's perk table); lengths RULED"
+   "source": "Fallout 2 (fallout.wiki; the addiction's -2 S -2 E -3 A from its engine's perk table); lengths RULED; 04i §6a (RULED 11-27): a fast androgen and a stimulant: food need +50 %, heat +1 an hour at work"
   },
   {
    "name": "Mentats",
@@ -437,6 +467,9 @@
      "perception": 2,
      "intelligence": 2,
      "charisma": 1
+    },
+    "other": {
+     "sleep_need": 0.5
     }
    },
    "crash": {
@@ -457,7 +490,7 @@
    "dependence": {
     "hours": 2160
    },
-   "source": "Fallout 2 (fallout.wiki: a day, then -2/-2/-2 for 4 days; the addiction -3 I -2 A from the engine); lengths RULED"
+   "source": "Fallout 2 (fallout.wiki: a day, then -2/-2/-2 for 4 days; the addiction -3 I -2 A from the engine); lengths RULED; 04i §6a (RULED 11-27): a wakefulness drug, the sleep debt x1.5 while it works, no stage better (04j §7a)"
   },
   {
    "name": "Psycho",
@@ -469,16 +502,15 @@
      "intelligence": -3
     },
     "other": {
-     "dr": 50
+     "dr": 10,
+     "pain_felt": -60,
+     "no_knockdown": 1
     }
    },
    "crash": {
     "hours": 8,
     "mods": {
      "intelligence": -2
-    },
-    "other": {
-     "dr": 25
     }
    },
    "withdrawal": {
@@ -490,7 +522,7 @@
    "dependence": {
     "hours": 2160
    },
-   "source": "Fallout 2 (fallout.wiki: 4 h, then -2 I and DR +25 for 8 h; the addiction -2 I from the engine); lengths RULED"
+   "source": "Fallout 2 (fallout.wiki: 4 h, then -2 I for 8 h; the addiction -2 I from the engine); lengths RULED; 04i §6a, 04j §7 (RULED 11-27): a dissociative and adrenaline: Pain felt -60, no knockdown or stun, F2's DR +50 cut to a slight +10 (Marek: \"it could harden you on cellular level\")"
   },
   {
    "name": "Jet",
@@ -502,7 +534,9 @@
      "perception": 1
     },
     "other": {
-     "ap": 2
+     "ap": 2,
+     "sleep_stages": 1,
+     "heat_per_hour": 1
     }
    },
    "crash": {
@@ -546,7 +580,14 @@
    "effect": {
     "hours": 4,
     "other": {
-     "radaway": 1
+     "radaway": 1,
+     "water_need": 0.5
+    }
+   },
+   "crash": {
+    "hours": 24,
+    "mods": {
+     "endurance": -1
     }
    },
    "withdrawal": {
@@ -555,7 +596,7 @@
      "rad_res": -20
     }
    },
-   "source": "04 (RULED 11-15/16): 50 + Medicine rads out over 4 h, 10 % a dose, -20 rad resistance for about 3 weeks"
+   "source": "04 (RULED 11-15/16): 50 + Medicine rads out over 4 h, 10 % a dose, -20 rad resistance for about 3 weeks; 04i §6a (RULED 11-27): a chelator and a flush, the water need +50 % for its hours, Endurance -1 for a day after (it strips zinc too)"
   },
   {
    "name": "Rad-X",
@@ -563,7 +604,8 @@
    "effect": {
     "hours": 24,
     "other": {
-     "rad_res": 50
+     "rad_res": 50,
+     "now_food": -10
     }
    },
    "crash": {
@@ -572,7 +614,7 @@
      "rad_res": 25
     }
    },
-   "source": "04 (RULED: as Fallout 2): +50 % rad resistance for 24 h, then +25 % for 48 h"
+   "source": "04 (RULED: as Fallout 2): +50 % rad resistance for 24 h, then +25 % for 48 h; 04i §6a (RULED 11-27): an oral radioprotector, it brings up the stomach (Food -10 at once) [the 10 mine]"
   },
   {
    "name": "Prussian blue",
@@ -608,6 +650,293 @@
     }
    },
    "source": "09e round 2: the made anti-rejection drug (Chems III R2), a month's course, the worse rejection rate [numbers mine, EXAMPLE]"
+  },
+  {
+   "name": "Fixer",
+   "chance": 0,
+   "effect": {
+    "hours": 24,
+    "other": {
+     "withdrawal_off": 1
+    }
+   },
+   "source": "New Vegas's Fixer, made real (04i §6a): a withdrawal blocker for every chem (methadone or buprenorphine do it for opioids today, clonidine eases it [real]): every withdrawal's penalties off for 24 h, the dependence stays"
+  },
+  {
+   "name": "Hydra",
+   "chance": 0,
+   "effect": {
+    "hours": 72,
+    "other": {
+     "mend_limb": 1
+    }
+   },
+   "source": "New Vegas's Hydra, made real (04i §6a): bone growth factors and a bone glue (rhBMP-2 today, bone glues in trials [real]): a crippled limb (a broken leg) mends when its 3 days end; New Vegas's addiction dropped"
+  },
+  {
+   "name": "Cateye",
+   "chance": 0,
+   "effect": {
+    "hours": 4,
+    "other": {
+     "senses": 1
+    }
+   },
+   "source": "New Vegas's Cateye, made real (04i §6a): eye drops that sensitise the retina (chlorin e6, tried in 2015, unproven [real]): the dark halved for 4 h; a flash or the sun: Perception -2 that hour (the GM's)"
+  },
+  {
+   "name": "Steady",
+   "chance": 0.1,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "aimed": 15
+    }
+   },
+   "withdrawal": {
+    "hours": 336,
+    "other": {
+     "aimed": -10
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "04j §7d (RULED 11-27: *\"Tier IV Steady - yes.\"*): a 2040s motor-control drug quieting the tremor circuit (deep-brain stimulation does it for tremor today [real]): +15 to hit on an aimed shot for 6 h, none of propranolol's costs; 10 % addiction (the calm is pleasant): the withdrawal a tremor, aimed -10 for 2 weeks [mine]"
+  },
+  {
+   "name": "Propranolol",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "aimed": 10,
+     "ap": -1,
+     "cold_per_hour": 0.5,
+     "rebound": 1
+    }
+   },
+   "source": "04i §6a (RULED 11-27, Marek: *\"Steady - good idea with propranolol.\"*): a beta-blocker, marksmen's against tremor, banned in Olympic shooting [real]: +10 to hit on an aimed shot for 6 h, AP -1 (the heart cannot race), cold hands (+0.5 an hour); no addiction; stopped after a week of daily doses: AP -1 for a day (the rebound)"
+  },
+  {
+   "name": "Naloxone",
+   "chance": 0,
+   "effect": {
+    "hours": 1,
+    "other": {
+     "now_naloxone": 1
+    }
+   },
+   "source": "04i §6c (RULED 11-27): the opioid antidote [real]: ends the breathing stage at once, and the opioids' effect with it"
+  },
+  {
+   "name": "Activated charcoal",
+   "chance": 0,
+   "effect": {
+    "hours": 1,
+    "other": {
+     "poison_res": 50
+    }
+   },
+   "source": "04i §6c (RULED 11-27): Carbo medicinalis, the pharmacies' [real]: a swallowed poison's uptake halved in its hour (04g §5)"
+  },
+  {
+   "name": "Pseudoephedrine",
+   "chance": 0,
+   "effect": {
+    "hours": 6
+   },
+   "source": "04j §7e (RULED 11-27, Marek: *\"T3 chem (pseudoefedrin from common flu medicine)\"*): the flu tablets' decongestant (a stuffy nose eased: the GM's); the pervitin kitchen's precursor"
+  },
+  {
+   "name": "Valerian",
+   "chance": 0,
+   "effect": {
+    "hours": 8,
+    "other": {
+     "sleep_aid": 1
+    }
+   },
+   "source": "04i §6c (RULED 11-27): kozlík, a folk sleep aid (weak): asleep at once, the first hour of rest counts (Pain does not keep you up)"
+  },
+  {
+   "name": "Hops",
+   "chance": 0,
+   "effect": {
+    "hours": 8,
+    "other": {
+     "sleep_aid": 1
+    }
+   },
+   "source": "04i §6c (RULED 11-27): chmel, Czech hops everywhere, a folk sleep aid (weak): as valerian"
+  },
+  {
+   "name": "Herbal bitters",
+   "chance": 0.05,
+   "effect": {
+    "hours": 2,
+    "mods": {
+     "perception": -1
+    },
+    "other": {
+     "nausea": 1,
+     "cold_gain": 0.5,
+     "water_need": 0.25,
+     "depressant": 1
+    }
+   },
+   "crash": {
+    "hours": 4,
+    "other": {
+     "water_need": 0.25
+    }
+   },
+   "withdrawal": {
+    "hours": 168,
+    "mods": {
+     "agility": -1,
+     "charisma": -1
+    }
+   },
+   "dependence": {
+    "hours": 504
+   },
+   "source": "04i §6c (RULED 11-27): a Czech herbal liqueur: nausea off for 2 h; it is alcohol (its addiction, cold and thirst)"
+  },
+  {
+   "name": "Absinthe",
+   "chance": 0.05,
+   "effect": {
+    "hours": 2,
+    "mods": {
+     "perception": -1
+    },
+    "other": {
+     "nausea": 1,
+     "cold_gain": 0.5,
+     "water_need": 0.25,
+     "depressant": 1
+    }
+   },
+   "crash": {
+    "hours": 4,
+    "other": {
+     "water_need": 0.25
+    }
+   },
+   "withdrawal": {
+    "hours": 168,
+    "mods": {
+     "agility": -1,
+     "charisma": -1
+    }
+   },
+   "dependence": {
+    "hours": 504
+   },
+   "source": "04i §6c (RULED 11-27): wormwood spirit, Czech-made today [real]: nausea off for 2 h; it is alcohol"
+  },
+  {
+   "name": "Hydrotab",
+   "chance": 0,
+   "effect": {
+    "hours": 24,
+    "other": {
+     "water_need": -0.5
+    }
+   },
+   "crash": {
+    "hours": 24,
+    "other": {
+     "water_need": 0.25
+    }
+   },
+   "source": "04j §7c: the kidney's water kept (vasopressin analogues, desmopressin today [real]): the water need -50 % for 24 h, +25 % the next day"
+  },
+  {
+   "name": "Torpor",
+   "chance": 0,
+   "effect": {
+    "hours": 24,
+    "mods": {
+     "agility": -1
+    },
+    "other": {
+     "food_need": -0.5,
+     "water_need": -0.5,
+     "ap": -2,
+     "cold_gain": 0.25
+    }
+   },
+   "source": "04j §7c: hibernation research (hydrogen sulphide in mice, NASA's torpor for Mars [real]): food and water needs x0.5 for 24 h; AP -2, Agility -1; the cold's gain +25 %"
+  },
+  {
+   "name": "Nightcap",
+   "chance": 0,
+   "effect": {
+    "hours": 8,
+    "other": {
+     "rest_double": 1
+    }
+   },
+   "source": "04j §7c: deeper sleep (sodium oxybate deepens slow-wave sleep today [real]): 4 hours of unbroken sleep count as 8"
+  },
+  {
+   "name": "Antidote",
+   "chance": 0,
+   "effect": {
+    "hours": 1,
+    "other": {
+     "now_poison": -75
+    }
+   },
+   "source": "Fallout 2's Antidote, 04j §7c: nanosponges that soak up toxins (since 2013 [real]): Poison -75 at once (F2's)"
+  },
+  {
+   "name": "Furnace",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "cold_gain": -0.5,
+     "food_need": 0.5
+    }
+   },
+   "source": "04j §7c: brown fat switched on (mirabegron does a little today [real]): the cold's gain halved for 6 h; food need +50 %"
+  },
+  {
+   "name": "Coolant",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "heat_gain": -0.5,
+     "water_need": 0.25
+    }
+   },
+   "source": "04j §7c: heat-shock proteins primed [the path mine]: the heat's gain halved for 6 h; water need +25 %"
+  },
+  {
+   "name": "Numb",
+   "chance": 0,
+   "effect": {
+    "hours": 8,
+    "other": {
+     "pain_felt": -40
+    }
+   },
+   "source": "04j §7c: a sodium-channel painkiller (the first, suzetrigine, approved in 2025 [real]): Pain felt -40 for 8 h; no addiction, no breathing slowed, no sedation"
+  },
+  {
+   "name": "O-Shot",
+   "chance": 0,
+   "effect": {
+    "hours": 0.016666666666666666,
+    "other": {
+     "now_oxygen": 10
+    }
+   },
+   "source": "04j §7c: oxygen microparticles injected (kept animals alive 15 minutes without breathing, 2012 [real]): the Oxygen bar full and 10 more rounds of breath, once"
   }
  ]
 }

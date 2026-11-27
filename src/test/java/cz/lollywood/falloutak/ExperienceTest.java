@@ -303,7 +303,8 @@ class ExperienceTest extends MockGame {
         String r = c.dose(Data.CHEMS.get("Psycho"), new java.util.Random(1));
         assertTrue(r.contains("never addicts"), r);
         assertTrue(c.addictions.isEmpty());
-        assertEquals(75, c.inSlot("chem:Psycho").other().get("dr"), 1e-9);             // its 50 % DR x1.5
+        assertEquals(15, c.inSlot("chem:Psycho").other().get("dr"), 1e-9);             // its 10 % DR x1.5 (04i §6a: F2's 50 cut to a slight 10)
+        assertEquals(1, c.inSlot("chem:Psycho").other().get("no_knockdown"), 1e-9);    // a switch: Old Friend never multiplies it
         // the other lists
         assertTrue(Menus.boundChoices(c, Data.PERKS.get("Nemesis")).contains("Raiders"));
         assertFalse(Data.PERKS.get("My People").bound());                              // faction-wide (Marek 11-20: "Group is tiny")

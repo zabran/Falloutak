@@ -317,6 +317,22 @@ public final class Rules {
         return 4;
     }
 
+    static final String[] STAGE_STEPS = {"Minor", "Advanced", "Critical", "Deadly"};
+
+    /**
+     * A falling stage shown {@code n} better (`04j` §7a, RULED 11-27, Marek: *"I think it should only make it stage or two better than the
+     * value level should be"*): Deadly Sleep Deprivation one better = Critical, Minor one better = none. The bar itself stays.
+     */
+    public static String better(String stage, int n) {
+        if (stage == null || n <= 0) return stage;
+        for (int k = 0; k < STAGE_STEPS.length; k++)
+            if (stage.startsWith(STAGE_STEPS[k] + " ")) {
+                String what = stage.substring(STAGE_STEPS[k].length() + 1);
+                return k - n < 0 ? null : STAGE_STEPS[k - n] + " " + what;
+            }
+        return stage;
+    }
+
     private static String falling(double f, String what) {
         return f >= .8 ? null : f >= .6 ? "Minor " + what : f >= .4 ? "Advanced " + what : f >= .2 ? "Critical " + what : "Deadly " + what;
     }

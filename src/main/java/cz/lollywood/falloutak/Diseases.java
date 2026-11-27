@@ -241,7 +241,8 @@ final class Diseases {
                 out.add(d.name() + ": the first signs");
             }
             k.ill += 1;
-            k.imm = Math.min(1, k.imm + d.rI() * speedBody * k.luck * (k.acts.containsKey("sanatorium") ? SANATORIUM : 1) / 24);
+            double virex = d.kind().contains("virus") ? 1 + Math.max(0, c.other("viral_immunity")) / 100 : 1;   // Virex (04j §7c): a virus's immunity ×2
+            k.imm = Math.min(1, k.imm + d.rI() * speedBody * k.luck * (k.acts.containsKey("sanatorium") ? SANATORIUM : 1) * virex / 24);
             if (k.imm >= 1 && !k.immune) { k.immune = true; out.add(d.name() + ": the body has its answer, it fades from now"); }
             int si = d.stageAt(k.sev);
             double full = d.course() > 0 ? d.course() : ABX_DAYS;

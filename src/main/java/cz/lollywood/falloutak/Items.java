@@ -257,7 +257,8 @@ final class Items {
                 yield s == null ? "" : s.shop() + "\none 15-year course; given by a medic's Actions, on you (his Biology; used up)";
             }
             case "gear" -> switch (k[1]) {
-                case "Stimpak" -> "+10 to +20 HP at once (Fallout 2); it does not stop bleeding (used up)";
+                case "Stimpak" -> "a sealant and a growth factor (04i): every bleeding stopped, +10 to +20 HP, the healing rate +1 for 3 days,\n"
+                        + "Pain −10 for an hour; healing costs food and water (+25 % for a day) (used up)";
                 case "Adrenaline" -> "a revival: the chance × 0.4 instead of 0.2 (used up)";
                 case "Gas mask" -> "the big one, like a helmet (a Head piece): worn from your Actions with the filters you carry,\nthe breath and the eyes; a gas filter keeps out every gas but bad air and CO, a CO filter CO (03b §3c)";
                 case "Small gas mask" -> "an active item: right click it in hand to put it on or off (2 AP in rounds);\nmouth and nose only, the eyes stay bare; your filters as the big one's";
@@ -287,7 +288,9 @@ final class Items {
             case "thing" -> {
                 String[] t = thing(id);
                 Production.ItemType ty = t == null ? null : Production.TYPES.get(t[0]);
+                String what = t == null ? null : Meds.text(t[3]);
                 yield t == null ? "" : t[0] + " · Tier " + Rules.roman(Integer.parseInt(t[1])) + ", rarity " + t[2]
+                        + (what == null ? "" : "\n" + what)
                         + (ty == null ? "" : "\n" + ty.use + (ty.tiers.containsKey(Rules.roman(Integer.parseInt(t[1]))) ? "\nthis tier: " + ty.tiers.get(Rules.roman(Integer.parseInt(t[1]))) : ""))
                         + "\nback into the store through the Mess Chest";
             }

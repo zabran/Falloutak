@@ -12,7 +12,7 @@ public final class Character {
      * implant, prosthesis, mutation, chem, perk, trait, item (or "" for the old examples). {@code slot}: one slot holds one effect
      * (RULED: *"everything stacks but one slot"*), "" = none. {@code permanent}: level-up reads it (templates, implants, prostheses,
      * mutations, perks, traits, therapies: yes; a chem: never) and it has no clock. {@code other}: the rest of its numbers (dr, dt,
-     * poison_res, rad_res, isolation, hp_max, ap, sequence, aimed, pain_felt, pain_gain, sleep_stage_off, rads_per_hour,
+     * poison_res, rad_res, isolation, hp_max, ap, sequence, aimed, pain_felt, pain_gain, sleep_stages, rads_per_hour,
      * efficiency, senses, "skill:Guns", ...). {@code next}: the stage that follows (a chem's chain). {@code condition}: implants and
      * prostheses, 0-100 %, worn as a weapon (New Vegas: full at 75 % and over, half at the last points, broken at 0).
      */
@@ -114,6 +114,16 @@ public final class Character {
     public double unwashedDays = 0;
     public boolean outside = false;
     public int brokenLegs = 0;
+    /**
+     * `04i` §6a (RULED round 2, Marek 11-27: *"Stimpak, Hypo, Trauma pack - thank you, this works a lot better."*): HELD HP, the Super
+     * Stimpak's and the Hypo's, gone when their hour ends; {@code heldReal} = the real HP under the hold: at the end HP = min(now, real),
+     * so a hit while held came off the held first and he is never below what was real. {@code breathHelpUntil}: a medic breathes for him
+     * (the breathing stage); {@code oxygenExtra}: the O-Shot's rounds of breath left (04j §7c).
+     */
+    public boolean holding = false;
+    public int heldReal = 0;
+    public double breathHelpUntil = -1;
+    public int oxygenExtra = 0;
     /** Part 3: the group (part 6), the premium templates bought for this PC himself (03b §2b). */
     @com.google.gson.annotations.SerializedName(value = "group", alternate = {"faction"}) public String group = "";
     /** The player hears Fallout 2's sounds (his own private pack, `/sounds fallout2`); his body sounds are a woman's (`/sounds female`). */
@@ -761,7 +771,8 @@ public final class Character {
     private int attr(int i, boolean permanentOnly, boolean withoutPain) {
         Data.Template t = tpl();
         int v = t.fixedAttr(i) ? t.fixed()[i] : base[i] + t.mods()[i];
-        for (Effect e : effects) if (e.permanent() || !permanentOnly) v += e.mod(i);
+        boolean fixer = fixerOn();
+        for (Effect e : effects) if ((e.permanent() || !permanentOnly) && !(fixer && withdrawal(e))) v += e.mod(i);
         if (!permanentOnly) v += armourMod(i);   // a whole power armour's Strength (05c): worn, never read by level-up
         // Night Person (02c; a trait or its gene): I and P +1 at night, -1 by day; a temporary value, so level-up never reads it
         if (!permanentOnly && (i == Rules.I || i == Rules.P) && has("Night Person")) v += night() ? 1 : -1;
@@ -816,11 +827,31 @@ public final class Character {
     /** The sum of an effect value over the effects ({@code permanentOnly}: level-up's view). */
     public double other(String key, boolean permanentOnly) {
         double s = tpl().other().getOrDefault(key, 0.0);   // the template's genes (03c: Thick-Skinned's −1 AP, Twitchy's +10 Initiative)
-        for (Effect e : effects) if (e.permanent() || !permanentOnly) s += e.other(key);
+        boolean fixer = fixerOn();
+        for (Effect e : effects) if ((e.permanent() || !permanentOnly) && !(fixer && withdrawal(e))) s += e.other(key);
         return s;
     }
 
     public double other(String key) { return other(key, false); }
+
+    /**
+     * The strongest of an effect value, not their sum: the stimulants' sleep stages (`04j` §7a, RULED 11-27: *"yes, all is fine"*:
+     * several stimulants do not add, the strongest counts).
+     */
+    public double maxOther(String key) {
+        double m = 0;
+        for (Effect e : effects) m = Math.max(m, e.other(key));
+        return m;
+    }
+
+    /** A chem's withdrawal stage. */
+    static boolean withdrawal(Effect e) { return e.source().equals("chem") && e.name().endsWith(STAGE_NAMES[2]); }
+
+    /** Fixer runs (`04i` §6a, RULED 11-27): every withdrawal's penalties are off while it works; the dependence stays. */
+    public boolean fixerOn() {
+        for (Effect e : effects) if (e.other().getOrDefault("withdrawal_off", 0.0) > 0) return true;
+        return false;
+    }
 
     static boolean isPainStage(String stage) { return stage.endsWith(" Pain") || stage.equals("Paralyzed by Pain"); }
 
@@ -871,8 +902,8 @@ public final class Character {
         for (Rules.Stat st : Rules.Stat.values()) {
             Double v = survival.get(st);
             if (v == null) continue;
-            if (st == Rules.Stat.SLEEP && other("sleep_stage_off") > 0) continue;   // caffeine, amphetamine: the debt stays
             String s = stageOf(st, st == Rules.Stat.PAIN ? painFelt() : v, max(st));
+            if (st == Rules.Stat.SLEEP) s = Rules.better(s, (int) Math.round(maxOther("sleep_stages")));   // the stimulants: the debt stays (04j §7a)
             if (s != null) l.add(s);
         }
         return l;
@@ -1155,8 +1186,11 @@ public final class Character {
         return switch (st) {
             case WATER -> power || baseWater ? 0 : h * t.waterFactor() * (1 + other("water_need"));   // an artifact's price (the ember: x1.25)
             case FOOD -> baseFood && !power ? 0 : h * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
-            case SLEEP -> h < 0 ? h * t.sleepFactor() * (1 + other("sleep_need")) : h;   // the need (DEC2: x0.75); a synthetic body: its memory, cleaned like sleep
+            case SLEEP -> h < 0 ? h * t.sleepFactor() * (1 + other("sleep_need"))   // the need (DEC2: x0.75; Mentats x1.5, 04i §6a); a synthetic body: its memory
+                    : h * (other("rest_double") > 0 ? 2 : 1);   // Nightcap (04j §7c): 4 hours of sleep count as 8
             case HYPOTHERMIA -> (h > 0 ? h * (1 + other("cold_gain")) : h) + other("cold_per_hour");   // the frost pearl's price (09c §3); alcohol: colder in the cold (04g §5)
+            // 04i §6b (RULED 11-27): the stimulants heat the body at work (amphetamine, pervitin, Buffout, Jet +1 an hour); Coolant's gain ½
+            case HYPERTHERMIA -> (h > 0 ? h * (1 + other("heat_gain")) : h) + (working && !sleeping ? Math.max(0, other("heat_per_hour")) : 0);
             case RADS -> (locationRads + nearRads) * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");   // + the glowing ones near (round 9)
             case BLOOD -> inArrest() ? 0 : h;   // no circulation, no new blood [mine]
             default -> h;
@@ -1489,7 +1523,8 @@ public final class Character {
     }
 
     /** The chems' switches, which Old Friend does not multiply. */
-    static final Set<String> OLD_FRIEND_SWITCHES = Set.of("sleep_stage_off");
+    static final Set<String> OLD_FRIEND_SWITCHES = Set.of("sleep_stages", "tolerant", "opioid", "depressant", "rebound", "no_knockdown",
+            "mend_limb", "withdrawal_off", "rest_double", "sleep_aid", "now_naloxone", "senses", "sedation", "nausea");
 
     /** Old Friend bound to this chem (02c). */
     boolean oldFriend(Data.Chem ch) { return hasPerk("Old Friend: " + ch.name()); }
@@ -1526,6 +1561,8 @@ public final class Character {
         boolean usedToday = past.stream().anyMatch(t -> t > clock - 24);
         past.add(clock);
         StringBuilder sb = new StringBuilder(ch.name() + ": ");
+        Effect prior = inSlot("chem:" + ch.name());   // 04j §7a: a daily user's caffeine wakes nothing (in its own dependence)
+        boolean tolerant = addictions.contains(ch.name()) || (prior != null && (prior.name().endsWith(STAGE_NAMES[2]) || prior.name().endsWith(STAGE_NAMES[3])));
         if (ch.cures() != null) {
             boolean was = addictions.remove(ch.cures());
             effects.removeIf(e -> e.slot().equals("chem:" + ch.cures()) && (e.name().endsWith("(withdrawal)") || e.name().endsWith("(dependence)")));
@@ -1554,10 +1591,115 @@ public final class Character {
         }
         if (ch.effect() != null) {
             Effect e = stageEffect(ch, 0);
+            if (tolerant && e.other().remove("tolerant") != null && e.other().remove("sleep_stages") != null) sb.append("a daily user: it wakes nothing. ");
+            boolean breathing = breathingStage();
             add(e);
             sb.append(Txt.f(e.hoursLeft())).append(" h").append(e.next() != null ? ", then " + e.next() : "").append(".");
+            String now = applyNow(e.other());
+            if (now != null) sb.append(" ").append(now);
+            double relief = e.other().getOrDefault("pain_felt", 0.0);
+            if (e.other().getOrDefault("opioid", 0.0) > 0 && relief < 0 && slowStage() != null) {   // 04g §5 RULED: cold or dehydrated it works slowly
+                add(new Effect(ch.name() + " (slow onset)", "onset", "onset:" + ch.name(), false, new int[7],
+                        new LinkedHashMap<>(Map.of("pain_felt", -relief / 2)), 1, null, 100));
+                sb.append(" ").append(slowStage()).append(": it works slowly (half the relief for the first hour).");
+            }
+            if (!breathing && breathingStage())
+                sb.append(" BREATHING STOPS: an opioid with a second depressant: unconscious, Oxygen falls a round until naloxone or a medic breathes for him.");
         }
         return sb.toString().trim();
+    }
+
+    /** The stage that slows an opioid (04g §5, RULED: *"cold or dehydrated it works slowly"*): a Hypothermia or Dehydration stage, or null. */
+    String slowStage() {
+        for (String s : stages()) if (s.endsWith("Hypothermia") || s.endsWith("Dehydration")) return s;
+        return null;
+    }
+
+    /**
+     * What a chem does at once ("now_*" keys, taken out of its effect): Rad-X brings up the stomach (Food), the Antidote soaks up Poison,
+     * the O-Shot fills the Oxygen bar and gives rounds of breath, naloxone ends the opioids (the breathing stage with them). Null if none.
+     */
+    String applyNow(Map<String, Double> o) {
+        List<String> out = new ArrayList<>();
+        Double v;
+        if ((v = o.remove("now_food")) != null) {
+            double max = max(Rules.Stat.FOOD), b = survival.getOrDefault(Rules.Stat.FOOD, max);
+            survival.put(Rules.Stat.FOOD, Math.max(0, Math.min(max, b + v)));
+            out.add("Food " + Math.round(b) + " → " + Math.round(survival.get(Rules.Stat.FOOD)) + (v < 0 ? " (it brings up the stomach)" : ""));
+        }
+        if ((v = o.remove("now_poison")) != null) {
+            double b = survival.getOrDefault(Rules.Stat.POISON, 0.0);
+            survival.put(Rules.Stat.POISON, Math.max(0, b + v));
+            out.add("Poison " + Math.round(b) + " → " + Math.round(survival.get(Rules.Stat.POISON)));
+        }
+        if ((v = o.remove("now_oxygen")) != null) {
+            survival.put(Rules.Stat.OXYGEN, max(Rules.Stat.OXYGEN));
+            oxygenExtra = Math.max(oxygenExtra, (int) Math.round(v));
+            out.add("Oxygen full and " + oxygenExtra + " more rounds of breath");
+        }
+        if (o.remove("now_naloxone") != null) {
+            boolean was = breathingStage();
+            for (Effect e : new ArrayList<>(effects)) {   // an addicted opioid goes straight into its withdrawal [real: precipitated]
+                if (e.other().getOrDefault("opioid", 0.0) <= 0 && !e.source().equals("onset")) continue;
+                effects.remove(e);
+                Data.Chem c = chemOf(e);
+                if (c != null && addictions.contains(c.name()) && c.stage(2) != null) { add(stageEffect(c, 2)); out.add(c.name() + "'s withdrawal at once"); }
+            }
+            breathHelpUntil = -1;
+            out.add(was ? "the breathing comes back: the opioids are ended (their relief with them)" : "the opioids are ended (their relief with them)");
+        }
+        return out.isEmpty() ? null : String.join("; ", out) + ".";
+    }
+
+    /**
+     * Held HP (`04i` §6a): {@code n} HP now, gone after an hour; the real HP under the hold kept. A second hold keeps the first's real
+     * floor. Returns the gain.
+     */
+    public int hold(int n) {
+        if (!holding) { holding = true; heldReal = hp; }
+        hp += n;
+        add(new Effect("Held HP", "treatment", "held_hp", false, new int[7], new LinkedHashMap<>(), 1, null, 100));
+        return n;
+    }
+
+    /** Real HP while a hold runs (a Stimpak's): the floor rises too. */
+    public void healReal(int n) {
+        hp += n;
+        if (holding) heldReal += n;
+    }
+
+    /** The hold's hour ends: HP back to what was real (a hit while held came off the held first). The news, or null. */
+    public String releaseHeld() {
+        if (!holding) return null;
+        holding = false;
+        int before = hp;
+        hp = Math.min(hp, heldReal);
+        effects.removeIf(e -> e.slot().equals("held_hp"));
+        if (hp == before) return "the held HP are gone (the hits took them)";
+        String r = "the held HP are gone: HP " + before + " → " + hp;
+        if (hp <= 0 && hp >= Rules.deathFloor(attrs(false))) r += ": DYING again";
+        else if (hp < Rules.deathFloor(attrs(false)) && arrestAt < 0) { arrestAt = now(); r += ": CLINICAL DEATH"; }
+        return r;
+    }
+
+    /**
+     * Propranolol's rebound (`04i` §6a, RULED 11-27): a day after the last of a week of daily doses, AP −1 for a day. Called each hour.
+     */
+    public String reboundHour() {
+        for (Data.Chem ch : Data.CHEMS.values()) {
+            if (ch.effect() == null || ch.effect().other().getOrDefault("rebound", 0.0) <= 0) continue;
+            List<Double> past = doses.get(ch.name());
+            if (past == null || past.isEmpty()) continue;
+            double last = past.get(past.size() - 1), since = clock - last;
+            if (since < 24 - 1e-9 || since >= 25 - 1e-9) continue;
+            long week = past.stream().filter(t -> t > last - 168 + 1e-9).count();
+            if (week < 7) continue;
+            int[] mods = new int[7];
+            add(new Effect(ch.name() + " (rebound)", "rebound", "rebound:" + ch.name(), false, mods,
+                    new LinkedHashMap<>(Map.of("ap", -1.0)), 24, null, 100));
+            return ch.name() + " stopped after a week: the rebound, AP −1 for a day";
+        }
+        return null;
     }
 
     // ------------------------------------------------------------------ mutations (03b §7)
@@ -2095,8 +2237,12 @@ public final class Character {
         }
         boolean arrest = inArrest();
         if (!arrest) {   // in clinical death nobody breathes: Oxygen stays where it is
+            boolean stopped = breathingStage() && breathHelpUntil <= now();   // 04i §6b: an opioid and a second depressant
             if (bottle) o = Math.min(max, o + Rules.OXYGEN_REFILL);
-            else if (holdingBreath || noAir()) o -= 1 + other("oxygen_need");   // overloaded: more (round 11)
+            else if (holdingBreath || noAir() || stopped) {
+                if (oxygenExtra > 0) oxygenExtra--;   // the O-Shot's breath (04j §7c)
+                else o -= 1 + other("oxygen_need");   // overloaded: more (round 11)
+            }
             else if (g != null && g.bad()) { badAirRounds++; if (o < max / 2) o = Math.min(max / 2, o + Rules.OXYGEN_REFILL); }
             else if (g != null && g.oxygen() > 0 && !shielded(g)) o -= g.oxygen() * gasPower() * gasFactor(g);
             else o = Math.min(max, o + Rules.OXYGEN_REFILL);
@@ -2154,12 +2300,29 @@ public final class Character {
         if (dead) return false;
         Double o = survival.get(Rules.Stat.OXYGEN);
         return bleeding > 0 || noAir() || holdingBreath || gasHere() != null || (wearing.contains("Air bottle") && bottleMinutes > 0)
-                || (o != null && o < max(Rules.Stat.OXYGEN) - 1e-9) || riotUntil > now();
+                || (o != null && o < max(Rules.Stat.OXYGEN) - 1e-9) || riotUntil > now() || breathingStage();
+    }
+
+    /**
+     * THE BREATHING STAGE (`04i` §6b, RULED round 2, Marek 11-27, verbatim: *"When two sedating drugs are taken together - great idea.
+     * Yes, lets do that."*): an opioid (morphine, codeine, opium, tramadol, methadone) working with a second depressant (diazepam,
+     * alcohol, another opioid) at once: unconscious, Oxygen −1 a round until naloxone or a medic breathes for him; one opioid alone, or
+     * ketamine, keeps the breathing [the drug classes real; the stage's form mine, asked and RULED].
+     */
+    public boolean breathingStage() {
+        if (dead || inArrest()) return false;
+        int opioid = 0, depressant = 0;
+        for (Effect e : effects) {
+            if (e.other().getOrDefault("opioid", 0.0) > 0) opioid++;
+            if (e.other().getOrDefault("depressant", 0.0) > 0) depressant++;
+        }
+        return opioid > 0 && depressant >= 2;
     }
 
     /** Unconscious, not in clinical death: Oxygen 0, or a pump keeping the body alive at Endurance 0 or the cold's end (03b §3c). */
     public boolean unconscious() {
         if (dead || inArrest()) return false;
+        if (breathingStage()) return true;   // 04i §6b: the breathing stage
         Double o = survival.get(Rules.Stat.OXYGEN);
         if (o != null && o <= 0) return true;
         return hasPump() && (attrs(false)[Rules.E] <= 0 || atEnd(Rules.Stat.HYPOTHERMIA));

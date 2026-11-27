@@ -195,6 +195,10 @@ public final class SheetView {
         return sb.toString();
     }
 
+    /** The keys shown by their name only (switches, not amounts). */
+    static final java.util.Set<String> SWITCHES = java.util.Set.of("senses", "sleep_stages", "opioid", "depressant", "tolerant", "no_knockdown",
+            "withdrawal_off", "mend_limb", "rest_double", "sleep_aid", "rebound", "now_naloxone");
+
     /** An effect's numbers as they work now (an implant's scaled by its condition). */
     static String effText(Character.Effect e) {
         StringBuilder sb = new StringBuilder();
@@ -206,12 +210,20 @@ public final class SheetView {
                 case "dr" -> "DR %"; case "dt" -> "DT"; case "poison_res" -> "poison/disease res. %"; case "rad_res" -> "rad res. %";
                 case "isolation" -> "isolation %"; case "hp_max" -> "HP max"; case "ap" -> "AP"; case "sequence" -> "Sequence";
                 case "aimed" -> "aimed shots"; case "pain_felt" -> "Pain felt"; case "pain_gain" -> "Pain gained (share)";
-                case "sleep_stage_off" -> "the sleep stage off"; case "rads_per_hour" -> "rads an hour"; case "efficiency" -> "efficiency %";
+                case "sleep_stages" -> "the sleep stage shown " + Math.round(v) + " better"; case "rads_per_hour" -> "rads an hour"; case "efficiency" -> "efficiency %";
+                case "opioid" -> "an opioid"; case "depressant" -> "a depressant (two at once with an opioid: the breathing stage)";
+                case "tolerant" -> "none for a daily user"; case "no_knockdown" -> "no knockdown or stun"; case "withdrawal_off" -> "every withdrawal off";
+                case "mend_limb" -> "a broken leg mends at its end"; case "rest_double" -> "4 h of sleep count as 8"; case "sleep_aid" -> "asleep at once";
+                case "rebound" -> "a week of it, then stopped: AP −1 a day"; case "heat_per_hour" -> "heat an hour at work";
+                case "water_need" -> "water need (share)"; case "food_need" -> "food need (share)"; case "sleep_need" -> "sleep debt (share)";
+                case "cold_gain" -> "cold gained (share)"; case "heat_gain" -> "heat gained (share)"; case "viral_immunity" -> "a virus's immunity %";
+                case "now_food" -> "Food at once"; case "now_poison" -> "Poison at once"; case "now_oxygen" -> "rounds of breath, the Oxygen bar full";
+                case "now_naloxone" -> "ends the opioids (the breathing stage)";
                 case "senses" -> v >= 2 ? "night vision" : "the dark halved"; case "pain_floor" -> "Pain never below";
                 case "heal_factor" -> "healing (share)";
                 default -> k.startsWith("skill:") ? k.substring(6) + " %" : k.replace('_', ' ');
             };
-            if (k.equals("senses") || k.equals("sleep_stage_off")) sb.append(sb.isEmpty() ? "" : ", ").append(label);
+            if (SWITCHES.contains(k)) sb.append(sb.isEmpty() ? "" : ", ").append(label);
             else sb.append(sb.isEmpty() ? "" : ", ").append(v > 0 ? "+" : "").append(f(Math.round(v * 100) / 100.0)).append(" ").append(label);
         }
         return sb.isEmpty() ? "no numbers" : sb.toString();

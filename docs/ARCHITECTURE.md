@@ -67,6 +67,18 @@ outside the game; the game itself is for the look and feel. The rules' text live
   read by `Meals`' scurvy day), a blood bag, antivenom, rehydration salts, iodide, the vaccines. A stack weighs its vessel and a
   hundredth of a kilo a further dose (`Meds.stackKg` in `Items.weight`). Chems: methadone's `Data.Chem.relieves`, ibuprofen's and
   aspirin's `bleeding` (in `Hud.bleedRound`), alcohol's `cold_gain` (in `Character.hourly`).
+- **The chems round 2-3** (04i §6, 04j §7, 0.107.0): the injectors `Meds.inject` (the Stimpak stops every bleeding, the Super Stimpak
+  and the Hypo HOLD HP: `Character.hold`, `healReal`, `releaseHeld` when the "held_hp" effect's hour ends in `Hud.hour`, HP back to
+  min(now, `heldReal`)); `Meds.traumaPack` (Medicine 40), `atropine` (Medicine 50), `transfuse` (fresh whole blood), the Blood Pack
+  and Virex (`useSelf`), Lysin (`ABX`), `keepStronger` (one slot, the stronger kept). The chems' survival keys read by
+  `Character.hourly`: `water_need`, `food_need`, `sleep_need` (Mentats), `heat_per_hour` (at work), `cold_gain`/`heat_gain`,
+  `rest_double` (Nightcap, also `Hud.heal`); `sleep_stages` read as the strongest (`maxOther`) by `stages` through `Rules.better`
+  (`tolerant`: none in its own dependence, in `dose`); `Character.breathingStage` (an "opioid" with a second "depressant": unconscious,
+  `breathRound` takes Oxygen, `breathHelpUntil` = a medic's breath, `Menus.BREATH_HELP_HOURS`); `dose` adds the slow onset in the
+  cold or dry (`slowStage`, an "onset:" effect) and runs `applyNow` (the "now_*" keys: food, poison, the O-Shot's `oxygenExtra`,
+  naloxone ending the opioids, an addict into withdrawal); Fixer's `withdrawal_off` (`fixerOn` in `other` and `attr`), Hydra's
+  `mend_limb` (in `Hud.hour`), propranolol's `reboundHour`, Psycho's `no_knockdown` (in `Battle.hitPlayer`), Virex's
+  `viral_immunity` (in `Diseases.hour`). Tests: `ChemsRoundTwoTest`.
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
@@ -94,27 +106,27 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
 | `Arena` | 826 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 3016 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 3018 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
-| `Character` | 2750 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
+| `Character` | 2913 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
 | `Conditions` | 256 | the conditions with their own clocks: scurvy, trench foot, scabies, latent tuberculosis |
 | `Creatures` | 160 | the game's creatures in the world (spawning, their sounds and motion) |
 | `Data` | 991 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
-| `Diseases` | 613 | the diseases' race, catching, vaccines, the treatments and the tending check |
-| `FalloutakPlugin` | 434 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
+| `Diseases` | 614 | the diseases' race, catching, vaccines, the treatments and the tending check |
+| `FalloutakPlugin` | 440 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
 | `Forms` | 425 | the dialog forms: create a character, spend points, the level-up |
 | `Hauls` | 266 | the prologue's last-minute hauls |
-| `Hud` | 432 | each character's game hour and passing time, healing, the action bar |
+| `Hud` | 445 | each character's game hour and passing time, healing, the action bar |
 | `Icons` | 129 | pictures in hover texts |
-| `Items` | 550 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
+| `Items` | 553 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
 | `Labs` | 218 | the research pages |
 | `Loot` | 388 | the field after a fight: bodies, gear, what can be taken |
 | `MapView` | 184 | the world map drawn in Minecraft |
 | `Maps` | 164 | the map worlds and their commands |
 | `Meals` | 253 | eating and drinking: the pack's portions, the base's day per person, the base's people's factors |
-| `Meds` | 190 | the medicines as items (04i): what each disease action, first aid and the Pip-Boy use up; antibiotic courses by dose; a dose's weight |
-| `Menus` | 1984 | every menu: actions, the patient's menu, pass time, the GM's buttons |
+| `Meds` | 364 | the medicines as items (04i): what each disease action, first aid and the Pip-Boy use up; antibiotic courses by dose; a dose's weight; the injectors and held HP, the Trauma pack, atropine, fresh blood (04i §6, 04j §7) |
+| `Menus` | 2056 | every menu: actions, the patient's menu, pass time, the GM's buttons |
 | `Narrator` | 165 | the narrator's lines on critical hits and failures |
 | `Npcs` | 204 | the GM's NPC tools: a figurant's side (hostile, neutral, the party's), following a player, joining his faction, the fight where they stand |
 | `Part3` | 308 | the species and modification commands (templates, genes, implants) |
@@ -124,10 +136,10 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Raiders` | 999 | the enemies' turn: choosing, moving, shooting, melee and bites |
 | `Research` | 614 | research: inspiration, experiments, prototypes, the cards |
 | `Roster` | 525 | `/npc`, `/pop`, `/group`: statblocks, the groups' XP and levels, lessons, work |
-| `Rules` | 713 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
+| `Rules` | 729 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
 | `Saves` | 134 | saved games (the whole state copied and restored) |
 | `Sfx` | 149 | every action's sound |
-| `SheetView` | 469 | the character sheet as a text screen, its pages |
+| `SheetView` | 481 | the character sheet as a text screen, its pages |
 | `Spoil` | 116 | food spoiling by tier, rarity and place |
 | `Storage` | 336 | the base's store as Minecraft chests |
 | `Store` | 123 | character files and THE SAVING HELPER for every saved file |
@@ -139,5 +151,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **49 classes** | **25803** | |
+| **49 classes** | **26265** | |
 <!-- /CLASSES -->

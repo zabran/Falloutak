@@ -219,8 +219,13 @@ final class Menus {
             if (!waters.isEmpty() && noDrink == null) b.add(btn("Drink", "a litre: Water +" + Math.round(Meals.LITRE) + " (the tier is the harm, "
                     + "04 §3.9)", x -> eat(x, c, true)));
             else cannot.add("Drink: " + (noDrink != null ? noDrink : "you carry no water"));
-            if (c.hp < c.hpMax() && carry.containsKey("gear:Stimpak"))
-                b.add(btn("Stimpak (" + carry.get("gear:Stimpak") + ")", "+10 to +20 HP at once (Fallout 2); it does not stop bleeding", x -> { say(x, stimpak(x, c, "you")); actions(x); }));
+            for (Map.Entry<String, Integer> e : Meds.injectors(p).entrySet()) {   // 04i §6a: the Stimpak, the Super Stimpak, the Hypo
+                String in = e.getKey();
+                if (c.dead || c.inArrest() || (!in.equals("Hypo") && c.hp >= c.hpMax() && c.bleeding <= 0)) continue;
+                b.add(btn("Use " + in + " (" + e.getValue() + ")", injectorText(in), x -> { say(x, inject(x, c, "you", in)); actions(x); }));
+            }
+            if (Meds.count(p, "Trauma pack") > 0 && !c.dead && !c.inArrest())
+                b.add(btn("Trauma pack (" + Meds.count(p, "Trauma pack") + ")", "on yourself: 10 minutes, your Medicine 40 (a check)", x -> { say(x, trauma(x, c, c)); actions(x); }));
             for (Map.Entry<String, Integer> e : Meds.selfUse(p).entrySet()) {   // 04i: vitamin C, a blood bag, antivenom, the vaccines
                 String mn = e.getKey();
                 b.add(btn("Use " + mn + " (" + e.getValue() + ")", "a dose, on yourself", x -> {
@@ -493,11 +498,57 @@ final class Menus {
                 o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
                 on(x, whoOf(o.entity()));
             }));
-        if (!t.dead && !t.inArrest() && t.hp < t.hpMax() && carry.containsKey("gear:Stimpak"))
-            b.add(btn("Stimpak", "+10 to +20 HP at once (Fallout 2); it does not stop bleeding", x -> {
-                String r = stimpak(x, t, o.name());
+        if (!t.dead && !t.inArrest())
+            for (Map.Entry<String, Integer> e : Meds.injectors(p).entrySet()) {   // 04i §6a
+                String in = e.getKey();
+                if (!in.equals("Hypo") && t.hp >= t.hpMax() && t.bleeding <= 0) continue;
+                b.add(btn(in + " (" + e.getValue() + ")", injectorText(in), x -> {
+                    String r = inject(x, t, o.name(), in);
+                    say(x, r);
+                    o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
+                    on(x, whoOf(o.entity()));
+                }));
+            }
+        if (!t.dead && !t.inArrest() && Meds.count(p, "Trauma pack") > 0)
+            b.add(btn("Trauma pack", "10 minutes, your Medicine " + Math.round(med) + " (40 needed, a check): every bleeding stopped, Blood +50 %, Pain −40", x -> {
+                String r = trauma(x, me, t);
                 say(x, r);
                 o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
+                on(x, whoOf(o.entity()));
+            }));
+        if (!t.dead && !t.inArrest() && Meds.count(p, "Atropine") > 0)
+            b.add(btn("Atropine", "the pesticide antidote: Poison −30; your Medicine " + Math.round(med) + " (50 needed: an overdose kills)", x -> {
+                String r = Meds.atropine(me.skill("Medicine"), t);
+                if (!r.startsWith("!")) Meds.take(x, "Atropine", 1);
+                say(x, r);
+                o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
+                on(x, whoOf(o.entity()));
+            }));
+        if (!t.dead && !t.inArrest())
+            for (String mn : List.of("Blood bag", "Blood Pack", "Antivenom", "Rehydration salts", "Home ORS", "Virex")) {   // 04i: given by the medic
+                int n = Meds.count(p, mn);
+                if (n <= 0) continue;
+                b.add(btn("Give " + mn + " (" + n + ")", "a dose, on " + o.name(), x -> {
+                    if (Meds.take(x, mn, 1) < 1) return;
+                    String r = Meds.useSelf(t, mn, pl.rnd);
+                    say(x, o.name() + ": " + r);
+                    o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
+                    on(x, whoOf(o.entity()));
+                }));
+            }
+        if (!t.dead && !t.inArrest() && t != me)
+            b.add(btn("Give your blood", "fresh whole blood (04i §6c): your Blood −25 %, his +25 %; the groups must match (the GM's)", x -> {
+                String r = Meds.transfuse(me, t);
+                say(x, r);
+                o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
+                on(x, whoOf(o.entity()));
+            }));
+        if (!t.dead && t.breathingStage())
+            b.add(btn("Breathe for him", "the breathing stage (an opioid and a second depressant): you keep his breath going until the drugs wear off "
+                    + "(or give naloxone)", x -> {
+                t.breathHelpUntil = t.now() + BREATH_HELP_HOURS;
+                say(x, "you breathe for " + o.name() + ": his Oxygen holds while you stay with him");
+                o.tell(p.getName() + " breathes for you", NamedTextColor.GREEN);
                 on(x, whoOf(o.entity()));
             }));
         if (!t.dead && t.hp >= t.hpMax() && t.bleeding <= 0) cannot.add("First aid: " + o.name() + " is not hurt");
@@ -607,11 +658,32 @@ final class Menus {
         return whose + " wounds dressed (" + used.toLowerCase(java.util.Locale.ROOT) + "): the healing rate +1 for the next 24 hours (healing comes with 8 hours of rest)";
     }
 
-    static String stimpak(Player user, Character t, String who) {
-        if (!Items.take(user, "gear:Stimpak")) return "! no Stimpak";
-        int before = t.hp;
-        t.hp = Combat.stimpak(t.hp, t.hpMax(), (lo, hi) -> lo + pl.rnd.nextInt(hi - lo + 1));
-        return "a Stimpak on " + who + ": +" + (t.hp - before) + " HP, " + t.hp + "/" + t.hpMax() + (t.bleeding > 0 ? " (still bleeding: first aid)" : "");
+    static String stimpak(Player user, Character t, String who) { return inject(user, t, who, "Stimpak"); }
+
+    /** A medic stays with a man in the breathing stage this long (the opioids' hours) [mine]. */
+    static final double BREATH_HELP_HOURS = 6;
+
+    /** An injector from the user's pack on {@code t} (04i §6a). */
+    static String inject(Player user, Character t, String who, String name) {
+        if (t.dead || t.inArrest()) return "! " + who + ": " + (t.dead ? "dead" : "clinical death: revive first");
+        if (!Meds.takeInjector(user, name)) return "! no " + name;
+        return who + ": " + Meds.inject(t, name, pl.rnd);
+    }
+
+    /** The Trauma pack from the user's pack, by the medic {@code me}'s Medicine; kept if his check fails. */
+    static String trauma(Player user, Character me, Character t) {
+        if (Meds.count(user, "Trauma pack") < 1) return "! no Trauma pack";
+        String r = Meds.traumaPack(me.skill("Medicine"), t);
+        if (!r.startsWith("!")) Meds.take(user, "Trauma pack", 1);
+        return r;
+    }
+
+    static String injectorText(String name) {
+        return switch (name) {
+            case "Stimpak" -> "every bleeding stopped, +10 to +20 HP, the healing rate +1 for 3 days (04i §6a)";
+            case "Super Stimpak" -> "bleeding stopped, Blood +25 %, +25 HP and 25 HELD for an hour, the healing rate +2; a heart check";
+            default -> "a dying man stands up: +40 HP HELD for an hour, bleeding stopped, Pain −50; then he is where he was";
+        };
     }
 
     /** Asks the patient (an NPC agrees by itself: the GM plays it and is told). */

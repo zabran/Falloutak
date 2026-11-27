@@ -2913,6 +2913,432 @@
    "note": "salt in clean water: washing wounds (04c)"
   },
   {
+   "id": "gather-sphagnum-moss",
+   "name": "Gather sphagnum moss",
+   "building": "Outside",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 20,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 3,
+     "items": [
+      "Sphagnum moss"
+     ]
+    }
+   ],
+   "inputs": [],
+   "note": "from a bog, dried: the armies' wound dressing in 1914-18 [real]"
+  },
+  {
+   "id": "home-ors",
+   "name": "Home ORS",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 10,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 3,
+     "items": [
+      "Home ORS"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 2,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Salt"
+     ]
+    },
+    {
+     "type": "Water",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "boiled water, salt and sugar: the WHO's formula [real]"
+  },
+  {
+   "id": "gather-valerian",
+   "name": "Gather valerian",
+   "building": "Outside",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 20,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Chems",
+     "tier": 1,
+     "count": 3,
+     "items": [
+      "Valerian"
+     ]
+    }
+   ],
+   "inputs": [],
+   "note": "kozlík's root, dried: a folk sleep aid"
+  },
+  {
+   "id": "gather-hops",
+   "name": "Gather hops",
+   "building": "Outside",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 10,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Chems",
+     "tier": 1,
+     "count": 3,
+     "items": [
+      "Hops"
+     ]
+    }
+   ],
+   "inputs": [],
+   "note": "chmel, wild and in the old hop gardens: a folk sleep aid"
+  },
+  {
+   "id": "breed-maggots",
+   "name": "Breed maggots",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 30,
+   "hours": 1,
+   "days": 3,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 3,
+     "rarity": 2,
+     "items": [
+      "Maggots"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "fly larvae on spoiled meat, kept clean: maggot therapy [real]"
+  },
+  {
+   "id": "atropine",
+   "name": "Atropine",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 50,
+   "hours": 4,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 2,
+     "rarity": 2,
+     "items": [
+      "Atropine"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Herbal extracts",
+   "note": "from deadly nightshade (rulík): the antidote for the farms' pesticide poisoning [real]; its overdose kills (given at Medicine 50)"
+  },
+  {
+   "id": "herbal-bitters",
+   "name": "Herbal bitters",
+   "building": "Still",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 20,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Chems",
+     "tier": 1,
+     "count": 3,
+     "rarity": 2,
+     "items": [
+      "Herbal bitters"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "spirit and bitter herbs: nausea off"
+  },
+  {
+   "id": "absinthe",
+   "name": "Absinthe",
+   "building": "Still",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 30,
+   "hours": 2,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Chems",
+     "tier": 1,
+     "count": 3,
+     "rarity": 2,
+     "items": [
+      "Absinthe"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "wormwood in spirit: nausea off"
+  },
+  {
+   "id": "grow-ephedra",
+   "name": "Grow ephedra",
+   "building": "Field",
+   "tier": 2,
+   "skill": "Biology",
+   "min": 30,
+   "hours": 4,
+   "days": 60,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 3,
+     "rarity": 3,
+     "items": [
+      "Ephedra"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 1,
+     "rarity": 3,
+     "sets_rarity": false,
+     "tool": true,
+     "extra": false,
+     "items": [
+      "Ephedra"
+     ]
+    },
+    {
+     "type": "Water",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Ephedra",
+   "note": "ma huang from a found living plant (the mother plant kept): 04j §7e"
+  },
+  {
+   "id": "pervitin-kitchen",
+   "name": "Pervitin kitchen",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 40,
+   "hours": 4,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Chems",
+     "tier": 2,
+     "count": 3,
+     "items": [
+      "Pervitin"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chems",
+     "tier": 3,
+     "count": 1,
+     "rarity": 1,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Pseudoephedrine"
+     ]
+    },
+    {
+     "type": "Chemicals",
+     "tier": 3,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Pervitin kitchen",
+   "note": "the flu tablets and a Tier III chemical (04j §7e)"
+  },
+  {
+   "id": "pervitin-from-ephedra",
+   "name": "Pervitin from ephedra",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 50,
+   "hours": 6,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Chems",
+     "tier": 2,
+     "count": 2,
+     "items": [
+      "Pervitin"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 2,
+     "rarity": 3,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false,
+     "items": [
+      "Ephedra"
+     ]
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Pervitin kitchen",
+   "note": "the old way from the plant with low-tier chemicals (04j §7e)"
+  },
+  {
    "id": "make-prussian-blue",
    "name": "Make Prussian blue",
    "building": "Workshop",

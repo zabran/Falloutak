@@ -665,10 +665,10 @@
    "group": "Medical",
    "use": "doses: treatment, not chems (04c §9; 04i: one dose an item, an antibiotic course 7)",
    "tiers": {
-    "I": "herbs, honey, rag dressings, wound powder, mould broth",
-    "II": "boiled dressings, splints, tourniquets, antiseptic, rehydration salts; sulfa, phages, crude penicillin, the crude antiserum, ether, chloroform",
+    "I": "herbs, honey, rag dressings, wound powder, sphagnum moss, home ORS, maggots, mould broth, ephedra",
+    "II": "boiled dressings, splints, tourniquets, antiseptic, rehydration salts; sulfa, phages, crude penicillin, the crude antiserum, ether, chloroform, atropine",
     "III": "today's pharmacy: antibiotics, the antitoxin, antivenom, vaccines, vitamin C, iodide, povidone-iodine, blood bags, oxygen, hemostatic gauze, adrenaline",
-    "IV": "the 2040s: Stimpaks"
+    "IV": "the 2040s: the Stimpaks, the Hypo, the Trauma pack, the Blood Pack, Lysin, Virex"
    },
    "found_only": false,
    "items": [
@@ -697,9 +697,33 @@
      "id": ""
     },
     {
+     "name": "Sphagnum moss",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Home ORS",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
      "name": "Mould broth",
      "tier": 1,
      "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Maggots",
+     "tier": 1,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Ephedra",
+     "tier": 1,
+     "rarity": 3,
      "id": ""
     },
     {
@@ -764,6 +788,12 @@
     },
     {
      "name": "Crude penicillin",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Atropine",
      "tier": 2,
      "rarity": 2,
      "id": ""
@@ -905,6 +935,42 @@
      "tier": 4,
      "rarity": 1,
      "id": "gear:Stimpak"
+    },
+    {
+     "name": "Super Stimpak",
+     "tier": 4,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Trauma pack",
+     "tier": 4,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Blood Pack",
+     "tier": 4,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Hypo",
+     "tier": 4,
+     "rarity": 3,
+     "id": ""
+    },
+    {
+     "name": "Lysin",
+     "tier": 4,
+     "rarity": 3,
+     "id": ""
+    },
+    {
+     "name": "Virex",
+     "tier": 4,
+     "rarity": 3,
+     "id": ""
     }
    ]
   },
@@ -913,18 +979,54 @@
    "group": "Medical",
    "use": "doses: the chems with addiction (data/chems.json)",
    "tiers": {
-    "I": "home brew, home-grown tobacco, folk remedies",
+    "I": "home brew, home-grown tobacco, folk remedies, valerian, hops, herbal bitters, absinthe",
     "II": "ersatz coffee, opium, willow bark, pervitin",
-    "III": "today's pharmacy: morphine, ketamine, codeine, tramadol, metamizole, paracetamol, ibuprofen, aspirin, diazepam, amphetamine, methadone; Prussian blue, the immunosuppressants (R2)",
-    "IV": "the 2040s: Buffout, Mentats, Psycho, Jet and its antidote, RadAway, Rad-X (the Pirates' labs make them too)"
+    "III": "today's pharmacy: morphine, ketamine, codeine, tramadol, metamizole, paracetamol, ibuprofen, aspirin, diazepam, amphetamine, methadone, propranolol, naloxone, activated charcoal, pseudoephedrine (flu tablets); Prussian blue, the immunosuppressants (R2)",
+    "IV": "the 2040s: Buffout, Mentats, Psycho, Jet and its antidote, RadAway, Rad-X, Fixer, Hydra, Cateye, Steady, Hydrotab, Torpor, Nightcap, Antidote, Furnace, Coolant, Numb, O-Shot (the Pirates' labs make them too)"
    },
    "found_only": false,
    "items": [
+    {
+     "name": "Valerian",
+     "tier": 1,
+     "rarity": 1,
+     "id": "chem:Valerian"
+    },
+    {
+     "name": "Hops",
+     "tier": 1,
+     "rarity": 1,
+     "id": "chem:Hops"
+    },
+    {
+     "name": "Herbal bitters",
+     "tier": 1,
+     "rarity": 2,
+     "id": "chem:Herbal bitters"
+    },
+    {
+     "name": "Absinthe",
+     "tier": 1,
+     "rarity": 2,
+     "id": "chem:Absinthe"
+    },
     {
      "name": "Willow bark",
      "tier": 2,
      "rarity": 1,
      "id": "chem:Willow bark"
+    },
+    {
+     "name": "Pervitin",
+     "tier": 2,
+     "rarity": 1,
+     "id": "chem:Pervitin"
+    },
+    {
+     "name": "Pseudoephedrine",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Pseudoephedrine"
     },
     {
      "name": "Prussian blue",
@@ -979,12 +1081,6 @@
      "tier": 2,
      "rarity": 1,
      "id": "chem:Caffeine"
-    },
-    {
-     "name": "Pervitin",
-     "tier": 2,
-     "rarity": 1,
-     "id": "chem:Pervitin"
     },
     {
      "name": "Opium",
@@ -1065,6 +1161,24 @@
      "id": "chem:Tacrolimus"
     },
     {
+     "name": "Propranolol",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Propranolol"
+    },
+    {
+     "name": "Naloxone",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Naloxone"
+    },
+    {
+     "name": "Activated charcoal",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Activated charcoal"
+    },
+    {
      "name": "Buffout",
      "tier": 4,
      "rarity": 1,
@@ -1105,6 +1219,78 @@
      "tier": 4,
      "rarity": 1,
      "id": "chem:Rad-X"
+    },
+    {
+     "name": "Fixer",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Fixer"
+    },
+    {
+     "name": "Hydra",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Hydra"
+    },
+    {
+     "name": "Cateye",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Cateye"
+    },
+    {
+     "name": "Steady",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Steady"
+    },
+    {
+     "name": "Hydrotab",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Hydrotab"
+    },
+    {
+     "name": "Torpor",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Torpor"
+    },
+    {
+     "name": "Nightcap",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Nightcap"
+    },
+    {
+     "name": "Antidote",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Antidote"
+    },
+    {
+     "name": "Furnace",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Furnace"
+    },
+    {
+     "name": "Coolant",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Coolant"
+    },
+    {
+     "name": "Numb",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:Numb"
+    },
+    {
+     "name": "O-Shot",
+     "tier": 4,
+     "rarity": 1,
+     "id": "chem:O-Shot"
     }
    ]
   },

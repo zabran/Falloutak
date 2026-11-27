@@ -216,15 +216,24 @@ public final class Hud {
         if (pa != null) c.news.add(pa);
         String arrest = c.checkArrest(java.util.concurrent.ThreadLocalRandom.current());   // 03b §3c: Blood 0, the cold's or heat's end, E 0
         if (arrest != null) c.news.add(arrest);
+        String rebound = c.reboundHour();   // 04i §6a: propranolol stopped after a week
+        if (rebound != null) c.news.add(rebound);
         List<Character.Effect> next = new ArrayList<>();
-        for (Character.Effect e : c.effects) {
+        boolean release = false;
+        for (Character.Effect e : new ArrayList<>(c.effects)) {
             if (e.permanent()) { next.add(e); continue; }
             if (e.hoursLeft() - 1 > 1e-9) { next.add(e.withHours(e.hoursLeft() - 1)); continue; }
+            if (e.slot().equals("held_hp")) { release = true; continue; }   // 04i §6a: the hold's hour ends
+            if (e.other().getOrDefault("mend_limb", 0.0) > 0 && c.brokenLegs > 0) {   // 04i §6a: Hydra's bone knits in its 3 days
+                c.brokenLegs--;
+                c.news.add("Hydra: a broken leg has mended (" + c.brokenLegs + " broken)");
+            }
             Character.Effect follow = c.afterStage(e);
             if (follow != null) next.add(follow);
         }
         c.effects.clear();
         c.effects.addAll(next);
+        if (release) { String r = c.releaseHeld(); if (r != null) c.news.add(r); }
     }
 
     /**
@@ -259,7 +268,7 @@ public final class Hud {
         }
         c.sickHours = 0;
         if (!c.sleeping || c.bleeding > 0) { c.restHours = 0; return; }
-        c.restHours += 1;
+        c.restHours += c.other("rest_double") > 0 ? 2 : 1;   // Nightcap (04j §7c): 4 hours of unbroken sleep count as 8
         if (c.restHours < 8) return;
         c.restHours = 0;
         double f = c.tpl().healFactor() * Math.max(0, 1 + c.other("heal_factor", true));
@@ -393,6 +402,10 @@ public final class Hud {
         Rules.Gas g = c.gasHere();
         if (g != null) l.add(cap(g.name()) + " " + Rules.roman(c.gasPower()) + (c.inZone() ? " (here)" : "") + (c.shielded(g) ? (c.eyesShielded(g) ? " (kept out)" : " (breath kept out)") : ""));
         if (c.holdingBreath) l.add("holding your breath");
+        if (c.breathingStage()) l.add(c.breathHelpUntil > c.now() ? "BREATHING STOPPED: a medic breathes for you"
+                : "BREATHING STOPPED (an opioid and a second depressant): naloxone, or a medic breathes for you");
+        if (c.holding) l.add("held HP: " + Math.max(0, c.hp - c.heldReal) + " go when the hour ends");
+        if (c.oxygenExtra > 0) l.add("the O-Shot: " + c.oxygenExtra + " rounds of breath");
         if (c.riotUntil > c.now() && (g == null || !g.name().equals("riot gas"))) l.add("riot gas in the eyes");
         if (c.deaf()) l.add("DEAF (P −2)");
         else if (c.burstEars() > 0) l.add("a burst eardrum (P −1)");
