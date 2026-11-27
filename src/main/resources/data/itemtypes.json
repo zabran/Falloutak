@@ -981,8 +981,8 @@
    "tiers": {
     "I": "home brew, home-grown tobacco, folk remedies, valerian, hops, herbal bitters, absinthe",
     "II": "ersatz coffee, opium, willow bark, pervitin",
-    "III": "today's pharmacy: morphine, ketamine, codeine, tramadol, metamizole, paracetamol, ibuprofen, aspirin, diazepam, amphetamine, methadone, propranolol, naloxone, activated charcoal, pseudoephedrine (flu tablets); Prussian blue, the immunosuppressants (R2)",
-    "IV": "the 2040s: Buffout, Mentats, Psycho, Jet and its antidote, RadAway, Rad-X, Fixer, Hydra, Cateye, Steady, Hydrotab, Torpor, Nightcap, Antidote, Furnace, Coolant, Numb, O-Shot (the Pirates' labs make them too)"
+    "III": "today's pharmacy: morphine, ketamine, codeine, tramadol, metamizole, paracetamol, ibuprofen, aspirin, diazepam, amphetamine, methadone, propranolol, naloxone, activated charcoal, pseudoephedrine (flu tablets); Prussian blue, the immunosuppressants, the tranquilliser (R2)",
+    "IV": "the 2040s: Buffout, Mentats, Psycho, Jet and its antidote, RadAway, Rad-X, Fixer, Hydra, Cateye, Steady, Hydrotab, Torpor, Nightcap, Antidote, Furnace, Coolant, Numb, O-Shot, the Knockout (the darts) (the Pirates' labs make them too)"
    },
    "found_only": false,
    "items": [
@@ -1029,6 +1029,12 @@
      "id": "chem:Pseudoephedrine"
     },
     {
+     "name": "Codeine",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Codeine"
+    },
+    {
      "name": "Prussian blue",
      "tier": 3,
      "rarity": 2,
@@ -1039,6 +1045,18 @@
      "tier": 3,
      "rarity": 2,
      "id": "chem:Azathioprine"
+    },
+    {
+     "name": "Tranquilliser",
+     "tier": 3,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Knockout",
+     "tier": 4,
+     "rarity": 1,
+     "id": ""
     },
     {
      "name": "Alcohol",
@@ -1087,12 +1105,6 @@
      "tier": 2,
      "rarity": 1,
      "id": "chem:Opium"
-    },
-    {
-     "name": "Codeine",
-     "tier": 3,
-     "rarity": 1,
-     "id": "chem:Codeine"
     },
     {
      "name": "Morphine",

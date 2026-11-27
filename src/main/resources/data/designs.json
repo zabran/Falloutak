@@ -263,7 +263,7 @@
    "name": "Darts",
    "group": "Rounds",
    "skill": "Bows",
-   "note": "a blowgun's or a dart gun's; a sedative dart carries a vet's dose: asleep after ~3 minutes"
+   "note": "a blowgun's or a dart gun's; one dose a dart (04j §7h): opium II a small animal, ketamine III 30 rounds, the tranquilliser III R2 3 rounds (the double dose at once, with a risk to his breathing: naloxone), the knockout IV at once on anything"
   },
   {
    "name": "Heavy rounds",
@@ -935,6 +935,7 @@
   }
  },
  "renamed": {
+  "Darts|Sedative darts": "Darts|Ketamine darts",
   "Traps|Fused mine": "Mines|Fused mine",
   "Traps|Directional mine": "Mines|Directional mine",
   "Traps|Tripwire bell": "Alarms|Battery bell",
@@ -6935,7 +6936,7 @@
    "category": "Darts",
    "group": "Rounds",
    "skill": "Bows",
-   "name": "Sedative darts",
+   "name": "Opium darts",
    "tier": 2,
    "rarity": 1,
    "parts": [
@@ -6943,6 +6944,115 @@
      "type": "Light weapon parts",
      "tier": 2,
      "count": 1
+    },
+    {
+     "type": "Chems",
+     "tier": 2,
+     "count": 3
+    }
+   ],
+   "makes": 3,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Darts",
+   "group": "Rounds",
+   "skill": "Bows",
+   "name": "Ketamine darts",
+   "tier": 3,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Chems",
+     "tier": 3,
+     "count": 3
+    }
+   ],
+   "makes": 3,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Darts",
+   "group": "Rounds",
+   "skill": "Bows",
+   "name": "Tranquilliser darts",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Chems",
+     "tier": 3,
+     "count": 3
+    }
+   ],
+   "makes": 3,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Darts",
+   "group": "Rounds",
+   "skill": "Bows",
+   "name": "Tranquilliser darts, double dose",
+   "tier": 3,
+   "rarity": 2,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 3,
+     "count": 1
+    },
+    {
+     "type": "Chems",
+     "tier": 3,
+     "count": 6
+    }
+   ],
+   "makes": 3,
+   "slot": "",
+   "set": "",
+   "dmg": 0,
+   "pen": 0,
+   "foul": 1
+  },
+  {
+   "category": "Darts",
+   "group": "Rounds",
+   "skill": "Bows",
+   "name": "Knockout darts",
+   "tier": 4,
+   "rarity": 1,
+   "parts": [
+    {
+     "type": "Light weapon parts",
+     "tier": 4,
+     "count": 1
+    },
+    {
+     "type": "Chems",
+     "tier": 4,
+     "count": 3
     }
    ],
    "makes": 3,

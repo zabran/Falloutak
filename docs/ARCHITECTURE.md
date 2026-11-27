@@ -47,7 +47,10 @@ outside the game; the game itself is for the look and feel. The rules' text live
   `Raiders` on a shot and a blow before his armour), `shieldObscures` (a holed shield: -10); the unused AP saved at the turn's end
   (`State.carry`).
   The throws, blows and darts (05d round 7): `Weapon.entangle` (bolas, net: `Target.entangled`, freed in `Raiders.plan` by `Battle.tearsFree`),
-  `throwsName` (the spear-thrower's javelins), `noGuard` (the war flail), the sedative dart (`Target.sedatedAt`, `SEDATIVE_ROUNDS`).
+  `throwsName` (the spear-thrower's javelins), `noGuard` (the war flail), THE SLEEP DARTS (0.111.0, `04j` §7h: `Battle.dose` reads the load,
+  `sleepRounds` by the body (`PERSON_HP`, `LARGE_HP`: only the Tier IV knockout takes the large), `dart` sets `Target.sedatedAt`, asleep at once or
+  `drowsy` (AP −1 in `Raiders.plan`/`cross`); the double dose's `breathRisk` sets `Target.breathStopAt`, `Raiders.breathEnds` kills him;
+  on the field `Loot.Body.breathless`, `Loot.settleBreath` (the field's clock), `Loot.naloxone` from the pack).
   The traps (05d §7c): `Data.TRAPS` (`data/traps.json`), the skills Traps, Mines, Alarms (`Rules.COMBOS`), `Battle.Trap` in `Fight.traps`,
   `setTrap` (`/sheet trap`), `trapAt`, `knownTraps` (blocked cells in `Raiders.taken`), `spots`, `inCone`, `spring`; `Raiders.trapCut` on the
   raider's and the beast's walk and on a hunted animal's flight; a pit's victim loses its next turn (`Target.inPit`).

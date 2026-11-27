@@ -235,6 +235,10 @@ public final class Battle implements Listener {
         boolean melee, flees, escaped;
         /** 05d round 7: entangled (1 the bolas: the legs, 2 the net: the body); the round a sedative dart puts him to sleep (-1 none). */
         int entangled, sedatedAt = -1, hold;
+        /** `04j` §7h (0.111.0): the round the double dose's breathing stage kills him unless naloxone reaches him (-1 none); drowsy
+         *  from a dose too small for him (AP −1 each turn). */
+        int breathStopAt = -1;
+        boolean drowsy;
         /** 05d round 7: asleep from the dart's sedative (out of the fight; the party takes him alive on the field after it); 05d §7c: in
          *  a pit (his next turn goes on climbing out). */
         boolean asleep, inPit;
@@ -286,7 +290,9 @@ public final class Battle implements Listener {
             List<String> st = new ArrayList<>();
             if (dead) st.add("dead");
             else if (dying()) st.add("dying");
-            if (!dead && asleep) st.add("asleep"); else if (!dead && out) st.add("out"); else if (!dead && inPit) st.add("in a pit");
+            if (!dead && breathStopAt >= 0) st.add("NOT BREATHING");
+            if (!dead && asleep) st.add("asleep"); else if (!dead && out) st.add("out");
+            if (!dead && drowsy && !asleep) st.add("drowsy"); else if (!dead && inPit) st.add("in a pit");
             else if (!dead && down) st.add("down"); else if (!dead && stance == 1) st.add("crouched");
             if (blind) st.add("blind");
             if (armCrippled) st.add("arm crippled");
@@ -1173,8 +1179,74 @@ public final class Battle implements Listener {
         s.wall = null;
     }
 
-    /** 05d round 7: a vet's dose in a muscle takes minutes (ketamine IM ~3-4 [real]); a round is 6 s. */
+    /** 05d round 7: the Ketamine dart (the old Sedative dart): asleep in 30 rounds, so it ends a hunt, not a fight [EXAMPLE]. */
     static final int SEDATIVE_ROUNDS = 30;
+
+    /**
+     * The sleep darts' ladder (`04j` §7h, Marek 11-27 night, verbatim: *"just use that drug level as base with some other generic
+     * chemical to make generic T3 tranquilizer ... With effect of sleep in 3 rounds or instant with double dose (but chance to make
+     * target dying if not also add Naloxone). T4 version would make safe sleep in the instant and work on even large/highly resistant
+     * creatures."*): the load's name picks the dose; {@code rounds} until asleep (0 = at once), {@code upTo} the biggest body (HP) it
+     * puts to sleep (0 = any), {@code risky} the double dose's breathing stage. Game numbers only [the sizes and the risk mine, EXAMPLE].
+     */
+    record Dose(String name, int rounds, int upTo, boolean risky) {}
+
+    /** A body up to this many HP is a person's or smaller: the dose's own time; bigger, the time grows with it [EXAMPLE]. */
+    static final int PERSON_HP = 30;
+    /** Over this many HP a creature is LARGE: only the Tier IV knockout puts it to sleep (Marek: *"work on even large"*) [EXAMPLE]. */
+    static final int LARGE_HP = 60;
+    /** The opium dart's body: a small animal (the dogs, the ticks) [EXAMPLE]. */
+    static final int SMALL_HP = 15;
+    /** The double dose's breathing stage: dead in this many rounds unless naloxone reaches him [EXAMPLE]. */
+    static final int BREATH_ROUNDS = 10;
+
+    /** The dose of a dart's load ({@code "Darts|<design>"}), or null for a plain dart. */
+    static Dose dose(String load) {
+        if (load == null) return null;
+        if (load.contains("Knockout")) return new Dose("the knockout", 0, 0, false);
+        if (load.contains("Tranquilliser") && load.contains("double")) return new Dose("the double dose", 0, LARGE_HP, true);
+        if (load.contains("Tranquilliser")) return new Dose("the tranquilliser", 3, LARGE_HP, false);
+        if (load.contains("Ketamine") || load.contains("Sedative")) return new Dose("the ketamine", SEDATIVE_ROUNDS, LARGE_HP, false);
+        if (load.contains("Opium")) return new Dose("the opium", 20, SMALL_HP, false);
+        return null;
+    }
+
+    /** Rounds until the dose puts a body of {@code hpMax} to sleep: -1 = too big for it (only drowsy), 0 = at once. */
+    static int sleepRounds(Dose d, int hpMax) {
+        if (d.upTo() > 0 && hpMax > d.upTo()) return -1;
+        if (d.rounds() == 0 || d.upTo() == 0 || hpMax <= PERSON_HP) return d.rounds();
+        return (int) Math.ceil(d.rounds() * hpMax / (double) PERSON_HP);
+    }
+
+    /** The double dose's chance to stop his breathing: 25 % on a person's body, more on a smaller one, less on a bigger [EXAMPLE]. */
+    static double breathRisk(int hpMax) { return Math.max(0.05, Math.min(0.75, 0.25 * PERSON_HP / (double) Math.max(1, hpMax))); }
+
+    /** A dart's dose lands in {@code tg} at {@code round}. */
+    static void dart(Target tg, Dose d, int round, Random rnd, StringBuilder log) {
+        if (d == null || tg.dead || tg.asleep) return;
+        int n = sleepRounds(d, tg.hpMax);
+        String him = tg.melee ? "it" : "him";
+        if (n < 0) {
+            tg.drowsy = true;
+            log.append(" ").append(cap(d.name())).append(" is too little for ").append(him).append(": only drowsy (AP −1 each turn).");
+            return;
+        }
+        if (n == 0) {
+            tg.out = true; tg.outRounds = 9999; tg.asleep = true; tg.sedatedAt = -1;
+            log.append(" ").append(cap(d.name())).append(": asleep at once, out of the fight.");
+            if (d.risky() && rnd.nextDouble() < breathRisk(tg.hpMax)) {
+                tg.breathStopAt = round + BREATH_ROUNDS;
+                log.append(" HIS BREATHING STOPS: naloxone within ").append(BREATH_ROUNDS).append(" rounds, or ").append(tg.melee ? "it dies" : "he dies").append(".");
+            }
+            return;
+        }
+        if (tg.sedatedAt < 0 || round + n < tg.sedatedAt) {
+            tg.sedatedAt = round + n;
+            log.append(" ").append(cap(d.name())).append(" is in ").append(him).append(": asleep in ").append(n).append(" rounds, unless the fight ends first.");
+        }
+    }
+
+    private static String cap(String s) { return s.isEmpty() ? s : java.lang.Character.toUpperCase(s.charAt(0)) + s.substring(1); }
 
     /** 05d round 7: tearing free of the bolas or the net, a turn: d100 <= 10 x Strength (a jaw trap harder by its hold). */
     static boolean tearsFree(int strength, int d100) { return tearsFree(strength, d100, 0); }
@@ -1823,10 +1895,8 @@ public final class Battle implements Listener {
                         tg.entangled = Math.max(tg.entangled, w.entangle.equals("body") ? 2 : 1);
                         log.append(" ENTANGLED (").append(tg.entangled == 2 ? "the net" : "the bolas").append("): his turns go on tearing free (d100 <= 10 x Strength).");
                     }
-                    if (!tg.dead && w.ammoKind.equals("Darts") && s.load.getOrDefault(w.tag, "").contains("Sedative") && tg.sedatedAt < 0) {
-                        tg.sedatedAt = (s.fight != null ? s.fight.round : s.round) + SEDATIVE_ROUNDS;   // 05d round 7: the dose
-                        log.append(" The dart's sedative is in him: asleep in ~3 minutes (").append(SEDATIVE_ROUNDS).append(" rounds), unless the fight ends first.");
-                    }
+                    if (!tg.dead && w.ammoKind.equals("Darts"))   // the sleep darts' ladder (`04j` §7h)
+                        dart(tg, dose(s.load.getOrDefault(w.tag, "")), s.fight != null ? s.fight.round : s.round, rnd, log);
                     int kb = Combat.knockback(total);
                     if (kb > 0 && !tg.dead) knockback(p.getLocation(), a.target(), kb, log);
                     result += " · " + tg.label().substring(tg.name.length() + 3);

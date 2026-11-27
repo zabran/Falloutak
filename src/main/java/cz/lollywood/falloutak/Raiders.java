@@ -131,7 +131,7 @@ final class Raiders {
         if (t == null || o == null || !(e instanceof LivingEntity le) || !(oe instanceof LivingEntity ol)) return;
         Deque<Runnable> q = f.pending;
         if (t.dead || t.dying() || t.out || t.escaped) return;
-        t.ap = Rules.ap(t.a) - t.apLoss;
+        t.ap = Rules.ap(t.a) - t.apLoss - (t.drowsy ? 1 : 0);
         t.apLoss = 0;
         if (t.lostTurn) { t.lostTurn = false; return; }
         if (t.down) { t.ap -= 3; t.down = false; }
@@ -237,6 +237,16 @@ final class Raiders {
         for (Player q : b.players(f)) if (!q.equals(p)) q.sendMessage(Component.text(them, NamedTextColor.RED));
     }
 
+    /** `04j` §7h: the double dose's breathing stage has run out at {@code round}: he is dead (the party's kill). */
+    static boolean breathEnds(Battle.Target t, int round) {
+        if (t.dead || t.breathStopAt < 0 || round < t.breathStopAt) return false;
+        t.dead = true;
+        t.breathStopAt = -1;
+        t.byParty = true;
+        t.touched = true;
+        return true;
+    }
+
     /** Works out one raider's turn and queues its steps. */
     private void plan(Player p, Battle.State s, Character c, UUID u) {
         Battle.Target t = s.targets.get(u);
@@ -244,8 +254,13 @@ final class Raiders {
         if (t == null || t.dead || !(e instanceof LivingEntity le) || le.isDead()) return;
         Deque<Runnable> q = s.pending;
         if (t.dying()) { q.add(() -> say(p, t.name + " lies dying.")); return; }
+        if (breathEnds(t, s.fight != null ? s.fight.round : s.round)) {   // `04j` §7h: the double dose, and no naloxone reached him
+            q.add(() -> { say(p, t.name + " stops breathing for good: the double dose, and no naloxone. Dead."); b.label(le, t); });
+            return;
+        }
         t.ap = Rules.ap(t.a) + b.pl.zones.penaltyAt(le.getEyeLocation())[2];   // riot gas AP −2 (03b §3c; a raider has no mask)
         t.ap -= t.apLoss;   // the lightning's or the cold's AP lost last round (09c §2)
+        if (t.drowsy) t.ap -= 1;   // `04j` §7h: a dart's dose too small for him
         t.apLoss = 0;
         t.moved = false;
         t.steadied = false;

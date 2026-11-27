@@ -79,6 +79,11 @@ final class Loot {
         /** 05d round 7, the dart: asleep (alive, taken unhurt), or it ran off the map with the dose in it (a TRAIL: followed by Survival
          *  it is found asleep, else lost); taken alive. */
         boolean asleep, trail, lost, taken;
+        /** `04j` §7h (0.111.0): the double dose stopped his breathing; naloxone saves him, else he is dead within {@code breathLeft}
+         *  rounds of the fight's end (the field's clock starts at its first look: {@code breathUntil}, in the clock's hours). */
+        boolean breathless;
+        int breathLeft;
+        double breathUntil = Double.NaN;
         /** Out of the fight at its end and alive (knocked out, in the net, his gun gone): surrendered (Marek 11-27), taken alive or finished. */
         boolean surrendered;
         final Set<String> organs = new java.util.HashSet<>();
@@ -104,7 +109,8 @@ final class Loot {
         String state() {
             List<String> l = new ArrayList<>();
             if (trail && !asleep && !dead) return lost ? "the trail lost" : "ran off with your dart in " + (person ? "him" : "it") + ": a trail to follow";
-            l.add(dead ? "dead" : taken ? "taken alive" : asleep ? "asleep" : surrendered ? "surrendered" : treated ? "stabilised" : "dying");
+            l.add(dead ? "dead" : taken ? "taken alive" : breathless ? "asleep, NOT BREATHING (the double dose): naloxone now" : asleep ? "asleep"
+                    : surrendered ? "surrendered" : treated ? "stabilised" : "dying");
             if (searched) l.add("searched");
             if (butchered) l.add("butchered");
             if (sampled) l.add("sampled");
@@ -134,8 +140,35 @@ final class Loot {
         team.clear();
         team.addAll(f.members);
         for (Battle.Target t : f.targets.values())
-            if (!t.escaped && (t.dead || t.dying() || t.asleep || t.outOfIt()) || t.escaped && !t.dead && t.sedatedAt >= 0) bodies.add(new Body(t, rnd));
+            if (!t.escaped && (t.dead || t.dying() || t.asleep || t.outOfIt()) || t.escaped && !t.dead && t.sedatedAt >= 0) {
+                Body x = new Body(t, rnd);
+                if (!t.dead && t.breathStopAt >= 0) { x.breathless = true; x.breathLeft = Math.max(1, t.breathStopAt - f.round); }
+                bodies.add(x);
+            }
         return bodies.size();
+    }
+
+    /** `04j` §7h: the breathing stage's clock on the field ({@link Battle#BREATH_ROUNDS} rounds of 6 s from the fight's end): it starts
+     *  at the field's first look; past it the one not breathing is dead. True if he died now. */
+    static boolean settleBreath(Character c, Body x) {
+        if (!x.breathless || x.dead) return false;
+        if (Double.isNaN(x.breathUntil)) { x.breathUntil = c.now() + x.breathLeft * 6.0 / 3600; return false; }
+        if (c.now() <= x.breathUntil) return false;
+        x.breathless = false;
+        x.asleep = false;
+        x.dead = true;
+        return true;
+    }
+
+    /** Naloxone from the pack into one the double dose left not breathing: he breathes again and sleeps on (taken alive) [mine]. */
+    static String naloxone(FalloutakPlugin pl, Player p, Body x) {
+        Character c = pl.character(p);
+        if (settleBreath(c, x)) return x.name + " stopped breathing for good before you reached " + (x.person ? "him" : "it") + ": dead.";
+        if (!x.breathless || x.dead) return "! " + x.name + " breathes: no naloxone needed";
+        if (!Meds.takeChem(p, "Naloxone")) return "! no naloxone in your pack: " + x.name + " has seconds left";
+        x.breathless = false;
+        return "Naloxone into " + x.name + ": " + (x.person ? "he" : "it") + " breathes again and sleeps on. Take " + (x.person ? "him" : "it")
+                + " alive." + spend(c, 0.5);
     }
 
     static void clear() { bodies.clear(); }
@@ -156,6 +189,7 @@ final class Loot {
     static void menu(FalloutakPlugin pl, Player p) {
         List<Component> lines = new ArrayList<>();
         List<Ui.Btn> b = new ArrayList<>();
+        for (Body x : bodies) if (settleBreath(pl.character(p), x)) say(p, x.name + " stopped breathing for good: the double dose, and no naloxone. Dead.");
         lines.add(line("The field after the fight: " + bodies.size() + " bod" + (bodies.size() == 1 ? "y" : "ies") + ". Each can be searched or butchered, "
                 + "treated or sampled once; the time it takes is yours. Your skill decides how much you get, and what.", NamedTextColor.GOLD));
         for (Body x : bodies) b.add(btn(x.name + " (" + x.state() + ")", x.person ? "a person: search, treat, samples, organs" : "a creature: butcher, treat, samples",
@@ -168,7 +202,11 @@ final class Loot {
         Character c = pl.character(p);
         List<Component> lines = new ArrayList<>();
         List<Ui.Btn> b = new ArrayList<>();
+        if (settleBreath(c, x)) say(p, x.name + " stopped breathing for good: the double dose, and no naloxone. Dead.");
         lines.add(line(x.name + ": " + x.state() + (x.person ? "; blood group " + x.blood : "") + ".", NamedTextColor.GOLD));
+        if (x.breathless && !x.dead)   // `04j` §7h: seconds, so first
+            b.add(btn("Naloxone, now (from your pack)", "the double dose stopped " + (x.person ? "his" : "its") + " breathing: anything else first and "
+                    + (x.person ? "he" : "it") + " dies", q -> { say(q, naloxone(pl, q, x)); body(pl, q, x); }));
         if (x.trail && !x.lost && !x.asleep) {   // first found: the dart's dose drops it a few minutes off
             b.add(btn("Follow the trail (Survival " + TRAIL_NEED + ")", "your Survival " + Math.round(c.skill("Survival")) + ", 20 minutes: found asleep, or the trail is lost",
                     q -> { say(q, track(pl, q, x)); body(pl, q, x); }));
@@ -178,7 +216,7 @@ final class Loot {
             Menus.menu(p, "The field: " + x.name, lines, b, q -> menu(pl, q));
             return;
         }
-        if ((x.asleep || x.surrendered) && !x.dead)
+        if ((x.asleep || x.surrendered) && !x.dead && !x.breathless)
             b.add(btn("Take " + (x.person ? "him" : "it") + " alive (bound)", (x.person ? "a captive" : "for the pens or the lab") + ": the GM places " + (x.person ? "him" : "it"),
                     q -> { say(q, takeAlive(pl, q, x)); body(pl, q, x); }));
         if (x.person && !x.searched)
@@ -333,6 +371,7 @@ final class Loot {
     /** One asleep from the dart, bound and taken alive (the GM places a creature in the pens or the lab, a person as a captive). */
     static String takeAlive(FalloutakPlugin pl, Player p, Body x) {
         if (!(x.asleep || x.surrendered) || x.dead || x.taken) return "! nothing alive to take";
+        if (x.breathless) return "! " + x.name + " is not breathing: naloxone first";
         x.taken = true;
         String how = x.asleep ? "asleep from a dart" : "surrendered";
         tellGm("the field: " + p.getName() + " took " + x.name + " (" + x.foe + ") alive, " + how + ": " + (x.person ? "a captive" : "for the pens or the lab"));
