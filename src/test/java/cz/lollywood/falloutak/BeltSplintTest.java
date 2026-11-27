@@ -148,4 +148,52 @@ class BeltSplintTest extends MockGame {
         assertEquals(1, Meds.count(a, "Super Stimpak"), "the one used is gone from his gear");
         assertFalse(Items.carried(a).containsKey("chem:Psycho"));
     }
+
+    /** 0.109.0, Marek 11-27: *""Belt: in a fight with your own gear" - this needs to be possible to prepare before battle."* */
+    @Test
+    void theBeltSetOnHotbarKeys3To6BeforeTheFightIsTheBeltInIt() {
+        PlayerMock a = player();
+        a.getInventory().setItem(2, Items.make("chem:Psycho", 1));                // key 3: a chem
+        a.getInventory().setItem(3, Items.make(Meds.id("Super Stimpak"), 2));     // key 4: an injector (the grenades' usual slot)
+        a.getInventory().setItem(5, Items.make("gear:Stimpak", 3));               // key 6: the Stimpaks
+        a.getInventory().setItem(20, Items.make("gear:Stimpak", 1));              // one more in the pack: counted with them
+        a.getInventory().setItem(21, Items.made(Production.design("Grenades", "Frag grenade"), 2, 100));   // grenades left in the pack
+        a.getInventory().setItem(22, new ItemStack(org.bukkit.Material.STONE));
+        Travel.scene.add(new Travel.Met(new WorldMap.Encounter(Travel.map.kinds.get("raiders:pond"), "fight", 1), true));
+        Travel.sceneTerrain = "field";
+        assertFalse(Travel.battleMap(plugin, a, Arena.Mode.AMBUSH).startsWith("!"));
+        Battle.State s = plugin.battle.state(a);
+        Character c = plugin.character(a);
+        assertEquals("chem:Psycho", Items.id(a.getInventory().getItem(2)), "his chem stays on key 3");
+        assertEquals(Meds.id("Super Stimpak"), Items.id(a.getInventory().getItem(3)), "his Super Stimpaks stay on key 4");
+        assertEquals(2, a.getInventory().getItem(3).getAmount());
+        assertEquals("stim", plugin.battle.id(a.getInventory().getItem(5)), "the Stimpaks where he put them");
+        assertEquals(4, s.quick.get("stim"), "every Stimpak he carries, the pack's too");
+        assertEquals("grenade", plugin.battle.id(a.getInventory().getItem(4)), "the grenades' usual slot was taken: the first free one");
+        c.hp = 10;
+        assertNotNull(plugin.battle.useBelt(a, s, c, 3));
+        assertNotNull(plugin.battle.useBelt(a, s, c, 2));
+        plugin.battle.stop(a);
+        assertEquals(1, Meds.count(a, "Super Stimpak"), "the one used is gone");
+        assertFalse(Items.carried(a).containsKey("chem:Psycho"));
+        assertEquals(Meds.id("Super Stimpak"), Items.id(a.getInventory().getItem(3)), "his hotbar is back as he set it");
+        assertEquals(3, a.getInventory().getItem(5).getAmount(), "the Stimpaks unused: all back");
+    }
+
+    @Test
+    void withNothingPlacedTheStimpaksAndGrenadesTakeTheirUsualSlots() {
+        PlayerMock a = player();
+        a.getInventory().setItem(20, Items.make("gear:Stimpak", 2));
+        a.getInventory().setItem(21, Items.made(Production.design("Grenades", "Riot gas grenade"), 1, 100));
+        Travel.scene.add(new Travel.Met(new WorldMap.Encounter(Travel.map.kinds.get("raiders:pond"), "fight", 1), true));
+        Travel.sceneTerrain = "field";
+        assertFalse(Travel.battleMap(plugin, a, Arena.Mode.AMBUSH).startsWith("!"));
+        assertEquals("stim", plugin.battle.id(a.getInventory().getItem(2)));
+        assertNull(a.getInventory().getItem(3), "no grenades: a free slot");
+        assertNull(a.getInventory().getItem(4));
+        assertEquals("gasgren", plugin.battle.id(a.getInventory().getItem(5)));
+        assertNull(Battle.beltKind(new ItemStack(org.bukkit.Material.STONE)));
+        assertEquals("item:chem:Psycho", Battle.beltKind(Items.make("chem:Psycho", 1)));
+        plugin.battle.stop(a);
+    }
 }

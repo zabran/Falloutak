@@ -648,26 +648,67 @@ public final class Battle implements Listener {
             inv.setItem(k, tagged(m, w.tag, w.name, (k == 0 ? "right hand" : "left hand") + " · your own · " + w.skill + " · " + what,
                     "right click: next mode · left click at an enemy: attack", "F or scroll: the other hand (0 AP)"));
         }
-        quick(inv, s, 2, "stim", Material.HONEY_BOTTLE, "Stimpak", "2 AP: right click, on yourself");
-        quick(inv, s, 3, "grenade", Material.FIRE_CHARGE, "Grenade", "4 AP: right click throws it (3 × Strength, at most 15) · Grenades");
-        inv.setItem(4, tagged(Material.GRAY_STAINED_GLASS_PANE, "locked", "no flare", "none carried"));
-        quick(inv, s, 5, "gasgren", Material.SLIME_BALL, "Riot gas grenade", "4 AP: right click throws it");
+        // the belt (Marek 11-27, verbatim: *""Belt: in a fight with your own gear" - this needs to be possible to prepare before battle."*):
+        // what he put on hotbar keys 3-6 before the fight stays there; the Stimpaks and grenades he did not place take their usual slot,
+        // or the first free one; what is left free takes the pack's items in the fight (the pack opened for 4 AP)
+        boolean[] taken = new boolean[9];
+        Set<String> placedKinds = new HashSet<>();
+        for (int i = BELT_FIRST; i <= BELT_LAST; i++) {
+            ItemStack it = i < s.saved.length ? s.saved[i] : null;
+            String kind = beltKind(it);
+            if (kind == null || placedKinds.contains(kind)) { inv.setItem(i, null); continue; }
+            taken[i] = true;
+            if (kind.startsWith("item:")) inv.setItem(i, it.clone());   // his own item: used from here, taken from his gear after the fight
+            else { placedKinds.add(kind); quick(inv, s, i, kind); }
+        }
+        for (String kind : List.of("stim", "grenade", "gasgren")) {
+            if (placedKinds.contains(kind) || s.quick.getOrDefault(kind, 0) <= 0) continue;
+            int at = BELT_HOME.get(kind);
+            if (taken[at]) { at = -1; for (int i = BELT_FIRST; i <= BELT_LAST; i++) if (!taken[i]) { at = i; break; } }
+            if (at < 0) continue;   // a full belt: the rest stays in the pack
+            taken[at] = true;
+            quick(inv, s, at, kind);
+        }
         for (int i = 6; i < 8; i++) inv.setItem(i, tagged(Material.GRAY_STAINED_GLASS_PANE, "locked", "no quick slot", "a belt or bandolier gives more quick slots"));
         inv.setItem(8, tagged(Material.CLOCK, "end", "End turn", "click: end your turn; when everyone has, it is theirs"));
-        for (int i = BELT_FIRST; i <= BELT_LAST; i++) {   // the belt: what is not carried is a free slot for the pack's items
-            ItemStack q = inv.getItem(i);
-            if ("locked".equals(id(q))) inv.setItem(i, null);
-        }
-        p.sendMessage(Component.text("Your belt (hotbar keys 3-6): open your pack (4 AP) and drag a Super Stimpak, a Hypo, a chem or a medicine onto a free "
-                + "belt slot; right click uses it on you, " + BELT_AP + " AP.", NamedTextColor.GRAY));
+        p.sendMessage(Component.text("Your belt (hotbar keys 3-6): what you put there before the fight is on it. A free belt slot takes a Super Stimpak, "
+                + "a Hypo, a chem or a medicine dragged from your pack (4 AP to open it); right click uses it on you, " + BELT_AP + " AP.", NamedTextColor.GRAY));
         inv.setHeldItemSlot(0);
         s.kits = 0;
         show(p, s, pl.character(p), null);
     }
 
-    private void quick(org.bukkit.inventory.PlayerInventory inv, State s, int slot, String id, Material m, String name, String how) {
+    /** The belt's counted kinds and their usual slot (before 0.109.0 their fixed one). */
+    static final Map<String, Integer> BELT_HOME = Map.of("stim", 2, "grenade", 3, "gasgren", 5);
+
+    private void quick(org.bukkit.inventory.PlayerInventory inv, State s, int slot, String id) {
         int n = s.quick.getOrDefault(id, 0);
-        inv.setItem(slot, n > 0 ? tagged(m, id, name + " x" + n, "quick item (belt): " + how, "your own") : tagged(Material.GRAY_STAINED_GLASS_PANE, "locked", "no " + name, "none carried"));
+        switch (id) {
+            case "stim" -> inv.setItem(slot, tagged(Material.HONEY_BOTTLE, id, "Stimpak x" + n, "quick item (belt): 2 AP: right click, on yourself", "your own"));
+            case "grenade" -> inv.setItem(slot, tagged(Material.FIRE_CHARGE, id, "Grenade x" + n, "quick item (belt): 4 AP: right click throws it (3 × Strength, at most 15) · Grenades", "your own"));
+            default -> inv.setItem(slot, tagged(Material.SLIME_BALL, id, "Riot gas grenade x" + n, "quick item (belt): 4 AP: right click throws it", "your own"));
+        }
+    }
+
+    /** What an item on a belt slot before the fight is there: a counted kind (stim, grenade, gasgren), "item:<id>" (used itself), or null. */
+    static String beltKind(ItemStack it) {
+        String id = Items.id(it);
+        if (id == null) return null;
+        if (id.equals("gear:Stimpak")) return "stim";
+        Production.Design d = Items.made(id);
+        if (d != null) switch (d.name) {
+            case "Frag grenade", "Military frag grenade", "Pipe grenade", "Fire bottle" -> { return "grenade"; }
+            case "Riot gas grenade" -> { return "gasgren"; }
+            default -> { }
+        }
+        return beltUsable(id) ? "item:" + id : null;
+    }
+
+    /** A real item used from the belt on oneself: an injector, a medicine taken by oneself, a vaccine, a chem. */
+    static boolean beltUsable(String iid) {
+        String med = Meds.name(iid);
+        if (med != null && (Meds.INJECTORS.contains(med) || Meds.SELF.contains(med) || Meds.VACCINES.containsKey(med))) return true;
+        return iid.startsWith("chem:") && Data.CHEMS.containsKey(iid.substring(5));
     }
 
     /**
@@ -811,7 +852,7 @@ public final class Battle implements Listener {
         return it;
     }
 
-    private String id(ItemStack it) {
+    String id(ItemStack it) {
         if (it == null || !it.hasItemMeta()) return "";
         String v = it.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
         return v == null ? "" : v;
@@ -1407,9 +1448,8 @@ public final class Battle implements Listener {
         if (iid == null || it == null) { show(p, s, c, null); return null; }
         String med = Meds.name(iid), what;
         if (iid.equals("gear:Stimpak")) { show(p, s, c, "the Stimpaks are on your belt already (their own slot)"); return null; }
-        boolean injector = med != null && Meds.INJECTORS.contains(med), self = med != null && Meds.SELF.contains(med) || med != null && Meds.VACCINES.containsKey(med);
-        boolean chem = iid.startsWith("chem:") && Data.CHEMS.containsKey(iid.substring(5));
-        if (!injector && !self && !chem) { show(p, s, c, Items.title(iid) + " is not used from the belt"); return null; }
+        if (!beltUsable(iid)) { show(p, s, c, Items.title(iid) + " is not used from the belt"); return null; }
+        boolean injector = med != null && Meds.INJECTORS.contains(med), self = med != null && (Meds.SELF.contains(med) || Meds.VACCINES.containsKey(med));
         if (!pay(p, s, c, BELT_AP, Items.title(iid))) return null;
         if (injector) what = Meds.inject(c, med, rnd);
         else if (self) what = Meds.useSelf(c, med, rnd);
