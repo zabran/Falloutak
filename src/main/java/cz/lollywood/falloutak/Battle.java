@@ -277,6 +277,10 @@ public final class Battle implements Listener {
         }
         /** Can still take part: neither dead, dying, beaten (a raider's gun gone) nor escaped. */
         boolean inFight() { return !escaped && !asleep && (melee ? !dead && !dying() : canFight(this)); }
+        /** Out of the fight for its end (Marek 11-27, verbatim: *"I think fight should end (should players choose that they do not want to
+         *  just kill them) when all enemies are unable to fight (paralysed, asleep, dying, in too much pain etc.). I would say that in that
+         *  case, they all count as surrendered."*): not in it, knocked out, or in the net. */
+        boolean outOfIt() { return !inFight() || out || entangled == 2; }
         boolean dying() { return !dead && hp <= 0; }
         String label() {
             List<String> st = new ArrayList<>();
@@ -824,7 +828,7 @@ public final class Battle implements Listener {
         p.hideBossBar(s.bar);
         for (Zones.Zone z : s.clouds) pl.zones.remove(z);
         p.getInventory().setContents(s.saved);
-        if (s.own) settleGear(p, s);
+        if (s.own) { settleGear(p, s); Character ch = pl.character(p); ch.fightEndedAt = ch.now(); }   // 04j §7g: its first hour keeps him awake
         p.sendMessage(Component.text((f.them.equals("the raiders") ? "Battle demo over" : "The fight is over") + (s.own ? "; your gear is as the fight left it." : "; your inventory is back."), NamedTextColor.AQUA));
         List<ItemStack> got = f.spoils.remove(p.getUniqueId());
         if (got != null && !got.isEmpty()) {
@@ -2015,14 +2019,18 @@ public final class Battle implements Listener {
         if (s.env) return false;
         Fight f = s.fight;
         if (f.over) return true;
-        for (Target t : f.targets.values()) if (t.inFight() && !t.ally && !neutral(f, t)) return false;
+        for (Target t : f.targets.values()) if (!t.outOfIt() && !t.ally && !neutral(f, t)) return false;
         f.over = true;
         List<Player> ps = players(f);
         if (!ps.contains(p)) ps.add(p);
         List<String> why = new ArrayList<>();
         for (Target t : f.targets.values())
-            why.add(t.name + ": " + (t.escaped ? "got away" : t.dead ? "dead" : t.dying() ? "dying" : t.asleep ? "asleep" : t.broken ? "gun destroyed" : "gun broken"));
-        String text = "The fight is over: " + (f.them.equals("the raiders") ? "no raider" : "no enemy") + " can fight (" + String.join("; ", why) + "). Round " + f.round + ".";
+            why.add(t.name + ": " + (t.escaped ? "got away" : t.dead ? "dead" : t.dying() ? "dying" : t.asleep ? "asleep" : t.out ? "knocked out"
+                    : t.entangled == 2 ? "in the net" : t.broken ? "gun destroyed" : "gun broken"));
+        boolean alive = false;
+        for (Target t : f.targets.values()) if (!t.dead && !t.escaped && !t.ally) alive = true;
+        String text = "The fight is over: " + (f.them.equals("the raiders") ? "no raider" : "no enemy") + " can fight (" + String.join("; ", why) + "). Round " + f.round + "."
+                + (alive && f.field != null ? " The living ones surrender: on the field take them alive, or finish them." : "");
         for (Player q : ps) {
             State sq = states.get(q.getUniqueId());
             if (sq != null) { sq.enemyTurn = true; sq.over = true; }   // freezes the controls until the end
@@ -2701,12 +2709,12 @@ public final class Battle implements Listener {
         Map<Integer, Boolean> groupTouched = new HashMap<>(), groupStanding = new HashMap<>();
         for (Target t : f.targets.values()) {
             groupTouched.merge(t.group, t.touched, Boolean::logicalOr);
-            groupStanding.merge(t.group, t.inFight(), Boolean::logicalOr);
+            groupStanding.merge(t.group, !t.outOfIt(), Boolean::logicalOr);
         }
         int slipped = 0, byOthers = 0;
         for (Target t : f.targets.values()) {
             if (t.escaped || t.paid) continue;   // an ally of convenience was paid when he turned (09d round 5)
-            boolean beaten = !t.inFight();
+            boolean beaten = t.outOfIt();
             if (beaten) { hps.add((double) t.hpMax); if (!t.byParty) byOthers++; }
             else if (slippedPast && !t.flees && !groupTouched.getOrDefault(t.group, false) && groupStanding.getOrDefault(t.group, false)) { hps.add((double) t.hpMax); slipped++; }
         }

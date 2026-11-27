@@ -79,6 +79,8 @@ final class Loot {
         /** 05d round 7, the dart: asleep (alive, taken unhurt), or it ran off the map with the dose in it (a TRAIL: followed by Survival
          *  it is found asleep, else lost); taken alive. */
         boolean asleep, trail, lost, taken;
+        /** Out of the fight at its end and alive (knocked out, in the net, his gun gone): surrendered (Marek 11-27), taken alive or finished. */
+        boolean surrendered;
         final Set<String> organs = new java.util.HashSet<>();
         /** A person's blood group (the donor organ's match), drawn by Central Europe's shares [EXAMPLE]. */
         final String blood;
@@ -93,6 +95,7 @@ final class Loot {
             rounds = person && ranged ? Math.max(0, t.ammo) + Math.max(0, Math.min(99, t.reserve)) : 0;
             blood = person ? bloodGroup(rnd) : "";
             asleep = !t.dead && t.asleep;
+            surrendered = !t.dead && !t.escaped && !t.asleep && !t.dying() && t.outOfIt();
             trail = t.escaped && !t.dead && t.sedatedAt >= 0;
         }
 
@@ -101,7 +104,7 @@ final class Loot {
         String state() {
             List<String> l = new ArrayList<>();
             if (trail && !asleep && !dead) return lost ? "the trail lost" : "ran off with your dart in " + (person ? "him" : "it") + ": a trail to follow";
-            l.add(dead ? "dead" : taken ? "taken alive" : asleep ? "asleep" : treated ? "stabilised" : "dying");
+            l.add(dead ? "dead" : taken ? "taken alive" : asleep ? "asleep" : surrendered ? "surrendered" : treated ? "stabilised" : "dying");
             if (searched) l.add("searched");
             if (butchered) l.add("butchered");
             if (sampled) l.add("sampled");
@@ -131,7 +134,7 @@ final class Loot {
         team.clear();
         team.addAll(f.members);
         for (Battle.Target t : f.targets.values())
-            if (!t.escaped && (t.dead || t.dying() || t.asleep) || t.escaped && !t.dead && t.sedatedAt >= 0) bodies.add(new Body(t, rnd));
+            if (!t.escaped && (t.dead || t.dying() || t.asleep || t.outOfIt()) || t.escaped && !t.dead && t.sedatedAt >= 0) bodies.add(new Body(t, rnd));
         return bodies.size();
     }
 
@@ -175,7 +178,7 @@ final class Loot {
             Menus.menu(p, "The field: " + x.name, lines, b, q -> menu(pl, q));
             return;
         }
-        if (x.asleep && !x.dead)
+        if ((x.asleep || x.surrendered) && !x.dead)
             b.add(btn("Take " + (x.person ? "him" : "it") + " alive (bound)", (x.person ? "a captive" : "for the pens or the lab") + ": the GM places " + (x.person ? "him" : "it"),
                     q -> { say(q, takeAlive(pl, q, x)); body(pl, q, x); }));
         if (x.person && !x.searched)
@@ -329,10 +332,11 @@ final class Loot {
 
     /** One asleep from the dart, bound and taken alive (the GM places a creature in the pens or the lab, a person as a captive). */
     static String takeAlive(FalloutakPlugin pl, Player p, Body x) {
-        if (!x.asleep || x.dead || x.taken) return "! nothing asleep to take";
+        if (!(x.asleep || x.surrendered) || x.dead || x.taken) return "! nothing alive to take";
         x.taken = true;
-        tellGm("the field: " + p.getName() + " took " + x.name + " (" + x.foe + ") alive, asleep from a dart: " + (x.person ? "a captive" : "for the pens or the lab"));
-        return "You bind " + x.name + " and take " + (x.person ? "him" : "it") + " alive, still asleep: " + (x.person ? "a captive" : "for the pens or the lab")
+        String how = x.asleep ? "asleep from a dart" : "surrendered";
+        tellGm("the field: " + p.getName() + " took " + x.name + " (" + x.foe + ") alive, " + how + ": " + (x.person ? "a captive" : "for the pens or the lab"));
+        return "You bind " + x.name + " and take " + (x.person ? "him" : "it") + " alive, " + (x.asleep ? "still asleep" : "surrendered") + ": " + (x.person ? "a captive" : "for the pens or the lab")
                 + "; the GM places " + (x.person ? "him" : "it") + "." + spend(pl.character(p), 10);
     }
 

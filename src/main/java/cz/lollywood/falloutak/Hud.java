@@ -173,8 +173,14 @@ public final class Hud {
         if (c.working && !c.sleeping && !c.dead && !c.inArrest() && !c.unconscious()) c.workedHours++;   // 06b §5.4.7
         List<String> stages0 = c.stages();
         double rads0 = c.survival.getOrDefault(Rules.Stat.RADS, 0.0);
+        String drowse = c.freezingHour(java.util.concurrent.ThreadLocalRandom.current());   // 04j §7g: the freezing drift off
+        if (drowse != null) c.news.add(drowse);
+        String awake = c.lyingAwakeHour();   // 04j §7g: what keeps him awake in his rest
+        if (awake != null) c.news.add(awake);
         double[] d = new double[Rules.Stat.values().length];
         for (Rules.Stat st : Rules.Stat.values()) d[st.ordinal()] = c.hourly(st);
+        c.restRun = c.sleeping ? c.restRun + 1 : 0;
+        c.lyingAwake = false;
         for (Rules.Stat st : Rules.Stat.values()) {
             double v = c.survival.get(st) + d[st.ordinal()];
             c.survival.put(st, Math.max(0, Math.min(st == Rules.Stat.RADS ? (c.glowing() ? Rules.GLOW_CAP : 2000) : c.max(st), v)));

@@ -213,7 +213,7 @@ public final class SheetView {
                 case "sleep_stages" -> "the sleep stage shown " + Math.round(v) + " better"; case "rads_per_hour" -> "rads an hour"; case "efficiency" -> "efficiency %";
                 case "opioid" -> "an opioid"; case "depressant" -> "a depressant (two at once with an opioid: the breathing stage)";
                 case "tolerant" -> "none for a daily user"; case "no_knockdown" -> "no knockdown or stun"; case "withdrawal_off" -> "every withdrawal off";
-                case "mend_limb" -> "a broken leg mends at its end"; case "rest_double" -> "4 h of sleep count as 8"; case "sleep_aid" -> "asleep at once";
+                case "mend_limb" -> "a broken leg mends at its end"; case "rest_double" -> "4 h of sleep count as 8"; case "sleep_aid" -> "the fight's and the lighter causes' hour awake off";
                 case "rebound" -> "a week of it, then stopped: AP −1 a day"; case "heat_per_hour" -> "heat an hour at work";
                 case "water_need" -> "water need (share)"; case "food_need" -> "food need (share)"; case "sleep_need" -> "sleep debt (share)";
                 case "cold_gain" -> "cold gained (share)"; case "heat_gain" -> "heat gained (share)"; case "viral_immunity" -> "a virus's immunity %";

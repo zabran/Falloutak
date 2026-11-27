@@ -103,6 +103,11 @@ public final class Character {
     /** Downtime work in the base (06b §5.4.7: 1 XP an hour, RULED); the hours worked wait here until the GM's clock awards them. */
     public boolean working = false;
     public int workedHours = 0;
+    /** 04j §7g (RULED 11-27, Marek: *"Sleep table - yes, this works great."*): the clock when his last fight ended (its first hour keeps
+     *  him awake), the hours of the rest so far (the lighter causes cost its first), and whether THIS hour he lies awake in it. */
+    public double fightEndedAt = -1e9;
+    public int restRun = 0;
+    public transient boolean lyingAwake = false;
     /** While a dead PC's player creates his new character from his group (Marek 11-20): the group and the member; never saved. */
     public transient String fromGroup, fromMember;
     /** Bleeding = Blood lost a round (absolute, Marek 11-14); broken legs 0-2 (the stance table's 400 % / 800 %). */
@@ -918,6 +923,66 @@ public final class Character {
         return l;
     }
 
+    /** A stat's current stage (Pain by the Pain felt), or null. */
+    public String stageNow(Rules.Stat st) {
+        Double v = survival.get(st);
+        return v == null ? null : stageOf(st, st == Rules.Stat.PAIN ? painFelt() : v, max(st));
+    }
+
+    /** Critical or Deadly Hypothermia: the freezing man's drowsiness (04j §7g; the Swiss stage 2, 28-32 °C: shivering stops, the mind dims). */
+    public boolean freezing() { return Rules.level(stageNow(Rules.Stat.HYPOTHERMIA)) >= 3; }
+
+    /**
+     * What keeps him awake in his rest (04j §7g, RULED 11-27; the research [real], the stages and hours [mine]): null = nothing;
+     * "!causes" = no sleep at all while it lasts (Critical Pain or worse, Critical or worse Starvation, Dehydration or Hyperthermia,
+     * Advanced Hypothermia, a strong stimulant working); "causes" = the first hour of each rest (the fight's first hour, the Advanced
+     * stages, Minor Hypothermia's shivering, caffeine). Valerian or hops take the first kind off; a sedative (diazepam, an opioid,
+     * alcohol) puts him to sleep through all of it; the freezing fall asleep at once.
+     */
+    public String keptAwake() {
+        if (other("depressant") > 0 || other("sedation") > 0 || freezing()) return null;
+        List<String> none = new ArrayList<>(), first = new ArrayList<>();
+        for (Rules.Stat st : List.of(Rules.Stat.PAIN, Rules.Stat.FOOD, Rules.Stat.WATER, Rules.Stat.HYPERTHERMIA)) {
+            String s = stageNow(st);
+            int lv = Rules.level(s);
+            if (lv >= 3) none.add(s); else if (lv == 2) first.add(s);
+        }
+        String cold = stageNow(Rules.Stat.HYPOTHERMIA);
+        int lc = Rules.level(cold);
+        if (lc == 2) none.add(cold); else if (lc == 1) first.add(cold + " (shivering)");
+        double stim = maxOther("sleep_stages");
+        if (stim >= 2) none.add("a stimulant still working"); else if (stim >= 1) first.add("caffeine");
+        if (now() - fightEndedAt < 1) first.add("the fight just over");
+        if (!none.isEmpty()) return "!" + String.join(", ", none);
+        if (other("sleep_aid") > 0) return null;   // valerian, hops: the lighter causes' hour off (Marek: *"yes, it is good"*)
+        return first.isEmpty() ? null : String.join(", ", first);
+    }
+
+    /** The hour's lying awake (04j §7g): sets {@link #lyingAwake} for this hour (no Sleep gained, still rest) and says why, or null. */
+    public String lyingAwakeHour() {
+        lyingAwake = false;
+        if (!sleeping || dead || inArrest()) return null;
+        String k = keptAwake();
+        if (k == null) return null;
+        boolean all = k.startsWith("!");
+        if (!all && restRun > 0) return null;
+        lyingAwake = true;
+        return "Lying awake: " + (all ? k.substring(1) + " (no sleep while it lasts)" : k + " (the first hour of your rest)") + "; it still counts as rest";
+    }
+
+    /** Staying awake while freezing [mine, EXAMPLE]: Endurance × 10 % an hour (at most 95 %). */
+    static double stayAwake(int endurance) { return Math.min(0.95, 0.1 * endurance); }
+
+    /** Critical or Deadly Hypothermia, awake (04j §7g): each hour an Endurance check, failed = he falls asleep where he is. */
+    public String freezingHour(Random r) {
+        if (sleeping || dead || inArrest() || !freezing()) return null;
+        if (r.nextDouble() < stayAwake(attr(Rules.E, false))) return null;
+        sleeping = true;
+        working = false;
+        restRun = 0;
+        return "The cold's drowsiness: you fall asleep where you are (" + stageNow(Rules.Stat.HYPOTHERMIA) + ", the Endurance check failed); asleep you make no heat";
+    }
+
     /** A stat's stage for THIS body: a glowing ghoul's rads give its bonus, never radiation sickness (03b §7b, round 9). */
     public String stageOf(Rules.Stat st, double v, double max) {
         if (st == Rules.Stat.RADS && glowing()) return Rules.glowStage(v);
@@ -1225,7 +1290,7 @@ public final class Character {
      * (RadAway, the Blood Scrubber).
      */
     public double hourly(Rules.Stat st) {
-        double h = Rules.hourly(st, survival.getOrDefault(Rules.Stat.HYPERTHERMIA, 0.0), sleeping, locationRads);
+        double h = Rules.hourly(st, survival.getOrDefault(Rules.Stat.HYPERTHERMIA, 0.0), st == Rules.Stat.SLEEP ? sleeping && !lyingAwake : sleeping, locationRads);   // 04j §7g: lying awake gains no Sleep
         Data.Template t = tpl();
         boolean power = "power".equals(t.needs());
         return switch (st) {

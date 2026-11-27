@@ -83,7 +83,7 @@ outside the game; the game itself is for the look and feel. The rules' text live
   leg knits in `SPLINT_HOURS`, an unsplinted one never by itself; `trimSplints` when a leg mends another way; `Meds.splint` at
   Medicine 20, the Trauma pack splints one leg; `Menus.splintWith`); Cateye's `light_sensitive` (`Character.lightHurts`: `inSun` or
   `flashUntil`, read in `attr`; `Battle.flash` at both blasts); nicotine's `cold_hands` (`smokerCold` in `stageHour`: the frostbite
-  from a Critical cold); THE BELT (`Battle.BELT_FIRST`-`BELT_LAST`: 0.109.0: what the player put on hotbar keys 3-6 BEFORE the fight is the belt
+  from a Critical cold); FALLING ASLEEP (0.110.0, `04j` §7g: `Character.keptAwake` says what keeps him awake in a rest, `lyingAwakeHour` makes that hour gain no Sleep while still counting as rest, `freezingHour` drops a Critical/Deadly cold body asleep on a failed Endurance check; `sleep_aid` (valerian, hops) takes the lighter causes off, a `depressant` all of them); THE FIGHT'S END (0.110.0: `Battle.Target.outOfIt` adds the knocked out and the netted to the dead, dying and asleep, so the fight ends and the living count as SURRENDERED: `Loot.Body.surrendered`, taken alive or finished on the field); THE BELT (`Battle.BELT_FIRST`-`BELT_LAST`: 0.109.0: what the player put on hotbar keys 3-6 BEFORE the fight is the belt
   (`beltKind`: Stimpaks and grenades counted, a chem, injector or self medicine kept as itself), the counted kinds he did not place take
   `BELT_HOME` or the first free slot; a free slot takes a real item dragged from the pack; `useBelt` (`beltUsable`) for `BELT_AP`,
   `settleGear` takes the "item:" uses). Tests: `BeltSplintTest`.
