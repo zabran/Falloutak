@@ -84,6 +84,7 @@ final class Items {
         ItemStack it = new ItemStack(m, Math.max(1, count));
         ItemMeta im = it.getItemMeta();
         im.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, id);
+        if (id.equals("gear:Stimpak")) try { im.setMaxStackSize(64); } catch (RuntimeException | NoSuchMethodError ignored) { }   // 04i: easy to stack
         im.displayName(Component.text(title(id), color(k[0])).decoration(TextDecoration.ITALIC, false));
         if (k[0].equals("armour")) {   // its condition in the item; no vanilla wear; dyed leather [mine]
             im.getPersistentDataContainer().set(COND, PersistentDataType.DOUBLE, 100.0);
@@ -436,6 +437,7 @@ final class Items {
         switch (k[0]) {
             case "thing" -> {
                 String[] t = thing(id);
+                if (t != null && t[0].equals(Meds.TYPE) && Meds.BULKY.containsKey(t[3])) return Meds.BULKY.get(t[3]);   // 04i: a blood bag, a cylinder
                 return t == null ? 0 : unitKg(t[0], parse(t[1]));
             }
             case "made" -> {
@@ -479,7 +481,7 @@ final class Items {
     static double weight(ItemStack[] items) {
         double s = 0;
         if (items == null) return 0;
-        for (ItemStack it : items) { String id = id(it); if (id != null) s += kg(id) * it.getAmount(); }
+        for (ItemStack it : items) { String id = id(it); if (id != null) s += Meds.stackKg(id, kg(id), it.getAmount()); }   // 04i: a dose's vessel
         return s;
     }
 

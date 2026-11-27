@@ -31,7 +31,8 @@
      "perception": -1
     },
     "other": {
-     "pain_felt": -10
+     "pain_felt": -10,
+     "cold_gain": 0.5
     }
    },
    "withdrawal": {
@@ -44,7 +45,7 @@
    "dependence": {
     "hours": 504
    },
-   "source": "Fallout 2's beer (-1 Perception, no hangover); 1 h = a drink cleared (the liver ~1 a hour); Pain -10 (04c); 5 % a drink as New Vegas (Fallout 2 20 %, Fallout 4 15-25 %; our 7-day count raises it with every drink); the addiction -1 Agility -1 Charisma (New Vegas and Fallout 4 alike); lengths RULED"
+   "source": "Fallout 2's beer (-1 Perception, no hangover); 1 h = a drink cleared (the liver ~1 a hour); Pain -10 (04c); 5 % a drink as New Vegas (Fallout 2 20 %, Fallout 4 15-25 %; our 7-day count raises it with every drink); the addiction -1 Agility -1 Charisma (New Vegas and Fallout 4 alike); lengths RULED; colder in the cold (04g §5, RULED): the cold bar's gain x1.5 for its hour [the 0.5 mine]"
   },
   {
    "name": "Nicotine",
@@ -130,6 +131,107 @@
    "source": "04c §4b (-50 for 1 h, Intelligence -2 an hour on waking)"
   },
   {
+   "name": "Metamizole",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "pain_felt": -25
+    }
+   },
+   "source": "04i §3b: Novalgin, Algifen, the Czech hospitals' strong painkiller; no breathing slowed; the bone marrow fails once in about 1 000 courses (the GM's) [real]; -25 for 6 h [mine]"
+  },
+  {
+   "name": "Aspirin",
+   "chance": 0,
+   "effect": {
+    "hours": 6,
+    "other": {
+     "pain_felt": -15,
+     "bleeding": 1
+    }
+   },
+   "source": "04i §3b: Acylpyrin, Czech since the 1950s; as ibuprofen (04c §4b: -15 for 6 h, thins the blood: Bleeding +1, RULED)"
+  },
+  {
+   "name": "Tramadol",
+   "chance": 0.03,
+   "roll": "day",
+   "effect": {
+    "hours": 6,
+    "other": {
+     "pain_felt": -20
+    }
+   },
+   "withdrawal": {
+    "hours": 240,
+    "mods": {
+     "agility": -1
+    }
+   },
+   "dependence": {
+    "hours": 2160
+   },
+   "source": "04i §3b: as codeine (04c §4b: -20 for 6 h, 3 % a day); no runs halved [real: less constipating]"
+  },
+  {
+   "name": "Methadone",
+   "chance": 0.05,
+   "roll": "day",
+   "effect": {
+    "hours": 24
+   },
+   "relieves": [
+    "Morphine",
+    "Codeine",
+    "Opium",
+    "Tramadol"
+   ],
+   "withdrawal": {
+    "hours": 336,
+    "mods": {
+     "agility": -1,
+     "intelligence": -1
+    }
+   },
+   "dependence": {
+    "hours": 4320
+   },
+   "source": "04i §3b: the Czech substitution programmes' drug [real]: a day's dose turns an opioid's withdrawal into its dependence; itself an opioid (its own longer withdrawal) [the numbers mine]"
+  },
+  {
+   "name": "Pervitin",
+   "chance": 0.3,
+   "effect": {
+    "hours": 12,
+    "mods": {
+     "agility": 1,
+     "perception": 1
+    },
+    "other": {
+     "sleep_stage_off": 1
+    }
+   },
+   "crash": {
+    "hours": 24,
+    "mods": {
+     "agility": -2,
+     "intelligence": -1
+    }
+   },
+   "withdrawal": {
+    "hours": 504,
+    "mods": {
+     "agility": -1,
+     "charisma": -1
+    }
+   },
+   "dependence": {
+    "hours": 8760
+   },
+   "source": "04i §3c: the raiders' and Pirates' home-cooked stimulant, the Czech word for methamphetamine since the 1940s [real]; found or bought, never a recipe here; the numbers mine, EXAMPLE (amphetamine's, stronger and longer)"
+  },
+  {
    "name": "Paracetamol",
    "chance": 0,
    "effect": {
@@ -146,10 +248,11 @@
    "effect": {
     "hours": 6,
     "other": {
-     "pain_felt": -15
+     "pain_felt": -15,
+     "bleeding": 1
     }
    },
-   "source": "04c §4b (ibuprofen or aspirin, -15 for 6 h; thins the blood: not with bleeding, the GM's)"
+   "source": "04c §4b (ibuprofen or aspirin, -15 for 6 h; thins the blood: Bleeding +1 while it works, RULED round 7, built 04i)"
   },
   {
    "name": "Willow bark",

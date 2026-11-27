@@ -59,6 +59,14 @@ outside the game; the game itself is for the look and feel. The rules' text live
   `Raiders.taken`), `removeWall` (taken up, or at `stop`).
   The dart's sleep: `Target.asleep` (out of the fight: `inFight`), on the field `Loot.Body.asleep` (taken alive: `Loot.takeAlive`), one
   that ran off darted a trail (`Loot.Body.trail`, `Loot.track`: Survival `TRAIL_NEED`, found = its kill XP, `Loot.team`).
+- **A medicine used** (04i round 1): every dose an item (`thing:Medicine|tier|rarity|name` or a chem); `Menus.treatDisease` asks
+  `Meds.forAct` for the action's items (an oxygen cylinder for 10 hours, diazepam, honey, the antitoxin or the crude antiserum, the
+  rabies series, an anaesthetic for the knife: chloroform can stop the heart) and runs an antibiotic course from the doses carried
+  (`Meds.ABX`: family, strength, the pre-war stores' age; fewer than the course = `Diseases.Case.abxDays`, a short course);
+  `Menus.firstAid`'s dressing takes `Meds.dressing`; `Meds.useSelf` (the Pip-Boy, a right click): vitamin C (`Character.vitaminAt`,
+  read by `Meals`' scurvy day), a blood bag, antivenom, rehydration salts, iodide, the vaccines. A stack weighs its vessel and a
+  hundredth of a kilo a further dose (`Meds.stackKg` in `Items.weight`). Chems: methadone's `Data.Chem.relieves`, ibuprofen's and
+  aspirin's `bleeding` (in `Hud.bleedRound`), alcohol's `cold_gain` (in `Character.hourly`).
 
 ## The data
 `src/main/resources/data/*.json` are GENERATED, never edited by hand, by the tools in the LollyWood-Lore repository (`_tools/`):
@@ -88,31 +96,32 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
 | `Battle` | 3016 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
-| `Character` | 2740 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
+| `Character` | 2750 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
 | `Conditions` | 256 | the conditions with their own clocks: scurvy, trench foot, scabies, latent tuberculosis |
 | `Creatures` | 160 | the game's creatures in the world (spawning, their sounds and motion) |
-| `Data` | 984 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
-| `Diseases` | 608 | the diseases' race, catching, vaccines, the treatments and the tending check |
-| `FalloutakPlugin` | 429 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
+| `Data` | 991 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
+| `Diseases` | 613 | the diseases' race, catching, vaccines, the treatments and the tending check |
+| `FalloutakPlugin` | 434 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
 | `Forms` | 425 | the dialog forms: create a character, spend points, the level-up |
 | `Hauls` | 266 | the prologue's last-minute hauls |
 | `Hud` | 432 | each character's game hour and passing time, healing, the action bar |
 | `Icons` | 129 | pictures in hover texts |
-| `Items` | 548 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
+| `Items` | 550 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
 | `Labs` | 218 | the research pages |
 | `Loot` | 388 | the field after a fight: bodies, gear, what can be taken |
 | `MapView` | 184 | the world map drawn in Minecraft |
 | `Maps` | 164 | the map worlds and their commands |
 | `Meals` | 253 | eating and drinking: the pack's portions, the base's day per person, the base's people's factors |
-| `Menus` | 1954 | every menu: actions, the patient's menu, pass time, the GM's buttons |
+| `Meds` | 190 | the medicines as items (04i): what each disease action, first aid and the Pip-Boy use up; antibiotic courses by dose; a dose's weight |
+| `Menus` | 1984 | every menu: actions, the patient's menu, pass time, the GM's buttons |
 | `Narrator` | 165 | the narrator's lines on critical hits and failures |
 | `Npcs` | 204 | the GM's NPC tools: a figurant's side (hostile, neutral, the party's), following a player, joining his faction, the fight where they stand |
 | `Part3` | 308 | the species and modification commands (templates, genes, implants) |
 | `Path` | 71 | how an enemy walks on the battle map |
 | `Population` | 188 | the base's people and their groups (the workbook's Population and Factions) |
 | `Production` | 1397 | buildings, jobs, recipes, power and water, the base's day (food, water, soap) |
-| `Raiders` | 995 | the enemies' turn: choosing, moving, shooting, melee and bites |
+| `Raiders` | 999 | the enemies' turn: choosing, moving, shooting, melee and bites |
 | `Research` | 614 | research: inspiration, experiments, prototypes, the cards |
 | `Roster` | 525 | `/npc`, `/pop`, `/group`: statblocks, the groups' XP and levels, lessons, work |
 | `Rules` | 713 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
@@ -130,5 +139,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **48 classes** | **25550** | |
+| **49 classes** | **25803** | |
 <!-- /CLASSES -->

@@ -113,6 +113,13 @@ public final class Data {
 
     public static final Map<String, Shield> SHIELDS = new LinkedHashMap<>();
 
+    /** A list of strings from a JSON array (empty when absent). */
+    static List<String> strings(JsonObject o, String k) {
+        List<String> l = new java.util.ArrayList<>();
+        if (o.has(k) && o.get(k).isJsonArray()) for (JsonElement e : o.getAsJsonArray(k)) l.add(e.getAsString());
+        return l;
+    }
+
     /** A trap (05d §7c, RULED rounds 7-8): its kind (= its skill: Traps, Mines, Alarms), the AP to set it in a fight (-1: only dug before
      *  one), its damage and effect (held, fall, knock, cut, blast, cone, noise, alert, shock) and their numbers; `data/traps.json`. */
     public record TrapDef(String name, String kind, int tier, int rarity, int ap, int min, int max, String effect, int hold, double pen, int spot,
@@ -320,7 +327,7 @@ public final class Data {
      * (or a day of use, {@code perDay}); {@code cures} = an antidote's chem.
      */
     public record Chem(String name, double chance, boolean perDay, Stage effect, Stage crash, Stage withdrawal, Stage dependence,
-                       String cures, boolean example, String source) {
+                       String cures, boolean example, String source, List<String> relieves) {
         public Stage stage(int i) { return switch (i) { case 0 -> effect; case 1 -> crash; case 2 -> withdrawal; case 3 -> dependence; default -> null; }; }
     }
 
@@ -811,7 +818,7 @@ public final class Data {
             String name = o.get("name").getAsString();
             CHEMS.put(name, new Chem(name, d(o, "chance"), "day".equals(s(o, "roll", "dose")), stage(o, "effect"), stage(o, "crash"),
                     stage(o, "withdrawal"), stage(o, "dependence"), s(o, "cures", null), o.has("example") && o.get("example").getAsBoolean(),
-                    s(o, "source", "")));
+                    s(o, "source", ""), strings(o, "relieves")));
         }
         for (JsonElement e : rows("mutations")) {
             JsonObject o = e.getAsJsonObject();

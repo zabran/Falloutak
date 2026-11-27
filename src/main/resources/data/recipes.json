@@ -2508,6 +2508,369 @@
    "note": "salt and sugar (04c §9)"
   },
   {
+   "id": "wound-powder",
+   "name": "Wound powder",
+   "building": "Workbench",
+   "tier": 1,
+   "skill": "Survival",
+   "min": 20,
+   "hours": 1,
+   "days": 0,
+   "known": "start",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 3,
+     "items": [
+      "Wound powder"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": true,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "note": "yarrow and plantain dried and ground (04i §3c)"
+  },
+  {
+   "id": "mould-broth",
+   "name": "Mould broth",
+   "building": "Infirmary",
+   "tier": 2,
+   "skill": "Medicine",
+   "min": 40,
+   "hours": 4,
+   "days": 7,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 1,
+     "count": 2,
+     "rarity": 2,
+     "items": [
+      "Mould broth"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Water",
+     "tier": 3,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Mould broth",
+   "note": "a found Penicillium strain in sterile flasks: topical only (04g §4c)"
+  },
+  {
+   "id": "phages",
+   "name": "Phages",
+   "building": "Infirmary",
+   "tier": 2,
+   "skill": "Medicine",
+   "min": 60,
+   "hours": 8,
+   "days": 3,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 3,
+     "items": [
+      "Phages"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Water",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Food",
+     "tier": 1,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Phage therapy",
+   "note": "matched to the germ on agar from sewage or a river (04g §4c)"
+  },
+  {
+   "id": "sulfa",
+   "name": "Sulfa",
+   "building": "Workshop",
+   "tier": 3,
+   "skill": "Chemistry",
+   "min": 50,
+   "hours": 8,
+   "days": 1,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 2,
+     "items": [
+      "Sulfa"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 3,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Sulfa drugs",
+   "note": "the dye works' drug (04g §4c): antibiotics at 0.7"
+  },
+  {
+   "id": "crude-penicillin",
+   "name": "Crude penicillin",
+   "building": "Infirmary",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 50,
+   "hours": 12,
+   "days": 7,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 1,
+     "rarity": 2,
+     "items": [
+      "Crude penicillin"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Food",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Water",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Crude penicillin",
+   "note": "a good strain fermented and purified roughly (04g §4c: the Czech lands' first in 1944)"
+  },
+  {
+   "id": "crude-antiserum",
+   "name": "Crude antiserum",
+   "building": "Infirmary",
+   "tier": 2,
+   "skill": "Medicine",
+   "min": 50,
+   "hours": 8,
+   "days": 14,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 1,
+     "items": [
+      "Crude antiserum"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Water",
+     "tier": 3,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Antiserum",
+   "note": "from a horse in the pens, immunised and bled (not used up): the allergy roll (04g §4b)"
+  },
+  {
+   "id": "ether",
+   "name": "Ether",
+   "building": "Workshop",
+   "tier": 2,
+   "skill": "Chemistry",
+   "min": 40,
+   "hours": 4,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 2,
+     "items": [
+      "Ether"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 3,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Ether anaesthesia",
+   "note": "the old anaesthetic (04g §4b): it burns and explodes"
+  },
+  {
+   "id": "chloroform",
+   "name": "Chloroform",
+   "building": "Workshop",
+   "tier": 3,
+   "skill": "Chemistry",
+   "min": 50,
+   "hours": 4,
+   "days": 0,
+   "known": "research",
+   "makes": [
+    {
+     "type": "Medicine",
+     "tier": 2,
+     "count": 2,
+     "items": [
+      "Chloroform"
+     ]
+    }
+   ],
+   "inputs": [
+    {
+     "type": "Chemicals",
+     "tier": 2,
+     "count": 2,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    },
+    {
+     "type": "Chemicals",
+     "tier": 3,
+     "count": 1,
+     "rarity": 0,
+     "sets_rarity": false,
+     "tool": false,
+     "extra": false
+    }
+   ],
+   "research": "Chloroform anaesthesia",
+   "note": "the old anaesthetic (04g §4b): it can stop the heart (a Medicine 40 check)"
+  },
+  {
    "id": "saline",
    "name": "Saline",
    "building": "Infirmary",

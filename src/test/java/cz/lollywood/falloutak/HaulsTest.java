@@ -15,7 +15,7 @@ class HaulsTest extends MockGame {
         assertEquals(8, Hauls.HAULS.size());
         assertEquals("10 Stone and glass I (potting soil and pots) + 1 Electronics III (a grow lamp) + 2 Seeds III (seed potatoes, packets)",
                 Hauls.HAULS.get("flowerpots").contents());
-        assertEquals("4 Medicine III (sterile kits, IV fluids) + 1 Medicine IV (a course of pre-war antibiotics)", Hauls.HAULS.get("pharmacy").contents());
+        assertEquals("4 Medicine III (sterile kits, IV fluids) + 7 Medicine III (a course of pre-war antibiotics (7 doses))", Hauls.HAULS.get("pharmacy").contents());   // 04i: a course 7 doses, Tier III
         assertEquals("2 Gear and tools III (power tools) + 2 Machinery III (precision parts, small motors)", Hauls.HAULS.get("hardware").contents());
         assertEquals("3 Electronics III (LED lamps, circuit boards) + 2 Power III (batteries)", Hauls.HAULS.get("electronics").contents());
         assertEquals("4 Textile III (canvas, nylon) + 2 Soft armour parts III (jackets, boots)", Hauls.HAULS.get("outdoor").contents());

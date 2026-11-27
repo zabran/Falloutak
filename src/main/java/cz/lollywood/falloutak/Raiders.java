@@ -772,8 +772,12 @@ final class Raiders {
     }
 
     // ------------------------------------------------------------------ the creatures (09d round 2: the world map's encounters)
-    /** At the battle map's edge, or this far from every player, a hunted animal is gone (it got away) [EXAMPLE, mine]. */
+    /** A hunted animal is gone ONLY AT THE BATTLE MAP'S EDGE (Marek 11-27: *"yes, only escaped at the map edge."*); off a battle map (the
+     *  demo, no edge) this far from every player [mine]. */
     static final int GONE = 40;
+
+    /** Got away: at the edge of its battle map, or, with none, {@link #GONE} blocks from everyone. */
+    static boolean gone(Battle.Target t, int x, int z, double nearest) { return t.field != null ? edge(t, x, z) : nearest >= GONE - 1e-9; }
 
     /** Within a block of the battle map's edge. */
     static boolean edge(Battle.Target t, int x, int z) {
@@ -791,7 +795,7 @@ final class Raiders {
 
     /**
      * A creature's turn [the form mine, EXAMPLE, after Fallout 2's simplest AI]: a HUNTED one that is not hostile runs from the party
-     * and is gone once {@link #GONE} blocks from everyone; a hostile one walks to the nearest spot within its reach of the player and
+     * and is gone at the map's edge ({@link #gone}); a hostile one walks to the nearest spot within its reach of the player and
      * attacks while its AP last (its attack's AP each), keeping the AP for one attack when the walk allows it.
      */
     private void beast(Player p, Battle.State s, Character c, LivingEntity le, Battle.Target t, UUID u, String inZone) {
@@ -815,7 +819,7 @@ final class Raiders {
         int can = (int) Math.floor(t.ap / per + 1e-9);
         if (t.flees) {
             double now = nearest(s, p, at);
-            if (now >= GONE - 1e-9 || edge(t, start.x(), start.z())) {
+            if (gone(t, start.x(), start.z(), now)) {
                 t.escaped = true;
                 q.add(() -> { say(p, t.name + " slips away (the edge of the map)."); le.remove(); b.checkOver(p, s, c); });
                 return;
@@ -838,7 +842,7 @@ final class Raiders {
             q.add(() -> {
                 Location l = le.getLocation();
                 if (caught) say(p, t.name + " runs " + n + " block(s) into your trap.");
-                else if (nearest(s, p, l) >= GONE - 1e-9 || edge(t, l.getBlockX(), l.getBlockZ())) {
+                else if (gone(t, l.getBlockX(), l.getBlockZ(), nearest(s, p, l))) {
                     t.escaped = true;
                     say(p, t.name + " runs " + n + " block(s) and GETS AWAY.");
                     le.remove();

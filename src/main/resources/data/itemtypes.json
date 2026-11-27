@@ -663,12 +663,12 @@
   {
    "name": "Medicine",
    "group": "Medical",
-   "use": "doses: treatment, not chems (04c §9)",
+   "use": "doses: treatment, not chems (04c §9; 04i: one dose an item, an antibiotic course 7)",
    "tiers": {
-    "I": "herbs, honey, rag dressings",
-    "II": "boiled dressings, splints, tourniquets, antiseptic, rehydration salts",
-    "III": "crude penicillin, sterile kits, IV fluids, the crude antiserum",
-    "IV": "pre-war antibiotics, vaccines, antivenoms, Stimpaks"
+    "I": "herbs, honey, rag dressings, wound powder, mould broth",
+    "II": "boiled dressings, splints, tourniquets, antiseptic, rehydration salts; sulfa, phages, crude penicillin, the crude antiserum, ether, chloroform",
+    "III": "today's pharmacy: antibiotics, the antitoxin, antivenom, vaccines, vitamin C, iodide, povidone-iodine, blood bags, oxygen, hemostatic gauze, adrenaline",
+    "IV": "the 2040s: Stimpaks"
    },
    "found_only": false,
    "items": [
@@ -688,6 +688,18 @@
      "name": "Honey",
      "tier": 1,
      "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Wound powder",
+     "tier": 1,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Mould broth",
+     "tier": 1,
+     "rarity": 2,
      "id": ""
     },
     {
@@ -721,16 +733,178 @@
      "id": ""
     },
     {
+     "name": "Sulfa",
+     "tier": 2,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Phages",
+     "tier": 2,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Crude antiserum",
+     "tier": 2,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Ether",
+     "tier": 2,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Chloroform",
+     "tier": 2,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Crude penicillin",
+     "tier": 2,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Adrenaline",
+     "tier": 3,
+     "rarity": 1,
+     "id": "gear:Adrenaline"
+    },
+    {
+     "name": "Penicillin",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Amoxicillin",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Doxycycline",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Oxytetracycline",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Chloramphenicol",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Streptomycin",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Ciprofloxacin",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Antitoxin",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Antivenom",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Tetanus vaccine",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "TBE vaccine",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Hepatitis A vaccine",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Typhoid vaccine",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Cholera vaccine",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Rabies vaccine",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Vitamin C tablets",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Potassium iodide",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Povidone-iodine",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Blood bag",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Oxygen cylinder",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Hemostatic gauze",
+     "tier": 3,
+     "rarity": 1,
+     "id": ""
+    },
+    {
      "name": "Stimpak",
      "tier": 4,
      "rarity": 1,
      "id": "gear:Stimpak"
-    },
-    {
-     "name": "Adrenaline",
-     "tier": 4,
-     "rarity": 1,
-     "id": "gear:Adrenaline"
     }
    ]
   },
@@ -739,10 +913,10 @@
    "group": "Medical",
    "use": "doses: the chems with addiction (data/chems.json)",
    "tiers": {
-    "I": "home brew, home-grown tobacco",
-    "II": "ersatz coffee",
-    "III": "lab chems: Buffout, Mentats, Psycho, Jet; Prussian blue, Azathioprine (R2)",
-    "IV": "pre-war pharmacy: Morphine, Ketamine, RadAway, Tacrolimus"
+    "I": "home brew, home-grown tobacco, folk remedies",
+    "II": "ersatz coffee, opium, willow bark, pervitin",
+    "III": "today's pharmacy: morphine, ketamine, codeine, tramadol, metamizole, paracetamol, ibuprofen, aspirin, diazepam, amphetamine, methadone; Prussian blue, the immunosuppressants (R2)",
+    "IV": "the 2040s: Buffout, Mentats, Psycho, Jet and its antidote, RadAway, Rad-X (the Pirates' labs make them too)"
    },
    "found_only": false,
    "items": [
@@ -807,6 +981,12 @@
      "id": "chem:Caffeine"
     },
     {
+     "name": "Pervitin",
+     "tier": 2,
+     "rarity": 1,
+     "id": "chem:Pervitin"
+    },
+    {
      "name": "Opium",
      "tier": 2,
      "rarity": 1,
@@ -819,70 +999,94 @@
      "id": "chem:Codeine"
     },
     {
+     "name": "Morphine",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Morphine"
+    },
+    {
+     "name": "Ketamine",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Ketamine"
+    },
+    {
+     "name": "Metamizole",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Metamizole"
+    },
+    {
+     "name": "Aspirin",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Aspirin"
+    },
+    {
+     "name": "Tramadol",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Tramadol"
+    },
+    {
+     "name": "Methadone",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Methadone"
+    },
+    {
+     "name": "Paracetamol",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Paracetamol"
+    },
+    {
+     "name": "Ibuprofen",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Ibuprofen"
+    },
+    {
+     "name": "Diazepam",
+     "tier": 3,
+     "rarity": 1,
+     "id": "chem:Diazepam"
+    },
+    {
      "name": "Amphetamine",
      "tier": 3,
      "rarity": 1,
      "id": "chem:Amphetamine"
     },
     {
-     "name": "Buffout",
+     "name": "Tacrolimus",
      "tier": 3,
+     "rarity": 1,
+     "id": "chem:Tacrolimus"
+    },
+    {
+     "name": "Buffout",
+     "tier": 4,
      "rarity": 1,
      "id": "chem:Buffout"
     },
     {
      "name": "Mentats",
-     "tier": 3,
+     "tier": 4,
      "rarity": 1,
      "id": "chem:Mentats"
     },
     {
      "name": "Psycho",
-     "tier": 3,
+     "tier": 4,
      "rarity": 1,
      "id": "chem:Psycho"
     },
     {
      "name": "Jet",
-     "tier": 3,
+     "tier": 4,
      "rarity": 1,
      "id": "chem:Jet"
-    },
-    {
-     "name": "Rad-X",
-     "tier": 3,
-     "rarity": 1,
-     "id": "chem:Rad-X"
-    },
-    {
-     "name": "Morphine",
-     "tier": 4,
-     "rarity": 1,
-     "id": "chem:Morphine"
-    },
-    {
-     "name": "Ketamine",
-     "tier": 4,
-     "rarity": 1,
-     "id": "chem:Ketamine"
-    },
-    {
-     "name": "Paracetamol",
-     "tier": 4,
-     "rarity": 1,
-     "id": "chem:Paracetamol"
-    },
-    {
-     "name": "Ibuprofen",
-     "tier": 4,
-     "rarity": 1,
-     "id": "chem:Ibuprofen"
-    },
-    {
-     "name": "Diazepam",
-     "tier": 4,
-     "rarity": 1,
-     "id": "chem:Diazepam"
     },
     {
      "name": "Jet Antidote",
@@ -897,10 +1101,10 @@
      "id": "chem:RadAway"
     },
     {
-     "name": "Tacrolimus",
+     "name": "Rad-X",
      "tier": 4,
      "rarity": 1,
-     "id": "chem:Tacrolimus"
+     "id": "chem:Rad-X"
     }
    ]
   },

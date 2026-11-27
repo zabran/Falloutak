@@ -426,7 +426,7 @@ public final class Hud {
     /** One round of bleeding: −rate Blood, absolute (Marek 11-14), so a bigger body (Blood = 4 x HP max) lasts longer. */
     static void bleedRound(Character c) {
         if (c.bleeding <= 0) return;
-        double b = c.survival.get(Rules.Stat.BLOOD) - c.bleeding * c.tpl().bleedFactor();   // Coldvein bleeds x 1/2
+        double b = c.survival.get(Rules.Stat.BLOOD) - (c.bleeding + Math.max(0, c.other("bleeding"))) * c.tpl().bleedFactor();   // Coldvein bleeds x 1/2; ibuprofen, aspirin +1 (04g §4b)
         c.survival.put(Rules.Stat.BLOOD, Math.max(0, b));
     }
 }

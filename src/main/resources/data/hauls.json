@@ -59,10 +59,10 @@
     },
     {
      "type": "Medicine",
-     "tier": 4,
+     "tier": 3,
      "rarity": 1,
-     "count": 1,
-     "what": "a course of pre-war antibiotics"
+     "count": 7,
+     "what": "a course of pre-war antibiotics (7 doses)"
     }
    ]
   },

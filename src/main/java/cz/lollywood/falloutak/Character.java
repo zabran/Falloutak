@@ -134,6 +134,8 @@ public final class Character {
      * final death. Rest: consecutive resting hours (every 8 without bleeding heal the healing rate, part 4).
      */
     public double arrestAt = -1, cprFrom = -1, lastReviveTry = -1e9;
+    /** 04i: the game hour a vitamin C tablet was taken (a vitamin C day for the base's scurvy check, 04b §3c). */
+    public double vitaminAt = -1e9;
     /** The minutes into the current game hour (the GM passes minutes; a fight's round is 6 s). */
     public double minuteAcc = 0;
     public boolean dead = false;
@@ -1154,7 +1156,7 @@ public final class Character {
             case WATER -> power || baseWater ? 0 : h * t.waterFactor() * (1 + other("water_need"));   // an artifact's price (the ember: x1.25)
             case FOOD -> baseFood && !power ? 0 : h * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
             case SLEEP -> h < 0 ? h * t.sleepFactor() * (1 + other("sleep_need")) : h;   // the need (DEC2: x0.75); a synthetic body: its memory, cleaned like sleep
-            case HYPOTHERMIA -> h + other("cold_per_hour");   // the frost pearl's price (09c §3)
+            case HYPOTHERMIA -> (h > 0 ? h * (1 + other("cold_gain")) : h) + other("cold_per_hour");   // the frost pearl's price (09c §3); alcohol: colder in the cold (04g §5)
             case RADS -> (locationRads + nearRads) * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");   // + the glowing ones near (round 9)
             case BLOOD -> inArrest() ? 0 : h;   // no circulation, no new blood [mine]
             default -> h;
@@ -1528,6 +1530,14 @@ public final class Character {
             boolean was = addictions.remove(ch.cures());
             effects.removeIf(e -> e.slot().equals("chem:" + ch.cures()) && (e.name().endsWith("(withdrawal)") || e.name().endsWith("(dependence)")));
             sb.append(was ? "the " + ch.cures() + " addiction ends. " : "no " + ch.cures() + " addiction to end. ");
+        }
+        if (ch.relieves() != null) for (String r : ch.relieves()) {   // 04i: methadone turns an opioid's withdrawal into its dependence
+            Effect w = inSlot("chem:" + r);
+            Data.Chem rc = Data.CHEMS.get(r);
+            if (w != null && rc != null && w.name().endsWith("(withdrawal)") && rc.dependence() != null) {
+                add(stageEffect(rc, 3));
+                sb.append(r).append("'s withdrawal eased: its dependence stays. ");
+            }
         }
         if (addictions.contains(ch.name())) sb.append("addicted: the stages start again. ");
         else if (oldFriend(ch)) sb.append("Old Friend: x1.5, and it never addicts you. ");

@@ -730,7 +730,7 @@ class ProductionTest {
         Base.Pool tools = b.pools.get(Base.key("Gear and tools", 2, 1));
         assertTrue(b.choices(tools).contains("Armour repair kit"));
         assertEquals("gear:Armour repair kit", Items.storeId("Gear and tools", 2, 1, "Armour repair kit"));
-        assertArrayEquals(new String[]{"Chems", "3", "1", "Buffout"}, Items.ttrOf("chem:Buffout"));
+        assertArrayEquals(new String[]{"Chems", "4", "1", "Buffout"}, Items.ttrOf("chem:Buffout"));   // 04i: the 2040s = Tier IV
         assertTrue(b.putThing("Food", 3, 1, "Potatoes", 4));
         assertTrue(b.takeThing(Base.key("Food", 3, 1), "Potatoes"));
         assertEquals(3, b.count("Food", 3, 1));

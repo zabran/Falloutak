@@ -191,7 +191,7 @@ final class Menus {
         if (able) {
             if (c.bleeding > 0 || (c.hp < c.hpMax() && c.inSlot("treatment:dressing") == null))
                 b.add(btn(c.bleeding > 0 ? "First aid (stop your bleeding)" : "Dress your wounds", c.bleeding > 0 ? "the bleeding stops"
-                        : "Medicine 20 (a check): the healing rate +1 for the next 24 hours", x -> { say(x, firstAid(c, c, "your")); actions(x); }));
+                        : "Medicine 20 (a check) and a dressing: the healing rate +1 for the next 24 hours", x -> { say(x, firstAid(x, c, c, "your")); actions(x); }));
             // round 9: outside the base a character's own days since a wash count; a wash ends them
             b.add(btn(c.outside ? "Back in the base" : "Leave the base", c.outside ? "the base's daily washing covers you again"
                     : "outside, your own days since a wash count (Dirty from 3, Filthy from 7)", x -> { c.outside = !c.outside; actions(x); }));
@@ -221,6 +221,14 @@ final class Menus {
             else cannot.add("Drink: " + (noDrink != null ? noDrink : "you carry no water"));
             if (c.hp < c.hpMax() && carry.containsKey("gear:Stimpak"))
                 b.add(btn("Stimpak (" + carry.get("gear:Stimpak") + ")", "+10 to +20 HP at once (Fallout 2); it does not stop bleeding", x -> { say(x, stimpak(x, c, "you")); actions(x); }));
+            for (Map.Entry<String, Integer> e : Meds.selfUse(p).entrySet()) {   // 04i: vitamin C, a blood bag, antivenom, the vaccines
+                String mn = e.getKey();
+                b.add(btn("Use " + mn + " (" + e.getValue() + ")", "a dose, on yourself", x -> {
+                    if (Meds.take(x, mn, 1) < 1) return;
+                    say(x, Meds.useSelf(c, mn, pl.rnd));
+                    actions(x);
+                }));
+            }
             for (Map.Entry<String, Integer> e : carry.entrySet()) {
                 if (!e.getKey().startsWith("chem:")) continue;
                 Data.Chem ch = Data.CHEMS.get(e.getKey().substring(5));
@@ -480,7 +488,7 @@ final class Menus {
         if (!t.dead && (t.bleeding > 0 || (t.hp < t.hpMax() && t.inSlot("treatment:dressing") == null)))
             b.add(btn(t.bleeding > 0 ? "First aid (stop the bleeding)" : "Dress the wounds", t.bleeding > 0 ? "the bleeding stops (Medicine)"
                     : "your Medicine 20 (a check): his healing rate +1 for the next 24 hours", x -> {
-                String r = firstAid(me, t, o.name() + "'s");
+                String r = firstAid(x, me, t, o.name() + "'s");
                 say(x, r);
                 o.tell(p.getName() + ": " + r, NamedTextColor.GREEN);
                 on(x, whoOf(o.entity()));
@@ -586,12 +594,17 @@ final class Menus {
      * First aid (no roll): it stops the bleeding; on a wound that no longer bleeds, a dressing (04c §4b, sutures: the healing rate +1)
      * when the medic has Medicine 20 or more [the 20 mine].
      */
-    static String firstAid(Character me, Character t, String whose) {
+    static String firstAid(Character me, Character t, String whose) { return firstAid(null, me, t, whose); }
+
+    /** The same by a player medic: the dressing takes one of his dressings (04i: the medicines used up); stopping the bleeding is free. */
+    static String firstAid(Player medic, Character me, Character t, String whose) {
         if (t.bleeding > 0) { t.bleeding = 0; return "first aid: " + whose + " bleeding stops"; }
         if (me.skill("Medicine") < 20) return "! dressing a wound needs Medicine 20 (a check, no roll): " + Math.round(me.skill("Medicine"));
+        String used = medic == null ? "a dressing" : Meds.dressing(medic);
+        if (used == null) return "! a dressing needs hemostatic gauze, a bandage, wound powder or a rag dressing";
         t.add(new Character.Effect("Wounds dressed", "treatment", "treatment:dressing", false, new int[7],
                 new LinkedHashMap<>(Map.of("healing_rate", 1.0)), 24, null, 100));
-        return whose + " wounds dressed: the healing rate +1 for the next 24 hours (healing comes with 8 hours of rest)";
+        return whose + " wounds dressed (" + used.toLowerCase(java.util.Locale.ROOT) + "): the healing rate +1 for the next 24 hours (healing comes with 8 hours of rest)";
     }
 
     static String stimpak(Player user, Character t, String who) {
@@ -662,27 +675,44 @@ final class Menus {
         Consumer<Player> back = x -> on(x, whoOf(o.entity()));
         pick(p, "Treat " + o.name() + ": " + d.name(), d.caught(), Diseases.actions(d, k), a -> a, a -> Diseases.actText(d, a), (x, act) -> {
             if (!act.equals("antibiotics")) {
+                String used = Meds.forAct(x, d, k, act, o.c());   // 04i: the doses the action takes
+                if (used != null && used.startsWith("!")) { say(x, used); on(x, whoOf(o.entity())); return; }
+                double pain0 = o.c().survival.getOrDefault(Rules.Stat.PAIN, 0.0);
                 String r = Diseases.treat(o.c(), name, act, "", 1, pl.character(x));
+                if (used != null && used.startsWith("anaesthesia")) {
+                    o.c().survival.put(Rules.Stat.PAIN, pain0);
+                    if (used.contains("chloroform") && pl.character(x).skill("Medicine") < Meds.CHLOROFORM_NEED) {
+                        o.c().arrestAt = o.c().now();
+                        o.c().arrestCause = "chloroform";
+                        r += "; THE CHLOROFORM STOPS THE HEART (Medicine " + Math.round(pl.character(x).skill("Medicine")) + " of " + Math.round(Meds.CHLOROFORM_NEED) + ")";
+                    }
+                }
+                if (used != null && used.startsWith("an oxygen cylinder")) {
+                    Diseases.Case kk = Diseases.active(o.c(), name);
+                    if (kk != null && kk.acts.containsKey("support")) kk.acts.put("support", o.c().now() + Meds.OXYGEN_HOURS);
+                }
+                if (used != null) r += " (used: " + used + ")";
                 say(x, o.name() + ": " + r);
                 o.tell(x.getName() + ": " + r, NamedTextColor.YELLOW);
                 on(x, whoOf(o.entity()));
                 return;
             }
-            String dose = null;
-            int tier = 0;
-            for (String id : Items.carried(x).keySet()) {
-                String[] th = Items.thing(id);
-                if (th != null && th[0].equals("Medicine") && Integer.parseInt(th[1]) > tier && Integer.parseInt(th[1]) >= 3) { dose = id; tier = Integer.parseInt(th[1]); }
-            }
-            if (dose == null) { say(x, "! you carry no antibiotics (Medicine III: crude penicillin, IV: pre-war)"); on(x, whoOf(o.entity())); return; }
-            String id = dose;
-            int t = tier;
-            List<String> fams = t >= 4 ? Diseases.FAMILIES : List.of("penicillins");
-            pick(x, "Which antibiotic", "Your Medicine (a check) or your own knowledge picks it (04c §4c): the wrong one does nothing.", fams, f -> f,
-                    f -> (t >= 4 ? "pre-war: " + Math.round(100 * Diseases.prewarStrength(Travel.years())) + " % strength now" : "crude penicillin (Medicine III)"),
-                    (y, fam) -> {
-                        if (!Items.take(y, id)) { say(y, "! the dose is gone"); return; }
-                        String r = Diseases.treat(o.c(), name, "antibiotics", fam, t >= 4 ? Diseases.prewarStrength(Travel.years()) : 1);
+            Map<String, Integer> abx = Meds.antibiotics(x);   // 04i: a course = one antibiotic, a dose a day
+            if (abx.isEmpty()) { say(x, "! you carry no antibiotics (a course: " + Meds.courseDoses(d) + " doses of one)"); on(x, whoOf(o.entity())); return; }
+            int need = Meds.courseDoses(d);
+            pick(x, "Which antibiotic", "Your Medicine (a check) or your own knowledge picks it (04c §4c): the wrong one does nothing. The course takes "
+                    + need + " doses; fewer = a short course.", new ArrayList<>(abx.keySet()), n -> n + " (" + abx.get(n) + ")",
+                    n -> Meds.ABX.get(n).family().replace("any", "phages: matched to the germ") + ", " + Math.round(100 * Meds.strength(n, Travel.years())) + " % now",
+                    (y, n) -> {
+                        String fam = Meds.family(n, d);
+                        double str = Meds.strength(n, Travel.years());
+                        if (!d.families().contains(fam)) { say(y, "! " + n + " does nothing for " + d.name() + " (it takes " + String.join(", ", d.families()) + ")"); return; }
+                        if (str <= 0) { say(y, "! these " + n + " no longer work (over 10 years past day D)"); return; }
+                        int took = Meds.take(y, n, need);
+                        String r = Diseases.treat(o.c(), name, "antibiotics", fam, str);
+                        Diseases.Case kc = Diseases.active(o.c(), name);
+                        if (kc != null && took < need) kc.abxDays = took;
+                        r += " (" + took + " of the " + need + " doses" + (took < need ? ": a short course" : "") + ")";
                         say(y, o.name() + ": " + r);
                         o.tell(y.getName() + ": " + r, NamedTextColor.YELLOW);
                         on(y, whoOf(o.entity()));

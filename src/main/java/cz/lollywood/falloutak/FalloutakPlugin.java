@@ -407,6 +407,11 @@ public class FalloutakPlugin extends JavaPlugin implements Listener {
             Character c = character(p);
             if (c.dead || c.inArrest()) return;
             if (Items.take(p, id)) say(p, Part3.dose(c, new String[]{"dose", id.substring(5)}, rnd));
+        } else if (Meds.name(id) != null && Meds.selfUse(p).containsKey(Meds.name(id))) {   // 04i: a medicine taken by oneself
+            Character c = character(p);
+            if (c.dead || c.inArrest()) return;
+            String mn = Meds.name(id);
+            if (Meds.take(p, mn, 1) == 1) say(p, Meds.useSelf(c, mn, rnd));
         } else if (id.equals("gear:Small gas mask")) {   // an active item (Marek 11-18): right click puts it on or takes it off
             Menus.smallMask(p, character(p));
         } else if (id.equals("gear:Stimpak")) {

@@ -179,7 +179,7 @@ final class Meals {
         for (int t = 4; t >= 1; t--) if (ateTier[t] > 0) what.add(ateTier[t] + " Food " + Rules.roman(t));
         for (int t = 4; t >= 1; t--) if (drankTier[t] > 0) what.add(drankTier[t] + " l of Tier " + Rules.roman(t));
         // 04b §3c (the shelter only, RULED round 10): a portion of Tier III or IV food = a vitamin C day
-        String sc = Conditions.scurvyDay(c, ateTier[3] + ateTier[4] > 0, rnd);
+        String sc = Conditions.scurvyDay(c, ateTier[3] + ateTier[4] > 0 || c.now() - c.vitaminAt <= 24, rnd);   // 04i: or a vitamin C tablet
         if (sc != null) j.add(sc);
         double rads = c.survival.getOrDefault(Rules.Stat.RADS, 0.0) - rads0;
         if (rads > 1e-9) what.add("+" + Diseases.f(rads) + " rads");

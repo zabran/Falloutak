@@ -71,6 +71,8 @@ final class Diseases {
         public boolean immune;
         public double abxStart = -1, abxRate = 1; // the course: the hour it began (recognised), its strength (the old stores half)
         public String abxFamily = "";
+        /** 04i: the doses the course was given when fewer than its days (a short course), else -1. */
+        public double abxDays = -1;
         public Map<String, Double> acts = new LinkedHashMap<>();   // an action → until this hour (−1 = while the disease lasts)
         public int stage = -1;
     }
@@ -242,7 +244,9 @@ final class Diseases {
             k.imm = Math.min(1, k.imm + d.rI() * speedBody * k.luck * (k.acts.containsKey("sanatorium") ? SANATORIUM : 1) / 24);
             if (k.imm >= 1 && !k.immune) { k.immune = true; out.add(d.name() + ": the body has its answer, it fades from now"); }
             int si = d.stageAt(k.sev);
-            double days = (d.course() > 0 ? d.course() : ABX_DAYS) / k.abxRate;
+            double full = d.course() > 0 ? d.course() : ABX_DAYS;
+            boolean shortCourse = k.abxDays > 0 && k.abxDays < full;
+            double days = (shortCourse ? k.abxDays : full) / k.abxRate;
             if (!k.abxFamily.isEmpty() && k.abxStart < 0 && si >= d.abxStage()) {
                 k.abxStart = now;
                 out.add(d.name() + " recognised: the " + k.abxFamily + " course starts (" + f(days) + " days)");
@@ -252,7 +256,8 @@ final class Diseases {
             if (k.abxStart >= 0 && now >= courseEnd) {
                 k.abxStart = -1;
                 k.abxFamily = "";
-                if (d.course() > 0) {   // a long course run to its end cures (the simulation's rule)
+                k.abxDays = -1;
+                if (d.course() > 0 && !shortCourse) {   // a long course run to its end cures (the simulation's rule); a short one does not
                     it.remove();
                     out.add(d.name() + ": the full course is done, cured" + cured(c, d));
                     continue;

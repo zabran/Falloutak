@@ -384,6 +384,248 @@
    "basic": false
   },
   {
+   "id": "mould-broth",
+   "name": "Mould broth",
+   "recipes": [
+    "mould-broth"
+   ],
+   "science": "Medicine",
+   "tier": 1,
+   "rarity": 2,
+   "points": 200,
+   "gate": 40,
+   "lab": 1,
+   "lines": [
+    "medicine"
+   ],
+   "needs": [],
+   "eureka": {
+    "kind": "gm",
+    "text": "Find bread or fruit overgrown with blue-green mould (Penicillium) and keep it",
+    "model": "— (Fleming's dish, 1928)",
+    "auto": false
+   },
+   "notes": [],
+   "experiment": {
+    "electronics": 1,
+    "machinery": 1
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "phage-therapy",
+   "name": "Phage therapy",
+   "recipes": [
+    "phages"
+   ],
+   "science": "Medicine",
+   "tier": 2,
+   "rarity": 1,
+   "points": 400,
+   "gate": 60,
+   "lab": 2,
+   "lines": [
+    "medicine"
+   ],
+   "needs": [],
+   "eureka": {
+    "kind": "gm",
+    "text": "Sample a sewage ditch or a river while the runs go round the base",
+    "model": "— (d'Hérelle, 1917)",
+    "auto": false
+   },
+   "notes": [],
+   "experiment": {
+    "electronics": 2,
+    "machinery": 1
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "sulfa-drugs",
+   "name": "Sulfa drugs",
+   "recipes": [
+    "sulfa"
+   ],
+   "science": "Chemistry",
+   "tier": 2,
+   "rarity": 1,
+   "points": 400,
+   "gate": 50,
+   "lab": 2,
+   "lines": [
+    "medicine"
+   ],
+   "needs": [
+    "workshop-iii"
+   ],
+   "eureka": {
+    "kind": "building",
+    "building": "Workshop",
+    "tier": 3,
+    "count": 1,
+    "text": "Build a Workshop III (the dye works' chemistry)",
+    "model": "Build a Workshop → Industrialization",
+    "auto": true
+   },
+   "notes": [
+    "1 Chemicals III: found only (no way makes it)"
+   ],
+   "experiment": {
+    "electronics": 2,
+    "machinery": 2
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "crude-penicillin",
+   "name": "Crude penicillin",
+   "recipes": [
+    "crude-penicillin"
+   ],
+   "science": "Medicine",
+   "tier": 2,
+   "rarity": 2,
+   "points": 800,
+   "gate": 50,
+   "lab": 2,
+   "lines": [
+    "medicine"
+   ],
+   "needs": [],
+   "eureka": {
+    "kind": "made",
+    "type": "Medicine",
+    "tier": 1,
+    "count": 10,
+    "text": "10 Medicine I made in the base (the broths and powders)",
+    "model": "Build 2 Mines → Apprenticeship",
+    "auto": true
+   },
+   "notes": [],
+   "experiment": {
+    "electronics": 2,
+    "machinery": 2
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "antiserum",
+   "name": "Antiserum",
+   "recipes": [
+    "crude-antiserum"
+   ],
+   "science": "Medicine",
+   "tier": 2,
+   "rarity": 1,
+   "points": 400,
+   "gate": 50,
+   "lab": 2,
+   "lines": [
+    "medicine"
+   ],
+   "needs": [],
+   "eureka": {
+    "kind": "building",
+    "building": "Pens",
+    "tier": 2,
+    "count": 1,
+    "text": "Build pens (a horse to immunise)",
+    "model": "Build a Pasture → Horseback Riding",
+    "auto": true
+   },
+   "notes": [],
+   "experiment": {
+    "electronics": 1,
+    "machinery": 1
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "ether-anaesthesia",
+   "name": "Ether anaesthesia",
+   "recipes": [
+    "ether"
+   ],
+   "science": "Chemistry",
+   "tier": 2,
+   "rarity": 1,
+   "points": 400,
+   "gate": 50,
+   "lab": 2,
+   "lines": [
+    "medicine"
+   ],
+   "needs": [],
+   "eureka": {
+    "kind": "made",
+    "type": "Chemicals",
+    "tier": 2,
+    "count": 10,
+    "text": "10 Chemicals II made in the base (the spirit)",
+    "model": "Build 2 Mines → Apprenticeship",
+    "auto": true
+   },
+   "notes": [
+    "1 Chemicals III: found only (no way makes it)"
+   ],
+   "experiment": {
+    "electronics": 1,
+    "machinery": 2
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
+   "id": "chloroform-anaesthesia",
+   "name": "Chloroform anaesthesia",
+   "recipes": [
+    "chloroform"
+   ],
+   "science": "Chemistry",
+   "tier": 2,
+   "rarity": 1,
+   "points": 400,
+   "gate": 50,
+   "lab": 2,
+   "lines": [
+    "medicine"
+   ],
+   "needs": [
+    "workshop-iii"
+   ],
+   "eureka": {
+    "kind": "made",
+    "type": "Chemicals",
+    "tier": 3,
+    "count": 3,
+    "text": "3 Chemicals III made in the base (the acids)",
+    "model": "Build 2 Mines → Apprenticeship",
+    "auto": true
+   },
+   "notes": [
+    "1 Chemicals III: found only (no way makes it)"
+   ],
+   "experiment": {
+    "electronics": 1,
+    "machinery": 2
+   },
+   "better": "",
+   "parked": false,
+   "basic": false
+  },
+  {
    "id": "prussian-blue",
    "name": "Prussian blue",
    "recipes": [
