@@ -573,12 +573,6 @@
      "id": ""
     },
     {
-     "name": "Cheese and butter",
-     "tier": 3,
-     "rarity": 1,
-     "id": ""
-    },
-    {
      "name": "Jerky",
      "tier": 3,
      "rarity": 2,
@@ -610,6 +604,12 @@
     },
     {
      "name": "Dried roots",
+     "tier": 3,
+     "rarity": 2,
+     "id": ""
+    },
+    {
+     "name": "Cheese and butter",
      "tier": 3,
      "rarity": 2,
      "id": ""
@@ -1409,7 +1409,7 @@
     {
      "name": "Armour repair kit",
      "tier": 2,
-     "rarity": 2,
+     "rarity": 1,
      "id": "gear:Armour repair kit"
     },
     {

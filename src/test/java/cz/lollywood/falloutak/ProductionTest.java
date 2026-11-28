@@ -726,11 +726,11 @@ class ProductionTest {
         assertEquals(1, b.count("Metal", 2, 2));
         assertEquals(0, b.takeUnits("Metal", 2, 0, 5));                                // not enough: nothing taken
         assertEquals(1, b.count("Metal", 2, 0));
-        b.addUnits("Gear and tools", 2, 2, 1);   // 0.112.0, the TTR: the repair kit out of the gas filters' row
-        Base.Pool tools = b.pools.get(Base.key("Gear and tools", 2, 2));
+        b.addUnits("Gear and tools", 2, 1, 1);   // the TTR: the gas filters and the kit "about the same worth" (Marek 11-28): one row
+        Base.Pool tools = b.pools.get(Base.key("Gear and tools", 2, 1));
         assertTrue(b.choices(tools).contains("Armour repair kit"));
-        assertFalse(b.choices(tools).contains("Gas filter"));
-        assertEquals("gear:Armour repair kit", Items.storeId("Gear and tools", 2, 2, "Armour repair kit"));
+        assertTrue(b.choices(tools).contains("Gas filter"));
+        assertEquals("gear:Armour repair kit", Items.storeId("Gear and tools", 2, 1, "Armour repair kit"));
         assertArrayEquals(new String[]{"Chems", "4", "1", "Buffout"}, Items.ttrOf("chem:Buffout"));   // 04i: the 2040s = Tier IV
         assertTrue(b.putThing("Food", 3, 1, "Potatoes", 4));
         assertTrue(b.takeThing(Base.key("Food", 3, 1), "Potatoes"));

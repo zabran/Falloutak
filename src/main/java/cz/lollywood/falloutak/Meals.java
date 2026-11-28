@@ -21,6 +21,10 @@ final class Meals {
     private Meals() {}
 
     static final double PORTION = 8, LITRE = 25;
+    /** `04k` round 2 (RULED 11-28): cooked meat's worth beside the potatoes' water and vitamin C in Food II R1 (New Vegas's steaks
+     *  Strength +1): a meat meal Strength +1 for 2 hours [the hours EXAMPLE]. */
+    static final String MEAT_MEAL = "Cooked meat";
+    static final double MEAT_HOURS = 2;
     /** 04b §5 (RULED), % a meal: spoiled food, raw meat or fish (food poisoning), home-preserved food (botulism). */
     static final double SPOILED = 10, RAW = 3, KEPT_BOTULISM = 0.1;
     /** 04b §5's water table (RULED), the germs' roll a day for 2 l: Tier I as a river below a town, Tier II as a spring. */
@@ -86,6 +90,11 @@ final class Meals {
         int home = homeTier("Food", name);
         boolean named = home > 0;
         if (!named) home = tier;
+        if (MEAT_MEAL.equals(name)) {   // the TTR's condition 1 (Marek 11-28: "Should cooked meat get Strength +1 for 2 hours - yes")
+            c.add(new Character.Effect("A meat meal: Strength +1", "food", "food:meat", false, new int[]{1, 0, 0, 0, 0, 0, 0},
+                    new java.util.LinkedHashMap<>(), MEAT_HOURS, null, 100));
+            j.add("Strength +1 for " + Txt.f(MEAT_HOURS) + " h");
+        }
         switch (tier) {
             case 1 -> { rads(c, RADS_FOOD, j); roll(c, "Food poisoning", named && raw(home) ? RAW : SPOILED, j, rnd); }
             case 2 -> { if (home >= 3) roll(c, "Food poisoning", SPOILED, j, rnd); else rads(c, RADS_FOOD, j); }

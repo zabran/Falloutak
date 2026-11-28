@@ -220,4 +220,24 @@ class DartLadderTest extends MockGame {
         assertEquals(0, b.count("Chems", 2, 2));
         assertEquals(3, b.count("Chems", 2, 1), "the R1 chems untouched");
     }
+
+    @Test
+    void aMeatMealGivesStrengthAndCheeseKeepsWithTheKeptFood() {
+        // `04k` round 2, RULED 11-28: cooked meat Strength +1 for 2 hours (its worth beside the potatoes'); cheese and butter in the kept row
+        Character c = plugin.character(player());
+        int s0 = c.attr(Rules.S, false);
+        String r = Meals.eat(c, 2, 1, "Cooked meat", new Random(1));
+        assertTrue(r.contains("Strength +1"), r);
+        assertEquals(s0 + 1, c.attr(Rules.S, false));
+        Meals.eat(c, 2, 1, "Cooked meat", new Random(1));
+        assertEquals(s0 + 1, c.attr(Rules.S, false), "a second meal does not stack: the same slot");
+        Hud.pass(c, 121);
+        assertEquals(s0, c.attr(Rules.S, false), "gone after 2 hours");
+        String p = Meals.eat(c, 2, 1, "Field potatoes", new Random(1));
+        assertFalse(p.contains("Strength"), p);
+        boolean kept = false;
+        for (Production.Named n : Production.TYPES.get("Food").items)
+            if (n.name.equals("Cheese and butter")) { kept = n.tier == 3 && n.rarity == 2; }
+        assertTrue(kept, "cheese and butter: Food III R2, the kept row");
+    }
 }

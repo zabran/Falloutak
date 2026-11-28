@@ -1954,6 +1954,7 @@
      "type": "Food",
      "tier": 3,
      "count": 2,
+     "rarity": 2,
      "items": [
       "Cheese and butter"
      ]
