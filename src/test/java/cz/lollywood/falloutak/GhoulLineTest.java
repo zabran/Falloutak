@@ -160,6 +160,7 @@ class GhoulLineTest {
         g.ghoulAdvance(3, Part3Test.fixed(0.5, 1));                         // 1 000 rads
         g.locationRads = 0;
         g.sleeping = true;
+        g.readAttributes();   // the husk's body at 1 000 rads read first (04 §3.10): its HP max from the current attributes
         g.hp = g.hpMax() - 20;
         int hp0 = g.hp;
         assertEquals(9, g.healingRate(), "shown: (−2 + 80 / 4) x 1/2, at its rate now");

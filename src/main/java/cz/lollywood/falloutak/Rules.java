@@ -351,9 +351,12 @@ public final class Rules {
     public static final double WATER_SCALE = 1.5, FOOD_SCALE = 10;
     /** 04 §3.3: a slowing metabolism, the hourly food × by the Starvation stage (fine, Minor .. Deadly). */
     public static final double[] FOOD_ADAPT = {1, .9, .8, .7, .6};
-    /** 04 §3.3, §3.1: food an hour by activity and how far the body's own heat moves the comfort interval down, °C. */
-    public static final Map<String, Double> ACT_FOOD = Map.of("rest", 1.0, "walk", 2.5, "work", 4.0);
-    public static final Map<String, Integer> ACT_SHIFT = Map.of("rest", 0, "walk", 8, "work", 15);
+    /** 04 §3.3, §3.1: food an hour by activity and how far the body's own heat moves the comfort interval down, °C. The rest's 1 an
+     *  hour = 2 100 kcal a day, a sedentary day (~1.25 MET for 70 kg); "light" = the base's work, standing or sitting at a bench, a
+     *  lab, a stove (~2 MET) [EXAMPLE, Marek 11-28: weekdays eat about as weekends]: an 8-hour workday 1.17 × a resting day; "walk"
+     *  = marching (8 h: 1.5 ×); "work" = hard labour or a fight (~5 MET; 8 h: 2 ×). */
+    public static final Map<String, Double> ACT_FOOD = Map.of("rest", 1.0, "light", 1.5, "walk", 2.5, "work", 4.0);
+    public static final Map<String, Integer> ACT_SHIFT = Map.of("rest", 0, "light", 4, "walk", 8, "work", 15);
     /** 04 §3.1 (fitted to Tikuisis 1995 and the military's water guidance): heat or cold points a degree-hour outside the interval;
      *  sweating's share of the heat an hour (costing as much water); shivering's share of the cold, up to its ceiling; a dehydrated
      *  body sweats less (by the Dehydration stage). */

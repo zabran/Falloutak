@@ -171,6 +171,7 @@ public final class Hud {
         c.clock += 1;
         if (c.washSoap && c.soapDays > 0) c.soapDays = Math.max(0, c.soapDays - 1 / 24.0);   // 04b §5: the bar wears down
         if (c.working && !c.sleeping && !c.dead && !c.inArrest() && !c.unconscious()) c.workedHours++;   // 06b §5.4.7
+        c.readAttributes();   // 04 §3.10: the hour's maxima from the current attributes, the bars and HP keeping their share
         List<String> stages0 = c.stages();
         double rads0 = c.survival.getOrDefault(Rules.Stat.RADS, 0.0);
         String drowse = c.freezingHour(java.util.concurrent.ThreadLocalRandom.current());   // 04j §7g: the freezing drift off

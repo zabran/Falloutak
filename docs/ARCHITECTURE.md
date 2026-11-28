@@ -15,7 +15,7 @@ outside the game; the game itself is for the look and feel. The rules' text live
    `Sfx` / `Narrator` / `Icons` / `Creatures` / `BmModels` (sound, voice, pictures, models).
 
 ## The main flows
-- **A game hour of a character** (`Hud.hour`): the hour's body heat once (`Character.thermo` → `Rules.thermo`: the air of `Travel.air`, set by the GM, against the outfit's comfort interval moved down by `Character.activity`; 04 DRAFT 2, 0.114.0) → the survival bars move by `Character.hourly` (the sweat off the water, food by activity and the Starvation stage, sleep only to the maximum minus `sleepDebt`; `sleepDay` each morning) → the stages' HP → the sun → the radiation
+- **A game hour of a character** (`Hud.hour`): `Character.readAttributes` (the hour's maxima from the current attributes, `lagAttrs`; the bars and HP keep their share, 0.115.0) → the hour's body heat once (`Character.thermo` → `Rules.thermo`: the air of `Travel.air`, set by the GM, against the outfit's comfort interval moved down by `Character.activity`; 04 DRAFT 2, 0.114.0) → the survival bars move by `Character.hourly` (the sweat off the water, food by activity and the Starvation stage, sleep only to the maximum minus `sleepDebt`; `sleepDay` each morning) → the stages' HP → the sun → the radiation
   crisis and the glowing one → once a day the mutation episode and the carried food's spoiling (`Spoil.carried`) → healing
   (`Hud.heal`) → the radiation rolls, therapies, grafts → the lifetime rads → `Diseases.hour` (cancer's year, the sick nearby, every
   disease's race) → `Conditions.hour` (trench foot, scabies, latent tuberculosis, scurvy's HP) → gases, power armour, the heart's

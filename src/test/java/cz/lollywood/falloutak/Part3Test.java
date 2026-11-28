@@ -508,6 +508,8 @@ class Part3Test {
         String log = c.giveTherapy(Data.GENES.get("Bone lattice"), 100, 1.0, false, true, fixed(0.5, 10));   // 100 × 1 × T4 0.6 = 60 %, rolled 10
         assertTrue(log.contains("laid on an empty slot"), log);
         assertEquals(hp, c.hpMax());
+        // kept fed, watered and asleep: two months of the stages' penalties would lower HP max too (04 §3.10, the current attributes)
+        c.baseFood = c.baseWater = c.sleeping = true;
         for (int k = 0; k < 1440; k++) Hud.hour(c);
         assertEquals(hp + 5, c.hpMax());
         assertEquals(4 * 2.5 * 8760, c.therapies.get(0).hours, 1e-9);

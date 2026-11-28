@@ -111,6 +111,10 @@ public final class Character {
     public int bars = 2;
     /** This hour's activity, set by whoever passes the time: walking on the world map (Travel), fighting (Battle). */
     public transient boolean walking = false, fighting = false;
+    /** 04 §3.10 (RULED 11-14: the maxima from the CURRENT attributes): the attributes and Survival read at this hour's start (so a
+     *  stage cannot chase its own maximum within the hour); null before the first hour (the permanent ones then). */
+    public int[] lagAttrs;
+    public double lagSurvival = -1;
     /** This hour's body heat ({@link Rules#thermo}), computed once an hour by Hud.hour. */
     transient double[] thermoNow;
     /** 04j §7g (RULED 11-27, Marek: *"Sleep table - yes, this works great."*): the clock when his last fight ended (its first hour keeps
@@ -1031,7 +1035,7 @@ public final class Character {
     public int hpMaxBase() {
         int extra = 0;
         if (has("Medical Marvel")) extra += 5;
-        return Rules.hpMax(attrs(true), hpBonus()) + extra + (int) Math.round(other("hp_max", true));
+        return Rules.hpMax(lagAttrs != null ? lagAttrs : attrs(true), hpBonus()) + extra + (int) Math.round(other("hp_max", true));   // 04 §3.10
     }
 
     /**
@@ -1164,8 +1168,9 @@ public final class Character {
 
     public double max(Rules.Stat st) {
         if (st == Rules.Stat.OXYGEN) return breathRounds();
-        double[] perm = skills(true);
-        return Rules.max(st, attrs(true), perm[Rules.skillIndex("Survival")], points[Rules.skillIndex("Survival")], hpMaxBase(), hpBonus());
+        int[] a = lagAttrs != null ? lagAttrs : attrs(true);
+        double sv = lagAttrs != null && lagSurvival >= 0 ? lagSurvival : skills(true)[Rules.skillIndex("Survival")];
+        return Rules.max(st, a, sv, points[Rules.skillIndex("Survival")], hpMaxBase(), hpBonus());
     }
 
     /**
@@ -1329,9 +1334,10 @@ public final class Character {
         return m <= 0 ? 0 : survival.getOrDefault(st, m) / m;
     }
 
-    /** This hour's activity (04 §3.1, §3.3): "work" fighting or at hard work, "walk" marching on the world map, else "rest". */
+    /** This hour's activity (04 §3.1, §3.3): "work" fighting, "light" the base's work, "walk" marching on the world map, else "rest". */
     public String activity() {
-        if (fighting || (working && !sleeping)) return "work";
+        if (fighting) return "work";
+        if (working && !sleeping) return "light";   // Marek 11-28: the base's work is no hard labour
         return walking ? "walk" : "rest";
     }
 
@@ -1351,6 +1357,27 @@ public final class Character {
         return Rules.thermo(airTemp(), cf[0] - shift, cf[1] - shift, survival.getOrDefault(Rules.Stat.HYPERTHERMIA, 0.0),
                 survival.getOrDefault(Rules.Stat.HYPOTHERMIA, 0.0), Math.min(1, o[1] / 100), Math.min(1, o[3] / 100),
                 Rules.fallingLevel(fraction(Rules.Stat.WATER)), cooled());
+    }
+
+    /**
+     * This hour's attributes read (04 §3.10, RULED 11-14: the maxima from the current attributes), and every bar whose maximum comes
+     * from them (water, food, sleep, blood) and HP keep their share (Marek 11-28, verbatim: *"any attribute change should let the
+     * derivated value (Survival, HP) percentage unchanged"*): a chem's Endurance fills the bigger bar as much as the old one was, and
+     * takes it back when it ends, so nothing is won or lost by it.
+     */
+    public void readAttributes() {
+        Rules.Stat[] keep = {Rules.Stat.WATER, Rules.Stat.FOOD, Rules.Stat.SLEEP, Rules.Stat.BLOOD};
+        double[] m0 = new double[keep.length];
+        for (int i = 0; i < keep.length; i++) m0[i] = max(keep[i]);
+        int hp0 = hpMaxBase();
+        lagAttrs = attrs(false);
+        lagSurvival = skills()[Rules.skillIndex("Survival")];
+        for (int i = 0; i < keep.length; i++) {
+            double m1 = max(keep[i]);
+            if (m0[i] > 0 && Math.abs(m1 - m0[i]) > 1e-9 && survival.containsKey(keep[i])) survival.put(keep[i], survival.get(keep[i]) * m1 / m0[i]);
+        }
+        int hp1 = hpMaxBase();
+        if (hp1 != hp0 && hp0 > 0 && hp > 0) hp = Math.max(1, (int) Math.round(hp * (double) hp1 / hp0));
     }
 
     /** The morning's sleep debt (04 §3.4): the day's missing hours added, the hours beyond the need repaid. */

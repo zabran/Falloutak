@@ -91,8 +91,12 @@ class SurvivalDraftTwoTest extends MockGame {
         assertEquals(-2.5 * f, c.hourly(Rules.Stat.FOOD), 1e-9, "walking 2.5");
         c.walking = false;
         c.working = true;
-        assertEquals(-4 * f, c.hourly(Rules.Stat.FOOD), 1e-9, "hard work 4");
+        assertEquals("light", c.activity());
+        assertEquals(-1.5 * f, c.hourly(Rules.Stat.FOOD), 1e-9, "the base's work is light work, 1.5 (Marek 11-28)");
         c.working = false;
+        c.fighting = true;
+        assertEquals(-4 * f, c.hourly(Rules.Stat.FOOD), 1e-9, "a fight: hard work 4");
+        c.fighting = false;
         at(c, Rules.Stat.FOOD, 0.7);
         assertEquals(-0.9 * f, c.hourly(Rules.Stat.FOOD), 1e-9, "Minor Starvation: × 0.9");
         at(c, Rules.Stat.FOOD, 0.1);
@@ -120,6 +124,34 @@ class SurvivalDraftTwoTest extends MockGame {
         Character now = Store.fromJson(Store.toJson(c));
         now.migrate();
         assertEquals(food, now.survival.get(Rules.Stat.FOOD), 1e-6, "a new save is not rescaled");
+    }
+
+    @Test
+    void theMaximaFollowTheCurrentAttributesAndEveryBarKeepsItsShare() {
+        Character c = body();
+        at(c, Rules.Stat.WATER, 0.7);   // inside Minor Dehydration, off its edges
+        at(c, Rules.Stat.SLEEP, 0.9);
+        c.hp = Math.max(2, c.hpMax() / 2);
+        c.readAttributes();   // the body as it is now (its own stages in its current attributes): the base to compare with
+        double w0 = c.max(Rules.Stat.WATER), s0 = c.max(Rules.Stat.SLEEP);
+        int h0 = c.hpMaxBase(), hp0 = c.hp;
+        c.add(new Character.Effect("Test: Buffout's body", "chem", "chem:test", false, new int[]{2, 0, 3, 0, 0, 0, 0}, java.util.Map.of(), 3, null, 100));
+        assertEquals(w0, c.max(Rules.Stat.WATER), 1e-9, "within the hour the maximum stays");
+        c.clock = 5;
+        Hud.hour(c);
+        double w1 = c.max(Rules.Stat.WATER), s1 = c.max(Rules.Stat.SLEEP);
+        assertTrue(w1 > w0 + 15 && s1 > s0 + 20, "the next hour: Endurance +3 raises the maxima (RULED 11-14) " + w0 + " -> " + w1);
+        assertEquals(0.7, c.survival.get(Rules.Stat.WATER) / w1, 5 / w1, "the water keeps its share, less the hour's own (unscaled it would be ~0.63)");
+        assertEquals(0.9, c.survival.get(Rules.Stat.SLEEP) / s1, 2 / s1, "the sleep keeps its share");
+        assertNull(c.stageNow(Rules.Stat.SLEEP), "so no Sleep Deprivation from a stimulant (the 11-28 finding)");
+        int h1 = c.hpMaxBase();
+        assertTrue(h1 > h0, "Strength +2, Endurance +3: more HP");
+        assertEquals((double) hp0 / h0, (double) c.hp / h1, 1.0 / h1 + 1e-9, "HP keeps its share (Marek 11-28)");
+        c.effects.removeIf(e -> e.name().startsWith("Test:"));
+        Hud.hour(c);
+        assertEquals(w0, c.max(Rules.Stat.WATER), 1e-6, "the effect gone: the maximum back");
+        assertEquals(0.7, c.survival.get(Rules.Stat.WATER) / w0, 8 / w0, "and the share still kept, less two hours' loss (kept whole it would be ~0.76)");
+        assertEquals(h0, c.hpMaxBase());
     }
 
     @Test
