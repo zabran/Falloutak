@@ -170,6 +170,7 @@ class ChemsRoundTwoTest extends MockGame {
     @Test
     void theStimpakStopsEveryBleedingAndHealingCostsFoodAndWater() {
         Character c = AirTest.human();
+        c.base[Rules.L] = 0;   // no luck procs: the dice are the Stimpak's (Double Healing: PoisonTest)
         c.hp = 5;
         c.bleeding = 2;
         double food = c.hourly(Rules.Stat.FOOD);
@@ -217,6 +218,7 @@ class ChemsRoundTwoTest extends MockGame {
     @Test
     void theTraumaPackNeedsMedicineFortyAndSealsEverything() {
         Character t = AirTest.human();
+        t.base[Rules.L] = 0;   // no Double Healing
         t.hp = 3;
         t.bleeding = 3;
         double bmax = t.max(Rules.Stat.BLOOD);

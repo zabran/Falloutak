@@ -16,6 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * the vaccines, the actions of `04c` §7.
  */
 class DiseasesTest {
+
+    /** AirTest's human without luck procs (Luck 0): the scripted rolls stay the catching's (Lucky Escape: PoisonTest). */
+    static Character human() { Character c = AirTest.human(); c.base[Rules.L] = 0; return c; }
     /** Runs the diseases {@code hours} game hours (the clock moves as the HUD's does); what they said. */
     private static List<String> run(Character c, int hours, Random r) {
         List<String> out = new ArrayList<>();
@@ -51,7 +54,7 @@ class DiseasesTest {
 
     @Test
     void theSickNearbySpreadItAndTheBedriddenFluBringsPneumonia() {
-        Character sick = AirTest.human(), c = AirTest.human();
+        Character sick = human(), c = human();
         Random r = fixed(0.5, 1);
         Diseases.infect(sick, of("Common cold"), r);
         run(sick, 48, r);                                                         // it shows
@@ -59,11 +62,11 @@ class DiseasesTest {
         Random always = fixed(0.0, 1);                                            // every roll under the chance
         Diseases.hour(c, always);
         assertNotNull(Diseases.active(c, "Common cold"), "a day's 3 % spread over its hours, caught");
-        Character far = AirTest.human();
+        Character far = human();
         Diseases.hour(far, always);
         assertNull(Diseases.active(far, "Common cold"), "nobody near, nothing caught");
         // the flu reaching Bedridden: a pneumonia roll (5 %)
-        Character f = AirTest.human();
+        Character f = human();
         Diseases.infect(f, of("Influenza"), r);
         f.clock += 1;
         Diseases.Case k = Diseases.active(f, "Influenza");
@@ -75,13 +78,13 @@ class DiseasesTest {
 
     @Test
     void aWoundRollsItsInfectionByItsClassAndTetanusOnlyWithoutTheVaccine() {
-        Character c = AirTest.human();
+        Character c = human();
         assertNotNull(Diseases.wound(c, "gunshot", fixed(0.1, 1)), "15 %: a roll of 10 catches it");
         assertNotNull(Diseases.active(c, "Wound infection"));
         assertNull(Diseases.active(c, "Tetanus"), "the start's booster keeps tetanus off");
-        Character d = AirTest.human();
+        Character d = human();
         assertNull(Diseases.wound(d, "cut", fixed(0.1, 1)), "a cut 2 %: a roll of 10 does not");
-        Character u = AirTest.human();
+        Character u = human();
         u.vaccinesSet = true;                                                     // no booster
         Diseases.wound(u, "bite", fixed(0.005, 1));
         assertNotNull(Diseases.active(u, "Tetanus"), "unvaccinated: 1 %");
@@ -93,7 +96,7 @@ class DiseasesTest {
         assertEquals(180, tb.course(), 1e-9);
         assertEquals(List.of("streptomycin"), tb.families());
         assertEquals(0, lyme.abxStage());
-        Character c = AirTest.human();
+        Character c = human();
         Random r = fixed(0.5, 1);
         Diseases.infect(c, tb, r);
         Diseases.Case k = Diseases.active(c, "Tuberculosis");
@@ -106,7 +109,7 @@ class DiseasesTest {
         assertNotNull(Diseases.active(c, "Tuberculosis"), "a few germs live until the course ends");
         run(c, 48, r);
         assertNull(Diseases.active(c, "Tuberculosis"), "the full course cures");
-        Character l = AirTest.human();
+        Character l = human();
         Diseases.infect(l, lyme, r);
         Diseases.active(l, "Lyme disease").incubation = 0;
         Diseases.treat(l, "Lyme disease", "antibiotics", "", 1);
@@ -116,7 +119,7 @@ class DiseasesTest {
 
     @Test
     void cancerRollsEachYearOnTheLifetimesRadsAndSurgeryCuresItWhileLocal() {
-        Character c = AirTest.human();
+        Character c = human();
         c.lifetimeRads = 1000;                                                    // 2 % a year
         c.clock = 2 * Diseases.YEAR - 1;
         run(c, 1, fixed(0.03, 1));
@@ -134,7 +137,7 @@ class DiseasesTest {
 
     @Test
     void aColdShowsAfterItsIncubationRunsItsCourseAndLeavesNoImmunity() {
-        Character c = AirTest.human();
+        Character c = human();
         Random r = fixed(0.5, 1);
         Diseases.Case k = Diseases.infect(c, of("Common cold"), r);
         assertEquals(48, k.incubation, 1e-9);                                    // 1-3 days: the middle
@@ -150,7 +153,7 @@ class DiseasesTest {
 
     @Test
     void theFluLeavesAYearOfImmunity() {
-        Character c = AirTest.human();
+        Character c = human();
         Random r = fixed(0.5, 1);
         Diseases.infect(c, of("Influenza"), r);
         run(c, 40 * 24, r);
@@ -162,7 +165,7 @@ class DiseasesTest {
 
     @Test
     void antibioticsTurnDysentereBackFromItsSecondStageButOnlyTheRightFamily() {
-        Character a = AirTest.human(), b = AirTest.human();
+        Character a = human(), b = human();
         Random r = fixed(0.5, 1);
         for (Character c : List.of(a, b)) Diseases.infect(c, of("Dysentery"), r);
         assertTrue(Diseases.treat(a, "Dysentery", "antibiotics", "ciprofloxacin", 1).contains("before it shows"), "nobody knows it yet");
@@ -181,7 +184,7 @@ class DiseasesTest {
 
     @Test
     void rabiesKillsOnceItShowsButTheVaccineInTheIncubationSaves() {
-        Character a = AirTest.human(), b = AirTest.human();
+        Character a = human(), b = human();
         Random r = fixed(0.5, 1);
         Diseases.infect(a, of("Rabies"), r);
         Diseases.infect(b, of("Rabies"), r);
@@ -197,7 +200,7 @@ class DiseasesTest {
 
     @Test
     void catchingTakesTheResistanceSoapTheVaccinesAndAWoundsOwnDirt() {
-        Character c = AirTest.human();
+        Character c = human();
         double res = Diseases.resistance(c);
         Random r = fixed(0.5, 1);                                                   // the roll: 50
         double pct = 60 / (1 - res);                                               // 60 after the resistance
@@ -208,13 +211,13 @@ class DiseasesTest {
         assertEquals(1, Diseases.kept(c, "Tetanus"), 1e-12, "the start's booster: 10 years in full");
         c.clock += 10 * Diseases.YEAR;
         assertEquals(0.5, Diseases.kept(c, "Tetanus"), 1e-12, "then 5 years at half");
-        Character w = AirTest.human();
+        Character w = human();
         assertTrue(Diseases.expose(w, "Wound infection", 50.5, false, false, r).contains("CAUGHT"), "not × the resistance");
     }
 
     @Test
     void theGraftsDrugsSlowTheImmunity() {
-        Character a = AirTest.human(), b = AirTest.human();
+        Character a = human(), b = human();
         b.add(new Character.Effect("Tacrolimus", "chem", "chem:Tacrolimus", false, new int[7], Map.of("immunity", -30.0), 1e6, null, 100));
         Random r = fixed(0.5, 1);
         for (Character c : List.of(a, b)) Diseases.infect(c, of("Typhoid"), r);
@@ -226,7 +229,7 @@ class DiseasesTest {
 
     @Test
     void theSheetCommandAndTheActions() {
-        Character c = AirTest.human();
+        Character c = human();
         Random r = fixed(0.5, 1);
         assertTrue(Diseases.command(c, new String[]{"disease"}, r).startsWith("No disease."));
         assertTrue(Diseases.command(c, new String[]{"disease", "catch", "tetanus"}, r).startsWith("Tetanus: infected"));

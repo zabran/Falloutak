@@ -213,10 +213,10 @@ final class Anomalies {
         Kind k = KINDS.get(z.anomaly);
         String head = "AN ANOMALY: " + k.name() + " (" + k.tell() + "). ";
         if (!k.hurts() && k.recharge() == 0) return head + hit(c, k, rnd);
-        int luck = c.attr(Rules.L, false), d = 1 + rnd.nextInt(100);
-        if (d <= 2 * luck) {
+        Character.Luck lk = c.luck(rnd);   // 2 × Luck %, Lucky Streak × 1.5
+        if (lk.ok()) {
             c.anomalyFx = "throw";   // the jerk back out of it
-            return head + "LUCKY ESCAPE (d100 " + d + " ≤ 2 × Luck " + luck + "): the body jerks back before it bites.";
+            return head + "LUCKY ESCAPE (d100 " + lk.roll() + " ≤ " + lk.chance() + " %): the body jerks back before it bites.";
         }
         return head + fire(c, z, round, rnd);
     }

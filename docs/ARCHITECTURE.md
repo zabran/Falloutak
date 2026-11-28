@@ -122,16 +122,16 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
 | `Battle` | 3204 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
-| `Character` | 3145 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
+| `Character` | 3156 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
 | `Conditions` | 256 | the conditions with their own clocks: scurvy, trench foot, scabies, latent tuberculosis |
 | `Creatures` | 160 | the game's creatures in the world (spawning, their sounds and motion) |
 | `Data` | 991 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
-| `Diseases` | 614 | the diseases' race, catching, vaccines, the treatments and the tending check |
+| `Diseases` | 616 | the diseases' race, catching, vaccines, the treatments and the tending check |
 | `FalloutakPlugin` | 441 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
 | `Forms` | 425 | the dialog forms: create a character, spend points, the level-up |
 | `Hauls` | 266 | the prologue's last-minute hauls |
-| `Hud` | 466 | each character's game hour and passing time, healing, the action bar |
+| `Hud` | 481 | each character's game hour and passing time, healing, the action bar |
 | `Icons` | 129 | pictures in hover texts |
 | `Items` | 553 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
 | `Labs` | 218 | the research pages |
@@ -166,5 +166,5 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **50 classes** | **27516** | |
+| **50 classes** | **27544** | |
 <!-- /CLASSES -->

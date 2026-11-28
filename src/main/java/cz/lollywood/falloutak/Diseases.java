@@ -154,6 +154,8 @@ final class Diseases {
         double roll = 100 * rnd.nextDouble();
         String num = f(roll) + " of " + f(ch) + " %" + (why.length() == 0 ? "" : " (" + pct + " %, " + why + ")");
         if (roll >= ch) return d.name() + ": not caught, " + num;
+        Character.Luck lk = c.luck(rnd);   // 04d §4 (RULED round 9): Lucky Escape on catching a disease or a wound infection
+        if (lk.ok()) return d.name() + ": LUCKY ESCAPE (d100 " + lk.roll() + " ≤ " + lk.chance() + " %), not caught, " + num;
         Case k = infect(c, d, rnd);
         return d.name() + ": CAUGHT, " + num + "; the first signs in " + time(k.incubation);
     }
@@ -366,7 +368,7 @@ final class Diseases {
         long h = Math.round(c.clock);
         if (h < 2 * YEAR || h % (long) YEAR != 0 || c.lifetimeRads <= 0 || active(c, "Cancer") != null) return;
         double pct = c.lifetimeRads * 0.002;
-        if (100 * rnd.nextDouble() < pct) infect(c, ALL.get("Cancer"), rnd);
+        if (100 * rnd.nextDouble() < pct && !c.luck(rnd).ok()) infect(c, ALL.get("Cancer"), rnd);   // Lucky Escape (04d §4)
     }
 
     private static void bump(Character c, Rules.Stat st, double v) {

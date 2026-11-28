@@ -240,17 +240,17 @@ final class Meds {
         double bleed = t.bleeding;
         switch (name) {
             case "Stimpak" -> {
-                int up = Math.min(t.hpMax(), t.hp + 10 + rnd.nextInt(11)) - t.hp;
+                int up = Math.min(t.hpMax(), t.hp + t.doubleHealing(10 + rnd.nextInt(11), rnd)) - t.hp;   // Double Healing (04d §4)
                 t.healReal(Math.max(0, up));
                 t.bleeding = 0;
                 keepStronger(t, fx("Stimpak (healing)", "treatment:heal-boost", "healing_rate", 1, 72), "healing_rate");
                 keepStronger(t, fx("Stimpak (anaesthetic)", "treatment:stimpak-pain", "pain_felt", -10, 1), "pain_felt");
                 keepStronger(t, needs("Stimpak", 0.25), "food_need");
-                return "a Stimpak: +" + (t.hp - before) + " HP (" + t.hp + "/" + t.hpMax() + ")" + (bleed > 0 ? ", the bleeding stops" : "")
+                return "a Stimpak: +" + (t.hp - before) + " HP" + (t.doubled ? " (Double Healing)" : "") + " (" + t.hp + "/" + t.hpMax() + ")" + (bleed > 0 ? ", the bleeding stops" : "")
                         + "; the healing rate +1 for 3 days, Pain −10 for an hour, food and water +25 % for a day";
             }
             case "Super Stimpak" -> {
-                int real = Math.max(0, Math.min(t.hpMax(), t.hp + SUPER_REAL) - t.hp);
+                int real = Math.max(0, Math.min(t.hpMax(), t.hp + t.doubleHealing(SUPER_REAL, rnd)) - t.hp);   // Double Healing (04d §4)
                 t.healReal(real);
                 t.hold(SUPER_HELD);
                 t.bleeding = 0;
@@ -262,7 +262,7 @@ final class Meds {
                 String heart = d <= e ? "the heart holds (d10 " + d + " ≤ Endurance " + e + ")"
                         : "the heart races (d10 " + d + " > Endurance " + e + "): AP −2 for an hour";
                 if (d > e) t.add(fx("Super Stimpak (racing heart)", "treatment:racing-heart", "ap", -2, 1));
-                return "a Super Stimpak: +" + real + " HP and " + SUPER_HELD + " HELD for an hour (" + t.hp + "/" + t.hpMax() + "), Blood +25 %"
+                return "a Super Stimpak: +" + real + " HP" + (t.doubled ? " (Double Healing)" : "") + " and " + SUPER_HELD + " HELD for an hour (" + t.hp + "/" + t.hpMax() + "), Blood +25 %"
                         + (bleed > 0 ? ", the bleeding stops" : "") + "; the healing rate +2 for 3 days, food and water +50 % for a day; " + heart;
             }
             case "Hypo" -> {
@@ -300,7 +300,7 @@ final class Meds {
         if (t.inArrest()) return "! clinical death: revive first";
         if (!Rules.check(medicine, TRAUMA_NEED)) return "! the Trauma pack needs Medicine " + TRAUMA_NEED + " (a check, no roll): " + Math.round(medicine);
         int before = t.hp;
-        t.healReal(Math.max(0, Math.min(t.hpMax(), t.hp + TRAUMA_HP) - t.hp));
+        t.healReal(Math.max(0, Math.min(t.hpMax(), t.hp + t.doubleHealing(TRAUMA_HP, Hud.rnd())) - t.hp));   // 04d §4
         t.bleeding = 0;
         double max = t.max(Rules.Stat.BLOOD), b = t.survival.getOrDefault(Rules.Stat.BLOOD, max);
         t.survival.put(Rules.Stat.BLOOD, Math.min(max, b + TRAUMA_BLOOD * max));

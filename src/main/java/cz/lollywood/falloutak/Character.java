@@ -328,6 +328,17 @@ public final class Character {
     /** A luck proc's roll: its chance in %, the d100, whether it came (part 2's procs; 04d §4). */
     public record Luck(int chance, int roll, boolean ok) {}
 
+    /** The last {@link #doubleHealing} doubled (for its news). */
+    public transient boolean doubled;
+
+    /** Double Healing (04d §4, RULED round 9): any healing × 2 at the luck proc's chance (never the immunity). The HP to heal. */
+    public int doubleHealing(int n, Random rnd) {
+        doubled = false;
+        if (n <= 0) return n;
+        doubled = luck(rnd).ok();
+        return doubled ? 2 * n : n;
+    }
+
     /** A luck proc (02 §6, 04d §4, RULED round 9): 2 × Luck %, none at Luck 0; Lucky Streak × 1.5 (its perk text). */
     public Luck luck(Random rnd) {
         int l = attr(Rules.L, false);

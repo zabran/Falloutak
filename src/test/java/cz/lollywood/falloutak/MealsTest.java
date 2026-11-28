@@ -10,6 +10,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Marek 11-24: eating and drinking from the pack and in the base (04 §3.9's tiers by harm, 04b §5's rolls), soap as a setting. */
 class MealsTest {
+
+    /** AirTest's human without luck procs (Luck 0): the scripted rolls stay the catching's (Lucky Escape: PoisonTest). */
+    static Character human() { Character c = AirTest.human(); c.base[Rules.L] = 0; return c; }
     /** A Random whose every double is {@code v}. */
     static Random always(double v) {
         return new Random() { @Override public double nextDouble() { return v; } };
@@ -21,7 +24,7 @@ class MealsTest {
 
     @Test
     void aPortionFeedsAlikeAndItsTierIsTheHarm() {
-        Character c = AirTest.human();
+        Character c = human();
         c.vaccinesSet = true;
         c.survival.put(Rules.Stat.FOOD, 10.0);
         double surv = c.skill("Survival");
@@ -35,7 +38,7 @@ class MealsTest {
         assertEquals(3 * rr(c), rads(c), 1e-6, "no rads from a stale clean portion");
         assertNotNull(Diseases.active(c, "Food poisoning"), r);
         // raw meat: +3 and 3 % (rolled 5: not caught)
-        Character d = AirTest.human();
+        Character d = human();
         d.vaccinesSet = true;
         Meals.eat(d, 1, 1, "Raw meat", always(0.05));
         assertEquals(3 * rr(d), rads(d), 1e-6);
@@ -47,7 +50,7 @@ class MealsTest {
 
     @Test
     void waterByItsTierAndNameAndTheStagesThatStopIt() {
-        Character c = AirTest.human();
+        Character c = human();
         c.vaccinesSet = true;
         c.survival.put(Rules.Stat.WATER, 20.0);
         Meals.drink(c, 2, "Boiled water", always(0.0));
@@ -56,17 +59,17 @@ class MealsTest {
         Meals.drink(c, 2, "Filtered water", always(0.0));
         assertEquals(18 * rr(c), rads(c), 1e-6, "filtered: no rads");
         assertFalse(c.diseases.isEmpty(), "the germs' roll, failed at 0: a disease of the spring's two");
-        Character d = AirTest.human();
+        Character d = human();
         d.vaccinesSet = true;
         Meals.drink(d, 1, "Dirty water", always(0.99));
         assertEquals(18 * rr(d), rads(d), 1e-6);
         assertEquals(1.0 - Math.pow(0.9, 0.5), Meals.chance(10, 0.5) / 100, 1e-9, "a litre = half the day's 2 l roll");
         // Deadly Dehydration: plain water counts a tenth (04 §3.2)
-        Character e = AirTest.human();
+        Character e = human();
         e.survival.put(Rules.Stat.WATER, 0.5);
         assertEquals(0.1, Meals.plainWaterShare(e), 1e-9);
         // a stage that keeps water down
-        Character f = AirTest.human();
+        Character f = human();
         f.add(new Character.Effect("Cholera: test", "disease", "disease:Cholera", false, new int[7], Map.of("no_drink", 1.0), 1e6, null, 100));
         assertNotNull(Meals.cannotDrink(f));
         assertTrue(Meals.drink(f, 3, "Purified water", always(0.5)).startsWith("!"));
@@ -86,7 +89,7 @@ class MealsTest {
         assertTrue(out.stream().anyMatch(s -> s.startsWith("Food: the people ate 2 Food III, 4 Food III R2")), out.toString());
         assertEquals(10, base.count("Food", 1, 1), "Tier I last: nothing else was short");
         // Marek 11-24: each character by his own body: a day's loss in portions of HIS size (Survival's bonus), the store's harm
-        Character avg = AirTest.human();
+        Character avg = human();
         avg.vaccinesSet = true;
         base.addUnits("Food", 3, 1, 40);
         double needA = Meals.dayNeed(avg, Rules.Stat.FOOD) / (Meals.PORTION * (1 + avg.skill("Survival") / 100));
@@ -103,7 +106,7 @@ class MealsTest {
         assertTrue(avg.survival.getOrDefault(Rules.Stat.RADS, 0.0) > 0, "no filtration here: the store's Tier I water");
         // the store empty: short, and his bar falls from then on
         Base empty = new Base(null);
-        Character d = AirTest.human();
+        Character d = human();
         String m = Meals.baseDay(d, pr, empty, always(0.99));
         assertTrue(d.baseShortFood && m.contains("short"), m);
         // fed by the base, his own bars do not fall during the pass
@@ -151,7 +154,7 @@ class MealsTest {
 
     @Test
     void soapIsASettingAndTheBarWearsDown() {
-        Character c = AirTest.human();
+        Character c = human();
         assertFalse(c.washSoap);
         c.washSoap = true;
         c.soapDays = 1;
@@ -164,10 +167,10 @@ class MealsTest {
 
     @Test
     void aFilthyWoundDoublesItsInfection() {
-        Character c = AirTest.human();
+        Character c = human();
         c.unwashedDays = 8;
         assertNotNull(Diseases.wound(c, "gunshot", always(0.25)), "15 % × 2: a roll of 25 catches it");
-        Character d = AirTest.human();
+        Character d = human();
         assertNull(Diseases.wound(d, "gunshot", always(0.25)), "washed: 15 %, a roll of 25 misses");
     }
 }

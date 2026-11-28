@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PoisonTest {
 
     /** Dice giving these nextInt values in turn (a d100 = the value + 1), the last one repeated. */
-    static final class Dice extends Random {
+    static class Dice extends Random {
         private final int[] v;
         private int i;
         Dice(int... v) { this.v = v; }
@@ -369,6 +369,54 @@ class PoisonTest {
         }
         assertTrue(peak > 15 && peak < 30, "the peak " + peak);
         assertTrue(hours > 12 && hours < 120, "gone in " + hours + " h (resistance " + res + ")");
+    }
+
+    @Test
+    void luckyEscapeOnCatchingAndCancerDoubleHealingOnAnyHealing() {
+        // 04d §4 (RULED round 9): Lucky Escape = 2 × Luck % against a roll that goes against you
+        Character c = body();                                                   // Luck 5: 10 %
+        String r = Diseases.expose(c, "Wound infection", 50, false, false, new Dice(9) {
+            @Override public double nextDouble() { return 0.0; }                // the catching roll 0: caught
+        });
+        assertTrue(r.contains("LUCKY ESCAPE"), r);
+        assertNull(Diseases.active(c, "Wound infection"));
+        r = Diseases.expose(c, "Wound infection", 50, false, false, new Dice(10) {
+            @Override public double nextDouble() { return 0.0; }
+        });
+        assertTrue(r.contains("CAUGHT"), "d100 11 > 10: " + r);
+        Character k = body();                                                   // cancer's yearly roll
+        k.lifetimeRads = 1000;
+        k.clock = 2 * Diseases.YEAR;
+        Diseases.cancerYear(k, new Dice(0) { @Override public double nextDouble() { return 0.0; } });
+        assertNull(Diseases.active(k, "Cancer"), "caught, but Lucky Escape");
+        Diseases.cancerYear(k, new Dice(99) { @Override public double nextDouble() { return 0.0; } });
+        assertNotNull(Diseases.active(k, "Cancer"));
+        // Double Healing: the rest's 8 hours, a Stimpak, never at Luck 0
+        Character h = body();
+        h.hp = 1;
+        h.sleeping = true;
+        int rate = h.healingRate();
+        assertTrue(rate > 0);
+        try {
+            Hud.dice = new Dice(0);
+            for (int i = 0; i < 8; i++) Hud.heal(h);
+            assertEquals(1 + 2 * rate, h.hp, "Double Healing on the rest: × 2");
+            Hud.dice = new Dice(99);
+            for (int i = 0; i < 8; i++) Hud.heal(h);
+            assertEquals(1 + 3 * rate, h.hp, "no proc: the rate");
+        } finally {
+            Hud.dice = null;
+        }
+        Character s = body();
+        s.hp = 1;
+        Meds.inject(s, "Stimpak", new Dice(0));
+        assertEquals(1 + 20, s.hp, "a Stimpak's 10 (the least roll), doubled");
+        Character z = body();
+        z.base[Rules.L] = 0;
+        assertEquals(0, z.luck(new Dice(0)).chance(), "Luck 0 has no procs");
+        z.hp = 1;
+        Meds.inject(z, "Stimpak", new Dice(0));
+        assertEquals(11, z.hp);
     }
 
     @Test

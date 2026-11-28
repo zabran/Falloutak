@@ -330,6 +330,7 @@ class Part3Test {
         assertTrue(Data.TEMPLATES.get("Android").premium());                     // round 5: a CoS template
         // 8 hours of rest without bleeding heal the healing rate, also from −Endurance (Marek 11-16)
         Character c = of("Human", 5, 5, 5, 5, 5, 6, 9);
+        c.base[Rules.L] = 0;   // no Double Healing (04d §4: PoisonTest)
         c.hp = Rules.deathFloor(c.attrs(false));
         c.sleeping = true;
         for (int i = 0; i < 7; i++) Hud.hour(c);

@@ -167,6 +167,11 @@ public final class Hud {
         p.setWorldBorder(b);
     }
 
+    /** The hour's dice for the luck procs and the poison (a test may fix them, as {@code Talks.dice}); null = ThreadLocalRandom. */
+    static java.util.Random dice;
+
+    static java.util.Random rnd() { return dice != null ? dice : java.util.concurrent.ThreadLocalRandom.current(); }
+
     static void hour(Character c) {
         c.clock += 1;
         if (c.washSoap && c.soapDays > 0) c.soapDays = Math.max(0, c.soapDays - 1 / 24.0);   // 04b §5: the bar wears down
@@ -195,7 +200,7 @@ public final class Hud {
         if (c.sleeping && c.survival.get(Rules.Stat.PAIN) > 75) c.survival.put(Rules.Stat.PAIN, 75.0);
         double floor = c.other("pain_floor", true);   // the mutation Chronic Pain: never below 10
         if (floor > 0 && c.survival.get(Rules.Stat.PAIN) < floor) c.survival.put(Rules.Stat.PAIN, floor);
-        String po = Poison.hour(c, java.util.concurrent.ThreadLocalRandom.current());   // 04d §1: the depots, the hourly roll, the sweat
+        String po = Poison.hour(c, rnd());   // 04d §1: the depots, the hourly roll, the sweat
         if (po != null) c.news.add(po);
         String stageHp = c.stageHour(stages0);   // the stages' HP Current (an hour; radiation's once) and HP Max (04, RULED 11-15)
         if (stageHp != null) c.news.add(stageHp);
@@ -268,7 +273,11 @@ public final class Hud {
             c.restHours = 0;
             if (!c.tpl().atDeath().equals("self-mend")) return;
             c.mendHours += 1;
-            if (c.mendHours >= 24) { c.mendHours = 0; c.hp += 1; }
+            if (c.mendHours >= 24) {   // Double Healing too (04d §4)
+                c.mendHours = 0;
+                c.hp += c.doubleHealing(1, rnd());
+                if (c.doubled) c.news.add("Double Healing: the body mends 2 HP today");
+            }
             if (c.hp >= Rules.deathFloor(c.attrs(false))) {
                 c.arrestAt = -1;
                 long floorXp = Rules.xpForLevel(c.level);
@@ -294,7 +303,9 @@ public final class Hud {
         c.restHours = 0;
         double f = c.tpl().healFactor() * Math.max(0, 1 + c.other("heal_factor", true));
         if (rate == 0 || c.other("no_healing") > 0) return;   // radiation's healing rate can take it all (04 §3.8); scurvy (04b §3c)
-        c.hp = Math.min(c.hpMax(), c.hp + Math.max(1, (int) Math.round(rate * f)));
+        int up = c.doubleHealing(Math.max(1, (int) Math.round(rate * f)), rnd());   // 04d §4
+        c.hp = Math.min(c.hpMax(), c.hp + up);
+        if (c.doubled) c.news.add("Double Healing: the rest heals " + up + " HP");
     }
 
     /**
@@ -314,7 +325,11 @@ public final class Hud {
         c.glowShed = 0;
         c.restHours = 0;
         if (rate < 0) c.news.add("the glowing one is running down (too few rads shed): HP " + rate + c.drain(-rate));
-        else if (rate > 0 && rested) c.hp = Math.min(c.hpMax(), c.hp + rate);
+        else if (rate > 0 && rested) {
+            int up = c.doubleHealing(rate, rnd());   // 04d §4
+            c.hp = Math.min(c.hpMax(), c.hp + up);
+            if (c.doubled) c.news.add("Double Healing: the rest heals " + up + " HP");
+        }
     }
 
     private void sidebar(Player p, Character c) {

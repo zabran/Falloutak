@@ -13,7 +13,7 @@ class ConditionsTest {
 
     @Test
     void scurvyCountsTheShelterDaysWithoutFreshFood() {
-        Character c = AirTest.human();
+        Character c = DiseasesTest.human();
         for (int d = 0; d < 29; d++) assertNull(Conditions.scurvyDay(c, false, always(0.5)));
         String m = Conditions.scurvyDay(c, false, always(0.5));
         assertTrue(m.startsWith("Minor Scurvy"), m);
@@ -31,7 +31,7 @@ class ConditionsTest {
         Base base = new Base(null);
         base.addUnits("Water", 3, 1, 50);
         base.addUnits("Food", 2, 1, 50);
-        Character d = AirTest.human();
+        Character d = DiseasesTest.human();
         Meals.baseDay(d, pr, base, always(0.99));
         assertEquals(1, d.scurvy, 1e-9, "Tier II only");
         base.addUnits("Food", 3, 1, 50);
@@ -43,7 +43,7 @@ class ConditionsTest {
 
     @Test
     void trenchFootByTheWetTheBootsAndTheSeason() {
-        Character c = AirTest.human();
+        Character c = DiseasesTest.human();
         c.outside = true;
         double w = 1 - c.bootsWater();
         for (int h = 0; h < 30; h++) Conditions.trenchHour(c, 1, "rain", always(0.5));
@@ -63,7 +63,7 @@ class ConditionsTest {
 
     @Test
     void scabiesOnlyByContactAndTheOintment() {
-        Character c = AirTest.human(), x = AirTest.human();
+        Character c = DiseasesTest.human(), x = DiseasesTest.human();
         x.scabies = true;
         c.nearby = List.of(x);
         assertNotNull(Conditions.scabiesHour(c, always(0.0)));
@@ -76,7 +76,7 @@ class ConditionsTest {
 
     @Test
     void tuberculosisLiesLatentThenFallsIll() {
-        Character c = AirTest.human(), x = AirTest.human();
+        Character c = DiseasesTest.human(), x = DiseasesTest.human();
         Diseases.Case k = Diseases.infect(x, Diseases.ALL.get("Tuberculosis"), always(0.5));
         k.incubation = 0;
         c.nearby = List.of(x);
@@ -96,16 +96,16 @@ class ConditionsTest {
 
     @Test
     void theGiantTicksBiteCarriesTheTickDiseases() {
-        Character c = AirTest.human();
+        Character c = DiseasesTest.human();
         String m = Diseases.tickBite(c, always(0.0));
         assertTrue(m.contains("CAUGHT"), m);
         assertNotNull(Diseases.active(c, "Lyme disease"));
-        assertNull(Diseases.tickBite(AirTest.human(), always(0.99)), "most bites carry nothing");
+        assertNull(Diseases.tickBite(DiseasesTest.human(), always(0.99)), "most bites carry nothing");
     }
 
     @Test
     void tendingIsAMedicineCheckAgainstTheStage() {
-        Character c = AirTest.human(), carer = AirTest.human();
+        Character c = DiseasesTest.human(), carer = DiseasesTest.human();
         Diseases.Case k = Diseases.infect(c, Diseases.ALL.get("Dysentery"), always(0.5));
         k.incubation = 0;
         k.stage = 1;   // dysentery, nursing: 10 + 15 × 2 = 40
@@ -124,7 +124,7 @@ class ConditionsTest {
     void painkillersAndFolkRemediesAreChems() {
         for (String n : List.of("Paracetamol", "Ibuprofen", "Willow bark", "Opium", "Cannabis", "Herbal tea", "Tannin tea", "Placebo", "Diazepam"))
             assertTrue(Data.CHEMS.containsKey(n), n);
-        Character a = AirTest.human(), b = AirTest.human();
+        Character a = DiseasesTest.human(), b = DiseasesTest.human();
         for (Character c : List.of(a, b)) {
             Diseases.Case k = Diseases.infect(c, Diseases.ALL.get("Cholera"), always(0.5));
             k.incubation = 0;
