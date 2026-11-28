@@ -38,6 +38,7 @@ class SleepSurrenderTest extends MockGame {
     @Test
     void advancedPainCostsTheFirstHourCriticalPainAllOfItValerianOnlyTheLighter() {
         Character c = rested();
+        at(c, Rules.Stat.SLEEP, 0.5);   // tired: a full bar gains nothing asleep (04 §3.4: only to the maximum minus the debt)
         c.survival.put(Rules.Stat.PAIN, 40.0);
         assertEquals("Advanced Pain", c.stageNow(Rules.Stat.PAIN));
         assertEquals("Advanced Pain", c.keptAwake());

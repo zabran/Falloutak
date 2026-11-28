@@ -77,11 +77,12 @@ class PopulationTest {
     }
 
     @Test
-    void theSurvivalMaximaAreTheWorkbooks() {
-        // Character!C14-C20 of the workbook's example: a human (HP bonus 15), Endurance 6, Survival 21.2, 0 Survival points
+    void theSurvivalMaximaAreTheWorkbooksWithDraftTwosScales() {
+        // Character!C14-C20 of the workbook's example: a human (HP bonus 15), Endurance 6, Survival 21.2, 0 Survival points;
+        // 04 DRAFT 2 (RULED 11-15): the water bar × 1.5 (the workbook's 115.6), the food reserve × 10 (its 120.6)
         int[] a = {2, 6, 6, 5, 8, 7, 4};
-        assertEquals(115.6, Rules.max(Rules.Stat.WATER, a, 21.2, 0, 30, 15), 1e-9);
-        assertEquals(120.6, Rules.max(Rules.Stat.FOOD, a, 21.2, 0, 30, 15), 1e-9);
+        assertEquals(1.5 * 115.6, Rules.max(Rules.Stat.WATER, a, 21.2, 0, 30, 15), 1e-9);
+        assertEquals(10 * 120.6, Rules.max(Rules.Stat.FOOD, a, 21.2, 0, 30, 15), 1e-9);
         assertEquals(110, Rules.max(Rules.Stat.SLEEP, a, 21.2, 0, 30, 15), 1e-9);
         assertEquals(85, Rules.max(Rules.Stat.POISON, a, 21.2, 0, 30, 15), 1e-9);
         assertEquals(72, Rules.max(Rules.Stat.HYPOTHERMIA, a, 21.2, 0, 30, 15), 1e-9);

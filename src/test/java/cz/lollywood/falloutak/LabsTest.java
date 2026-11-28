@@ -22,7 +22,9 @@ class LabsTest extends MockGame {
         pr.build("Still", 2, "Still");
         plugin.base.addUnits("Water", 1, 1, 300);
         plugin.base.addUnits("Food", 1, 1, 3);
-        plugin.base.addUnits("Food", 3, 1, 40);                    // the PCs in the base eat there (Marek 11-24), the best first
+        // the PCs in the base eat there (Marek 11-24), the best first; working, 12 portions a day (04 §3.3: hard work 4 an hour),
+        // so enough Food III for the three days that the prototype's 3 Food I stay in the store
+        plugin.base.addUnits("Food", 3, 1, 120);
         plugin.base.addUnits("Fuel", 1, 1, 1);
         Menus.actions(gm);
         click("Production");

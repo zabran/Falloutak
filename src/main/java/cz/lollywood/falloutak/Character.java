@@ -103,6 +103,16 @@ public final class Character {
     /** Downtime work in the base (06b §5.4.7: 1 XP an hour, RULED); the hours worked wait here until the GM's clock awards them. */
     public boolean working = false;
     public int workedHours = 0;
+    /** 04 §3.4 (RULED 11-15, Van Dongen 2003): the sleep debt in hours (each day short of the night's need adds what was missing,
+     *  sleep restores only to the maximum minus the debt, every hour beyond the need repays one) and today's hours asleep. */
+    public double sleepDebt = 0;
+    public int sleptToday = 0;
+    /** The bars' rules the saved values follow: 2 = 04 DRAFT 2 (water × 1.5, food × 10); an older save (without it) is rescaled. */
+    public int bars = 2;
+    /** This hour's activity, set by whoever passes the time: walking on the world map (Travel), fighting (Battle). */
+    public transient boolean walking = false, fighting = false;
+    /** This hour's body heat ({@link Rules#thermo}), computed once an hour by Hud.hour. */
+    transient double[] thermoNow;
     /** 04j §7g (RULED 11-27, Marek: *"Sleep table - yes, this works great."*): the clock when his last fight ended (its first hour keeps
      *  him awake), the hours of the rest so far (the lighter causes cost its first), and whether THIS hour he lies awake in it. */
     public double fightEndedAt = -1e9;
@@ -1293,18 +1303,60 @@ public final class Character {
         double h = Rules.hourly(st, survival.getOrDefault(Rules.Stat.HYPERTHERMIA, 0.0), st == Rules.Stat.SLEEP ? sleeping && !lyingAwake : sleeping, locationRads);   // 04j §7g: lying awake gains no Sleep
         Data.Template t = tpl();
         boolean power = "power".equals(t.needs());
+        double[] th = thermoNow != null ? thermoNow : thermo();   // 04 §3.1: the hour's body heat
+        String act = activity();
         return switch (st) {
-            case WATER -> power || baseWater ? 0 : h * t.waterFactor() * (1 + other("water_need"));   // an artifact's price (the ember: x1.25)
-            case FOOD -> baseFood && !power ? 0 : h * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
+            // 04 §3.1: the sweat costs as much water (the workbook's own 1:1)
+            case WATER -> power || baseWater ? 0 : (h - th[2]) * t.waterFactor() * (1 + other("water_need"));   // an artifact's price (the ember: x1.25)
+            // 04 §3.3 (RULED 11-15): food by the activity and the shivering, slowed by the Starvation stage
+            case FOOD -> baseFood && !power ? 0 : -Rules.FOOD_ADAPT[Rules.fallingLevel(fraction(Rules.Stat.FOOD))]
+                    * (Rules.ACT_FOOD.get(act) + th[3] / Rules.SHIVER_MAX) * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
             case SLEEP -> h < 0 ? h * t.sleepFactor() * (1 + other("sleep_need"))   // the need (DEC2: x0.75; Mentats x1.5, 04i §6a); a synthetic body: its memory
-                    : h * (other("rest_double") > 0 ? 2 : 1);   // Nightcap (04j §7c): 4 hours of sleep count as 8
-            case HYPOTHERMIA -> (h > 0 ? h * (1 + other("cold_gain")) : h) + other("cold_per_hour");   // the frost pearl's price (09c §3); alcohol: colder in the cold (04g §5)
+                    : Math.min(h * (other("rest_double") > 0 ? 2 : 1),   // Nightcap (04j §7c): 4 hours of sleep count as 8
+                               Math.max(0, max(Rules.Stat.SLEEP) - sleepDebt - survival.getOrDefault(Rules.Stat.SLEEP, 0.0)));   // 04 §3.4: only to the maximum minus the debt
+            case HYPOTHERMIA -> (th[1] > 0 ? th[1] * (1 + other("cold_gain")) : th[1]) + other("cold_per_hour");   // the frost pearl's price (09c §3); alcohol: colder in the cold (04g §5)
             // 04i §6b (RULED 11-27): the stimulants heat the body at work (amphetamine, pervitin, Buffout, Jet +1 an hour); Coolant's gain ½
-            case HYPERTHERMIA -> (h > 0 ? h * (1 + other("heat_gain")) : h) + (working && !sleeping ? Math.max(0, other("heat_per_hour")) : 0);
+            case HYPERTHERMIA -> (th[0] > 0 ? th[0] * (1 + other("heat_gain")) : th[0]) + (working && !sleeping ? Math.max(0, other("heat_per_hour")) : 0);
             case RADS -> (locationRads + nearRads) * (1 - Math.min(100, resistances()[1]) / 100) + other("rads_per_hour");   // + the glowing ones near (round 9)
             case BLOOD -> inArrest() ? 0 : h;   // no circulation, no new blood [mine]
             default -> h;
         };
+    }
+
+    /** A bar's share of its maximum (0 when the maximum is 0). */
+    double fraction(Rules.Stat st) {
+        double m = max(st);
+        return m <= 0 ? 0 : survival.getOrDefault(st, m) / m;
+    }
+
+    /** This hour's activity (04 §3.1, §3.3): "work" fighting or at hard work, "walk" marching on the world map, else "rest". */
+    public String activity() {
+        if (fighting || (working && !sleeping)) return "work";
+        return walking ? "walk" : "rest";
+    }
+
+    /** The night this body needs (04 §3.4: 8 h) × its sleep factor (DEC2's short sleeper ×0.75) [the factor's reading mine]. */
+    public double sleepNeed() {
+        return Rules.SLEEP_NEED * Math.max(0, tpl().sleepFactor() * (1 + other("sleep_need")));
+    }
+
+    /** The air this body is in, °C: outside, the GM's air of the party's place ({@code /travel air}); in the base none (comfortable). */
+    public double airTemp() { return outside ? Travel.air : Double.NaN; }
+
+    /** The hour's body heat (04 §3.1): the air against the outfit's comfort interval moved down by the activity. */
+    public double[] thermo() {
+        int[] cf = comfort();
+        int shift = Rules.ACT_SHIFT.get(activity());
+        double[] o = outfit();
+        return Rules.thermo(airTemp(), cf[0] - shift, cf[1] - shift, survival.getOrDefault(Rules.Stat.HYPERTHERMIA, 0.0),
+                survival.getOrDefault(Rules.Stat.HYPOTHERMIA, 0.0), Math.min(1, o[1] / 100), Math.min(1, o[3] / 100),
+                Rules.fallingLevel(fraction(Rules.Stat.WATER)), cooled());
+    }
+
+    /** The morning's sleep debt (04 §3.4): the day's missing hours added, the hours beyond the need repaid. */
+    public void sleepDay() {
+        sleepDebt = Math.max(0, sleepDebt + sleepNeed() - sleptToday);
+        sleptToday = 0;
     }
 
     // ------------------------------------------------------------------ effects: one slot, one effect
@@ -2104,6 +2156,12 @@ public final class Character {
         if (arrestCause == null) arrestCause = "";
         if (gas == null) gas = "";
         if (!survival.containsKey(Rules.Stat.OXYGEN)) survival.put(Rules.Stat.OXYGEN, max(Rules.Stat.OXYGEN));   // saves before 0.19.0
+        if (bars < 2) {   // saves before 0.114.0: the bars of 04 DRAFT 2 (water × 1.5, food × 10) keep their share
+            for (Rules.Stat st : new Rules.Stat[]{Rules.Stat.WATER, Rules.Stat.FOOD})
+                if (survival.containsKey(st))
+                    survival.put(st, Math.min(max(st), survival.get(st) * (st == Rules.Stat.WATER ? Rules.WATER_SCALE : Rules.FOOD_SCALE)));
+            bars = 2;
+        }
         if (arrestAt >= 0 && !dead && arrestCause.isEmpty() && hp >= Rules.deathFloor(attrs(false))) arrestAt = -1;
         if (arrestAt < 0) cprFrom = -1;
         refitImplants();

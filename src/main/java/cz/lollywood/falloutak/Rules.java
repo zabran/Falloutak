@@ -264,8 +264,8 @@ public final class Rules {
      */
     public static double max(Stat st, int[] a, double survival, double survivalPoints, int hpMax, int speciesHp) {
         return switch (st) {
-            case WATER -> 75 + 5 * a[E] + survival / 2;
-            case FOOD -> 50 + 10 * a[E] + survival / 2;
+            case WATER -> WATER_SCALE * (75 + 5 * a[E] + survival / 2);   // 04 §3.2 (RULED 11-15): the bar × 1.5
+            case FOOD -> FOOD_SCALE * (50 + 10 * a[E] + survival / 2);    // 04 §3.3 (RULED 11-15): the reserve × 10
             case SLEEP -> 50 + 10 * a[E];
             case POISON -> 40 + 3 * speciesHp;
             case RADS -> 1000;
@@ -346,9 +346,46 @@ public final class Rules {
      * rule, {@link #bleedingPerRound}). Pain falls 3 an hour only asleep or under anaesthetics: the workbook's note on Pain
      * (*"Lost with anestetics or sleep (-3/hour)"*; its formula took the 3 off every hour).
      */
+    // ------------------------------------------------------------------ 04 §3 DRAFT 2 (RULED 11-15), the survival sim's "draft2"
+    /** 04 §3.2-§3.3 (RULED 11-15): the water bar × 1.5 (3.6 days without water at rest), the food reserve × 10 (64 days with water). */
+    public static final double WATER_SCALE = 1.5, FOOD_SCALE = 10;
+    /** 04 §3.3: a slowing metabolism, the hourly food × by the Starvation stage (fine, Minor .. Deadly). */
+    public static final double[] FOOD_ADAPT = {1, .9, .8, .7, .6};
+    /** 04 §3.3, §3.1: food an hour by activity and how far the body's own heat moves the comfort interval down, °C. */
+    public static final Map<String, Double> ACT_FOOD = Map.of("rest", 1.0, "walk", 2.5, "work", 4.0);
+    public static final Map<String, Integer> ACT_SHIFT = Map.of("rest", 0, "walk", 8, "work", 15);
+    /** 04 §3.1 (fitted to Tikuisis 1995 and the military's water guidance): heat or cold points a degree-hour outside the interval;
+     *  sweating's share of the heat an hour (costing as much water); shivering's share of the cold, up to its ceiling; a dehydrated
+     *  body sweats less (by the Dehydration stage). */
+    public static final double HEAT_PER_DEG = 0.4, SWEAT = 0.27, SHIVER = 0.13, SHIVER_MAX = 5.3;
+    public static final double[] DEHYD_SWEAT = {1, 1, .75, .5, .25};
+    /** 04 §3.4: the night a body needs, in hours (the sleep debt counts what is short of it). */
+    public static final int SLEEP_NEED = 8;
+
+    /** A falling bar's stage as a level: 0 fine, 1 Minor (under 80 %), 2 Advanced, 3 Critical, 4 Deadly (under 20 %). */
+    public static int fallingLevel(double f) { return f >= .8 ? 0 : f >= .6 ? 1 : f >= .4 ? 2 : f >= .2 ? 3 : 4; }
+
+    /**
+     * An hour of the body's heat (04 §3.1, RULED 11-15; the sim's draft2 thermo): the air {@code airC} against the comfort interval
+     * {@code lo}-{@code hi} (the outfit's, moved down by the activity); NaN = no temperature known (the GM has set none): the air
+     * counts as comfortable, so the body only recovers. Isolation and Heat DR as fractions; a cooled suit sweats without the
+     * isolation's hindrance. Returns {the Hyperthermia change, the Hypothermia change, the sweat (water), the shivering}.
+     */
+    public static double[] thermo(double airC, double lo, double hi, double hyper, double hypo, double isoDr, double heatDr,
+                                  int waterLevel, boolean cooled) {
+        double w = Double.isNaN(airC) ? 0 : airC > hi ? airC - hi : airC < lo ? airC - lo : 0;
+        double sweat = SWEAT * hyper * Math.max(0, 1 + heatDr - (cooled ? 0 : isoDr)) * DEHYD_SWEAT[Math.max(0, Math.min(4, waterLevel))];
+        double gainH = w > 0 ? HEAT_PER_DEG * w * (1 - heatDr) : HEAT_PER_DEG * w;   // cold air cools the heat too
+        double h1 = Math.max(0, hyper + gainH - sweat);
+        double shiver = Math.min(SHIVER * hypo, SHIVER_MAX);
+        double gainC = w < 0 ? HEAT_PER_DEG * -w * (1 - isoDr) : 0, warm = w > 0 ? HEAT_PER_DEG * w : 0;
+        double c1 = Math.max(0, hypo + gainC - warm - 2 * (1 + isoDr - heatDr) - shiver);
+        return new double[]{h1 - hyper, c1 - hypo, sweat, shiver};
+    }
+
     public static double hourly(Stat st, double hyperthermia, boolean sleeping, double locationRads) {
         return switch (st) {
-            case WATER -> -2 - 0.1 * hyperthermia;
+            case WATER -> -2;   // the sweat on top: Character.hourly (04 §3.1, the workbook's −0.1 × Heat was its first try)
             case FOOD -> -1;
             case SLEEP -> sleeping ? 4 : -1;
             case POISON -> 0;

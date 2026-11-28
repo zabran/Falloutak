@@ -2749,7 +2749,9 @@ public final class Battle implements Listener {
         Hud.round(c, rnd);   // bleeding, breathing, the gas (03b §3c)
         pl.zones.reach(++s.sceneRound);   // the clouds count down once a round of the scene (Marek 11-18, round 24)
         c.minuteAcc += 0.1;   // a round = 6 s of game time (Marek 11-16: time stands still between the rounds)
+        c.fighting = true;    // 04 §3.1, §3.3: an hour that ends in a fight is hard work
         while (c.minuteAcc >= 60) { c.minuteAcc -= 60; Hud.hour(c); }
+        c.fighting = false;
         String body = c.takeNews();
         if (body != null) p.sendMessage(Component.text(body + ".", NamedTextColor.GOLD));
         if (c.inArrest()) { died(p, s, c, false); return; }

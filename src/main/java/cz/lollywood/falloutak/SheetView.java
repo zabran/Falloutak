@@ -385,7 +385,7 @@ public final class SheetView {
         for (Rules.Stat st : Rules.Stat.values()) {
             double v = c.survival.get(st), m = c.max(st);
             String sg = c.stageOf(st, v, m);
-            double h = Rules.hourly(st, c.survival.get(Rules.Stat.HYPERTHERMIA), c.sleeping, c.locationRads);
+            double h = c.hourly(st);   // the body's own rate (04 DRAFT 2: activity, sweat, the sleep debt)
             String eff = sg == null ? "" : Data.effectText(sg);
             if (st == Rules.Stat.PAIN && sg != null && noPain) eff += "\nIGNORED: Survival " + f(Math.round(c.painCheckSurvival())) + " ≥ Pain " + f(Math.round(v));
             t.row(Icons.tip(Icons.stat(st), "stat_" + Icons.key(st.name()), eff, Data.note("Character", name(st))), c(c.statName(st), WHITE), r(f(Math.round(v)) + " / " + f(Math.round(m)), WHITE),
@@ -395,7 +395,7 @@ public final class SheetView {
         t.row(tip("Blood a round (Andor's numbers, absolute): a weak wound 2, a strong one 5, +1 a further cut\n/sheet firstaid stops it", null),
                         c("Bleeding", WHITE), r(f(c.bleeding), c.bleeding > 0 ? NamedTextColor.DARK_RED : NamedTextColor.GREEN),
                         c(c.bleeding > 0 ? "Blood a round" : "none", c.bleeding > 0 ? NamedTextColor.DARK_RED : NamedTextColor.GREEN), NONE, NONE)
-                .row(tip("Sleep +4 an hour asleep, −1 awake; Pain −3 an hour only asleep or with anaesthetics", null),
+                .row(tip("Sleep +4 an hour asleep (only to the maximum minus the sleep debt, now " + f(Math.round(c.sleepDebt)) + " h), −1 awake; Pain −3 an hour only asleep or with anaesthetics", null),
                         c("Sleeping", WHITE), r(c.sleeping ? "yes" : "no", WHITE), NONE, NONE, NONE)
                 .row(tip("the place's radiation", null), c("Here", WHITE), r(f(c.locationRads), NamedTextColor.YELLOW), c("rads an hour", HOW), NONE, NONE);
         // 03b §3c (RULED 11-18): the air and the gas, the ears, what is worn

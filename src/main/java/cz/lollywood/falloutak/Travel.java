@@ -119,6 +119,8 @@ final class Travel {
     /** The day's weather's shares by season (winter .. autumn) over {@link #WEATHER} [mine, EXAMPLE: Central Europe's in the nuclear autumn]. */
     static final double[][] WEATHER_SHARE = {{0.45, 0.10, 0.20, 0.25, 0}, {0.55, 0.30, 0.10, 0.05, 0}, {0.65, 0.30, 0.05, 0, 0}, {0.45, 0.30, 0.25, 0, 0}};
     static String weather = "clear";
+    /** The air of the party's place in °C, set by the GM ({@code /travel air}); NaN = none set: the body counts it comfortable (04 §3.1). */
+    static double air = Double.NaN;
     static boolean weatherSet;
     static int weatherDay = Integer.MIN_VALUE;
     /** The conditions' difficulty at most (Marek: *"the difficulty should should go up +50"*). */
@@ -140,6 +142,7 @@ final class Travel {
                 if (o.has("cleared")) o.getAsJsonArray("cleared").forEach(e -> cleared.add(e.getAsInt()));
                 if (o.has("feuds")) o.getAsJsonArray("feuds").forEach(e -> feuds.add(e.getAsString()));
                 if (o.has("tickDay")) tickDay = o.get("tickDay").getAsInt();
+                air = o.has("air") ? o.get("air").getAsDouble() : Double.NaN;
             } catch (IOException | RuntimeException e) { /* a broken file: start again at the start */ }
         }
         applyCleared();
@@ -179,6 +182,7 @@ final class Travel {
         JsonObject o = new JsonObject();
         o.addProperty("i", pi); o.addProperty("j", pj); o.addProperty("season", season); o.addProperty("marched", marched);
         o.addProperty("marchDay", marchDay);
+        if (!Double.isNaN(air)) o.addProperty("air", air);
         o.addProperty("tickDay", tickDay);
         o.add("cleared", new Gson().toJsonTree(cleared));
         o.add("feuds", new Gson().toJsonTree(feuds));
@@ -369,7 +373,9 @@ final class Travel {
         List<String> news = new ArrayList<>();
         for (Character c : cs) {
             c.outside = true;
+            c.walking = true;   // 04 §3.1, §3.3: a march's hours are walking
             String r = Hud.pass(c, wk.hours() * 60);
+            c.walking = false;
             if (r != null) news.add(c.name + ": " + r);
         }
         if (lead.day() != marchDay) { marchDay = lead.day(); marched = 0; }
@@ -702,6 +708,11 @@ final class Travel {
                 if (w.equals("auto")) { weatherSet = false; weatherDay = Integer.MIN_VALUE; return "The weather is drawn each day again."; }
                 for (String x : WEATHER) if (x.startsWith(w)) { weather = x; weatherSet = true; return "The weather: " + x + " (until /travel weather auto)."; }
                 return "! /travel weather clear|rain|fog|snow|black rain|auto";
+            }
+            case "air" -> {   // 04 §3.1: the place's air for the body's heat (no thermometer of its own yet: OPEN 1 of the new notes)
+                if (a.length > 1) air = a[1].equalsIgnoreCase("off") ? Double.NaN : Double.parseDouble(a[1].replace(",", "."));
+                save();
+                return Double.isNaN(air) ? "The air: none set (the body counts it comfortable)." : String.format(Locale.ROOT, "The air: %.0f °C.", air);
             }
             case "season" -> {
                 if (a.length > 1) for (int k = 0; k < 4; k++) if (WorldMap.SEASONS[k].startsWith(a[1].toLowerCase(Locale.ROOT))) season = k;

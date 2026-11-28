@@ -177,8 +177,11 @@ public final class Hud {
         if (drowse != null) c.news.add(drowse);
         String awake = c.lyingAwakeHour();   // 04j §7g: what keeps him awake in his rest
         if (awake != null) c.news.add(awake);
+        c.thermoNow = c.thermo();   // 04 §3.1: the hour's body heat, once for all its bars
         double[] d = new double[Rules.Stat.values().length];
         for (Rules.Stat st : Rules.Stat.values()) d[st.ordinal()] = c.hourly(st);
+        c.thermoNow = null;
+        if (c.sleeping && !c.lyingAwake) c.sleptToday++;   // 04 §3.4: the night's hours asleep
         c.restRun = c.sleeping ? c.restRun + 1 : 0;
         c.lyingAwake = false;
         for (Rules.Stat st : Rules.Stat.values()) {
@@ -199,6 +202,7 @@ public final class Hud {
         if (crisis != null) c.news.add(crisis);
         c.glowHour();                                                                // 03b §7b: the glowing one sheds (round 9)
         if (Math.round(c.clock) % 24 == 0) {                                         // 03b §7b: the day's episode roll (round 8)
+            c.sleepDay();                                                            // 04 §3.4: the sleep debt
             String ep = c.episode(java.util.concurrent.ThreadLocalRandom.current(), false);
             if (ep != null) c.news.add(ep);
             if (Menus.pl != null && org.bukkit.Bukkit.getServer() != null)            // 07 §19: the food carried spoils by the day

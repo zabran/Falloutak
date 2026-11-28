@@ -23,7 +23,11 @@ final class Store {
 
     static String toJson(Character c) { return GSON.toJson(c); }
 
-    static Character fromJson(String json) { return GSON.fromJson(json, Character.class); }
+    static Character fromJson(String json) {
+        Character c = GSON.fromJson(json, Character.class);
+        if (c != null && !json.contains("\"bars\"")) c.bars = 0;   // a save before 0.114.0: Character.migrate rescales its bars
+        return c;
+    }
 
     Path file(UUID u) { return dir.resolve(u + ".json"); }
 
