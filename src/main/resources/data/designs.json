@@ -263,7 +263,7 @@
    "name": "Darts",
    "group": "Rounds",
    "skill": "Bows",
-   "note": "a blowgun's or a dart gun's; one dose a dart (04j §7h): opium II a small animal, ketamine III 30 rounds, the tranquilliser III R2 3 rounds (the double dose at once, with a risk to his breathing: naloxone), the knockout IV at once on anything"
+   "note": "a blowgun's or a dart gun's; one dose a dart (04j §7h): opium II a small animal, ketamine III 30 rounds, the tranquilliser III 3 rounds (the double dose at once, with a risk to his breathing: naloxone), the knockout IV at once on anything"
   },
   {
    "name": "Heavy rounds",
@@ -6948,7 +6948,8 @@
     {
      "type": "Chems",
      "tier": 2,
-     "count": 3
+     "count": 3,
+     "rarity": 2
     }
    ],
    "makes": 3,
@@ -6990,7 +6991,7 @@
    "skill": "Bows",
    "name": "Tranquilliser darts",
    "tier": 3,
-   "rarity": 2,
+   "rarity": 1,
    "parts": [
     {
      "type": "Light weapon parts",
@@ -7001,6 +7002,11 @@
      "type": "Chems",
      "tier": 3,
      "count": 3
+    },
+    {
+     "type": "Chemicals",
+     "tier": 3,
+     "count": 1
     }
    ],
    "makes": 3,
@@ -7016,7 +7022,7 @@
    "skill": "Bows",
    "name": "Tranquilliser darts, double dose",
    "tier": 3,
-   "rarity": 2,
+   "rarity": 1,
    "parts": [
     {
      "type": "Light weapon parts",
@@ -7027,6 +7033,11 @@
      "type": "Chems",
      "tier": 3,
      "count": 6
+    },
+    {
+     "type": "Chemicals",
+     "tier": 3,
+     "count": 2
     }
    ],
    "makes": 3,

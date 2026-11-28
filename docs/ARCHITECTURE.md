@@ -50,7 +50,10 @@ outside the game; the game itself is for the look and feel. The rules' text live
   `throwsName` (the spear-thrower's javelins), `noGuard` (the war flail), THE SLEEP DARTS (0.111.0, `04j` §7h: `Battle.dose` reads the load,
   `sleepRounds` by the body (`PERSON_HP`, `LARGE_HP`: only the Tier IV knockout takes the large), `dart` sets `Target.sedatedAt`, asleep at once or
   `drowsy` (AP −1 in `Raiders.plan`/`cross`); the double dose's `breathRisk` sets `Target.breathStopAt`, `Raiders.breathEnds` kills him;
-  on the field `Loot.Body.breathless`, `Loot.settleBreath` (the field's clock), `Loot.naloxone` from the pack).
+  on the field `Loot.Body.breathless`, `Loot.settleBreath` (the field's clock), `Loot.naloxone` from the pack). THE TTR (0.112.0, Marek 11-28: one row's items are
+  interchangeable in the base, so they must be worth about the same, or the type is only parts for an assembly): the darts are an
+  assembly of Chems and Chemicals rows (no chem of their own); a design's part may carry its own rarity (`Production.Part.rarity(d)`,
+  used by every `Base` assembly loop: the Opium darts take Chems II R2).
   The traps (05d §7c): `Data.TRAPS` (`data/traps.json`), the skills Traps, Mines, Alarms (`Rules.COMBOS`), `Battle.Trap` in `Fight.traps`,
   `setTrap` (`/sheet trap`), `trapAt`, `knownTraps` (blocked cells in `Raiders.taken`), `spots`, `inCone`, `spring`; `Raiders.trapCut` on the
   raider's and the beast's walk and on a hunted animal's flight; a pit's victim loses its next turn (`Target.inPit`).

@@ -422,8 +422,8 @@
    ],
    "science": "Medicine",
    "tier": 2,
-   "rarity": 1,
-   "points": 400,
+   "rarity": 2,
+   "points": 800,
    "gate": 60,
    "lab": 2,
    "lines": [
@@ -453,8 +453,8 @@
    ],
    "science": "Chemistry",
    "tier": 2,
-   "rarity": 1,
-   "points": 400,
+   "rarity": 2,
+   "points": 800,
    "gate": 50,
    "lab": 2,
    "lines": [
@@ -525,8 +525,8 @@
    ],
    "science": "Medicine",
    "tier": 2,
-   "rarity": 1,
-   "points": 400,
+   "rarity": 2,
+   "points": 800,
    "gate": 50,
    "lab": 2,
    "lines": [
@@ -559,8 +559,8 @@
    ],
    "science": "Chemistry",
    "tier": 2,
-   "rarity": 1,
-   "points": 400,
+   "rarity": 2,
+   "points": 800,
    "gate": 50,
    "lab": 2,
    "lines": [
@@ -595,8 +595,8 @@
    ],
    "science": "Chemistry",
    "tier": 2,
-   "rarity": 1,
-   "points": 400,
+   "rarity": 2,
+   "points": 800,
    "gate": 50,
    "lab": 2,
    "lines": [
@@ -698,15 +698,14 @@
    ],
    "science": "Chemistry",
    "tier": 2,
-   "rarity": 1,
-   "points": 400,
+   "rarity": 2,
+   "points": 800,
    "gate": 50,
    "lab": 2,
    "lines": [
     "chems"
    ],
    "needs": [
-    "tranquilliser",
     "prussian-blue",
     "immunosuppressants"
    ],
@@ -726,45 +725,6 @@
    "better": "",
    "parked": false,
    "basic": false
-  },
-  {
-   "id": "tranquilliser",
-   "name": "Tranquilliser",
-   "recipes": [
-    "make-tranquilliser"
-   ],
-   "science": "Chemistry",
-   "tier": 3,
-   "rarity": 2,
-   "points": 1800,
-   "gate": 100,
-   "lab": 2,
-   "lines": [
-    "chems"
-   ],
-   "needs": [
-    "prussian-blue",
-    "immunosuppressants",
-    "workshop-iii"
-   ],
-   "eureka": {
-    "kind": "gm",
-    "text": "Find a hunter's, a vet's or a zoo's dart kit with its doses, or question its owner",
-    "model": "— (the vets' and zoos' dart guns)",
-    "auto": false
-   },
-   "notes": [
-    "1 Chemicals III: found only (no way makes it)",
-    "the experiments' Electronics III: from Circuit boards (or found)",
-    "the experiments' Machinery III: from Precision parts (or found)"
-   ],
-   "experiment": {
-    "electronics": 1,
-    "machinery": 2
-   },
-   "better": "",
-   "parked": false,
-   "basic": true
   },
   {
    "id": "prussian-blue",

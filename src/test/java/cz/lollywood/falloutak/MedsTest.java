@@ -33,7 +33,8 @@ class MedsTest extends MockGame {
         assertEquals("3", Items.ttrOf("gear:Adrenaline")[1]);
         assertEquals("thing:Medicine|3|1|Penicillin", Meds.id("Penicillin"));
         assertEquals("thing:Medicine|2|2|Crude penicillin", Meds.id("Crude penicillin"));
-        assertEquals("thing:Medicine|2|1|Ether", Meds.id("Ether"));
+        assertEquals("thing:Medicine|2|2|Ether", Meds.id("Ether"));   // 0.112.0, the TTR: the researched drugs R2, the dressings R1
+        assertEquals("thing:Medicine|2|1|Bandage", Meds.id("Bandage"));
         for (String c : java.util.List.of("Metamizole", "Aspirin", "Tramadol", "Methadone", "Pervitin")) assertNotNull(Data.CHEMS.get(c), c);
     }
 

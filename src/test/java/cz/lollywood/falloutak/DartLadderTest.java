@@ -173,29 +173,51 @@ class DartLadderTest extends MockGame {
     }
 
     @Test
-    void theTranquilliserIsMadeFromTheCodeineLevelAndAChemical() {
-        Production.Recipe r = Production.RECIPES.get("make-tranquilliser");
-        assertNotNull(r);
-        assertEquals("Workshop", r.building);
-        assertEquals("Chemistry", r.skill);
-        assertEquals("Tranquilliser", r.research);
-        assertEquals(2, r.inputs.size());
-        assertEquals("Chems", r.inputs.get(0).type);
-        assertEquals(3, r.inputs.get(0).tier);
-        assertEquals(java.util.List.of("Codeine"), r.inputs.get(0).items, "Marek: the codeine level as base");
-        assertEquals("Chemicals", r.inputs.get(1).type);
-        assertEquals(3, r.inputs.get(1).tier, "some other generic chemical");
-        assertEquals(java.util.List.of("Tranquilliser"), r.makes.get(0).items);
-        assertEquals(2, r.makes.get(0).rarity, "the higher rarity");
-        assertTrue(Research.CARDS.containsKey("tranquilliser"));
-        Production.Design dt = Production.design("Darts", "Tranquilliser darts"), dd = Production.design("Darts", "Tranquilliser darts, double dose"),
-                ko = Production.design("Darts", "Knockout darts");
+    void theTranquilliserDartsAreAnAssemblyOfTheDrugLevelAndAGenericChemical() {
+        // THE TTR (Marek 11-28): the darts are his condition 2, an assembly of TTRs; no Tranquilliser chem shares a row with Prussian
+        // blue (whose cheap recipe would have made it in the base), no recipe, no research card
+        assertNull(Production.RECIPES.get("make-tranquilliser"));
+        assertFalse(Research.CARDS.containsKey("tranquilliser"));
+        for (Production.Named n : Production.TYPES.get("Chems").items)
+            assertFalse(n.name.equals("Tranquilliser") || n.name.equals("Knockout"), n.name);
+        Production.Design ket = Production.design("Darts", "Ketamine darts"), dt = Production.design("Darts", "Tranquilliser darts"),
+                dd = Production.design("Darts", "Tranquilliser darts, double dose"), ko = Production.design("Darts", "Knockout darts");
         assertEquals(3, dt.tier);
-        assertEquals(2, dt.rarity, "R2: its Chems III are the tranquilliser's row");
-        int dose = 0, dbl = 0;
-        for (Production.Part p : dt.parts) if (p.type.equals("Chems")) dose = p.count;
-        for (Production.Part p : dd.parts) if (p.type.equals("Chems")) dbl = p.count;
-        assertEquals(2 * dose, dbl, "the double dose takes twice the doses");
+        assertEquals(1, dt.rarity, "a design's parts are at its rarity: Chems III R1, the drug level");
+        assertEquals(3, parts(dt, "Chems", 3), "the drug level as base");
+        assertEquals(1, parts(dt, "Chemicals", 3), "some other generic chemical");
+        assertEquals(0, parts(ket, "Chemicals", 3), "the ketamine dart has no chemical: the extra part is what the tranquilliser is worth more by");
+        assertEquals(2 * parts(dt, "Chems", 3), parts(dd, "Chems", 3), "the double dose takes twice the doses");
+        assertEquals(2 * parts(dt, "Chemicals", 3), parts(dd, "Chemicals", 3));
         assertEquals(4, ko.tier, "the knockout: Tier IV, the 2040s");
+        assertEquals(3, parts(ko, "Chems", 4));
+    }
+
+    private static int parts(Production.Design d, String type, int tier) {
+        int n = 0;
+        for (Production.Part p : d.parts) if (p.type.equals(type) && p.tier == tier) n += p.count;
+        return n;
+    }
+
+    @Test
+    void theOpiumDartTakesOpiumsRowFromTheStore() {
+        // the TTR fix moved opium and pervitin to Chems II R2 (ersatz coffee's cheap recipe made them in R1); the Opium darts, Tier II
+        // R1, take their Chems at R2 (a part's own rarity)
+        Production.Design op = Production.design("Darts", "Opium darts");
+        assertEquals(2, op.tier);
+        assertEquals(1, op.rarity);
+        Production.Part chem = op.parts.stream().filter(x -> x.type.equals("Chems")).findFirst().orElseThrow();
+        assertEquals(2, chem.rarity(op), "opium's row");
+        assertEquals(1, op.parts.stream().filter(x -> x.type.equals("Light weapon parts")).findFirst().orElseThrow().rarity(op), "the rest at the design's");
+        Base b = plugin.base;
+        b.addUnits("Light weapon parts", 2, 1, 1);
+        b.addUnits("Chems", 2, 1, 3);
+        assertEquals(0, b.canAssemble(op), "caffeine and willow bark do not make an opium dart");
+        assertTrue(b.missing(op).contains("Chems II R2"), b.missing(op));
+        b.addUnits("Chems", 2, 2, 3);
+        assertEquals(1, b.canAssemble(op));
+        assertTrue(b.assemble(op, 1));
+        assertEquals(0, b.count("Chems", 2, 2));
+        assertEquals(3, b.count("Chems", 2, 1), "the R1 chems untouched");
     }
 }

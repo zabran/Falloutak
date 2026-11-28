@@ -2599,6 +2599,7 @@
      "type": "Medicine",
      "tier": 2,
      "count": 3,
+     "rarity": 2,
      "items": [
       "Phages"
      ]
@@ -2651,6 +2652,7 @@
      "type": "Medicine",
      "tier": 2,
      "count": 2,
+     "rarity": 2,
      "items": [
       "Sulfa"
      ]
@@ -2747,6 +2749,7 @@
      "type": "Medicine",
      "tier": 2,
      "count": 1,
+     "rarity": 2,
      "items": [
       "Crude antiserum"
      ]
@@ -2799,6 +2802,7 @@
      "type": "Medicine",
      "tier": 2,
      "count": 2,
+     "rarity": 2,
      "items": [
       "Ether"
      ]
@@ -2842,6 +2846,7 @@
      "type": "Medicine",
      "tier": 2,
      "count": 2,
+     "rarity": 2,
      "items": [
       "Chloroform"
      ]
@@ -2884,7 +2889,10 @@
     {
      "type": "Medicine",
      "tier": 2,
-     "count": 2
+     "count": 2,
+     "items": [
+      "Saline"
+     ]
     }
    ],
    "inputs": [
@@ -3252,6 +3260,7 @@
      "type": "Chems",
      "tier": 2,
      "count": 3,
+     "rarity": 2,
      "items": [
       "Pervitin"
      ]
@@ -3298,6 +3307,7 @@
      "type": "Chems",
      "tier": 2,
      "count": 2,
+     "rarity": 2,
      "items": [
       "Pervitin"
      ]
@@ -3337,53 +3347,6 @@
    ],
    "research": "Pervitin kitchen",
    "note": "the old way from the plant with low-tier chemicals (04j §7e)"
-  },
-  {
-   "id": "make-tranquilliser",
-   "name": "Make tranquilliser",
-   "building": "Workshop",
-   "tier": 3,
-   "skill": "Chemistry",
-   "min": 50,
-   "hours": 4,
-   "days": 0,
-   "known": "research",
-   "makes": [
-    {
-     "type": "Chems",
-     "tier": 3,
-     "count": 3,
-     "rarity": 2,
-     "items": [
-      "Tranquilliser"
-     ]
-    }
-   ],
-   "inputs": [
-    {
-     "type": "Chems",
-     "tier": 3,
-     "count": 3,
-     "rarity": 1,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false,
-     "items": [
-      "Codeine"
-     ]
-    },
-    {
-     "type": "Chemicals",
-     "tier": 3,
-     "count": 1,
-     "rarity": 0,
-     "sets_rarity": false,
-     "tool": false,
-     "extra": false
-    }
-   ],
-   "research": "Tranquilliser",
-   "note": "the codeine-level base and a Tier III chemical: the Tier III sleep darts' dose (04j §7h)"
   },
   {
    "id": "make-prussian-blue",

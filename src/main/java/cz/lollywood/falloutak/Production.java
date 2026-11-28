@@ -90,8 +90,13 @@ final class Production {
     static final class Named { String name = "", id = ""; int tier = 1, rarity = 1; }
     static final class ItemType { String name = "", group = "", use = ""; boolean found_only; Map<String, String> tiers = new HashMap<>(); List<Named> items = new ArrayList<>(); }
     static final class Room { String kind = "", name = ""; int tier = 1; }
-    /** One kind of part an assembly takes (of the item's tier unless the data says another). */
-    static final class Part { String type = ""; int tier = 1, count = 1; }
+    /** One kind of part an assembly takes (of the item's tier unless the data says another; of its rarity unless the data says
+     *  another: the Opium darts, Tier II R1, take Chems II R2, the row opium is in, TTR fix 0.112.0). */
+    static final class Part {
+        String type = ""; int tier = 1, count = 1, rarity;
+        /** The rarity this part is taken at: its own, else the design's. */
+        int rarity(Design d) { return rarity > 0 ? rarity : d.rarity; }
+    }
     /**
      * An item assembled from parts when going out (round 4): no building, no skill, no time [mine]; the parts all at the item's rarity;
      * a batch gives {@code makes} items (rounds, arrows); an armour piece names its set and slot (05c).
@@ -285,7 +290,7 @@ final class Production {
 
     static String partsText(Design d) {
         StringJoiner j = new StringJoiner(" + ");
-        for (Part p : d.parts) j.add(p.count + " " + p.type + " " + Rules.roman(p.tier));
+        for (Part p : d.parts) j.add(p.count + " " + p.type + " " + Rules.roman(p.tier) + (p.rarity > 0 ? " R" + p.rarity : ""));
         return j + (d.rarity > 1 ? ", rarity " + d.rarity : "") + (d.makes > 1 ? " → " + d.makes : "");
     }
 

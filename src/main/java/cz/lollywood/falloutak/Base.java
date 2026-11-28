@@ -270,7 +270,7 @@ final class Base {
     int canAssemble(Production.Design d) {
         if (!unlocked(d) || d.parts.isEmpty()) return 0;
         int n = Integer.MAX_VALUE;
-        for (Production.Part p : d.parts) n = Math.min(n, count(p.type, p.tier, d.rarity) / Math.max(1, p.count));
+        for (Production.Part p : d.parts) n = Math.min(n, count(p.type, p.tier, p.rarity(d)) / Math.max(1, p.count));
         return n;
     }
 
@@ -278,8 +278,8 @@ final class Base {
     String missing(Production.Design d) {
         StringJoiner j = new StringJoiner(", ");
         for (Production.Part p : d.parts) {
-            int have = count(p.type, p.tier, d.rarity);
-            if (have < p.count) j.add((p.count - have) + " " + p.type + " " + Rules.roman(p.tier) + (d.rarity > 1 ? " R" + d.rarity : ""));
+            int have = count(p.type, p.tier, p.rarity(d));
+            if (have < p.count) j.add((p.count - have) + " " + p.type + " " + Rules.roman(p.tier) + (p.rarity(d) > 1 ? " R" + p.rarity(d) : ""));
         }
         return j.toString();
     }
@@ -289,7 +289,7 @@ final class Base {
         if (!unlocked(d) || d.parts.isEmpty()) return 0;
         int n = Integer.MAX_VALUE;
         for (Production.Part p : d.parts) {
-            Pool q = pools.get(key(p.type, p.tier, d.rarity));
+            Pool q = pools.get(key(p.type, p.tier, p.rarity(d)));
             n = Math.min(n, (q == null ? 0 : q.fresh) / Math.max(1, p.count));
         }
         return n;
@@ -301,7 +301,7 @@ final class Base {
         double sum = 0;
         int n = 0;
         for (Production.Part p : d.parts) {
-            Pool q = pools.get(key(p.type, p.tier, d.rarity));
+            Pool q = pools.get(key(p.type, p.tier, p.rarity(d)));
             int k = p.count, f = fresh ? Math.min(k, q.fresh) : Math.max(0, k - q.worn());
             sum += 100.0 * f + (k - f) * q.average();
             n += k;
@@ -322,7 +322,7 @@ final class Base {
         int n = 0;
         for (Production.Part p : d.parts) {
             int k = p.count * batches;
-            sum += take(p.type, p.tier, d.rarity, k, fresh);
+            sum += take(p.type, p.tier, p.rarity(d), k, fresh);
             n += k;
         }
         save();
@@ -354,8 +354,8 @@ final class Base {
         double c = Math.max(0, Math.min(100, condition));
         for (Production.Part p : d.parts) {
             int k = p.count * batches;
-            for (int i = 0; i < k; i++) add(p.type, p.tier, d.rarity, c);
-            if (k > 0) { unlocked.add(key(p.type, p.tier, d.rarity)); back += k; }
+            for (int i = 0; i < k; i++) add(p.type, p.tier, p.rarity(d), c);
+            if (k > 0) { unlocked.add(key(p.type, p.tier, p.rarity(d))); back += k; }
         }
         unlocked.add(d.armour() ? pieceId(d.set, d.slot) : d.key());
         save();
