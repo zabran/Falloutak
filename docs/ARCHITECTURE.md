@@ -5,7 +5,7 @@ outside the game; the game itself is for the look and feel. The rules' text live
 
 ## The layers
 1. **Rules, pure Java** (no server needed, the tests call them directly): `Rules`, `Combat`, `Data`, `Diseases`, `Conditions`,
-   `Meals`, `Spoil`, most of `Character`, `Production`, `Population`, `Research`, `WorldMap`, `Tick`.
+   `Poison`, `Meals`, `Spoil`, most of `Character`, `Production`, `Population`, `Research`, `WorldMap`, `Tick`.
 2. **State** (saved as JSON in `plugins/Falloutak/`, all through `Store.write` / `Store.save` / `Store.read`, so a file is written
    whole and an unreadable one is kept aside as `<name>.bad-<time>.json`): `Character` (one file each), `Base`, `Production`,
    `Population`, `Zones`, `Travel`, `Tick`, `Saves`.
@@ -15,7 +15,7 @@ outside the game; the game itself is for the look and feel. The rules' text live
    `Sfx` / `Narrator` / `Icons` / `Creatures` / `BmModels` (sound, voice, pictures, models).
 
 ## The main flows
-- **A game hour of a character** (`Hud.hour`): `Character.readAttributes` (the hour's maxima from the current attributes, `lagAttrs`; the bars and HP keep their share, 0.115.0) → the hour's body heat once (`Character.thermo` → `Rules.thermo`: the air of `Travel.air`, set by the GM, against the outfit's comfort interval moved down by `Character.activity`; 04 DRAFT 2, 0.114.0) → the survival bars move by `Character.hourly` (the sweat off the water, food by activity and the Starvation stage, sleep only to the maximum minus `sleepDebt`; `sleepDay` each morning) → the stages' HP → the sun → the radiation
+- **A game hour of a character** (`Hud.hour`): `Character.readAttributes` (the hour's maxima from the current attributes, `lagAttrs`; the bars and HP keep their share, 0.115.0) → the hour's body heat once (`Character.thermo` → `Rules.thermo`: the air of `Travel.air`, set by the GM, against the outfit's comfort interval moved down by `Character.activity`; 04 DRAFT 2, 0.114.0) → the survival bars move by `Character.hourly` (the sweat off the water, food by activity and the Starvation stage, sleep only to the maximum minus `sleepDebt`; `sleepDay` each morning) → `Poison.hour` (the antidotes at work, each bitten limb's depot into the bar by its hold, the tourniquets' ischemia, the hourly roll that only takes away, the sweat; 0.117.0) → the stages' HP (the Poisoning's × `Poison.drain`) → the sun → the radiation
   crisis and the glowing one → once a day the mutation episode and the carried food's spoiling (`Spoil.carried`) → healing
   (`Hud.heal`) → the radiation rolls, therapies, grafts → the lifetime rads → `Diseases.hour` (cancer's year, the sick nearby, every
   disease's race) → `Conditions.hour` (trench foot, scabies, latent tuberculosis, scurvy's HP) → gases, power armour, the heart's
@@ -29,7 +29,7 @@ outside the game; the game itself is for the look and feel. The rules' text live
   played on a battle map (`Arena`) with `Battle` and `Raiders` → the field after it (`Loot`).
 - **A battle turn:** the player spends AP in `Battle`; a shot or blow goes through `Combat` (to-hit, the d100, crits, damage after
   DT and DR); a hit on a player goes through `Battle.hitPlayer` (HP, Pain, bleeding, the wound's infection by its class:
-  `Diseases.wound`); the enemies' turn is `Raiders` (the giant tick's bite also `Diseases.tickBite`). A gun takes its calibre's rounds (a
+  `Diseases.wound`); the enemies' turn is `Raiders` (the giant tick's bite also `Diseases.tickBite`; a venomous creature's, the Radmie's, `Poison.bite` where `Poison.strikePart` lands it). A gun takes its calibre's rounds (a
   rounds category a calibre); each magazine holds one load, whose damage modifier, penetration and fouling hit (`Battle.reload`,
   `Battle.ammoMods`; old round items map to their calibre by `Production.RENAMED`).
   The person behind the weapon (05d rounds 3-5): `Battle.handBonus` (Strength by GURPS, the skill; Unarmed twice), `piercing`
@@ -118,20 +118,20 @@ javadoc's first sentence marked NEW (then describe it here).
 |---|---|---|
 | `Accessories` | 228 | the weapons' accessories (05d §5): their effects, what fits what, `/sheet fit`, kept on the weapon's item |
 | `Anomalies` | 789 | the anomalies, their artifacts and effects, the Black Rain storm |
-| `Arena` | 826 | the battle maps of world-map encounters (terrain, size, placing the sides) |
+| `Arena` | 828 | the battle maps of world-map encounters (terrain, size, placing the sides) |
 | `Base` | 533 | the base's store of generic items (type, tier, rarity, condition), unlocks, the gene pool |
-| `Battle` | 3202 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
+| `Battle` | 3204 | the turn-based battle: state, the player's actions and AP, hits on players, the battle's end |
 | `BmModels` | 41 | the only class touching BetterModel's API (creature models) |
-| `Character` | 3081 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
+| `Character` | 3145 | one character's sheet and body: attributes, skills, survival bars, effects, armour, chems, mutations, grafts |
 | `Combat` | 423 | to-hit, the d100, critical hits and their effects, damage after DT and DR (pure) |
 | `Conditions` | 256 | the conditions with their own clocks: scurvy, trench foot, scabies, latent tuberculosis |
 | `Creatures` | 160 | the game's creatures in the world (spawning, their sounds and motion) |
 | `Data` | 991 | the rule tables loaded from `data/*.json` (species, effects, items, chems, genes, weapons ...) |
 | `Diseases` | 614 | the diseases' race, catching, vaccines, the treatments and the tending check |
-| `FalloutakPlugin` | 440 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
+| `FalloutakPlugin` | 441 | the plugin's entry: enable/disable, `/sheet` and the other commands, the events, the server clock |
 | `Forms` | 425 | the dialog forms: create a character, spend points, the level-up |
 | `Hauls` | 266 | the prologue's last-minute hauls |
-| `Hud` | 458 | each character's game hour and passing time, healing, the action bar |
+| `Hud` | 466 | each character's game hour and passing time, healing, the action bar |
 | `Icons` | 129 | pictures in hover texts |
 | `Items` | 553 | items in the pack: ids, giving and taking, armour as items, item stacks for the menus |
 | `Labs` | 218 | the research pages |
@@ -139,18 +139,19 @@ javadoc's first sentence marked NEW (then describe it here).
 | `MapView` | 184 | the world map drawn in Minecraft |
 | `Maps` | 164 | the map worlds and their commands |
 | `Meals` | 262 | eating and drinking: the pack's portions, the base's day per person, the base's people's factors |
-| `Meds` | 373 | the medicines as items (04i): what each disease action, first aid and the Pip-Boy use up; antibiotic courses by dose; a dose's weight; the injectors and held HP, the Trauma pack, atropine, fresh blood (04i §6, 04j §7) |
-| `Menus` | 2073 | every menu: actions, the patient's menu, pass time, the GM's buttons |
+| `Meds` | 371 | the medicines as items (04i): what each disease action, first aid and the Pip-Boy use up; antibiotic courses by dose; a dose's weight; the injectors and held HP, the Trauma pack, atropine, fresh blood (04i §6, 04j §7) |
+| `Menus` | 2146 | every menu: actions, the patient's menu, pass time, the GM's buttons |
 | `Narrator` | 165 | the narrator's lines on critical hits and failures |
 | `Npcs` | 204 | the GM's NPC tools: a figurant's side (hostile, neutral, the party's), following a player, joining his faction, the fight where they stand |
 | `Part3` | 308 | the species and modification commands (templates, genes, implants) |
 | `Path` | 71 | how an enemy walks on the battle map |
+| `Poison` | 551 | the poison (04d §1): the venomous bite's roll, the bitten limbs' depots and what holds them, the tourniquets' clock, the hourly roll that only takes away, the antidotes on venom only, excision, `/sheet poison` |
 | `Population` | 188 | the base's people and their groups (the workbook's Population and Factions) |
 | `Production` | 1402 | buildings, jobs, recipes, power and water, the base's day (food, water, soap) |
-| `Raiders` | 1014 | the enemies' turn: choosing, moving, shooting, melee and bites |
+| `Raiders` | 1018 | the enemies' turn: choosing, moving, shooting, melee and bites |
 | `Research` | 614 | research: inspiration, experiments, prototypes, the cards |
 | `Roster` | 525 | `/npc`, `/pop`, `/group`: statblocks, the groups' XP and levels, lessons, work |
-| `Rules` | 766 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
+| `Rules` | 786 | the sheet's formulas: attributes, skills, checks (a comparison, never a roll), survival stages |
 | `Saves` | 134 | saved games (the whole state copied and restored) |
 | `Sfx` | 149 | every action's sound |
 | `SheetView` | 482 | the character sheet as a text screen, its pages |
@@ -159,11 +160,11 @@ javadoc's first sentence marked NEW (then describe it here).
 | `Store` | 127 | character files and THE SAVING HELPER for every saved file |
 | `Talks` | 306 | an encounter's talk: tolls, threats, allies |
 | `Tick` | 386 | the weekly world tick (bases, lairs, the raiders' strength) |
-| `Travel` | 845 | world-map travel: steps by terrain, the encounter roll, weather and season, the scene |
+| `Travel` | 857 | world-map travel: steps by terrain, the encounter roll, weather and season, the scene |
 | `Txt` | 276 | text in columns inside a dialog (pixel widths), the sheet's number format `Txt.f` |
 | `Ui` | 181 | pages as plain data (lines, inputs, buttons), shown as Paper dialogs or clicked in tests |
 | `Works` | 417 | the production pages |
 | `WorldMap` | 368 | the area's danger map (`worldmap.json`): sectors, hazards, bases, lairs |
 | `Zones` | 281 | gas and anomaly zones in the world |
-| **49 classes** | **26781** | |
+| **50 classes** | **27516** | |
 <!-- /CLASSES -->

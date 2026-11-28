@@ -244,6 +244,8 @@ public final class Battle implements Listener {
         boolean asleep, inPit;
         int minDmg = 5, maxDmg = 12, reach = 1, attackAp = 4;
         String attack = "bite";
+        /** 04d §1: its hit carries venom (the Radmie's): {@link Poison#bite} where it lands. */
+        boolean venom;
         /** The battle map's ground (null in the demo): a running animal at its edge is gone. */
         org.bukkit.util.BoundingBox field;
         /** Its group on the battle map (09d round 3: *"dangers should also attack each other"*): figures of other groups are its prey,

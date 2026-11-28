@@ -151,8 +151,9 @@ class MedsTest extends MockGame {
         Meds.useSelf(c, "Blood bag", r);
         assertEquals(max * 0.75, c.survival.get(Rules.Stat.BLOOD), 1e-6);
         c.survival.put(Rules.Stat.POISON, 70.0);
-        Meds.useSelf(c, "Antivenom", r);
-        assertEquals(20, c.survival.get(Rules.Stat.POISON), 1e-9);
+        c.venom = 70;
+        assertTrue(Meds.useSelf(c, "Antivenom", r).contains("into a muscle"));
+        assertEquals(12, c.antivenomHours, 1e-9, "04d §1 (0.117.0): into a muscle, the venom out over 12 hours");
         Meds.useSelf(c, "Rehydration salts", r);
         assertEquals(-0.5, c.other("runs"), 1e-9);
         assertTrue(Meds.useSelf(c, "Tetanus vaccine", r).contains("vaccinated"));

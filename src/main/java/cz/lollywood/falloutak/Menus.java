@@ -484,6 +484,11 @@ final class Menus {
                 if (!Diseases.actions(d, k).isEmpty())
                     b.add(btn("Treat: " + d.name() + " (" + st + ")", d.real(), x -> treatDisease(x, whoOf(o.entity()), d.name())));
             }
+        // 04d §1 (0.117.0): the poison, its depots and what holds them
+        if (!t.dead && Poison.poisoned(t)) {
+            for (String s : Poison.show(t).split("\n")) lines.add(line(s, NamedTextColor.DARK_GREEN));
+            b.add(btn("Treat the poison", "keep the venom in the limb, take it out, help the body (04d)", x -> treatPoison(x, whoOf(o.entity()))));
+        }
         // 04b §3c: the conditions with their own clocks
         String cond = Conditions.show(t);
         if (!t.dead && !cond.isEmpty()) lines.add(line("Condition: " + cond, NamedTextColor.RED));
@@ -754,6 +759,74 @@ final class Menus {
                     if (r.contains("CAUGHT")) tellGm(c.name + ": " + r);
                     actions(x);
                 }, Menus::actions);
+    }
+
+    /** What a poison act takes from the medic's pack (04d §1): "" nothing; "a|b" either; "a+b" both. */
+    static String poisonNeeds(String act) {
+        return switch (act) {
+            case "bandage" -> "Bandage|Rag dressing";
+            case "tq" -> "Tourniquet";
+            case "fluids" -> "Saline";
+            case "antivenom-im" -> "Antivenom";
+            case "antivenom-iv" -> "Antivenom+Saline";
+            case "varespladib" -> "Varespladib";
+            default -> "";
+        };
+    }
+
+    static boolean hasFor(Player p, String need) {
+        if (need.isEmpty()) return true;
+        if (need.contains("+")) { for (String n : need.split("\\+")) if (Meds.count(p, n) < 1) return false; return true; }
+        for (String n : need.split("\\|")) if (Meds.count(p, n) > 0) return true;
+        return false;
+    }
+
+    static String takeFor(Player p, String need) {
+        if (need.isEmpty()) return "";
+        if (need.contains("+")) { for (String n : need.split("\\+")) Meds.take(p, n, 1); return need.replace("+", ", "); }
+        for (String n : need.split("\\|")) if (Meds.take(p, n, 1) == 1) return n;
+        return "";
+    }
+
+    /** The poison's acts on {@code o} by the player (04d §1, 0.117.0): his Survival and Medicine, the items each takes; plasma exchange
+     *  is the GM's (a pre-war hospital's machine: nothing in the plugin marks one). */
+    static void treatPoison(Player p, Who o) {
+        if (o == null) return;
+        Character me = pl.character(p), t = o.c();
+        List<String> acts = new ArrayList<>(Poison.acts(t));
+        if (!Works.gm(p)) acts.remove("plasma");
+        acts.removeIf(a -> !hasFor(p, poisonNeeds(a.split(" ")[0])));
+        if (acts.isEmpty()) { say(p, "! nothing you can do for the poison with what you carry"); on(p, o); return; }
+        pick(p, "The poison: " + o.name(), Poison.show(t), acts, a -> a.replace('_', ' '), a -> Poison.actText(a.split(" ")[0])
+                + (poisonNeeds(a.split(" ")[0]).isEmpty() ? "" : "; takes " + poisonNeeds(a.split(" ")[0]).replace("|", " or ").replace("+", " and ")), (x, a) -> {
+            String[] w = a.split(" ");
+            String act = w[0], limb = w.length > 1 ? w[1] : null;
+            String anaesthesia = null;
+            boolean an = false;
+            if (act.equals("amputate")) {
+                if (Meds.take(x, "Ether", 1) == 1) { an = true; anaesthesia = "ether"; }
+                else if (Meds.take(x, "Chloroform", 1) == 1) { an = true; anaesthesia = "chloroform"; }
+                else if (Meds.takeChem(x, "Ketamine")) { an = true; anaesthesia = "ketamine"; }
+            }
+            String r = Poison.treat(t, act, limb, me.skill("Survival"), me.skill("Medicine"), an, pl.rnd);
+            if (!r.startsWith("!")) {
+                String used = takeFor(x, poisonNeeds(act));
+                if (act.equals("breathing") && t.poisonBreathing && Meds.take(x, "Oxygen cylinder", 1) == 1) {
+                    t.oxygenUntil = t.now() + Meds.OXYGEN_HOURS;
+                    used = "an oxygen cylinder (" + Math.round(Meds.OXYGEN_HOURS) + " hours)";
+                }
+                if (anaesthesia != null) used = (used.isEmpty() ? "" : used + ", ") + "anaesthesia (" + anaesthesia + ")";
+                if ("chloroform".equals(anaesthesia) && me.skill("Medicine") < Meds.CHLOROFORM_NEED) {
+                    t.arrestAt = t.now();
+                    t.arrestCause = "chloroform";
+                    r += "; THE CHLOROFORM STOPS THE HEART (Medicine " + Math.round(me.skill("Medicine")) + " of " + Math.round(Meds.CHLOROFORM_NEED) + ")";
+                }
+                if (!used.isEmpty()) r += " (used: " + used + ")";
+            }
+            say(x, o.name() + ": " + r);
+            if (o.player() != x) o.tell(x.getName() + ": " + r, NamedTextColor.YELLOW);
+            on(x, whoOf(o.entity()));
+        }, x -> on(x, whoOf(o.entity())));
     }
 
     static void treatDisease(Player p, Who o, String name) {

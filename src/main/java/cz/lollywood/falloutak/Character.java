@@ -231,6 +231,22 @@ public final class Character {
     /** An effect that lasts until the GM removes it (a treatment), shown as "until treated". */
     public static final double UNTIL_TREATED = 1e9;
 
+    // ------------------------------------------------------------------ 04d §1: poison (RULED rounds 1-8; 0.117.0, {@link Poison})
+    /** The bitten limbs' venom (the DEPOTS: "left_leg" ..., "groin" under Wild Wasteland), what holds each (Poison.HOLDS), the
+     *  tourniquets' ischemia hours, the limbs kept cold. */
+    public final Map<String, Double> depots = new LinkedHashMap<>();
+    public final Map<String, String> holds = new LinkedHashMap<>();
+    public final Map<String, Double> ischemia = new LinkedHashMap<>();
+    public final Set<String> cooledLimbs = new LinkedHashSet<>();
+    /** The Poison bar's venom share (the antivenoms' and varespladib's work); the game hour of the last bite (-1 none). */
+    public double venom = 0, bittenAt = -1;
+    /** Tended until (+0.25 to the hourly roll); antivenom into a muscle: its hours left, its guard until; varespladib's hours left;
+     *  bottled oxygen until (CO's halved cure, 03b §3c). */
+    public double poisonTendedUntil = -1, antivenomHours = 0, antivenomGuardUntil = -1, varesHours = 0, oxygenUntil = -1;
+    public boolean plasmaExchange = false, poisonBreathing = false, ivFluids = false;
+    /** This hour's roll cured: the Poisoning stage's drain halved ({@link #stageHour}). */
+    public transient boolean poisonHalved = false;
+
     /** A trait picked, or a gene of the template whose effect the same rule carries (03c §8; internal, never shown). */
     public boolean has(String trait) {
         for (Feat t : traits) if (t.name().equals(trait)) return true;
@@ -308,6 +324,17 @@ public final class Character {
     public void setTimeOfDay(double hour) { dayStart += hour - hourOfDay(); }
 
     public boolean hasPerk(String perk) { for (Feat t : perks) if (t.name().equals(perk) || t.name().startsWith(perk + ": ")) return true; return false; }
+
+    /** A luck proc's roll: its chance in %, the d100, whether it came (part 2's procs; 04d §4). */
+    public record Luck(int chance, int roll, boolean ok) {}
+
+    /** A luck proc (02 §6, 04d §4, RULED round 9): 2 × Luck %, none at Luck 0; Lucky Streak × 1.5 (its perk text). */
+    public Luck luck(Random rnd) {
+        int l = attr(Rules.L, false);
+        double ch = l <= 0 ? 0 : 2 * l * (hasPerk("Lucky Streak") ? 1.5 : 1);
+        int d = 1 + rnd.nextInt(100);
+        return new Luck((int) Math.round(ch), d, d <= ch);
+    }
 
     /** A perk's own name (a bound perk is kept as "Nemesis: raiders"). */
     static String perkBase(String shown) { int i = shown.indexOf(": "); return i < 0 ? shown : shown.substring(0, i); }
@@ -1201,6 +1228,7 @@ public final class Character {
             if (r == null) continue;
             double h = -r.other().getOrDefault("hp_current", 0.0);
             if (!before.contains(st)) h -= onceUpTo(st, before);
+            if (st.endsWith(" Poisoning") && !st.contains("Radiation")) h *= Poison.drain(this);   // 04d §1: dry × 1.25-2, a cure's hour ½
             if (h > 0) { loss += (int) Math.round(h); why.add(st); }
         }
         int max = hpMax();
@@ -2581,6 +2609,7 @@ public final class Character {
             return stopHeart("Oxygen 0 for " + Math.max(1, e) + " minutes", false, rnd);
         if (survival.getOrDefault(Rules.Stat.BLOOD, 1.0) <= 0) return stopHeart("Blood 0", false, rnd);
         if (atEnd(Rules.Stat.HYPERTHERMIA)) return stopHeart("the heat", false, rnd);
+        if (atEnd(Rules.Stat.POISON)) return stopHeart("the poison", false, rnd);   // 04d §1: 100 % = death
         if (hasPump()) return null;
         if (atEnd(Rules.Stat.HYPOTHERMIA)) return stopHeart("the cold", true, rnd);
         if (e <= 0) return stopHeart("Endurance 0", true, rnd);

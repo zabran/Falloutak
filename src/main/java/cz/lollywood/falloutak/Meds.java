@@ -57,7 +57,7 @@ final class Meds {
             "Hepatitis A vaccine", "Hepatitis A", "Typhoid vaccine", "Typhoid", "Cholera vaccine", "Cholera", "Rabies vaccine", "Rabies");
     static final List<String> SELF = List.of("Vitamin C tablets", "Blood bag", "Antivenom", "Rehydration salts", "Potassium iodide",
             "Home ORS", "Blood Pack", "Virex");
-    static final double BLOOD_BAG = 0.25, ANTIVENOM = 50, OXYGEN_HOURS = 10, CHLOROFORM_NEED = 40;
+    static final double BLOOD_BAG = 0.25, OXYGEN_HOURS = 10, CHLOROFORM_NEED = 40;
     /** `04i` §6a, §6c, `04j` §7c (RULED 11-27) [the numbers mine, EXAMPLE, the table's where it gives them]. */
     static final double BLOOD_PACK = 0.40, TRAUMA_BLOOD = 0.50, SUPER_BLOOD = 0.25, DONOR = 0.25, ATROPINE = 30, VIREX_HOURS = 7 * 24;
     static final int TRAUMA_NEED = 40, ATROPINE_NEED = 50, SUPER_REAL = 25, SUPER_HELD = 25, HYPO_HELD = 40, TRAUMA_HP = 15;
@@ -165,10 +165,8 @@ final class Meds {
                 return "A blood bag: Blood " + Math.round(before) + " → " + Math.round(c.survival.get(Rules.Stat.BLOOD)) + " / " + Math.round(max)
                         + " (the group must match: the GM's)";
             }
-            case "Antivenom" -> {
-                double before = c.survival.getOrDefault(Rules.Stat.POISON, 0.0);
-                c.survival.put(Rules.Stat.POISON, Math.max(0, before - ANTIVENOM));
-                return "Antivenom: Poison " + Math.round(before) + " → " + Math.round(c.survival.get(Rules.Stat.POISON));
+            case "Antivenom" -> {   // 04d §1 (RULED round 5): into a muscle, no kit, no check; by IV is the medic's (Poison)
+                return "Antivenom: " + Poison.treat(c, "antivenom-im", null, Double.NaN, Double.NaN, false, rnd);
             }
             case "Rehydration salts", "Home ORS" -> {   // 04i §6c: the home ORS = the salts (the WHO's formula)
                 c.add(new Character.Effect("Rehydration salts", "treatment", "treatment:ors", false, new int[7],

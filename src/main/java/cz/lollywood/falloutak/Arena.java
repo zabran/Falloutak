@@ -139,7 +139,7 @@ final class Arena {
     /** One enemy's statblock (`data/arena-foes.json`). */
     record Foe(String key, String name, String mob, String creature, double scale, int hp, int ac, int dt, double dr, int[] a, int skill,
                int minDmg, int maxDmg, int reach, int attackAp, String attack, boolean gun, String nemesis, double meatKg, int hides,
-               List<String> weapons, int reserve, List<Part> parts) {}
+               List<String> weapons, int reserve, List<Part> parts, boolean venom) {}
 
     /**
      * A special part of a creature's body (09d round 5, Marek 11-24: *"How much you get depends on skill and higher skill may give you
@@ -168,7 +168,8 @@ final class Arena {
                         o.has("attack_ap") ? o.get("attack_ap").getAsInt() : 4, o.has("attack") ? o.get("attack").getAsString() : "",
                         o.has("gun") && o.get("gun").getAsBoolean(), o.has("nemesis") ? o.get("nemesis").getAsString() : "",
                         o.has("meat_kg") ? o.get("meat_kg").getAsDouble() : 0, o.has("hides") ? o.get("hides").getAsInt() : 0,
-                        strings(o, "weapons"), o.has("reserve") ? o.get("reserve").getAsInt() : 99, parts(o)));
+                        strings(o, "weapons"), o.has("reserve") ? o.get("reserve").getAsInt() : 99, parts(o),
+                        o.has("venom") && o.get("venom").getAsBoolean()));
             }
         } catch (Exception e) { throw new IllegalStateException("data/arena-foes.json: " + e.getMessage(), e); }
         return m;
@@ -560,6 +561,7 @@ final class Arena {
                 t.melee = !foe.gun();
                 t.flees = g.flees();
                 t.minDmg = foe.minDmg(); t.maxDmg = foe.maxDmg(); t.reach = foe.reach(); t.attackAp = foe.attackAp(); t.attack = foe.attack();
+                t.venom = foe.venom();   // 04d §1: its strike carries venom
                 t.field = lay.box();
                 t.group = gi;
                 t.peaceable = foe.key().equals("patrol") || foe.key().equals("trader");

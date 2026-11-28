@@ -195,6 +195,8 @@ public final class Hud {
         if (c.sleeping && c.survival.get(Rules.Stat.PAIN) > 75) c.survival.put(Rules.Stat.PAIN, 75.0);
         double floor = c.other("pain_floor", true);   // the mutation Chronic Pain: never below 10
         if (floor > 0 && c.survival.get(Rules.Stat.PAIN) < floor) c.survival.put(Rules.Stat.PAIN, floor);
+        String po = Poison.hour(c, java.util.concurrent.ThreadLocalRandom.current());   // 04d §1: the depots, the hourly roll, the sweat
+        if (po != null) c.news.add(po);
         String stageHp = c.stageHour(stages0);   // the stages' HP Current (an hour; radiation's once) and HP Max (04, RULED 11-15)
         if (stageHp != null) c.news.add(stageHp);
         String sun = c.sunHour();   // the sun on a body that cannot bear it (round 15)
@@ -237,6 +239,11 @@ public final class Hud {
             if (e.permanent()) { next.add(e); continue; }
             if (e.hoursLeft() - 1 > 1e-9) { next.add(e.withHours(e.hoursLeft() - 1)); continue; }
             if (e.slot().equals("held_hp")) { release = true; continue; }   // 04i §6a: the hold's hour ends
+            if (e.other().getOrDefault("tq_leg", 0.0) > 0 && c.brokenLegs > 0) {   // 04d §1: a tourniquet's crippled leg mends
+                c.brokenLegs--;
+                c.news.add(e.name() + ": mended");
+                continue;
+            }
             if (e.other().getOrDefault("mend_limb", 0.0) > 0 && c.brokenLegs > 0) {   // 04i §6a: Hydra's bone knits in its 3 days
                 c.brokenLegs--;
                 c.trimSplints();

@@ -121,6 +121,9 @@ final class Travel {
     static String weather = "clear";
     /** The air of the party's place in °C, set by the GM ({@code /travel air}); NaN = none set: the body counts it comfortable (04 §3.1). */
     static double air = Double.NaN;
+    /** The team's Wild Wasteland setting (02e, Marek: *"this is settings more for whole team."*): the GM's absurd options on (04d round
+     *  8: a man's bitten groin can be cut away like a finger). */
+    static boolean wildWasteland = false;
     static boolean weatherSet;
     static int weatherDay = Integer.MIN_VALUE;
     /** The conditions' difficulty at most (Marek: *"the difficulty should should go up +50"*). */
@@ -143,6 +146,7 @@ final class Travel {
                 if (o.has("feuds")) o.getAsJsonArray("feuds").forEach(e -> feuds.add(e.getAsString()));
                 if (o.has("tickDay")) tickDay = o.get("tickDay").getAsInt();
                 air = o.has("air") ? o.get("air").getAsDouble() : Double.NaN;
+                wildWasteland = o.has("wild_wasteland") && o.get("wild_wasteland").getAsBoolean();
             } catch (IOException | RuntimeException e) { /* a broken file: start again at the start */ }
         }
         applyCleared();
@@ -183,6 +187,7 @@ final class Travel {
         o.addProperty("i", pi); o.addProperty("j", pj); o.addProperty("season", season); o.addProperty("marched", marched);
         o.addProperty("marchDay", marchDay);
         if (!Double.isNaN(air)) o.addProperty("air", air);
+        if (wildWasteland) o.addProperty("wild_wasteland", true);
         o.addProperty("tickDay", tickDay);
         o.add("cleared", new Gson().toJsonTree(cleared));
         o.add("feuds", new Gson().toJsonTree(feuds));
@@ -716,6 +721,11 @@ final class Travel {
                 save();
                 return Double.isNaN(air) ? "The air: none set (the body counts it comfortable)." : String.format(Locale.ROOT, "The air: %.0f °C.", air);
             }
+            case "wild" -> {   // 02e: the team's Wild Wasteland setting
+                if (a.length > 1) wildWasteland = a[1].equalsIgnoreCase("on");
+                save();
+                return "Wild Wasteland: " + (wildWasteland ? "ON (the GM's absurd options)" : "off") + ".";
+            }
             case "season" -> {
                 if (a.length > 1) for (int k = 0; k < 4; k++) if (WorldMap.SEASONS[k].startsWith(a[1].toLowerCase(Locale.ROOT))) season = k;
                 save();
@@ -734,7 +744,7 @@ final class Travel {
                 if (tickFile != null) tick.save(tickFile);
                 return tick.summary();
             }
-            default -> { return "/travel [where|to|push|round|ambush|hunt|dig [pit|deadfall]|on|map|depots] · GM: table|season <s>|weather <w>|attack|feud [kind|clear]|here <place>|clear [km]|hold [km]|tick [weeks]"; }
+            default -> { return "/travel [where|to|push|round|ambush|hunt|dig [pit|deadfall]|on|map|depots] · GM: table|season <s>|weather <w>|air <°C>|wild on|off|attack|feud [kind|clear]|here <place>|clear [km]|hold [km]|tick [weeks]"; }
         }
     }
 

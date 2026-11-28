@@ -667,7 +667,7 @@
    "tiers": {
     "I": "herbs, honey, rag dressings, wound powder, sphagnum moss, home ORS, maggots, mould broth, ephedra",
     "II": "boiled dressings, splints, tourniquets, antiseptic, rehydration salts; sulfa, phages, crude penicillin, the crude antiserum, ether, chloroform, atropine",
-    "III": "today's pharmacy: antibiotics, the antitoxin, antivenom, vaccines, vitamin C, iodide, povidone-iodine, blood bags, oxygen, hemostatic gauze, adrenaline",
+    "III": "today's pharmacy: antibiotics, the antitoxin, antivenom, vaccines, vitamin C, iodide, povidone-iodine, blood bags, oxygen, hemostatic gauze, adrenaline; varespladib (R2)",
     "IV": "the 2040s: the Stimpaks, the Hypo, the Trauma pack, the Blood Pack, Lysin, Virex"
    },
    "found_only": false,
@@ -934,6 +934,12 @@
      "name": "Hemostatic gauze",
      "tier": 3,
      "rarity": 1,
+     "id": ""
+    },
+    {
+     "name": "Varespladib",
+     "tier": 3,
+     "rarity": 2,
      "id": ""
     },
     {

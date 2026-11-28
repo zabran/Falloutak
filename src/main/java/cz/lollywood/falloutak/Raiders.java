@@ -965,6 +965,10 @@ final class Raiders {
             // `09b` §4 (Marek: *"radiation has made them several times bigger"*; 11-24: the small ticks are out, only the giant tick):
             // its bite carries what a tick carries (04b §5)
             if (dmg > 0 && t.name.startsWith("Giant tick")) Diseases.tickBite(c, b.rnd);
+            if (dmg > 0 && t.venom && !c.dead) {   // 04d §1 (RULED): the attack's roll is the only one that adds poison
+                String v = Poison.bite(c, Poison.strikePart(b.rnd), dmg, b.rnd);
+                if (!v.isEmpty()) p.sendMessage(Component.text(v.trim(), NamedTextColor.DARK_GREEN));
+            }
             if (r.crit()) Narrator.crit(p.getLocation(), Rules.Part.TORSO, fx, c.female, p);
         }
         p.sendMessage(Component.text(log.toString(), NamedTextColor.RED));
