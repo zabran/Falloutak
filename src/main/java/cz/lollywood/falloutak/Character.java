@@ -111,6 +111,8 @@ public final class Character {
     public int bars = 2;
     /** This hour's activity, set by whoever passes the time: walking on the world map (Travel), fighting (Battle). */
     public transient boolean walking = false, fighting = false;
+    /** The march's speed in km/h while {@link #walking} (Travel sets it): its food by Pandolf (04 §3.3, 0.116.0). */
+    public transient double walkKmh = 0;
     /** 04 §3.10 (RULED 11-14: the maxima from the CURRENT attributes): the attributes and Survival read at this hour's start (so a
      *  stage cannot chase its own maximum within the hour); null before the first hour (the permanent ones then). */
     public int[] lagAttrs;
@@ -1315,7 +1317,7 @@ public final class Character {
             case WATER -> power || baseWater ? 0 : (h - th[2]) * t.waterFactor() * (1 + other("water_need"));   // an artifact's price (the ember: x1.25)
             // 04 §3.3 (RULED 11-15): food by the activity and the shivering, slowed by the Starvation stage
             case FOOD -> baseFood && !power ? 0 : -Rules.FOOD_ADAPT[Rules.fallingLevel(fraction(Rules.Stat.FOOD))]
-                    * (Rules.ACT_FOOD.get(act) + th[3] / Rules.SHIVER_MAX) * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
+                    * (activityFood(act) + th[3] / Rules.SHIVER_MAX) * t.foodFactor() * (1 + other("food_need"));   // a synthetic body: its power; the green heart x1.25
             case SLEEP -> h < 0 ? h * t.sleepFactor() * (1 + other("sleep_need"))   // the need (DEC2: x0.75; Mentats x1.5, 04i §6a); a synthetic body: its memory
                     : Math.min(h * (other("rest_double") > 0 ? 2 : 1),   // Nightcap (04j §7c): 4 hours of sleep count as 8
                                Math.max(0, max(Rules.Stat.SLEEP) - sleepDebt - survival.getOrDefault(Rules.Stat.SLEEP, 0.0)));   // 04 §3.4: only to the maximum minus the debt
@@ -1339,6 +1341,12 @@ public final class Character {
         if (fighting) return "work";
         if (working && !sleeping) return "light";   // Marek 11-28: the base's work is no hard labour
         return walking ? "walk" : "rest";
+    }
+
+    /** An hour's food by the activity (04 §3.3): a march by Pandolf from what he carries and how fast the party goes. */
+    public double activityFood(String act) {
+        if (act.equals("walk") && walkKmh > 0) return Rules.walkFood(Rules.BODY_KG, carriedKg, walkKmh, Rules.TERRAIN);
+        return Rules.ACT_FOOD.get(act);
     }
 
     /** The night this body needs (04 §3.4: 8 h) × its sleep factor (DEC2's short sleeper ×0.75) [the factor's reading mine]. */

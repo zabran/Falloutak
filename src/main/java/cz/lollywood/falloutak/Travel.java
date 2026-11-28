@@ -374,8 +374,10 @@ final class Travel {
         for (Character c : cs) {
             c.outside = true;
             c.walking = true;   // 04 §3.1, §3.3: a march's hours are walking
+            c.walkKmh = wk.hours() > 0 ? wk.km() / wk.hours() : 0;   // its food by Pandolf (0.116.0)
             String r = Hud.pass(c, wk.hours() * 60);
             c.walking = false;
+            c.walkKmh = 0;
             if (r != null) news.add(c.name + ": " + r);
         }
         if (lead.day() != marchDay) { marchDay = lead.day(); marched = 0; }

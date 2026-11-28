@@ -351,12 +351,29 @@ public final class Rules {
     public static final double WATER_SCALE = 1.5, FOOD_SCALE = 10;
     /** 04 §3.3: a slowing metabolism, the hourly food × by the Starvation stage (fine, Minor .. Deadly). */
     public static final double[] FOOD_ADAPT = {1, .9, .8, .7, .6};
-    /** 04 §3.3, §3.1: food an hour by activity and how far the body's own heat moves the comfort interval down, °C. The rest's 1 an
-     *  hour = 2 100 kcal a day, a sedentary day (~1.25 MET for 70 kg); "light" = the base's work, standing or sitting at a bench, a
-     *  lab, a stove (~2 MET) [EXAMPLE, Marek 11-28: weekdays eat about as weekends]: an 8-hour workday 1.17 × a resting day; "walk"
-     *  = marching (8 h: 1.5 ×); "work" = hard labour or a fight (~5 MET; 8 h: 2 ×). */
-    public static final Map<String, Double> ACT_FOOD = Map.of("rest", 1.0, "light", 1.5, "walk", 2.5, "work", 4.0);
-    public static final Map<String, Integer> ACT_SHIFT = Map.of("rest", 0, "light", 4, "walk", 8, "work", 15);
+    /**
+     * 04 §3.3, §3.1: food an hour by activity, and how far the body's own heat moves the comfort interval down, °C. From the FAO/WHO/UNU
+     * 2001 tables (*Human energy requirements*, Table 5.1: an activity's PAR, a multiple of the basal rate): our resting hour (1 = 2 100
+     * kcal a day) is a sedentary day's average (PAL 1.53, sleep and an office day of sitting, PAR 1.5, in it), so an hour's food = its
+     * PAR / 1.53. "light" = the base's work without heavy carrying (Marek 11-28: *"tiny increase"*): between sitting work (1.5: no
+     * increase) and standing with light loads (2.2: 1.44), 1.2 [EXAMPLE]: an 8-hour workday +7 %; "work" = hard labour (non-mechanized
+     * farm work 4.1, carrying water or wood 4.4: 2.8; 8 hours = 1.6 × a resting day, FAO's limit of what can be kept up) and the hour
+     * a fight ends in; "walk" = travel on foot by {@link #walkFood} (2.1 when its speed is unknown: FAO's walking without a load, 3.2).
+     */
+    public static final Map<String, Double> ACT_FOOD = Map.of("rest", 1.0, "light", 1.2, "walk", 2.1, "work", 2.8);
+    public static final Map<String, Integer> ACT_SHIFT = Map.of("rest", 0, "light", 2, "walk", 8, "work", 15);
+    /** Pandolf et al. 1977's load carriage, M (W) = 1.5 W + 2 (W + L)(L / W)² + η (W + L)(1.5 V² + 0.35 V G), on the level: an adult body
+     *  [EXAMPLE 70 kg], the terrain factor η [EXAMPLE 1.2, light brush: 1.0 a road, 1.1 a dirt road, 1.5 heavy brush, 1.8 a bog, 2.1 sand,
+     *  2.5-4.1 soft snow, until the map's terrain feeds it], our resting hour in watts (2 100 kcal a day). */
+    public static final double BODY_KG = 70, TERRAIN = 1.2, REST_W = 2100 * 4184 / 86400.0;
+
+    /** An hour of travel on foot in food points (Pandolf; it underpredicts heavy loads and high speeds): unloaded at 4.5 km/h ~3, a
+     *  30 kg pack at 5.4 km/h (a march) ~5.4. */
+    public static double walkFood(double bodyKg, double loadKg, double kmh, double terrain) {
+        double w = bodyKg, l = Math.max(0, loadKg), v = Math.max(0, kmh) / 3.6;
+        double m = 1.5 * w + 2.0 * (w + l) * (l / w) * (l / w) + terrain * (w + l) * 1.5 * v * v;
+        return m / REST_W;
+    }
     /** 04 §3.1 (fitted to Tikuisis 1995 and the military's water guidance): heat or cold points a degree-hour outside the interval;
      *  sweating's share of the heat an hour (costing as much water); shivering's share of the cold, up to its ceiling; a dehydrated
      *  body sweats less (by the Dehydration stage). */
